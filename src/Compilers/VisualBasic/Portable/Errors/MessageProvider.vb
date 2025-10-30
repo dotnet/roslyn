@@ -479,6 +479,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_MethodImplAttributeAsyncCannotBeUsed As Integer
+            Get
+                Return ERRID.ERR_MethodImplAttributeAsyncCannotBeUsed
+            End Get
+        End Property
+
         Protected Overrides Sub ReportInvalidAttributeArgument(diagnostics As DiagnosticBag, attributeSyntax As SyntaxNode, parameterIndex As Integer, attribute As AttributeData)
             Dim node = DirectCast(attributeSyntax, AttributeSyntax)
             diagnostics.Add(ERRID.ERR_BadAttribute1, node.ArgumentList.Arguments(parameterIndex).GetLocation(), attribute.AttributeClass)
@@ -558,6 +564,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_TooManyUserStrings_RestartRequired As Integer
+            Get
+                Return ERRID.ERR_TooManyUserStrings_RestartRequired
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ERR_PeWritingFailure As Integer
             Get
                 Return ERRID.ERR_PeWritingFailure
@@ -570,9 +582,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ERR_EncUpdateFailedMissingAttribute As Integer
+        Public Overrides ReadOnly Property ERR_EncUpdateFailedMissingSymbol As Integer
             Get
-                Return ERRID.ERR_EncUpdateFailedMissingAttribute
+                Return ERRID.ERR_EncUpdateFailedMissingSymbol
             End Get
         End Property
 
@@ -591,6 +603,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_FunctionPointerTypesInAttributeNotSupported As Integer
             Get
                 Return ERRID.ERR_TooLongOrComplexExpression
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_DataSectionStringLiteralHashCollision As Integer
+            Get
+                Throw ExceptionUtilities.Unreachable
             End Get
         End Property
 

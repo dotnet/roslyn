@@ -6,7 +6,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
@@ -20,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 [TagType(typeof(HighlightTag))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [ContentType(ContentTypeNames.XamlContentType)]
-internal class PreviewTaggerProvider : IViewTaggerProvider
+internal sealed class PreviewTaggerProvider : IViewTaggerProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

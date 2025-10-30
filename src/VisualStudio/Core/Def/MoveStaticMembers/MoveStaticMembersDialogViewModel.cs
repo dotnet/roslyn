@@ -14,11 +14,12 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers;
 
-internal class MoveStaticMembersDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed class MoveStaticMembersDialogViewModel : AbstractNotifyPropertyChanged
 {
     public StaticMemberSelectionViewModel MemberSelectionViewModel { get; }
 
     private readonly ISyntaxFacts _syntaxFacts;
+    private readonly string _prependedNamespace;
 
     public MoveStaticMembersDialogViewModel(
         StaticMemberSelectionViewModel memberSelectionViewModel,
@@ -30,12 +31,31 @@ internal class MoveStaticMembersDialogViewModel : AbstractNotifyPropertyChanged
         MemberSelectionViewModel = memberSelectionViewModel;
         _syntaxFacts = syntaxFacts ?? throw new ArgumentNullException(nameof(syntaxFacts));
         _searchText = defaultType;
-        _destinationName = new TypeNameItem(defaultType);
+        _prependedNamespace = string.IsNullOrEmpty(prependedNamespace) ? prependedNamespace : prependedNamespace + ".";
+
+        _destinationName = new TypeNameItem(_prependedNamespace + defaultType);
         AvailableTypes = availableTypes;
-        PrependedNamespace = string.IsNullOrEmpty(prependedNamespace) ? prependedNamespace : prependedNamespace + ".";
 
         PropertyChanged += MoveMembersToTypeDialogViewModel_PropertyChanged;
         OnDestinationUpdated();
+    }
+
+    public string TypeName_NamespaceOnly
+    {
+        get
+        {
+            var lastDot = _destinationName.FullyQualifiedTypeName.LastIndexOf('.');
+            return lastDot >= 0 ? _destinationName.FullyQualifiedTypeName[0..(lastDot + 1)] : "";
+        }
+    }
+
+    public string TypeName_NameOnly
+    {
+        get
+        {
+            var lastDot = _destinationName.FullyQualifiedTypeName.LastIndexOf('.');
+            return lastDot >= 0 ? _destinationName.FullyQualifiedTypeName[(lastDot + 1)..] : _destinationName.FullyQualifiedTypeName;
+        }
     }
 
     private void MoveMembersToTypeDialogViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -54,14 +74,18 @@ internal class MoveStaticMembersDialogViewModel : AbstractNotifyPropertyChanged
 
     private void OnSearchTextUpdated()
     {
-        var foundItem = AvailableTypes.FirstOrDefault(t => t.TypeName == SearchText);
+        var foundItem = AvailableTypes.FirstOrDefault(t => t.FullyQualifiedTypeName == SearchText);
         if (foundItem is null)
         {
-            DestinationName = new(PrependedNamespace + SearchText);
-            return;
+            DestinationName = new(_prependedNamespace + SearchText);
+        }
+        else
+        {
+            DestinationName = foundItem;
         }
 
-        DestinationName = foundItem;
+        NotifyPropertyChanged(nameof(TypeName_NameOnly));
+        NotifyPropertyChanged(nameof(TypeName_NamespaceOnly));
     }
 
     public void OnDestinationUpdated()
@@ -73,7 +97,7 @@ internal class MoveStaticMembersDialogViewModel : AbstractNotifyPropertyChanged
             return;
         }
 
-        CanSubmit = IsValidType(_destinationName.TypeName);
+        CanSubmit = IsValidType(_destinationName.FullyQualifiedTypeName);
 
         if (CanSubmit)
         {
@@ -92,24 +116,17 @@ internal class MoveStaticMembersDialogViewModel : AbstractNotifyPropertyChanged
     private bool IsValidType(string typeName)
     {
         if (string.IsNullOrEmpty(typeName))
-        {
             return false;
-        }
 
         foreach (var identifier in typeName.Split('.'))
         {
-            if (_syntaxFacts.IsValidIdentifier(identifier))
-            {
-                continue;
-            }
-
-            return false;
+            if (!_syntaxFacts.IsValidIdentifier(identifier))
+                return false;
         }
 
         return true;
     }
 
-    public string PrependedNamespace { get; }
     public ImmutableArray<TypeNameItem> AvailableTypes { get; }
 
     private TypeNameItem _destinationName;
@@ -125,27 +142,21 @@ internal class MoveStaticMembersDialogViewModel : AbstractNotifyPropertyChanged
         get => _icon;
         private set => SetProperty(ref _icon, value);
     }
-
-    private string? _message;
     public string? Message
     {
-        get => _message;
-        private set => SetProperty(ref _message, value);
+        get;
+        private set => SetProperty(ref field, value);
     }
-
-    private bool _showMessage = false;
     public bool ShowMessage
     {
-        get => _showMessage;
-        private set => SetProperty(ref _showMessage, value);
-    }
-
-    private bool _canSubmit = true;
+        get;
+        private set => SetProperty(ref field, value);
+    } = false;
     public bool CanSubmit
     {
-        get => _canSubmit;
-        set => SetProperty(ref _canSubmit, value);
-    }
+        get;
+        set => SetProperty(ref field, value);
+    } = true;
 
     private string _searchText;
     public string SearchText

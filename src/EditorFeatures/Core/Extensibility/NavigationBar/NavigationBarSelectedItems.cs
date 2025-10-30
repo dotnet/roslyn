@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Editor;
 
-internal class NavigationBarSelectedTypeAndMember(
+internal sealed class NavigationBarSelectedTypeAndMember(
     NavigationBarItem? typeItem,
     bool showTypeItemGrayed,
     NavigationBarItem? memberItem,

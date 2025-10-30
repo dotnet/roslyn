@@ -9,6 +9,7 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsShipping>false</IsShipping>
+    <ExcludeFromDotNetBuild Condition="'$(DotNetBuildTests)' != 'true'">true</ExcludeFromDotNetBuild>
 
     <!-- Explicit AnyCPU so it runs as AnyCPU even on Debug builds -->
     <PlatformTarget>AnyCPU</PlatformTarget>

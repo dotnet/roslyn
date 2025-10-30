@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Extensibility;
 using Microsoft.VisualStudio.Extensibility.Commands;
 using Microsoft.VisualStudio.Extensibility.VSSdkCompatibility;
-using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 
@@ -18,13 +15,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 /// Implements View/Other Windows/C# Interactive command.
 /// </summary>
 [VisualStudioContribution]
-internal class OpenInteractiveWindowCommand(
+internal sealed class OpenInteractiveWindowCommand(
     MefInjection<IThreadingContext> mefThreadingContext,
     MefInjection<CSharpVsInteractiveWindowProvider> mefInteractiveWindowProvider) : Command
 {
     public override CommandConfiguration CommandConfiguration => new("%CSharpLanguageServiceExtension.OpenInteractiveWindow.DisplayName%")
     {
-        Placements = new[] { CommandPlacement.KnownPlacements.ViewOtherWindowsMenu.WithPriority(0x8000) },
+        Placements = [CommandPlacement.KnownPlacements.ViewOtherWindowsMenu.WithPriority(0x8000)],
         // TODO: Shortcuts https://github.com/dotnet/roslyn/issues/3941
     };
 

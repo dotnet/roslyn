@@ -73,7 +73,14 @@ internal sealed class JsonLanguageDetector(
             return result;
 
         if (includeProbableStrings && IsProbablyJson(token, out var tree))
-            return tree;
+        {
+            // We have a string that looks like json.  Treat it as such *unless* we see that it was *explicitly* marked
+            // as belonging to some other language.  This allows us to light up on strings that are very likely to be
+            // json while not misclassifying strings that are actually meant to be something else.
+            var languageIdentifier = this.Detector.TryGetEmbeddedLanguageTokenIdentifier(token, semanticModel, cancellationToken);
+            if (languageIdentifier is null || this.Detector.IsEmbeddedLanguageIdentifier(languageIdentifier))
+                return tree;
+        }
 
         return null;
     }

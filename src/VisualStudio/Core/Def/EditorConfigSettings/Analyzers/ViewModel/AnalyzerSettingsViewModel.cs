@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
 
-internal partial class AnalyzerSettingsViewModel : SettingsViewModelBase<
+internal sealed partial class AnalyzerSettingsViewModel : SettingsViewModelBase<
     AnalyzerSetting,
     AnalyzerSettingsViewModel.SettingsSnapshotFactory,
     AnalyzerSettingsViewModel.SettingsEntriesSnapshot>
@@ -41,13 +41,12 @@ internal partial class AnalyzerSettingsViewModel : SettingsViewModelBase<
         };
 
     protected override string[] GetFixedColumns()
-        => new[]
-        {
+        => [
             ColumnDefinitions.Analyzer.Category,
             ColumnDefinitions.Analyzer.Id,
             ColumnDefinitions.Analyzer.Title,
             ColumnDefinitions.Analyzer.Description,
             ColumnDefinitions.Analyzer.Severity,
             ColumnDefinitions.Analyzer.Location,
-        };
+        ];
 }

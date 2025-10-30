@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
 
-internal partial class CodeStyleSettingsViewModel : SettingsViewModelBase<
+internal sealed partial class CodeStyleSettingsViewModel : SettingsViewModelBase<
     CodeStyleSetting,
     CodeStyleSettingsViewModel.SettingsSnapshotFactory,
     CodeStyleSettingsViewModel.SettingsEntriesSnapshot>
@@ -39,12 +39,11 @@ internal partial class CodeStyleSettingsViewModel : SettingsViewModelBase<
         };
 
     protected override string[] GetFixedColumns()
-        => new[]
-        {
+        => [
             ColumnDefinitions.CodeStyle.Category,
             ColumnDefinitions.CodeStyle.Description,
             ColumnDefinitions.CodeStyle.Value,
             ColumnDefinitions.CodeStyle.Severity,
             ColumnDefinitions.CodeStyle.Location
-        };
+        ];
 }

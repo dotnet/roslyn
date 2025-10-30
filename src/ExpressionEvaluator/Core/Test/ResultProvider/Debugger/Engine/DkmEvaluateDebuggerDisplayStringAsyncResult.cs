@@ -14,8 +14,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {
     public readonly struct DkmEvaluateDebuggerDisplayStringAsyncResult
     {
-        private readonly string _result;
-
         public DkmEvaluateDebuggerDisplayStringAsyncResult(string result)
         {
             if (result == null)
@@ -23,9 +21,9 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException(nameof(result));
             }
 
-            _result = result;
+            Result = result;
         }
 
-        public string Result { get { return _result; } }
+        public string Result { get; }
     }
 }

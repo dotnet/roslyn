@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Basic.Reference.Assemblies
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1438,7 +1439,7 @@ Module MyExtensionModule
     End Function
 End Module
     </file>
-</compilation>, references:={TestMetadata.Net40.SystemCore}).VerifyIL("C1.Goo", <![CDATA[
+</compilation>, references:={Net40.References.SystemCore}).VerifyIL("C1.Goo", <![CDATA[
 {
   // Code size       12 (0xc)
   .maxstack  1

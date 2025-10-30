@@ -10,9 +10,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Debugging;
 
-internal partial class CSharpProximityExpressionsService
+internal sealed partial class CSharpProximityExpressionsService
 {
-    private class RelevantExpressionsCollector(bool includeDeclarations, IList<string> expressions) : CSharpSyntaxVisitor
+    private sealed class RelevantExpressionsCollector(bool includeDeclarations, IList<string> expressions) : CSharpSyntaxVisitor
     {
         private readonly bool _includeDeclarations = includeDeclarations;
         private readonly IList<string> _expressions = expressions;

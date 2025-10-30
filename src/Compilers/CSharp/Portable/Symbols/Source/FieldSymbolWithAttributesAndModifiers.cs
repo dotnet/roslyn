@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the syntax list of custom attributes applied on the symbol.
         /// </summary>
-        protected abstract SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList { get; }
+        protected abstract OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations();
 
         protected abstract IAttributeTargetSymbol AttributeOwner { get; }
 
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return bag;
             }
 
-            if (LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
+            if (LoadAndValidateAttributes(this.GetAttributeDeclarations(), ref _lazyCustomAttributesBag))
             {
                 var completed = state.NotePartComplete(CompletionPart.Attributes);
                 Debug.Assert(completed);
@@ -211,7 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 | ReservedAttributes.TupleElementNamesAttribute
                 | ReservedAttributes.NullableAttribute
                 | ReservedAttributes.NativeIntegerAttribute
-                | ReservedAttributes.RequiredMemberAttribute))
+                | ReservedAttributes.RequiredMemberAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.DateTimeConstantAttribute))
@@ -385,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

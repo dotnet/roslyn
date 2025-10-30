@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-internal partial class UnnamedSymbolCompletionProvider
+internal sealed partial class UnnamedSymbolCompletionProvider
 {
     [Flags]
     private enum OperatorPosition
@@ -33,7 +33,7 @@ internal partial class UnnamedSymbolCompletionProvider
 
     private readonly string OperatorName = nameof(OperatorName);
     private readonly ImmutableArray<KeyValuePair<string, string>> OperatorProperties =
-        [new KeyValuePair<string, string>(KindName, OperatorKindName)];
+        [KeyValuePair.Create(KindName, OperatorKindName)];
 
     /// <summary>
     /// Ordered in the order we want to display operators in the completion list.
@@ -110,10 +110,10 @@ internal partial class UnnamedSymbolCompletionProvider
             inlineDescription: GetOperatorInlineDescription(opName),
             filterText: displayText,
             sortText: SortText(OperatorSortingGroupIndex, $"{sortOrderAndPosition.sortOrder:000}"),
-            symbols: operators.ToImmutableArray(),
+            symbols: [.. operators],
             rules: s_operatorRules,
             contextPosition: context.Position,
-            properties: [.. OperatorProperties, new KeyValuePair<string, string>(OperatorName, opName)],
+            properties: [.. OperatorProperties, KeyValuePair.Create(OperatorName, opName)],
             isComplexTextEdit: true));
     }
 

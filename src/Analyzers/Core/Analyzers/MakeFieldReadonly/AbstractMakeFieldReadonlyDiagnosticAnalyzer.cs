@@ -14,31 +14,25 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MakeFieldReadonly;
 
-internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<
-    TSyntaxKind, TThisExpression>
-    : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TSyntaxKind, TThisExpression>()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId,
+        EnforceOnBuildValues.MakeFieldReadonly,
+        CodeStyleOptions2.PreferReadonly,
+        new LocalizableResourceString(nameof(AnalyzersResources.Add_readonly_modifier), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Make_field_readonly), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     where TSyntaxKind : struct, Enum
     where TThisExpression : SyntaxNode
 {
-    protected AbstractMakeFieldReadonlyDiagnosticAnalyzer()
-        : base(
-            IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId,
-            EnforceOnBuildValues.MakeFieldReadonly,
-            CodeStyleOptions2.PreferReadonly,
-            new LocalizableResourceString(nameof(AnalyzersResources.Add_readonly_modifier), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-            new LocalizableResourceString(nameof(AnalyzersResources.Make_field_readonly), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
-    {
-    }
-
     protected abstract ISyntaxKinds SyntaxKinds { get; }
-    protected abstract bool IsWrittenTo(SemanticModel semanticModel, TThisExpression expression, CancellationToken cancellationToken);
+    protected abstract ISemanticFacts SemanticFacts { get; }
 
-    public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+    public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
     // We need to analyze generated code to get callbacks for read/writes to non-generated members in generated code.
-    protected override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze;
+    protected sealed override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze;
 
-    protected override void InitializeWorker(AnalysisContext context)
+    protected sealed override void InitializeWorker(AnalysisContext context)
     {
         context.RegisterCompilationStartAction(context =>
         {
@@ -47,9 +41,11 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<
             //  'written'     : Indicates if there are any writes to the field outside the constructor and field initializer.
             var fieldStateMap = new ConcurrentDictionary<IFieldSymbol, (bool isCandidate, bool written)>();
 
-            var threadStaticAttribute = context.Compilation.ThreadStaticAttributeType();
-            var dataContractAttribute = context.Compilation.DataContractAttribute();
-            var dataMemberAttribute = context.Compilation.DataMemberAttribute();
+            var compilation = context.Compilation;
+            var threadStaticAttribute = compilation.ThreadStaticAttributeType();
+            var dataContractAttribute = compilation.DataContractAttribute();
+            var dataMemberAttribute = compilation.DataMemberAttribute();
+            var inlineArrayAttribute = compilation.InlineArrayAttributeType();
 
             // We register following actions in the compilation:
             // 1. A symbol action for field symbols to ensure the field state is initialized for every field in
@@ -72,7 +68,7 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<
                 var writesToThis = false;
                 context.RegisterSyntaxNodeAction(context =>
                 {
-                    writesToThis = writesToThis || IsWrittenTo(context.SemanticModel, (TThisExpression)context.Node, context.CancellationToken);
+                    writesToThis = writesToThis || this.SemanticFacts.IsWrittenTo(context.SemanticModel, context.Node, context.CancellationToken);
                 }, SyntaxKinds.Convert<TSyntaxKind>(SyntaxKinds.ThisExpression));
 
                 context.RegisterSymbolEndAction(context =>
@@ -109,7 +105,10 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<
                 if (!IsFieldWrite(fieldReference, operationContext.ContainingSymbol))
                     return;
 
-                UpdateFieldStateOnWrite(fieldReference.Field);
+                var field = fieldReference.Field;
+                Debug.Assert(fieldStateMap.ContainsKey(field.OriginalDefinition));
+
+                fieldStateMap[field.OriginalDefinition] = (isCandidate: true, written: true);
             }
 
             void OnSymbolEnd(SymbolAnalysisContext symbolEndContext)
@@ -142,10 +141,10 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<
                 // Check if we have at least one candidate field in analysis scope.
                 foreach (var member in namedType.GetMembers())
                 {
-                    if (member is IFieldSymbol field
-                        && IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute)
-                        && GetDiagnosticLocation(field) is { } location
-                        && context.ShouldAnalyzeLocation(location))
+                    if (member is IFieldSymbol field &&
+                        IsCandidateField(field) &&
+                        GetDiagnosticLocation(field) is { } location &&
+                        context.ShouldAnalyzeLocation(location))
                     {
                         return true;
                     }
@@ -158,8 +157,9 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<
                 return false;
             }
 
-            static bool IsCandidateField(IFieldSymbol symbol, INamedTypeSymbol? threadStaticAttribute, INamedTypeSymbol? dataContractAttribute, INamedTypeSymbol? dataMemberAttribute)
-                    => symbol is
+            bool IsCandidateField(IFieldSymbol symbol)
+            {
+                if (symbol is not
                     {
                         DeclaredAccessibility: Accessibility.Private,
                         IsReadOnly: false,
@@ -167,45 +167,46 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<
                         IsImplicitlyDeclared: false,
                         Locations.Length: 1,
                         IsFixedSizeBuffer: false,
-                    } &&
-                    symbol.Type.IsMutableValueType() == false &&
-                    !symbol.GetAttributes().Any(
-                       static (a, threadStaticAttribute) => SymbolEqualityComparer.Default.Equals(a.AttributeClass, threadStaticAttribute),
-                       threadStaticAttribute) &&
-                    !IsDataContractSerializable(symbol, dataContractAttribute, dataMemberAttribute);
+                    })
+                {
+                    return false;
+                }
+
+                if (symbol.Type.IsMutableValueType() != false)
+                    return false;
+
+                if (symbol.HasAttribute(threadStaticAttribute))
+                    return false;
+
+                if (IsDataContractSerializable(symbol, dataContractAttribute, dataMemberAttribute))
+                    return false;
+
+                // The private instance field inside an inline-array is not allowed to be readonly.
+                if (!symbol.IsStatic && symbol.ContainingType.HasAttribute(inlineArrayAttribute))
+                    return false;
+
+                return true;
+            }
 
             static bool IsDataContractSerializable(IFieldSymbol symbol, INamedTypeSymbol? dataContractAttribute, INamedTypeSymbol? dataMemberAttribute)
             {
                 if (dataContractAttribute is null || dataMemberAttribute is null)
                     return false;
 
-                return symbol.GetAttributes().Any(static (x, dataMemberAttribute) => SymbolEqualityComparer.Default.Equals(x.AttributeClass, dataMemberAttribute), dataMemberAttribute)
-                    && symbol.ContainingType.GetAttributes().Any(static (x, dataContractAttribute) => SymbolEqualityComparer.Default.Equals(x.AttributeClass, dataContractAttribute), dataContractAttribute);
-            }
-
-            // Method to update the field state for a candidate field written outside constructor and field initializer.
-            void UpdateFieldStateOnWrite(IFieldSymbol field)
-            {
-                Debug.Assert(IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute));
-                Debug.Assert(fieldStateMap.ContainsKey(field.OriginalDefinition));
-
-                fieldStateMap[field.OriginalDefinition] = (isCandidate: true, written: true);
+                return symbol.HasAttribute(dataMemberAttribute)
+                    && symbol.ContainingType.HasAttribute(dataContractAttribute);
             }
 
             // Method to get or initialize the field state.
             (bool isCandidate, bool written) TryGetOrInitializeFieldState(IFieldSymbol fieldSymbol, AnalyzerOptions options, CancellationToken cancellationToken)
             {
-                if (!IsCandidateField(fieldSymbol, threadStaticAttribute, dataContractAttribute, dataMemberAttribute))
-                {
+                if (!IsCandidateField(fieldSymbol))
                     return default;
-                }
 
                 if (fieldStateMap.TryGetValue(fieldSymbol.OriginalDefinition, out var result))
-                {
                     return result;
-                }
 
-                result = ComputeInitialFieldState(fieldSymbol, options, threadStaticAttribute, dataContractAttribute, dataMemberAttribute, cancellationToken);
+                result = ComputeInitialFieldState(fieldSymbol, options, cancellationToken);
                 return fieldStateMap.GetOrAdd(fieldSymbol.OriginalDefinition, result);
             }
 
@@ -213,17 +214,14 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<
             (bool isCandidate, bool written) ComputeInitialFieldState(
                 IFieldSymbol field,
                 AnalyzerOptions options,
-                INamedTypeSymbol? threadStaticAttribute,
-                INamedTypeSymbol? dataContractAttribute,
-                INamedTypeSymbol? dataMemberAttribute,
                 CancellationToken cancellationToken)
             {
-                Debug.Assert(IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute));
+                Debug.Assert(IsCandidateField(field));
 
                 var option = GetCodeStyleOption(field, options, out var location);
                 if (option == null
                     || !option.Value
-                    || ShouldSkipAnalysis(location.SourceTree!, options, context.Compilation.Options, option.Notification, cancellationToken))
+                    || ShouldSkipAnalysis(location.SourceTree!, options, compilation.Options, option.Notification, cancellationToken))
                 {
                     return default;
                 }
@@ -236,11 +234,26 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<
     private static Location GetDiagnosticLocation(IFieldSymbol field)
         => field.Locations[0];
 
+    private static bool IsWrittenTo(IOperation? operation, ISymbol owningSymbol)
+    {
+        if (operation is null)
+            return false;
+
+        var result = operation.GetValueUsageInfo(owningSymbol);
+        if (result.IsWrittenTo())
+            return true;
+
+        // Accessing an indexer/property off of a value type will read/write the value type depending on how the
+        // indexer/property itself is used.
+        return operation is { Type.IsValueType: true, Parent: IPropertyReferenceOperation }
+            ? IsWrittenTo(operation.Parent, owningSymbol)
+            : false;
+    }
+
     private static bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
     {
         // Check if the underlying member is being written or a writable reference to the member is taken.
-        var valueUsageInfo = fieldReference.GetValueUsageInfo(owningSymbol);
-        if (!valueUsageInfo.IsWrittenTo())
+        if (!IsWrittenTo(fieldReference, owningSymbol))
             return false;
 
         // Writes to fields inside constructor are ignored, except for the below cases:

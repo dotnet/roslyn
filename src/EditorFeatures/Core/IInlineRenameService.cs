@@ -4,7 +4,6 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Rename;
 
 namespace Microsoft.CodeAnalysis.Editor;
 

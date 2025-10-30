@@ -5,7 +5,7 @@
 Imports VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixVerifier(
     Of Microsoft.CodeAnalysis.CodeStyle.VisualBasicFormattingAnalyzer,
     Microsoft.CodeAnalysis.CodeStyle.VisualBasicFormattingCodeFixProvider,
-    Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier)
+    Microsoft.CodeAnalysis.Testing.DefaultVerifier)
 
 Namespace Microsoft.CodeAnalysis.CodeStyle
     Public Class FormattingAnalyzerTests

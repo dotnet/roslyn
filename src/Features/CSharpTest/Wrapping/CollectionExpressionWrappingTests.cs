@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Wrapping;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -12,12 +10,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-public class CollectionExpressionWrappingTests : AbstractWrappingTests
+public sealed class CollectionExpressionWrappingTests : AbstractWrappingTests
 {
     [Fact]
-    public async Task TestNoWrappingSuggestions()
-    {
-        await TestMissingAsync(
+    public Task TestNoWrappingSuggestions()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -25,12 +22,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59624")]
-    public async Task TestNoWrappingSuggestions_TrailingComma()
-    {
-        await TestMissingAsync(
+    public Task TestNoWrappingSuggestions_TrailingComma()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -38,12 +33,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWrappingShortInitializerExpression()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestWrappingShortInitializerExpression()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -72,12 +65,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSpreads1()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestSpreads1()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -107,12 +98,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSpreads2()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestSpreads2()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -142,12 +131,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59624")]
-    public async Task TestWrappingShortInitializerExpression_TrailingComma1()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestWrappingShortInitializerExpression_TrailingComma1()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -176,12 +163,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWrappingLongInitializerExpression()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestWrappingLongInitializerExpression()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -217,12 +202,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                  }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWrappingMultiLineLongInitializerExpression()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestWrappingMultiLineLongInitializerExpression()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -278,12 +261,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                  }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestShortInitializerExpressionRefactorings()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestShortInitializerExpressionRefactorings()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -312,12 +293,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLongInitializerExpressionRefactorings()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestLongInitializerExpressionRefactorings()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -353,12 +332,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                  }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestObjectWrappingInitializerExpression()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestObjectWrappingInitializerExpression()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -388,12 +365,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                  }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWrappedObjectInitializerExpression()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestWrappedObjectInitializerExpression()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -423,12 +398,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                  }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReturnInitializerExpression()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestReturnInitializerExpression()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -465,12 +438,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                  }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWrappedReturnInitializerExpression()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestWrappedReturnInitializerExpression()
+        => TestAllWrappingCasesAsync(
             """
             class C {
                 void Bar() {
@@ -507,12 +478,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                  }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestClassPropertyInitializerExpressionRefactorings()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestClassPropertyInitializerExpressionRefactorings()
+        => TestAllWrappingCasesAsync(
             """
             public class C {
                 public List<int> B => [||][0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -543,12 +512,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 ];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWrappedClassPropertyInitializerExpressionRefactorings()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestWrappedClassPropertyInitializerExpressionRefactorings()
+        => TestAllWrappingCasesAsync(
             """
             public class C {
                 public List<int> B =>
@@ -579,12 +546,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 ];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestArgumentInitializerExpressionRefactorings()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestArgumentInitializerExpressionRefactorings()
+        => TestAllWrappingCasesAsync(
             """
             public void F() {
                 var result = fakefunction([||][0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -615,12 +580,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 ]);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWrappedArgumentInitializerExpressionRefactorings()
-    {
-        await TestAllWrappingCasesAsync(
+    public Task TestWrappedArgumentInitializerExpressionRefactorings()
+        => TestAllWrappingCasesAsync(
             """
             public void F() {
                 var result = fakefunction(
@@ -651,12 +614,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 ]);
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
-    public async Task TestMissingStartToken()
-    {
-        await TestMissingAsync(
+    public Task TestMissingStartToken()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -664,12 +625,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
-    public async Task TestMissingEndToken1()
-    {
-        await TestMissingAsync(
+    public Task TestMissingEndToken1()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -678,12 +637,10 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
-    public async Task TestMissingEndToken2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingEndToken2()
+        => TestMissingAsync(
             """
             class C {
                 void Bar() {
@@ -691,5 +648,4 @@ public class CollectionExpressionWrappingTests : AbstractWrappingTests
                 }
             }
             """);
-    }
 }

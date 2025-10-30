@@ -19,14 +19,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AssignOutParametersAboveReturn), Shared]
-internal class AssignOutParametersAboveReturnCodeFixProvider : AbstractAssignOutParametersCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class AssignOutParametersAboveReturnCodeFixProvider() : AbstractAssignOutParametersCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public AssignOutParametersAboveReturnCodeFixProvider()
-    {
-    }
-
     protected override void TryRegisterFix(CodeFixContext context, Document document, SyntaxNode container, SyntaxNode location)
     {
         RegisterCodeFix(context, CSharpCodeFixesResources.Assign_out_parameters, nameof(CSharpCodeFixesResources.Assign_out_parameters));

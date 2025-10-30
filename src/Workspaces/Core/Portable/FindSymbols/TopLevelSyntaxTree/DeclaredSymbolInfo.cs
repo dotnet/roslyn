@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -31,6 +31,7 @@ internal enum DeclaredSymbolInfoKind : byte
     Method,
     Module,
     Namespace,
+    Operator,
     Property,
     Record,
     RecordStruct,

@@ -13,8 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;
 [ExportWorkspaceService(typeof(IDocumentTextDifferencingService), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService) : IDocumentTextDifferencingService
+internal sealed class EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService) : IDocumentTextDifferencingService
 {
     private readonly ITextDifferencingSelectorService _differenceSelectorService = differenceSelectorService;
 
@@ -39,18 +37,12 @@ internal class EditorTextDifferencingService(ITextDifferencingSelectorService di
 
         var differenceOptions = GetDifferenceOptions(preferredDifferenceType);
 
-        var oldTextSnapshot = oldText.FindCorrespondingEditorTextSnapshot();
-        var newTextSnapshot = newText.FindCorrespondingEditorTextSnapshot();
-        var useSnapshots = oldTextSnapshot != null && newTextSnapshot != null;
+        var diffResult = diffService.DiffSourceTexts(oldText, newText, differenceOptions);
 
-        var diffResult = useSnapshots
-            ? diffService.DiffSnapshotSpans(oldTextSnapshot.GetFullSpan(), newTextSnapshot.GetFullSpan(), differenceOptions)
-            : diffService.DiffStrings(oldText.ToString(), newText.ToString(), differenceOptions);
-
-        return diffResult.Differences.Select(d =>
+        return [.. diffResult.Differences.Select(d =>
             new TextChange(
                 diffResult.LeftDecomposition.GetSpanInOriginal(d.Left).ToTextSpan(),
-                newText.GetSubText(diffResult.RightDecomposition.GetSpanInOriginal(d.Right).ToTextSpan()).ToString())).ToImmutableArray();
+                newText.GetSubText(diffResult.RightDecomposition.GetSpanInOriginal(d.Right).ToTextSpan()).ToString()))];
     }
 
     private static StringDifferenceOptions GetDifferenceOptions(TextDifferenceTypes differenceTypes)

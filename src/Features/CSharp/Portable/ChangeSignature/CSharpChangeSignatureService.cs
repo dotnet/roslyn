@@ -30,6 +30,8 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature;
 
+using static CSharpSyntaxTokens;
+
 [ExportLanguageService(typeof(AbstractChangeSignatureService), LanguageNames.CSharp), Shared]
 internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureService
 {
@@ -52,8 +54,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
     ];
 
     private static readonly ImmutableArray<SyntaxKind> _declarationAndInvocableKinds =
-        _declarationKinds.Concat(
-        [
+        [.. _declarationKinds,
             SyntaxKind.InvocationExpression,
             SyntaxKind.ElementAccessExpression,
             SyntaxKind.ThisConstructorInitializer,
@@ -61,8 +62,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             SyntaxKind.ObjectCreationExpression,
             SyntaxKind.ImplicitObjectCreationExpression,
             SyntaxKind.Attribute,
-            SyntaxKind.NameMemberCref,
-        ]);
+            SyntaxKind.NameMemberCref];
 
     private static readonly ImmutableArray<SyntaxKind> _updatableAncestorKinds =
     [
@@ -78,6 +78,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
         SyntaxKind.SimpleLambdaExpression,
         SyntaxKind.ParenthesizedLambdaExpression,
         SyntaxKind.NameMemberCref,
+        SyntaxKind.PrimaryConstructorBaseType,
     ];
 
     private static readonly ImmutableArray<SyntaxKind> _updatableNodeKinds =
@@ -102,6 +103,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.ClassDeclaration,
+        SyntaxKind.PrimaryConstructorBaseType,
     ];
 
     [ImportingConstructor]
@@ -270,6 +272,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             case SyntaxKind.ObjectCreationExpression:
                 return ((ObjectCreationExpressionSyntax)matchingNode).Type;
 
+            case SyntaxKind.PrimaryConstructorBaseType:
             case SyntaxKind.ConstructorDeclaration:
             case SyntaxKind.IndexerDeclaration:
             case SyntaxKind.ThisConstructorInitializer:
@@ -284,13 +287,13 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
         }
     }
 
-    public override async Task<SyntaxNode> ChangeSignatureAsync(
-        Document document,
+    public override SyntaxNode ChangeSignature(
+        SemanticDocument document,
         ISymbol declarationSymbol,
         SyntaxNode potentiallyUpdatedNode,
         SyntaxNode originalNode,
         SignatureChange signaturePermutation,
-        LineFormattingOptionsProvider fallbackOptions,
+        LineFormattingOptions lineFormattingOptions,
         CancellationToken cancellationToken)
     {
         var updatedNode = potentiallyUpdatedNode as CSharpSyntaxNode;
@@ -306,7 +309,8 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
                 or SyntaxKind.StructDeclaration
                 or SyntaxKind.ClassDeclaration)
         {
-            var updatedLeadingTrivia = await UpdateParamTagsInLeadingTriviaAsync(document, updatedNode, declarationSymbol, signaturePermutation, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var updatedLeadingTrivia = UpdateParamTagsInLeadingTrivia(
+                document.Document, updatedNode, declarationSymbol, signaturePermutation, lineFormattingOptions);
             if (updatedLeadingTrivia != default && !updatedLeadingTrivia.IsEmpty)
             {
                 updatedNode = updatedNode.WithLeadingTrivia(updatedLeadingTrivia);
@@ -317,37 +321,37 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
         if (updatedNode is MethodDeclarationSyntax method)
         {
             var updatedParameters = UpdateDeclaration(method.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
-            return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+            return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation));
         }
 
         if (updatedNode is TypeDeclarationSyntax { ParameterList: not null } typeWithParameters)
         {
             var updatedParameters = UpdateDeclaration(typeWithParameters.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
-            return typeWithParameters.WithParameterList(typeWithParameters.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+            return typeWithParameters.WithParameterList(typeWithParameters.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation));
         }
 
         if (updatedNode is LocalFunctionStatementSyntax localFunction)
         {
             var updatedParameters = UpdateDeclaration(localFunction.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
-            return localFunction.WithParameterList(localFunction.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+            return localFunction.WithParameterList(localFunction.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation));
         }
 
         if (updatedNode is ConstructorDeclarationSyntax constructor)
         {
             var updatedParameters = UpdateDeclaration(constructor.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
-            return constructor.WithParameterList(constructor.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+            return constructor.WithParameterList(constructor.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation));
         }
 
         if (updatedNode is IndexerDeclarationSyntax indexer)
         {
             var updatedParameters = UpdateDeclaration(indexer.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
-            return indexer.WithParameterList(indexer.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+            return indexer.WithParameterList(indexer.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation));
         }
 
         if (updatedNode is DelegateDeclarationSyntax delegateDeclaration)
         {
             var updatedParameters = UpdateDeclaration(delegateDeclaration.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
-            return delegateDeclaration.WithParameterList(delegateDeclaration.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+            return delegateDeclaration.WithParameterList(delegateDeclaration.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation));
         }
 
         if (updatedNode is AnonymousMethodExpressionSyntax anonymousMethod)
@@ -359,7 +363,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             }
 
             var updatedParameters = UpdateDeclaration(anonymousMethod.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
-            return anonymousMethod.WithParameterList(anonymousMethod.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+            return anonymousMethod.WithParameterList(anonymousMethod.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation));
         }
 
         if (updatedNode is SimpleLambdaExpressionSyntax lambda)
@@ -410,7 +414,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             return nameMemberCref.WithParameters(newCrefParameterList);
         }
 
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = document.SemanticModel;
 
         // Update reference site argument lists
         if (updatedNode is InvocationExpressionSyntax invocation)
@@ -418,15 +422,15 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
 
             return invocation.WithArgumentList(
-                await UpdateArgumentListAsync(
+                UpdateArgumentList(
+                    document,
                     declarationSymbol,
                     signaturePermutation,
                     invocation.ArgumentList,
                     symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension },
                     IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken),
-                    document,
                     originalNode.SpanStart,
-                    cancellationToken).ConfigureAwait(false));
+                    cancellationToken));
         }
 
         // Handles both ObjectCreationExpressionSyntax and ImplicitObjectCreationExpressionSyntax
@@ -440,15 +444,15 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             var symbolInfo = semanticModel.GetSymbolInfo((BaseObjectCreationExpressionSyntax)originalNode, cancellationToken);
 
             return objCreation.WithArgumentList(
-                await UpdateArgumentListAsync(
+                UpdateArgumentList(
+                    document,
                     declarationSymbol,
                     signaturePermutation,
                     objCreation.ArgumentList,
                     isReducedExtensionMethod: false,
                     IsParamsArrayExpanded(semanticModel, objCreation, symbolInfo, cancellationToken),
-                    document,
                     originalNode.SpanStart,
-                    cancellationToken).ConfigureAwait(false));
+                    cancellationToken));
         }
 
         if (updatedNode is ConstructorInitializerSyntax constructorInit)
@@ -456,15 +460,15 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             var symbolInfo = semanticModel.GetSymbolInfo((ConstructorInitializerSyntax)originalNode, cancellationToken);
 
             return constructorInit.WithArgumentList(
-                await UpdateArgumentListAsync(
+                UpdateArgumentList(
+                    document,
                     declarationSymbol,
                     signaturePermutation,
                     constructorInit.ArgumentList,
                     isReducedExtensionMethod: false,
                     IsParamsArrayExpanded(semanticModel, constructorInit, symbolInfo, cancellationToken),
-                    document,
                     originalNode.SpanStart,
-                    cancellationToken).ConfigureAwait(false));
+                    cancellationToken));
         }
 
         if (updatedNode is ElementAccessExpressionSyntax elementAccess)
@@ -472,15 +476,15 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             var symbolInfo = semanticModel.GetSymbolInfo((ElementAccessExpressionSyntax)originalNode, cancellationToken);
 
             return elementAccess.WithArgumentList(
-                await UpdateArgumentListAsync(
+                UpdateArgumentList(
+                    document,
                     declarationSymbol,
                     signaturePermutation,
                     elementAccess.ArgumentList,
                     isReducedExtensionMethod: false,
                     IsParamsArrayExpanded(semanticModel, elementAccess, symbolInfo, cancellationToken),
-                    document,
                     originalNode.SpanStart,
-                    cancellationToken).ConfigureAwait(false));
+                    cancellationToken));
         }
 
         if (updatedNode is AttributeSyntax attribute)
@@ -493,28 +497,44 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             }
 
             return attribute.WithArgumentList(
-                await UpdateAttributeArgumentListAsync(
+                UpdateAttributeArgumentList(
+                    document,
                     declarationSymbol,
                     signaturePermutation,
                     attribute.ArgumentList,
                     isReducedExtensionMethod: false,
                     IsParamsArrayExpanded(semanticModel, attribute, symbolInfo, cancellationToken),
-                    document,
                     originalNode.SpanStart,
-                    cancellationToken).ConfigureAwait(false));
+                    cancellationToken));
+        }
+
+        if (updatedNode is PrimaryConstructorBaseTypeSyntax primaryConstructor)
+        {
+            var symbolInfo = semanticModel.GetSymbolInfo((PrimaryConstructorBaseTypeSyntax)originalNode, cancellationToken);
+
+            return primaryConstructor.WithArgumentList(
+                UpdateArgumentList(
+                    document,
+                    declarationSymbol,
+                    signaturePermutation,
+                    primaryConstructor.ArgumentList,
+                    isReducedExtensionMethod: false,
+                    IsParamsArrayExpanded(semanticModel, primaryConstructor, symbolInfo, cancellationToken),
+                    originalNode.SpanStart,
+                    cancellationToken));
         }
 
         Debug.Assert(false, "Unknown reference location");
         return null;
     }
 
-    private async Task<T> UpdateArgumentListAsync<T>(
+    private T UpdateArgumentList<T>(
+        SemanticDocument document,
         ISymbol declarationSymbol,
         SignatureChange signaturePermutation,
         T argumentList,
         bool isReducedExtensionMethod,
         bool isParamsArrayExpanded,
-        Document document,
         int position,
         CancellationToken cancellationToken) where T : BaseArgumentListSyntax
     {
@@ -528,7 +548,8 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
 
         // Adds new arguments into the updated list
         // e.g. P(c, a) ==> P(x, c, a, y)
-        newArguments = await AddNewArgumentsToListAsync(
+        newArguments = AddNewArgumentsToList(
+            document,
             declarationSymbol,
             newArguments,
             argumentList.Arguments,
@@ -536,22 +557,21 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             isReducedExtensionMethod,
             isParamsArrayExpanded,
             generateAttributeArguments: false,
-            document,
             position,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
         return (T)argumentList
             .WithArguments(newArguments)
-            .WithAdditionalAnnotations(changeSignatureFormattingAnnotation);
+            .WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation);
     }
 
-    private async Task<AttributeArgumentListSyntax> UpdateAttributeArgumentListAsync(
+    private AttributeArgumentListSyntax UpdateAttributeArgumentList(
+        SemanticDocument document,
         ISymbol declarationSymbol,
         SignatureChange signaturePermutation,
         AttributeArgumentListSyntax argumentList,
         bool isReducedExtensionMethod,
         bool isParamsArrayExpanded,
-        Document document,
         int position,
         CancellationToken cancellationToken)
     {
@@ -560,7 +580,8 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             argumentList.Arguments,
             signaturePermutation.WithoutAddedParameters());
 
-        newArguments = await AddNewArgumentsToListAsync(
+        newArguments = AddNewArgumentsToList(
+            document,
             declarationSymbol,
             newArguments,
             argumentList.Arguments,
@@ -568,13 +589,12 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             isReducedExtensionMethod,
             isParamsArrayExpanded,
             generateAttributeArguments: true,
-            document,
             position,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
         return argumentList
             .WithArguments(newArguments)
-            .WithAdditionalAnnotations(changeSignatureFormattingAnnotation);
+            .WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation);
     }
 
     private static bool IsParamsArrayExpanded(SemanticModel semanticModel, SyntaxNode node, SymbolInfo symbolInfo, CancellationToken cancellationToken)
@@ -615,6 +635,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
                 BaseObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
                 ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
                 ElementAccessExpressionSyntax elementAccess => elementAccess.ArgumentList,
+                PrimaryConstructorBaseTypeSyntax primaryConstructor => primaryConstructor.ArgumentList,
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
             };
 
@@ -686,7 +707,8 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
         return newArgument;
     }
 
-    private async Task<SeparatedSyntaxList<TArgumentSyntax>> AddNewArgumentsToListAsync<TArgumentSyntax>(
+    private SeparatedSyntaxList<TArgumentSyntax> AddNewArgumentsToList<TArgumentSyntax>(
+        SemanticDocument document,
         ISymbol declarationSymbol,
         SeparatedSyntaxList<TArgumentSyntax> newArguments,
         SeparatedSyntaxList<TArgumentSyntax> originalArguments,
@@ -694,16 +716,13 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
         bool isReducedExtensionMethod,
         bool isParamsArrayExpanded,
         bool generateAttributeArguments,
-        Document document,
         int position,
         CancellationToken cancellationToken)
         where TArgumentSyntax : SyntaxNode
     {
-        var newArgumentList = await AddNewArgumentsToListAsync(
-            declarationSymbol, newArguments,
-            signaturePermutation, isReducedExtensionMethod,
-            isParamsArrayExpanded, generateAttributeArguments,
-            document, position, cancellationToken).ConfigureAwait(false);
+        var newArgumentList = AddNewArgumentsToList(
+            document, declarationSymbol, newArguments, signaturePermutation,
+            isReducedExtensionMethod, isParamsArrayExpanded, generateAttributeArguments, position, cancellationToken);
 
         return SeparatedList(
             TransferLeadingWhitespaceTrivia(newArgumentList, originalArguments),
@@ -715,7 +734,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
         SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
         SignatureChange updatedSignature)
     {
-        var newArguments = PermuteArguments(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToImmutableArray(),
+        var newArguments = PermuteArguments(declarationSymbol, [.. arguments.Select(a => UnifiedArgumentSyntax.Create(a))],
             updatedSignature);
         var numSeparatorsToSkip = arguments.Count - newArguments.Length;
 
@@ -734,7 +753,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
     {
         var newArguments = PermuteArguments(
             declarationSymbol,
-            arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToImmutableArray(),
+            [.. arguments.Select(a => UnifiedArgumentSyntax.Create(a))],
             updatedSignature,
             isReducedExtensionMethod);
 
@@ -761,16 +780,18 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             index++;
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
-    private async ValueTask<ImmutableArray<SyntaxTrivia>> UpdateParamTagsInLeadingTriviaAsync(
-        Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature, LineFormattingOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    private ImmutableArray<SyntaxTrivia> UpdateParamTagsInLeadingTrivia(
+        Document document,
+        CSharpSyntaxNode node,
+        ISymbol declarationSymbol,
+        SignatureChange updatedSignature,
+        LineFormattingOptions lineFormattingOptions)
     {
         if (!node.HasLeadingTrivia)
-        {
             return [];
-        }
 
         var paramNodes = node
             .DescendantNodes(descendIntoTrivia: true)
@@ -779,12 +800,9 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
 
         var permutedParamNodes = VerifyAndPermuteParamNodes(paramNodes, declarationSymbol, updatedSignature);
         if (permutedParamNodes.IsEmpty)
-        {
             return [];
-        }
 
-        var options = await document.GetLineFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-        return GetPermutedDocCommentTrivia(node, permutedParamNodes, document.Project.Services, options);
+        return GetPermutedDocCommentTrivia(node, permutedParamNodes, document.Project.Services, lineFormattingOptions);
     }
 
     private ImmutableArray<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
@@ -886,8 +904,8 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
         return convertedMethodGroups;
     }
 
-    protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-        => Formatter.GetDefaultFormattingRules(document).Concat(new ChangeSignatureFormattingRule());
+    protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
+        => [.. Formatter.GetDefaultFormattingRules(document), new ChangeSignatureFormattingRule()];
 
     protected override TArgumentSyntax AddNameToArgument<TArgumentSyntax>(TArgumentSyntax newArgument, string name)
     {
@@ -916,7 +934,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
     }
 
     protected override SyntaxToken CommaTokenWithElasticSpace()
-        => Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace);
+        => CommaToken.WithTrailingTrivia(ElasticSpace);
 
     protected override bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
         => typeSymbol.TryGetPrimaryConstructor(out primaryConstructor);

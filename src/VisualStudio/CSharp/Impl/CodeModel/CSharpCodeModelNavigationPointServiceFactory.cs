@@ -5,31 +5,27 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
-using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel;
+
+[ExportLanguageServiceFactory(typeof(ICodeModelNavigationPointService), LanguageNames.CSharp), Shared]
+internal sealed partial class CSharpCodeModelNavigationPointServiceFactory : ILanguageServiceFactory
 {
-    [ExportLanguageServiceFactory(typeof(ICodeModelNavigationPointService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpCodeModelNavigationPointServiceFactory : ILanguageServiceFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpCodeModelNavigationPointServiceFactory()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeModelNavigationPointServiceFactory()
-        {
-        }
+    }
 
-        public ILanguageService CreateLanguageService(HostLanguageServices provider)
-        {
-            // This interface is implemented by the ICodeModelService as well, so just grab the other one and return it
-            return provider.GetService<ICodeModelService>();
-        }
+    public ILanguageService CreateLanguageService(HostLanguageServices provider)
+    {
+        // This interface is implemented by the ICodeModelService as well, so just grab the other one and return it
+        return provider.GetService<ICodeModelService>();
     }
 }

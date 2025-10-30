@@ -9,22 +9,19 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType;
 
-internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
 {
     private readonly Document _document;
     private readonly INotificationService _notificationService;
@@ -56,31 +53,24 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
 
     // Below code details with the Access List and the manipulation
     public List<string> AccessList { get; }
-    private int _accessSelectIndex;
+
     public int AccessSelectIndex
     {
-        get
-        {
-            return _accessSelectIndex;
-        }
+        get;
 
         set
         {
-            SetProperty(ref _accessSelectIndex, value);
+            SetProperty(ref field, value);
         }
     }
 
-    private string _selectedAccessibilityString;
     public string SelectedAccessibilityString
     {
-        get
-        {
-            return _selectedAccessibilityString;
-        }
+        get;
 
         set
         {
-            SetProperty(ref _selectedAccessibilityString, value);
+            SetProperty(ref field, value);
         }
     }
 
@@ -93,45 +83,33 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
         }
     }
 
-    private List<string> _kindList;
     public List<string> KindList
     {
-        get
-        {
-            return _kindList;
-        }
+        get;
 
         set
         {
-            SetProperty(ref _kindList, value);
+            SetProperty(ref field, value);
         }
     }
 
-    private int _kindSelectIndex;
     public int KindSelectIndex
     {
-        get
-        {
-            return _kindSelectIndex;
-        }
+        get;
 
         set
         {
-            SetProperty(ref _kindSelectIndex, value);
+            SetProperty(ref field, value);
         }
     }
 
-    private string _selectedTypeKindString;
     public string SelectedTypeKindString
     {
-        get
-        {
-            return _selectedTypeKindString;
-        }
+        get;
 
         set
         {
-            SetProperty(ref _selectedTypeKindString, value);
+            SetProperty(ref field, value);
         }
     }
 
@@ -304,7 +282,7 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
             var lastIndexOfSeparatorInFullPath = this.FullFilePath.LastIndexOf('\\');
             if (lastIndexOfSeparatorInFullPath != -1)
             {
-                var fileNameInFullPathInContainers = this.FullFilePath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+                var fileNameInFullPathInContainers = this.FullFilePath.Split(['\\'], StringSplitOptions.RemoveEmptyEntries);
 
                 // Trim spaces of each component of the file name.
                 // Note that path normalization changed between 4.6.1 and 4.6.2 and GetFullPath no longer trims trailing spaces.
@@ -326,18 +304,18 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
             {
                 // The new file will be within the root of the project
                 var folderPath = this.FullFilePath[projectRootPath.Length..];
-                var containers = folderPath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+                var containers = folderPath.Split(['\\'], StringSplitOptions.RemoveEmptyEntries);
 
                 // Folder name was mentioned
                 if (containers.Length > 1)
                 {
                     _fileName = containers.Last();
-                    Folders = new List<string>(containers);
+                    Folders = [.. containers];
                     Folders.RemoveAt(Folders.Count - 1);
 
                     if (Folders.Any(folder => !(_syntaxFactsService.IsValidIdentifier(folder) || _syntaxFactsService.IsVerbatimIdentifier(folder))))
                     {
-                        _areFoldersValidIdentifiers = false;
+                        AreFoldersValidIdentifiers = false;
                     }
                 }
                 else if (containers.Length == 1)
@@ -368,7 +346,7 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
             }
 
             // Check for reserved words in the folder or filename
-            if (this.FullFilePath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries).Any(s => _reservedKeywords.Contains(s, StringComparer.OrdinalIgnoreCase)))
+            if (this.FullFilePath.Split(['\\'], StringSplitOptions.RemoveEmptyEntries).Any(s => _reservedKeywords.Contains(s, StringComparer.OrdinalIgnoreCase)))
             {
                 SendFailureNotification(ServicesVSResources.File_path_cannot_use_reserved_keywords);
                 return false;
@@ -406,23 +384,19 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
     private void SendFailureNotification(string message)
         => _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
 
-    private Project _selectedProject;
     public Project SelectedProject
     {
-        get
-        {
-            return _selectedProject;
-        }
+        get;
 
         set
         {
-            var previousProject = _selectedProject;
-            if (SetProperty(ref _selectedProject, value))
+            var previousProject = field;
+            if (SetProperty(ref field, value))
             {
                 NotifyPropertyChanged(nameof(DocumentList));
                 this.DocumentSelectIndex = 0;
-                this.ProjectSelectIndex = this.ProjectList.FindIndex(p => p.Project == _selectedProject);
-                if (_selectedProject != _document.Project)
+                this.ProjectSelectIndex = this.ProjectList.FindIndex(p => p.Project == field);
+                if (field != _document.Project)
                 {
                     // Restrict the Access List Options
                     // 3 in the list represent the Public. 1-based array.
@@ -443,11 +417,11 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
                 }
 
                 // Update the TypeKindList if required
-                if (previousProject != null && previousProject.Language != _selectedProject.Language)
+                if (previousProject != null && previousProject.Language != field.Language)
                 {
-                    if (_selectedProject.Language == LanguageNames.CSharp)
+                    if (field.Language == LanguageNames.CSharp)
                     {
-                        var previousSelectedIndex = _kindSelectIndex;
+                        var previousSelectedIndex = KindSelectIndex;
                         this.KindList = _csharpTypeKindList;
                         if (_shouldChangeTypeKindListSelectedIndex)
                         {
@@ -460,7 +434,7 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
                     }
                     else
                     {
-                        var previousSelectedIndex = _kindSelectIndex;
+                        var previousSelectedIndex = KindSelectIndex;
                         this.KindList = _visualBasicTypeKindList;
                         if (_shouldChangeTypeKindListSelectedIndex)
                         {
@@ -479,17 +453,13 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
         }
     }
 
-    private int _projectSelectIndex;
     public int ProjectSelectIndex
     {
-        get
-        {
-            return _projectSelectIndex;
-        }
+        get;
 
         set
         {
-            SetProperty(ref _projectSelectIndex, value);
+            SetProperty(ref field, value);
         }
     }
 
@@ -502,16 +472,16 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
     {
         get
         {
-            if (_previouslyPopulatedProject == _selectedProject)
+            if (_previouslyPopulatedProject == SelectedProject)
             {
                 return _previouslyPopulatedDocumentList;
             }
 
-            _previouslyPopulatedProject = _selectedProject;
+            _previouslyPopulatedProject = SelectedProject;
             _previouslyPopulatedDocumentList = [];
 
             // Check for the current project
-            if (_selectedProject == _document.Project)
+            if (SelectedProject == _document.Project)
             {
                 // populate the current document
                 _previouslyPopulatedDocumentList.Add(new DocumentSelectItem(_document, "<Current File>"));
@@ -526,11 +496,11 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
             }
             else
             {
-                _previouslyPopulatedDocumentList.AddRange(_selectedProject.Documents
+                _previouslyPopulatedDocumentList.AddRange(SelectedProject.Documents
                     .Where(d => !d.IsGeneratedCode(CancellationToken.None))
                     .Select(d => new DocumentSelectItem(d)));
 
-                this.SelectedDocument = _selectedProject.Documents.FirstOrDefault();
+                this.SelectedDocument = SelectedProject.Documents.FirstOrDefault();
             }
 
             this.IsExistingFileEnabled = _previouslyPopulatedDocumentList.Count == 0 ? false : true;
@@ -539,45 +509,33 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
         }
     }
 
-    private bool _isExistingFileEnabled = true;
     public bool IsExistingFileEnabled
     {
-        get
-        {
-            return _isExistingFileEnabled;
-        }
+        get;
 
         set
         {
-            SetProperty(ref _isExistingFileEnabled, value);
+            SetProperty(ref field, value);
         }
-    }
+    } = true;
 
-    private int _documentSelectIndex;
     public int DocumentSelectIndex
     {
-        get
-        {
-            return _documentSelectIndex;
-        }
+        get;
 
         set
         {
-            SetProperty(ref _documentSelectIndex, value);
+            SetProperty(ref field, value);
         }
     }
 
-    private Document _selectedDocument;
     public Document SelectedDocument
     {
-        get
-        {
-            return _selectedDocument;
-        }
+        get;
 
         set
         {
-            SetProperty(ref _selectedDocument, value);
+            SetProperty(ref field, value);
         }
     }
 
@@ -636,28 +594,23 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
         }
     }
 
-    private bool _isAccessListEnabled;
     private bool _shouldChangeTypeKindListSelectedIndex = false;
 
     public bool IsAccessListEnabled
     {
-        get
-        {
-            return _isAccessListEnabled;
-        }
+        get;
 
         set
         {
-            SetProperty(ref _isAccessListEnabled, value);
+            SetProperty(ref field, value);
         }
     }
 
-    private bool _areFoldersValidIdentifiers = true;
     public bool AreFoldersValidIdentifiers
     {
         get
         {
-            if (_areFoldersValidIdentifiers)
+            if (field)
             {
                 /*
                 var workspace = this.SelectedProject.Solution.Workspace as VisualStudioWorkspaceImpl;
@@ -669,7 +622,9 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
 
             return false;
         }
-    }
+
+        private set;
+    } = true;
 
     public IList<string> ProjectFolders { get; private set; }
     public string FullFilePath { get; private set; }
@@ -734,7 +689,7 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
         {
             // Populate the project list
             // Add the current project
-            new ProjectSelectItem(document.Project)
+            new(document.Project)
         };
 
         // Add the rest of the projects
@@ -781,70 +736,48 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
         }
         else
         {
-            this.ProjectFolders = SpecializedCollections.EmptyList<string>();
+            this.ProjectFolders = [];
         }
     }
 
-    public class ProjectSelectItem
+    public sealed class ProjectSelectItem
     {
-        private readonly Project _project;
-
         public string Name
         {
             get
             {
-                return _project.Name;
+                return Project.Name;
             }
         }
 
-        public Project Project
-        {
-            get
-            {
-                return _project;
-            }
-        }
+        public Project Project { get; }
 
         public ProjectSelectItem(Project project)
-            => _project = project;
+            => Project = project;
     }
 
-    public class DocumentSelectItem
+    public sealed class DocumentSelectItem
     {
-        private readonly Document _document;
-        public Document Document
-        {
-            get
-            {
-                return _document;
-            }
-        }
+        public Document Document { get; }
 
-        private readonly string _name;
-        public string Name
-        {
-            get
-            {
-                return _name;
-            }
-        }
+        public string Name { get; }
 
         public DocumentSelectItem(Document document, string documentName)
         {
-            _document = document;
-            _name = documentName;
+            Document = document;
+            Name = documentName;
         }
 
         public DocumentSelectItem(Document document)
         {
-            _document = document;
+            Document = document;
             if (document.Folders.Count == 0)
             {
-                _name = document.Name;
+                Name = document.Name;
             }
             else
             {
-                _name = string.Join("\\", document.Folders) + "\\" + document.Name;
+                Name = string.Join("\\", document.Folders) + "\\" + document.Name;
             }
         }
     }

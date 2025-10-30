@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Organizing;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
 
@@ -35,16 +34,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
 [Name(PredefinedCommandHandlerNames.OrganizeDocument)]
 [method: ImportingConstructor]
 [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class OrganizeDocumentCommandHandler(
+internal sealed class OrganizeDocumentCommandHandler(
     IThreadingContext threadingContext,
-    IGlobalOptionService globalOptions,
     IAsynchronousOperationListenerProvider listenerProvider) :
     ICommandHandler<OrganizeDocumentCommandArgs>,
     ICommandHandler<SortImportsCommandArgs>,
     ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.OrganizeDocument);
 
     public string DisplayName => EditorFeaturesResources.Organize_Document;
@@ -127,7 +124,7 @@ internal class OrganizeDocumentCommandHandler(
         if (!subjectBuffer.TryGetWorkspace(out var workspace))
             return;
 
-        var snapshotSpan = textView.GetTextElementSpan(caretPoint.Value);
+        var snapshotSpan = textView.GetTextElementSpan(textView.Caret.Position.BufferPosition);
 
         var indicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
         using var backgroundWorkContext = indicatorFactory.Create(
@@ -141,7 +138,7 @@ internal class OrganizeDocumentCommandHandler(
 
         await TaskScheduler.Default;
 
-        var currentDocument = await getCurrentDocumentAsync(snapshotSpan.Snapshot, backgroundWorkContext).ConfigureAwait(false);
+        var currentDocument = await getCurrentDocumentAsync(caretPoint.Value.Snapshot, backgroundWorkContext).ConfigureAwait(false);
         if (currentDocument is null)
             return;
 
@@ -155,7 +152,8 @@ internal class OrganizeDocumentCommandHandler(
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-        backgroundWorkContext.CancelOnEdit = false;
+        var disposable = await backgroundWorkContext.SuppressAutoCancelAsync().ConfigureAwait(true);
+        await using var _ = disposable.ConfigureAwait(true);
 
         commandArgs.SubjectBuffer.ApplyChanges(changes);
     }
@@ -175,7 +173,7 @@ internal class OrganizeDocumentCommandHandler(
             async (document, cancellationToken) =>
             {
                 var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
-                var options = await document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
                 return await organizeImportsService.OrganizeImportsAsync(document, options, cancellationToken).ConfigureAwait(false);
             });
 
@@ -187,14 +185,14 @@ internal class OrganizeDocumentCommandHandler(
             async (document, cancellationToken) =>
             {
                 var formattingOptions = document.SupportsSyntaxTree
-                    ? await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false)
+                    ? await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false)
                     : null;
 
                 var removeImportsService = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
                 var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
 
-                var newDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
-                var options = await document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+                var newDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
                 return await organizeImportsService.OrganizeImportsAsync(newDocument, options, cancellationToken).ConfigureAwait(false);
             });
 }

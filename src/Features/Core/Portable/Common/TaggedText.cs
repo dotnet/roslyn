@@ -103,6 +103,9 @@ internal static class TaggedTextExtensions
                 includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? getNavigationHint(d.Symbol) : null));
     }
 
+    public static ImmutableArray<(string tag, string text)> ToTagsAndText(this ImmutableArray<SymbolDisplayPart> displayParts)
+        => displayParts.SelectAsArray(static d => (GetTag(d), d.ToString()));
+
     private static string GetTag(SymbolDisplayPart part)
     {
         // We don't actually have any specific classifications for aliases.  So if the compiler passed us that kind,

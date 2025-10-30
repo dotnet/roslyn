@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -27,13 +28,13 @@ using static SyntaxFactory;
 internal static partial class ConvertProgramTransform
 {
     public static async Task<Document> ConvertToTopLevelStatementsAsync(
-        Document document, MethodDeclarationSyntax methodDeclaration, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
     {
         var typeDeclaration = (TypeDeclarationSyntax?)methodDeclaration.Parent;
         Contract.ThrowIfNull(typeDeclaration); // checked by analyzer
 
         var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var rootWithGlobalStatements = GetRootWithGlobalStatements(
@@ -45,7 +46,7 @@ internal static partial class ConvertProgramTransform
 
         // We were parented by a namespace.  Add using statements to bring in all the symbols that were
         // previously visible within the namespace.  Then remove any that we don't need once we've done that.
-        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         document = await AddUsingDirectivesAsync(
             document, rootWithGlobalStatements, namespaceDeclaration, cleanupOptions, cancellationToken).ConfigureAwait(false);
@@ -83,7 +84,7 @@ internal static partial class ConvertProgramTransform
             cancellationToken));
 
         return await removeImportsService.RemoveUnnecessaryImportsAsync(
-            documentWithImportsAdded, n => n.HasAnnotation(annotation), options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+            documentWithImportsAdded, n => n.HasAnnotation(annotation), cancellationToken).ConfigureAwait(false);
     }
 
     private static void AddUsingDirectives(NameSyntax name, SyntaxAnnotation annotation, ArrayBuilder<UsingDirectiveSyntax> directives)
@@ -97,7 +98,7 @@ internal static partial class ConvertProgramTransform
     private static SyntaxNode GetRootWithGlobalStatements(
         SemanticModel semanticModel,
         SyntaxGenerator generator,
-        SyntaxNode root,
+        CompilationUnitSyntax root,
         TypeDeclarationSyntax typeDeclaration,
         MethodDeclarationSyntax methodDeclaration,
         CancellationToken cancellationToken)
@@ -107,19 +108,17 @@ internal static partial class ConvertProgramTransform
             semanticModel, typeDeclaration, methodDeclaration, cancellationToken);
 
         var namespaceDeclaration = typeDeclaration.Parent as BaseNamespaceDeclarationSyntax;
+
         if (namespaceDeclaration != null &&
             namespaceDeclaration.Members.Count >= 2)
         {
             // Our parent namespace has another symbol in it.  Keep the namespace declaration around, removing only
             // the existing Program type from it.
             editor.RemoveNode(typeDeclaration);
-            editor.ReplaceNode(
-                root,
-                (current, _) =>
-                {
-                    var currentRoot = (CompilationUnitSyntax)current;
-                    return currentRoot.WithMembers(currentRoot.Members.InsertRange(0, globalStatements));
-                });
+            editor.InsertBefore(namespaceDeclaration, globalStatements);
+
+            // We want to place the trailing directive on the namespace declaration we're preceding.
+            AddDirectivesToNextMemberOrEndOfFile(root.Members.IndexOf(namespaceDeclaration));
         }
         else if (namespaceDeclaration != null)
         {
@@ -136,18 +135,60 @@ internal static partial class ConvertProgramTransform
                     globalStatements[0].WithPrependedLeadingTrivia(fileBanner));
             }
 
-            editor.ReplaceNode(
-                root,
-                root.ReplaceNode(namespaceDeclaration, globalStatements));
+            editor.ReplaceNode(namespaceDeclaration, (_, _) => globalStatements);
+
+            // We're removing the namespace itself.  So we want to place the trailing directive on the element that follows that.
+            AddDirectivesToNextMemberOrEndOfFile(root.Members.IndexOf(namespaceDeclaration) + 1);
         }
         else
         {
             // type wasn't in a namespace.  just remove the type and replace it with the new global statements.
-            editor.ReplaceNode(
-                root, root.ReplaceNode(typeDeclaration, globalStatements));
+            editor.ReplaceNode(typeDeclaration, (_, _) => globalStatements);
+
+            // We're removing the namespace itself.  So we want to place the trailing directive on the element that follows that.
+            AddDirectivesToNextMemberOrEndOfFile(root.Members.IndexOf(typeDeclaration) + 1);
         }
 
         return editor.GetChangedRoot();
+
+        void AddDirectivesToNextMemberOrEndOfFile(int memberIndexToPlaceTrailingDirectivesOn)
+        {
+            // If the method has trailing directive on the close brace, move them to whatever will come after the 
+            // final global statement in the new file.  That could be the next namespace/type member declaration. Or
+            // it could be the end of file token if there are no more members in the file.
+            if (methodDeclaration.Body is not BlockSyntax block)
+                return;
+
+            var leadingCloseBraceTrivia = block.CloseBraceToken.LeadingTrivia;
+            if (!leadingCloseBraceTrivia.Any(t => t.IsDirective))
+                return;
+
+            if (memberIndexToPlaceTrailingDirectivesOn < root.Members.Count)
+            {
+                editor.ReplaceNode(
+                    root.Members[memberIndexToPlaceTrailingDirectivesOn],
+                    (current, _) =>
+                    {
+                        var updated = current.WithPrependedLeadingTrivia(leadingCloseBraceTrivia);
+                        updated = updated.ReplaceToken(
+                            updated.GetFirstToken(),
+                            updated.GetFirstToken().WithAdditionalAnnotations(Formatter.Annotation));
+                        return updated;
+                    });
+            }
+            else
+            {
+                editor.ReplaceNode(
+                    root,
+                    (current, _) =>
+                    {
+                        var currentRoot = (CompilationUnitSyntax)current;
+                        return currentRoot.WithEndOfFileToken(currentRoot.EndOfFileToken
+                            .WithPrependedLeadingTrivia(leadingCloseBraceTrivia)
+                            .WithAdditionalAnnotations(Formatter.Annotation));
+                    });
+            }
+        }
     }
 
     private static ImmutableArray<GlobalStatementSyntax> GetGlobalStatements(
@@ -227,11 +268,11 @@ internal static partial class ConvertProgramTransform
             }
         }
 
-        using var _1 = ArrayBuilder<GlobalStatementSyntax>.GetInstance(out var globalStatements);
+        var globalStatements = new FixedSizeArrayBuilder<GlobalStatementSyntax>(statements.Count);
         foreach (var statement in statements)
             globalStatements.Add(GlobalStatement(statement).WithAdditionalAnnotations(Formatter.Annotation));
 
-        return globalStatements.ToImmutable();
+        return globalStatements.MoveToImmutable();
     }
 
     private static VariableDeclarationSyntax ConvertDeclaration(

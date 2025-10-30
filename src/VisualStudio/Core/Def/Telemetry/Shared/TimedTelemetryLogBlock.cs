@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
@@ -32,7 +33,7 @@ internal sealed class TimedTelemetryLogBlock : IDisposable
 
     public void Dispose()
     {
-        var elapsed = (int)_stopwatch.Elapsed.TotalMilliseconds;
+        var elapsed = (long)_stopwatch.Elapsed.TotalMilliseconds;
         if (elapsed >= _minThresholdMs)
         {
             var logMessage = KeyValueLogMessage.Create(m =>

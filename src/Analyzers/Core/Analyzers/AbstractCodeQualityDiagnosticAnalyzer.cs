@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CodeQuality;
 
@@ -35,9 +34,6 @@ internal abstract class AbstractCodeQualityDiagnosticAnalyzer : DiagnosticAnalyz
     protected abstract void InitializeWorker(AnalysisContext context);
 
     public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
-
-    public bool OpenFileOnly(SimplifierOptions? options)
-        => false;
 
     protected static DiagnosticDescriptor CreateDescriptor(
         string id,

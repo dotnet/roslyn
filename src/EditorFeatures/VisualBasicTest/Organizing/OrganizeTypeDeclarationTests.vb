@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Editor.Commanding.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
@@ -935,7 +934,7 @@ End Namespace</element>
                     </Submission>
                 </Workspace>,
                 workspaceKind:=WorkspaceKind.Interactive,
-                composition:=EditorTestCompositions.EditorFeaturesWpf)
+                composition:=EditorTestCompositions.EditorFeatures)
 
                 ' Force initialization.
                 workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
@@ -944,7 +943,6 @@ End Namespace</element>
 
                 Dim handler = New OrganizeDocumentCommandHandler(
                     workspace.GetService(Of IThreadingContext),
-                    workspace.GlobalOptions,
                     workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
 
                 Dim state = handler.GetCommandState(New SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer))

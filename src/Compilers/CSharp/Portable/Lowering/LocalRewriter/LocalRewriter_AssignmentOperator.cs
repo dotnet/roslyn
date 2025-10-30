@@ -81,15 +81,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.IsRef, node.Type, used);
+            return MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.IsRef, used, AssignmentKind.SimpleAssignment);
+        }
+
+        private enum AssignmentKind
+        {
+            SimpleAssignment,
+            CompoundAssignment,
+            IncrementDecrement,
+            Deconstruction,
+            NullCoalescingAssignment,
         }
 
         /// <summary>
         /// Generates a lowered form of the assignment operator for the given left and right sub-expressions.
         /// Left and right sub-expressions must be in lowered form.
         /// </summary>
-        private BoundExpression MakeAssignmentOperator(SyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight, TypeSymbol type,
-            bool used, bool isChecked, bool isCompoundAssignment)
+        private BoundExpression MakeAssignmentOperator(SyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight,
+            bool used, bool isChecked, AssignmentKind assignmentKind)
         {
             switch (rewrittenLeft.Kind)
             {
@@ -102,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         indexerAccess.ArgumentNamesOpt,
                         indexerAccess.ArgumentRefKindsOpt,
                         rewrittenRight,
-                        isCompoundAssignment, isChecked);
+                        isCompoundAssignment: assignmentKind == AssignmentKind.CompoundAssignment, isChecked);
 
                 case BoundKind.DynamicMemberAccess:
                     var memberAccess = (BoundDynamicMemberAccess)rewrittenLeft;
@@ -110,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         memberAccess.Receiver,
                         memberAccess.Name,
                         rewrittenRight,
-                        isCompoundAssignment,
+                        isCompoundAssignment: assignmentKind == AssignmentKind.CompoundAssignment,
                         isChecked).ToExpression();
 
                 case BoundKind.EventAccess:
@@ -132,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.Unreachable();
 
                 default:
-                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, type: type, used: used);
+                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, used: used, assignmentKind);
             }
         }
 
@@ -168,8 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenLeft,
             BoundExpression rewrittenRight,
             bool isRef,
-            TypeSymbol type,
-            bool used)
+            bool used,
+            AssignmentKind assignmentKind)
         {
             switch (rewrittenLeft.Kind)
             {
@@ -193,8 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             false,
                             default(ImmutableArray<int>),
                             rewrittenRight,
-                            type,
-                            used);
+                            used,
+                            assignmentKind);
                     }
 
                 case BoundKind.IndexerAccess:
@@ -214,8 +223,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.Expanded,
                             indexerAccess.ArgsToParamsOpt,
                             rewrittenRight,
-                            type,
-                            used);
+                            used,
+                            assignmentKind);
                     }
 
                 case BoundKind.Local:
@@ -227,7 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax,
                             rewrittenLeft,
                             rewrittenRight,
-                            type,
                             isRef);
                     }
 
@@ -252,9 +260,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 sequence.Value,
                                 rewrittenRight,
                                 isRef,
-                                type,
-                                used),
-                            type);
+                                used,
+                                assignmentKind),
+                            sequence.Type);
                     }
                     goto default;
 
@@ -264,10 +272,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return _factory.AssignmentExpression(
                             syntax,
                             rewrittenLeft,
-                            rewrittenRight,
-                            type);
+                            rewrittenRight);
                     }
             }
+        }
+
+        private bool IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(BoundExpression rewrittenReceiver, PropertySymbol property)
+        {
+            return CanChangeValueBetweenReads(rewrittenReceiver, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true) &&
+                   IsNewExtensionMemberWithByValPossiblyStructReceiver(property) &&
+                   CodeGen.CodeGenerator.HasHome(rewrittenReceiver,
+                                       CodeGen.CodeGenerator.AddressKind.ReadOnlyStrict,
+                                       _factory.CurrentFunction,
+                                       peVerifyCompatEnabled: false,
+                                       stackLocalsOpt: null);
         }
 
         private BoundExpression MakePropertyAssignment(
@@ -279,8 +297,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             BoundExpression rewrittenRight,
-            TypeSymbol type,
-            bool used)
+            bool used,
+            AssignmentKind assignmentKind)
         {
             // Rewrite property assignment into call to setter.
             var setMethod = property.GetOwnOrInheritedSetMethod();
@@ -288,8 +306,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (setMethod is null)
             {
                 var autoProp = (SourcePropertySymbolBase)property.OriginalDefinition;
-                Debug.Assert(autoProp.IsAutoPropertyWithGetAccessor,
+                Debug.Assert(autoProp.IsAutoPropertyOrUsesFieldKeyword,
                     "only autoproperties can be assignable without having setters");
+                Debug.Assert(_factory.CurrentFunction.IsConstructor());
                 Debug.Assert(property.Equals(autoProp, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
                 var backingField = autoProp.BackingField;
@@ -299,25 +318,73 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ArrayBuilder<LocalSymbol>? argTempsBuilder = null;
+
+            bool needSpecialExtensionPropertyReceiverReadOrder = false;
+            ArrayBuilder<BoundExpression>? storesOpt = null;
+
+            if (rewrittenReceiver is not null &&
+                assignmentKind is not (AssignmentKind.CompoundAssignment or AssignmentKind.NullCoalescingAssignment or AssignmentKind.Deconstruction or AssignmentKind.IncrementDecrement) &&
+                IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(rewrittenReceiver, property) &&
+                (arguments.Length != 0 || !IsSafeForReordering(rewrittenRight, RefKind.None)))
+            {
+                // The receiver has location, but extension property/indexer takes receiver by value.
+                // This means that we need to ensure that the receiver value is read after
+                // any side-effecting arguments and right hand side are evaluated, so that the
+                // setter receives the last value of the receiver, not the value before the
+                // arguments/rhs were evaluated. Receiver side effects should be evaluated at
+                // the very beginning, of course.
+
+                needSpecialExtensionPropertyReceiverReadOrder = true;
+                storesOpt = ArrayBuilder<BoundExpression>.GetInstance();
+            }
+
+#if DEBUG
+            BoundExpression? rewrittenReceiverBeforePossibleCapture = rewrittenReceiver;
+#endif
             arguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                 ref rewrittenReceiver,
-                captureReceiverMode: ReceiverCaptureMode.Default,
+                forceReceiverCapturing: needSpecialExtensionPropertyReceiverReadOrder,
                 arguments,
                 property,
                 argsToParamsOpt,
                 argumentRefKindsOpt,
-                storesOpt: null,
+                storesOpt,
                 ref argTempsBuilder);
 
-            arguments = MakeArguments(
-                arguments,
-                property,
-                expanded,
-                argsToParamsOpt,
-                ref argumentRefKindsOpt,
-                ref argTempsBuilder,
-                invokedAsExtensionMethod: false);
+            if (needSpecialExtensionPropertyReceiverReadOrder)
+            {
+#if DEBUG
+                Debug.Assert(rewrittenReceiverBeforePossibleCapture != (object?)rewrittenReceiver);
+#endif
+                Debug.Assert(storesOpt is { });
+                Debug.Assert(storesOpt.Count != 0);
+                Debug.Assert(argTempsBuilder is not null);
 
+                // Store everything that is non-trivial into a temporary; record the
+                // stores in storesToTemps and make the actual argument a reference to the temp.
+                arguments = ExtractSideEffectsFromArguments(arguments, property, expanded, argsToParamsOpt, ref argumentRefKindsOpt, storesOpt, argTempsBuilder);
+
+                if (!IsSafeForReordering(rewrittenRight, RefKind.None))
+                {
+                    BoundLocal capturedRight = _factory.StoreToTemp(rewrittenRight, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
+                    argTempsBuilder.Add(capturedRight.LocalSymbol);
+                    storesOpt.Add(assignmentToTemp);
+                    rewrittenRight = capturedRight;
+                }
+            }
+            else
+            {
+                arguments = MakeArguments(
+                    arguments,
+                    property,
+                    expanded,
+                    argsToParamsOpt,
+                    ref argumentRefKindsOpt,
+                    ref argTempsBuilder,
+                    invokedAsExtensionMethod: false);
+            }
+
+            var sideEffects = storesOpt is null ? [] : storesOpt.ToImmutableAndFree();
             var argTemps = argTempsBuilder.ToImmutableAndFree();
 
             if (used)
@@ -348,9 +415,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundSequence(
                     syntax,
                     AppendToPossibleNull(argTemps, rhsTemp),
-                    ImmutableArray.Create(setterCall),
+                    sideEffects.Add(setterCall), // https://github.com/dotnet/roslyn/issues/78829 - there is no test coverage for 'sideEffects' on this code path
                     boundRhs,
-                    type);
+                    rhsTemp.Type);
             }
             else
             {
@@ -363,6 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (argTemps.IsDefaultOrEmpty)
                 {
+                    Debug.Assert(sideEffects.IsEmpty);
                     return setterCall;
                 }
                 else
@@ -370,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundSequence(
                         syntax,
                         argTemps,
-                        ImmutableArray<BoundExpression>.Empty,
+                        sideEffects,
                         setterCall,
                         setMethod.ReturnType);
                 }

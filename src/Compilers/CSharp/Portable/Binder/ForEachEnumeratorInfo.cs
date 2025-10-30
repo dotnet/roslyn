@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -27,12 +28,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly MethodArgumentInfo GetEnumeratorInfo;
         public readonly MethodSymbol CurrentPropertyGetter;
         public readonly MethodArgumentInfo MoveNextInfo;
+        public readonly BoundAwaitableInfo? MoveNextAwaitableInfo;
 
         // True if the enumerator needs disposal once used. 
         // Will be either IDisposable/IAsyncDisposable, or use DisposeMethod below if set
         // Computed during initial binding so that we can expose it in the semantic model.
         public readonly bool NeedsDisposal;
 
+        /// <summary>
+        /// True if this was written as an 'await foreach'. This does not guarantee that <see cref="MoveNextAwaitableInfo"/> is not null, as there
+        /// may be other errors.
+        /// </summary>
         public readonly bool IsAsync;
 
         // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
@@ -55,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodArgumentInfo getEnumeratorInfo,
             MethodSymbol currentPropertyGetter,
             MethodArgumentInfo moveNextInfo,
+            BoundAwaitableInfo? moveNextAwaitableInfo,
             bool isAsync,
             bool needsDisposal,
             BoundAwaitableInfo? disposeAwaitableInfo,
@@ -63,16 +70,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? currentConversion,
             BinderFlags location)
         {
-            Debug.Assert((object)collectionType != null, $"Field '{nameof(collectionType)}' cannot be null");
-            Debug.Assert(elementType.HasType, $"Field '{nameof(elementType)}' cannot be null");
-            Debug.Assert((object)getEnumeratorInfo != null, $"Field '{nameof(getEnumeratorInfo)}' cannot be null");
-            Debug.Assert((object)currentPropertyGetter != null, $"Field '{nameof(currentPropertyGetter)}' cannot be null");
-            Debug.Assert((object)moveNextInfo != null, $"Field '{nameof(moveNextInfo)}' cannot be null");
+            RoslynDebug.Assert((object)collectionType != null, $"Field '{nameof(collectionType)}' cannot be null");
+            RoslynDebug.Assert(elementType.HasType, $"Field '{nameof(elementType)}' cannot be null");
+            RoslynDebug.Assert((object)getEnumeratorInfo != null, $"Field '{nameof(getEnumeratorInfo)}' cannot be null");
+            RoslynDebug.Assert((object)currentPropertyGetter != null, $"Field '{nameof(currentPropertyGetter)}' cannot be null");
+            RoslynDebug.Assert((object)moveNextInfo != null, $"Field '{nameof(moveNextInfo)}' cannot be null");
             Debug.Assert(patternDisposeInfo == null || needsDisposal);
             Debug.Assert(inlineArraySpanType is WellKnownType.Unknown or WellKnownType.System_Span_T or WellKnownType.System_ReadOnlySpan_T);
             Debug.Assert(inlineArraySpanType == WellKnownType.Unknown ||
                          (collectionType.HasInlineArrayAttribute(out _) && collectionType.TryGetInlineArrayElementField() is FieldSymbol elementField && elementType.Equals(elementField.TypeWithAnnotations, TypeCompareKind.ConsiderEverything)));
             Debug.Assert(!inlineArrayUsedAsValue || inlineArraySpanType != WellKnownType.Unknown);
+            Debug.Assert(!isAsync || moveNextAwaitableInfo != null);
 
             this.CollectionType = collectionType;
             this.InlineArraySpanType = inlineArraySpanType;
@@ -81,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.GetEnumeratorInfo = getEnumeratorInfo;
             this.CurrentPropertyGetter = currentPropertyGetter;
             this.MoveNextInfo = moveNextInfo;
+            this.MoveNextAwaitableInfo = moveNextAwaitableInfo;
             this.IsAsync = isAsync;
             this.NeedsDisposal = needsDisposal;
             this.DisposeAwaitableInfo = disposeAwaitableInfo;
@@ -103,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public MethodArgumentInfo? GetEnumeratorInfo;
             public MethodSymbol CurrentPropertyGetter;
             public MethodArgumentInfo? MoveNextInfo;
+            public BoundAwaitableInfo? MoveNextAwaitableInfo;
 
             public bool IsAsync;
             public bool NeedsDisposal;
@@ -129,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetEnumeratorInfo,
                     CurrentPropertyGetter,
                     MoveNextInfo,
+                    MoveNextAwaitableInfo,
                     IsAsync,
                     NeedsDisposal,
                     DisposeAwaitableInfo,

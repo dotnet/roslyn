@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Shell;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename;
 
 [Export(typeof(IInlineRenameColorUpdater))]
-internal class DashboardColorUpdater : IInlineRenameColorUpdater
+internal sealed class DashboardColorUpdater : IInlineRenameColorUpdater
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
@@ -119,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                          }]
                 }")
 
-            Dim compilation = Await Project.GetCompilationAsync()
+            Dim compilation = Await project.GetCompilationAsync()
             Dim syntaxTree = Assert.Single(compilation.SyntaxTrees)
 
             Assert.Equal("T:\Directory\SourceFile.cs", syntaxTree.FilePath)
@@ -160,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         Public Async Function TestSourceGeneratorOutputIncludedInCompilation() As Task
             Dim sourceGeneratorLocation = GetType(TestSourceGenerator.HelloWorldGenerator).Assembly.Location
 
-            Dim project = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
+            Dim project = Await CompilerInvocation.CreateFromJsonAsync("
                     {
                         ""tool"": ""csc"",
                         ""arguments"": ""/noconfig /analyzer:\""" + sourceGeneratorLocation.Replace("\", "\\") + "\""  /out:Output.dll"",

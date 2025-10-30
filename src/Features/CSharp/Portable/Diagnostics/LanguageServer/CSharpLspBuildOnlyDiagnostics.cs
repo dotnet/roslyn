@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer;
     "CS8008", // ErrorCode.ERR_ForwardedTypeConflictsWithExportedType:
     "CS4007", // ErrorCode.ERR_ByRefTypeAndAwait:
     "CS8178", // ErrorCode.ERR_RefReturningCallAndAwait:
+    "CS4009", // ErrorCode.ERR_NonTaskMainCantBeAsync:
     "CS4013", // ErrorCode.ERR_SpecialByRefInLambda:
     "CS1969", // ErrorCode.ERR_DynamicRequiredTypesMissing:
     "CS9026", // ErrorCode.ERR_CannotBeConvertedToUtf8:
@@ -59,7 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer;
     "CS9178", // ErrorCode.ERR_InterceptorCannotBeGeneric
     "CS9207", // ErrorCode.ERR_InterceptableMethodMustBeOrdinary
     "CS8419", // ErrorCode.ERR_PossibleAsyncIteratorWithoutYield
-    "CS8420" // ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
+    "CS8420", // ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
+    "CS9217", // ErrorCode.ERR_RefLocalAcrossAwait
+    "CS9274", // ErrorCode.ERR_DataSectionStringLiteralHashCollision
+    "CS9328"  // ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
     )]
 [Shared]
 internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics

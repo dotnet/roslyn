@@ -4,15 +4,20 @@
 
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseNullPropagation;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseNullPropagation), Shared]
-internal class CSharpUseNullPropagationCodeFixProvider : AbstractUseNullPropagationCodeFixProvider<
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpUseNullPropagationCodeFixProvider() : AbstractUseNullPropagationCodeFixProvider<
+    CSharpUseNullPropagationDiagnosticAnalyzer,
     SyntaxKind,
     ExpressionSyntax,
     StatementSyntax,
@@ -27,29 +32,18 @@ internal class CSharpUseNullPropagationCodeFixProvider : AbstractUseNullPropagat
     ExpressionStatementSyntax,
     BracketedArgumentListSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpUseNullPropagationCodeFixProvider()
+    protected override CSharpUseNullPropagationDiagnosticAnalyzer Analyzer
+        => CSharpUseNullPropagationDiagnosticAnalyzer.Instance;
+
+    private static BlockSyntax ReplaceBlockStatements(BlockSyntax block, StatementSyntax newInnerStatement)
+        => block.WithStatements([newInnerStatement, .. block.Statements.Skip(1).Select(s => s.WithAdditionalAnnotations(Formatter.Annotation))]);
+
+    protected override SyntaxNode PostProcessElseIf(
+        IfStatementSyntax ifStatement, StatementSyntax newWhenTrueStatement)
     {
-    }
+        if (ifStatement.Statement is BlockSyntax block)
+            newWhenTrueStatement = ReplaceBlockStatements(block, newWhenTrueStatement);
 
-    protected override bool TryGetBlock(SyntaxNode? statement, [NotNullWhen(true)] out StatementSyntax? block)
-    {
-        if (statement is BlockSyntax statementBlock)
-        {
-            block = statementBlock;
-            return true;
-        }
-
-        block = null;
-        return false;
-    }
-
-    protected override StatementSyntax ReplaceBlockStatements(StatementSyntax block, StatementSyntax newInnerStatement)
-        => ((BlockSyntax)block).WithStatements([newInnerStatement]);
-
-    protected override SyntaxNode PostProcessElseIf(IfStatementSyntax ifStatement, StatementSyntax newWhenTrueStatement)
-    {
         var elseClauseSyntax = (ElseClauseSyntax)ifStatement.Parent!;
         return elseClauseSyntax
             .WithElseKeyword(elseClauseSyntax.ElseKeyword.WithTrailingTrivia())

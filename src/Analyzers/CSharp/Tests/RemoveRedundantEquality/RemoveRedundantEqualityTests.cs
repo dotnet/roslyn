@@ -9,261 +9,295 @@ using Microsoft.CodeAnalysis.RemoveRedundantEquality;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantEquality
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantEquality;
+
+using VerifyCS = CSharpCodeFixVerifier<
+   CSharpRemoveRedundantEqualityDiagnosticAnalyzer,
+   RemoveRedundantEqualityCodeFixProvider>;
+
+public sealed class RemoveRedundantEqualityTests
 {
-    using VerifyCS = CSharpCodeFixVerifier<
-       CSharpRemoveRedundantEqualityDiagnosticAnalyzer,
-       RemoveRedundantEqualityCodeFixProvider>;
+    [Fact]
+    public Task TestSimpleCaseForEqualsTrue()
+        => VerifyCS.VerifyCodeFixAsync("""
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x [|==|] true;
+                }
+            }
+            """, """
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x;
+                }
+            }
+            """);
 
-    public class RemoveRedundantEqualityTests
+    [Fact]
+    public Task TestSimpleCaseForEqualsFalse_NoDiagnostics()
+        => VerifyCS.VerifyCodeFixAsync("""
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x [|==|] false;
+                }
+            }
+            """, """
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return !x;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestSimpleCaseForNotEqualsFalse()
+        => VerifyCS.VerifyCodeFixAsync("""
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x [|!=|] false;
+                }
+            }
+            """, """
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestSimpleCaseForNotEqualsTrue()
+        => VerifyCS.VerifyCodeFixAsync("""
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x [|!=|] true;
+                }
+            }
+            """, """
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return !x;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNullable_NoDiagnostics()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            public class C
+            {
+                public bool M1(bool? x)
+                {
+                    return x == true;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestWhenConstant_NoDiagnostics()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            public class C
+            {
+                public const bool MyTrueConstant = true;
+
+                public bool M1(bool x)
+                {
+                    return x == MyTrueConstant;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestOverloadedOperator_NoDiagnostics()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            public class C
+            {
+                public static bool operator ==(C a, bool b) => false;
+                public static bool operator !=(C a, bool b) => true;
+
+                public bool M1(C x)
+                {
+                    return x == true;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestOnLeftHandSide()
+        => VerifyCS.VerifyCodeFixAsync("""
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return true [|==|] x;
+                }
+            }
+            """, """
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestInArgument()
+        => VerifyCS.VerifyCodeFixAsync("""
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return M1(x [|==|] true);
+                }
+            }
+            """, """
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return M1(x);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFixAll()
+        => VerifyCS.VerifyCodeFixAsync("""
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return true [|==|] x;
+                }
+
+                public bool M2(bool x)
+                {
+                    return x [|!=|] false;
+                }
+
+                public bool M3(bool x)
+                {
+                    return x [|==|] true [|==|] true;
+                }
+            }
+            """, """
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x;
+                }
+
+                public bool M2(bool x)
+                {
+                    return x;
+                }
+
+                public bool M3(bool x)
+                {
+                    return x;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48236")]
+    public Task TestNullableValueTypes_DoesNotCrash()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            public class C
+            {
+                public bool M1(int? x)
+                {
+                    return x == null;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestSimpleCaseForIsFalse()
+        => VerifyCS.VerifyCodeFixAsync("""
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x [|is|] false;
+                }
+            }
+            """, """
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return !x;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestSimpleCaseForIsTrue1()
+        => VerifyCS.VerifyCodeFixAsync("""
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x [|is|] true;
+                }
+            }
+            """, """
+            public class C
+            {
+                public bool M1(bool x)
+                {
+                    return x;
+                }
+            }
+            """);
+
+    [Fact]
+    public async Task TestSimpleCaseForIsTrue2()
     {
-        [Fact]
-        public async Task TestSimpleCaseForEqualsTrue()
-        {
-            var code = """
-                public class C
+        var code = """
+            public class C
+            {
+                public const bool MyTrueConstant = true;
+                public bool M1(bool x)
                 {
-                    public bool M1(bool x)
-                    {
-                        return x [|==|] true;
-                    }
+                    return x is MyTrueConstant;
                 }
-                """;
-            var fixedCode = """
-                public class C
-                {
-                    public bool M1(bool x)
-                    {
-                        return x;
-                    }
-                }
-                """;
-            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
-        }
+            }
+            """;
+        await VerifyCS.VerifyCodeFixAsync(code, code);
+    }
 
-        [Fact]
-        public async Task TestSimpleCaseForEqualsFalse_NoDiagnostics()
-        {
-            await VerifyCS.VerifyCodeFixAsync("""
-                public class C
+    [Fact]
+    public async Task TestNotForNullableBool()
+    {
+        var code = """
+            public class C
+            {
+                public bool M1(bool? x)
                 {
-                    public bool M1(bool x)
-                    {
-                        return x [|==|] false;
-                    }
+                    return x is true;
                 }
-                """, """
-                public class C
-                {
-                    public bool M1(bool x)
-                    {
-                        return !x;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestSimpleCaseForNotEqualsFalse()
-        {
-            var code = """
-                public class C
-                {
-                    public bool M1(bool x)
-                    {
-                        return x [|!=|] false;
-                    }
-                }
-                """;
-            var fixedCode = """
-                public class C
-                {
-                    public bool M1(bool x)
-                    {
-                        return x;
-                    }
-                }
-                """;
-            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
-        }
-
-        [Fact]
-        public async Task TestSimpleCaseForNotEqualsTrue_NoDiagnostics()
-        {
-            await VerifyCS.VerifyCodeFixAsync("""
-                public class C
-                {
-                    public bool M1(bool x)
-                    {
-                        return x [|!=|] true;
-                    }
-                }
-                """, """
-                public class C
-                {
-                    public bool M1(bool x)
-                    {
-                        return !x;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestNullable_NoDiagnostics()
-        {
-            var code = """
-                public class C
-                {
-                    public bool M1(bool? x)
-                    {
-                        return x == true;
-                    }
-                }
-                """;
-            await VerifyCS.VerifyAnalyzerAsync(code);
-        }
-
-        [Fact]
-        public async Task TestWhenConstant_NoDiagnostics()
-        {
-            var code = """
-                public class C
-                {
-                    public const bool MyTrueConstant = true;
-
-                    public bool M1(bool x)
-                    {
-                        return x == MyTrueConstant;
-                    }
-                }
-                """;
-            await VerifyCS.VerifyAnalyzerAsync(code);
-        }
-
-        [Fact]
-        public async Task TestOverloadedOperator_NoDiagnostics()
-        {
-            var code = """
-                public class C
-                {
-                    public static bool operator ==(C a, bool b) => false;
-                    public static bool operator !=(C a, bool b) => true;
-
-                    public bool M1(C x)
-                    {
-                        return x == true;
-                    }
-                }
-                """;
-            await VerifyCS.VerifyAnalyzerAsync(code);
-        }
-
-        [Fact]
-        public async Task TestOnLeftHandSide()
-        {
-            var code = """
-                public class C
-                {
-                    public bool M1(bool x)
-                    {
-                        return true [|==|] x;
-                    }
-                }
-                """;
-            var fixedCode = """
-                public class C
-                {
-                    public bool M1(bool x)
-                    {
-                        return x;
-                    }
-                }
-                """;
-            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
-        }
-
-        [Fact]
-        public async Task TestInArgument()
-        {
-            var code = """
-                public class C
-                {
-                    public bool M1(bool x)
-                    {
-                        return M1(x [|==|] true);
-                    }
-                }
-                """;
-            var fixedCode = """
-                public class C
-                {
-                    public bool M1(bool x)
-                    {
-                        return M1(x);
-                    }
-                }
-                """;
-            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
-        }
-
-        [Fact]
-        public async Task TestFixAll()
-        {
-            var code = """
-                public class C
-                {
-                    public bool M1(bool x)
-                    {
-                        return true [|==|] x;
-                    }
-
-                    public bool M2(bool x)
-                    {
-                        return x [|!=|] false;
-                    }
-
-                    public bool M3(bool x)
-                    {
-                        return x [|==|] true [|==|] true;
-                    }
-                }
-                """;
-            var fixedCode = """
-                public class C
-                {
-                    public bool M1(bool x)
-                    {
-                        return x;
-                    }
-
-                    public bool M2(bool x)
-                    {
-                        return x;
-                    }
-
-                    public bool M3(bool x)
-                    {
-                        return x;
-                    }
-                }
-                """;
-            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48236")]
-        public async Task TestNullableValueTypes_DoesntCrash()
-        {
-            var code = """
-                public class C
-                {
-                    public bool M1(int? x)
-                    {
-                        return x == null;
-                    }
-                }
-                """;
-            await VerifyCS.VerifyAnalyzerAsync(code);
-        }
+            }
+            """;
+        await VerifyCS.VerifyCodeFixAsync(code, code);
     }
 }

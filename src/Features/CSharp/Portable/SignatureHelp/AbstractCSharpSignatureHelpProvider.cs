@@ -4,20 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
@@ -26,27 +15,23 @@ internal abstract partial class AbstractCSharpSignatureHelpProvider : AbstractSi
     private static readonly SymbolDisplayFormat s_allowDefaultLiteralFormat = SymbolDisplayFormat.MinimallyQualifiedFormat
         .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
 
-    protected AbstractCSharpSignatureHelpProvider()
-    {
-    }
-
     protected static SymbolDisplayPart Keyword(SyntaxKind kind)
-        => new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(kind));
+        => new(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(kind));
 
     protected static SymbolDisplayPart Operator(SyntaxKind kind)
-        => new SymbolDisplayPart(SymbolDisplayPartKind.Operator, null, SyntaxFacts.GetText(kind));
+        => new(SymbolDisplayPartKind.Operator, null, SyntaxFacts.GetText(kind));
 
     protected static SymbolDisplayPart Punctuation(SyntaxKind kind)
-        => new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, SyntaxFacts.GetText(kind));
+        => new(SymbolDisplayPartKind.Punctuation, null, SyntaxFacts.GetText(kind));
 
     protected static SymbolDisplayPart Text(string text)
-        => new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text);
+        => new(SymbolDisplayPartKind.Text, null, text);
 
     protected static SymbolDisplayPart Space()
-        => new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
+        => new(SymbolDisplayPartKind.Space, null, " ");
 
     protected static SymbolDisplayPart NewLine()
-        => new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
+        => new(SymbolDisplayPartKind.LineBreak, null, "\r\n");
 
     private static readonly IList<SymbolDisplayPart> _separatorParts =
         [
@@ -77,5 +62,5 @@ internal abstract partial class AbstractCSharpSignatureHelpProvider : AbstractSi
 #pragma warning disable CA1822 // Mark members as static - see obsolete message above.
     protected IList<TaggedText> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
 #pragma warning restore CA1822 // Mark members as static
-        => SpecializedCollections.EmptyList<TaggedText>();
+        => [];
 }

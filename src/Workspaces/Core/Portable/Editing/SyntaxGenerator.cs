@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -33,16 +34,22 @@ public abstract class SyntaxGenerator : ILanguageService
 {
     public static readonly SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
-    internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
-    internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
-    internal abstract SyntaxTrivia ElasticMarker { get; }
-
-    internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
-    internal ISyntaxFacts SyntaxFacts => SyntaxGeneratorInternal.SyntaxFacts;
     internal abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
+    internal SyntaxTrivia CarriageReturnLineFeed => this.SyntaxGeneratorInternal.CarriageReturnLineFeed;
+    internal SyntaxTrivia ElasticCarriageReturnLineFeed => this.SyntaxGeneratorInternal.ElasticCarriageReturnLineFeed;
+    internal abstract SyntaxTrivia ElasticMarker { get; }
+
+    internal bool RequiresExplicitImplementationForInterfaceMembers
+        => this.SyntaxGeneratorInternal.RequiresExplicitImplementationForInterfaceMembers;
+
+    internal ISyntaxFacts SyntaxFacts
+        => SyntaxGeneratorInternal.SyntaxFacts;
+
     internal abstract SyntaxTrivia Whitespace(string text);
-    internal abstract SyntaxTrivia SingleLineComment(string text);
+
+    internal SyntaxTrivia SingleLineComment(string text)
+        => this.SyntaxGeneratorInternal.SingleLineComment(text);
 
     internal abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim);
     internal abstract SyntaxToken CreateInterpolatedStringEndToken();
@@ -161,7 +168,7 @@ public abstract class SyntaxGenerator : ILanguageService
         IEnumerable<SyntaxNode>? statements = null)
     {
         return MethodDeclaration(
-            name, parameters, typeParameters?.Select(n => TypeParameter(n)), returnType, accessibility, modifiers, statements);
+            name, parameters, typeParameters?.Select(TypeParameter), returnType, accessibility, modifiers, statements);
     }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -186,7 +193,7 @@ public abstract class SyntaxGenerator : ILanguageService
             name,
             typeParameters: method.TypeParameters.Select(p => TypeParameter(p)),
             parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
-            returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType, method.RefKind),
+            returnType: method.ReturnType.IsSystemVoid() ? null : this.SyntaxGeneratorInternal.TypeExpression(method.ReturnType, method.RefKind),
             accessibility: method.DeclaredAccessibility,
             modifiers: DeclarationModifiers.From(method),
             statements: statements);
@@ -257,57 +264,34 @@ public abstract class SyntaxGenerator : ILanguageService
         throw new NotImplementedException();
     }
 
+    private protected abstract SyntaxNode OperatorDeclaration(
+        string operatorName,
+        bool isImplicitConversion,
+        IEnumerable<SyntaxNode>? parameters = null,
+        SyntaxNode? returnType = null,
+        Accessibility accessibility = Accessibility.NotApplicable,
+        DeclarationModifiers modifiers = default,
+        IEnumerable<SyntaxNode>? statements = null);
+
     /// <summary>
     /// Creates a operator or conversion declaration matching an existing method symbol.
     /// </summary>
     public SyntaxNode OperatorDeclaration(IMethodSymbol method, IEnumerable<SyntaxNode>? statements = null)
     {
         if (method.MethodKind is not (MethodKind.UserDefinedOperator or MethodKind.Conversion))
-            throw new ArgumentException("Method is not an operator.");
+            throw new ArgumentException($"Method kind '{method.MethodKind}' is not an operator.");
 
         var decl = OperatorDeclaration(
-            GetOperatorKind(method),
+            method.Name,
+            isImplicitConversion: method.Name is WellKnownMemberNames.ImplicitConversionName,
             parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
-            returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType, method.RefKind),
+            returnType: method.ReturnType.IsSystemVoid() ? null : this.SyntaxGeneratorInternal.TypeExpression(method.ReturnType, method.RefKind),
             accessibility: method.DeclaredAccessibility,
             modifiers: DeclarationModifiers.From(method),
             statements: statements);
 
         return decl;
     }
-
-    private static OperatorKind GetOperatorKind(IMethodSymbol method)
-        => method.Name switch
-        {
-            WellKnownMemberNames.ImplicitConversionName => OperatorKind.ImplicitConversion,
-            WellKnownMemberNames.ExplicitConversionName => OperatorKind.ExplicitConversion,
-            WellKnownMemberNames.AdditionOperatorName => OperatorKind.Addition,
-            WellKnownMemberNames.BitwiseAndOperatorName => OperatorKind.BitwiseAnd,
-            WellKnownMemberNames.BitwiseOrOperatorName => OperatorKind.BitwiseOr,
-            WellKnownMemberNames.DecrementOperatorName => OperatorKind.Decrement,
-            WellKnownMemberNames.DivisionOperatorName => OperatorKind.Division,
-            WellKnownMemberNames.EqualityOperatorName => OperatorKind.Equality,
-            WellKnownMemberNames.ExclusiveOrOperatorName => OperatorKind.ExclusiveOr,
-            WellKnownMemberNames.FalseOperatorName => OperatorKind.False,
-            WellKnownMemberNames.GreaterThanOperatorName => OperatorKind.GreaterThan,
-            WellKnownMemberNames.GreaterThanOrEqualOperatorName => OperatorKind.GreaterThanOrEqual,
-            WellKnownMemberNames.IncrementOperatorName => OperatorKind.Increment,
-            WellKnownMemberNames.InequalityOperatorName => OperatorKind.Inequality,
-            WellKnownMemberNames.LeftShiftOperatorName => OperatorKind.LeftShift,
-            WellKnownMemberNames.LessThanOperatorName => OperatorKind.LessThan,
-            WellKnownMemberNames.LessThanOrEqualOperatorName => OperatorKind.LessThanOrEqual,
-            WellKnownMemberNames.LogicalNotOperatorName => OperatorKind.LogicalNot,
-            WellKnownMemberNames.ModulusOperatorName => OperatorKind.Modulus,
-            WellKnownMemberNames.MultiplyOperatorName => OperatorKind.Multiply,
-            WellKnownMemberNames.OnesComplementOperatorName => OperatorKind.OnesComplement,
-            WellKnownMemberNames.RightShiftOperatorName => OperatorKind.RightShift,
-            WellKnownMemberNames.UnsignedRightShiftOperatorName => OperatorKind.UnsignedRightShift,
-            WellKnownMemberNames.SubtractionOperatorName => OperatorKind.Subtraction,
-            WellKnownMemberNames.TrueOperatorName => OperatorKind.True,
-            WellKnownMemberNames.UnaryNegationOperatorName => OperatorKind.UnaryNegation,
-            WellKnownMemberNames.UnaryPlusOperatorName => OperatorKind.UnaryPlus,
-            _ => throw new ArgumentException("Unknown operator kind."),
-        };
 
     /// <summary>
     /// Creates a parameter declaration.
@@ -345,8 +329,7 @@ public abstract class SyntaxGenerator : ILanguageService
             symbol.RefKind,
             isExtension: symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } },
             symbol.IsParams,
-            isScoped: symbol is { RefKind: RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter, ScopedKind: ScopedKind.ScopedRef }
-                or { RefKind: RefKind.None, Type.IsRefLikeType: true, ScopedKind: ScopedKind.ScopedValue });
+            isScoped: SyntaxGeneratorInternal.ParameterIsScoped(symbol));
     }
 
     private protected abstract SyntaxNode TypeParameter(ITypeParameterSymbol typeParameter);
@@ -407,7 +390,7 @@ public abstract class SyntaxGenerator : ILanguageService
 
         var propDecl = PropertyDeclaration(
             property.Name,
-            TypeExpression(property.Type, property.RefKind),
+            this.SyntaxGeneratorInternal.TypeExpression(property.Type, property.RefKind),
             getAccessor,
             setAccessor,
             propertyAccessibility,
@@ -468,7 +451,7 @@ public abstract class SyntaxGenerator : ILanguageService
     {
         var indexerDecl = IndexerDeclaration(
             indexer.Parameters.Select(p => this.ParameterDeclaration(p)),
-            TypeExpression(indexer.Type, indexer.RefKind),
+            this.SyntaxGeneratorInternal.TypeExpression(indexer.Type, indexer.RefKind),
             indexer.DeclaredAccessibility,
             DeclarationModifiers.From(indexer),
             getAccessorStatements,
@@ -702,6 +685,14 @@ public abstract class SyntaxGenerator : ILanguageService
         IEnumerable<SyntaxNode>? members = null);
 
     /// <summary>
+    /// Creates an extension block declaration
+    /// </summary>
+    internal abstract SyntaxNode ExtensionBlockDeclaration(
+        SyntaxNode extensionParameter,
+        IEnumerable<SyntaxNode>? typeParameters,
+        IEnumerable<SyntaxNode> members);
+
+    /// <summary>
     /// Creates an enum member
     /// </summary>
     public abstract SyntaxNode EnumMember(string name, SyntaxNode? expression = null);
@@ -783,7 +774,7 @@ public abstract class SyntaxGenerator : ILanguageService
                         modifiers: DeclarationModifiers.From(type),
                         baseType: type.BaseType != null ? TypeExpression(type.BaseType) : null,
                         interfaceTypes: type.Interfaces.Select(TypeExpression),
-                        members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        members: GetMembersExceptExtensionImplementations(type).Where(CanBeDeclared).Select(Declaration)),
                     TypeKind.Struct => StructDeclaration(
                         type.IsRecord,
                         type.Name,
@@ -791,20 +782,20 @@ public abstract class SyntaxGenerator : ILanguageService
                         accessibility: type.DeclaredAccessibility,
                         modifiers: DeclarationModifiers.From(type),
                         interfaceTypes: type.Interfaces.Select(TypeExpression),
-                        members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        members: type.GetMembers().SelectAsArray(CanBeDeclared, Declaration)),
                     TypeKind.Interface => InterfaceDeclaration(
                         type.Name,
                         type.TypeParameters.Select(TypeParameter),
                         accessibility: type.DeclaredAccessibility,
                         interfaceTypes: type.Interfaces.Select(TypeExpression),
-                        members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
+                        members: type.GetMembers().SelectAsArray(CanBeDeclared, Declaration)),
                     TypeKind.Enum => EnumDeclaration(
                         type.Name,
                         underlyingType: type.EnumUnderlyingType is null or { SpecialType: SpecialType.System_Int32 }
                             ? null
                             : TypeExpression(type.EnumUnderlyingType.SpecialType),
                         accessibility: type.DeclaredAccessibility,
-                        members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(Declaration)),
+                        members: type.GetMembers().SelectAsArray(s => s.Kind == SymbolKind.Field, Declaration)),
                     TypeKind.Delegate => type.GetMembers(WellKnownMemberNames.DelegateInvokeName) is [IMethodSymbol invoke, ..]
                         ? DelegateDeclaration(
                             type.Name,
@@ -814,6 +805,10 @@ public abstract class SyntaxGenerator : ILanguageService
                             accessibility: type.DeclaredAccessibility,
                             modifiers: DeclarationModifiers.From(type))
                         : null,
+                    TypeKind.Extension when type.ExtensionParameter is { } extensionParameter => ExtensionBlockDeclaration(
+                        ParameterDeclaration(extensionParameter),
+                        typeParameters: type.TypeParameters.Select(TypeParameter),
+                        members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
                     _ => null,
                 };
 
@@ -824,6 +819,43 @@ public abstract class SyntaxGenerator : ILanguageService
         }
 
         throw new ArgumentException("Symbol cannot be converted to a declaration");
+
+        static IEnumerable<ISymbol> GetMembersExceptExtensionImplementations(INamedTypeSymbol type)
+        {
+            var members = type.GetMembers();
+            using var _ = PooledHashSet<IMethodSymbol>.GetInstance(out var implementationsToHide);
+            foreach (var nested in type.GetTypeMembers(""))
+            {
+                if (nested.IsExtension)
+                {
+                    foreach (var extensionMember in nested.GetMembers())
+                    {
+                        if (extensionMember is IMethodSymbol { AssociatedExtensionImplementation: { } toShadow })
+                        {
+                            implementationsToHide.Add(toShadow.OriginalDefinition);
+                        }
+                    }
+                }
+            }
+
+            if (implementationsToHide is null)
+            {
+                return members;
+            }
+
+            using var _2 = ArrayBuilder<ISymbol>.GetInstance(out var result);
+            foreach (var member in members)
+            {
+                // Hide implementation methods
+                if (member is not IMethodSymbol method ||
+                    !implementationsToHide.Contains(method.OriginalDefinition))
+                {
+                    result.Add(member);
+                }
+            }
+
+            return result.ToImmutableAndClear();
+        }
     }
 
     private static bool CanBeDeclared(ISymbol symbol)
@@ -850,6 +882,7 @@ public abstract class SyntaxGenerator : ILanguageService
                 {
                     case MethodKind.Constructor:
                     case MethodKind.SharedConstructor:
+                    case MethodKind.UserDefinedOperator:
                         return true;
                     case MethodKind.Ordinary:
                         return method.CanBeReferencedByName;
@@ -867,6 +900,8 @@ public abstract class SyntaxGenerator : ILanguageService
                     case TypeKind.Enum:
                     case TypeKind.Delegate:
                         return type.CanBeReferencedByName;
+                    case TypeKind.Extension:
+                        return true;
                 }
 
                 break;
@@ -1246,7 +1281,11 @@ public abstract class SyntaxGenerator : ILanguageService
     /// <summary>
     /// Changes the <see cref="DeclarationModifiers"/> for the declaration.
     /// </summary>
-    public abstract SyntaxNode WithModifiers(SyntaxNode declaration, DeclarationModifiers modifiers);
+    public SyntaxNode WithModifiers(SyntaxNode declaration, DeclarationModifiers modifiers)
+        => WithModifiers<SyntaxNode>(declaration, modifiers);
+
+    internal abstract TSyntaxNode WithModifiers<TSyntaxNode>(TSyntaxNode declaration, DeclarationModifiers modifiers)
+        where TSyntaxNode : SyntaxNode;
 
     /// <summary>
     /// Gets the <see cref="DeclarationKind"/> for the declaration.
@@ -1458,10 +1497,10 @@ public abstract class SyntaxGenerator : ILanguageService
     internal static SyntaxTokenList Merge(SyntaxTokenList original, SyntaxTokenList newList)
     {
         // return tokens from newList, but use original tokens of kind matches
-        return new SyntaxTokenList(newList.Select(
+        return [.. newList.Select(
             token => Any(original, token.RawKind)
                 ? original.First(tk => tk.RawKind == token.RawKind)
-                : token));
+                : token)];
     }
 
     private static bool Any(SyntaxTokenList original, int rawKind)
@@ -1613,7 +1652,8 @@ public abstract class SyntaxGenerator : ILanguageService
     /// <summary>
     /// True if <see cref="ThrowExpression"/> can be used
     /// </summary>
-    internal abstract bool SupportsThrowExpression();
+    internal bool SupportsThrowExpression()
+        => this.SyntaxGeneratorInternal.SupportsThrowExpression();
 
     /// <summary>
     /// <see langword="true"/> if the language requires a <see cref="TypeExpression(ITypeSymbol)"/>
@@ -1792,8 +1832,11 @@ public abstract class SyntaxGenerator : ILanguageService
     /// An expression that represents the default value of a type.
     /// This is typically a null value for reference types or a zero-filled value for value types.
     /// </summary>
-    public abstract SyntaxNode DefaultExpression(SyntaxNode type);
-    public abstract SyntaxNode DefaultExpression(ITypeSymbol type);
+    public SyntaxNode DefaultExpression(SyntaxNode type)
+        => this.SyntaxGeneratorInternal.DefaultExpression(type);
+
+    public SyntaxNode DefaultExpression(ITypeSymbol type)
+        => this.SyntaxGeneratorInternal.DefaultExpression(type);
 
     /// <summary>
     /// Creates an expression that denotes the containing method's this-parameter.
@@ -1844,8 +1887,8 @@ public abstract class SyntaxGenerator : ILanguageService
     /// Creates an expression that denotes a simple identifier name.
     /// </summary>
     /// <param name="identifier"></param>
-    /// <returns></returns>
-    public abstract SyntaxNode IdentifierName(string identifier);
+    public SyntaxNode IdentifierName(string identifier)
+        => this.SyntaxGeneratorInternal.IdentifierName(identifier);
 
     internal abstract SyntaxNode IdentifierName(SyntaxToken identifier);
     internal SyntaxToken Identifier(string identifier) => SyntaxGeneratorInternal.Identifier(identifier);
@@ -1937,16 +1980,13 @@ public abstract class SyntaxGenerator : ILanguageService
     /// Creates a name that denotes a type or namespace.
     /// </summary>
     /// <param name="namespaceOrTypeSymbol">The symbol to create a name for.</param>
-    /// <returns></returns>
     public abstract SyntaxNode NameExpression(INamespaceOrTypeSymbol namespaceOrTypeSymbol);
 
     /// <summary>
     /// Creates an expression that denotes a type.
     /// </summary>
     public SyntaxNode TypeExpression(ITypeSymbol typeSymbol)
-        => TypeExpression(typeSymbol, RefKind.None);
-
-    private protected abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol, RefKind refKind);
+        => this.SyntaxGeneratorInternal.TypeExpression(typeSymbol);
 
     /// <summary>
     /// Creates an expression that denotes a type. If addImport is false,
@@ -2121,7 +2161,8 @@ public abstract class SyntaxGenerator : ILanguageService
     /// <summary>
     /// Creates an expression that denotes a bitwise-or operation.
     /// </summary>
-    public abstract SyntaxNode BitwiseOrExpression(SyntaxNode left, SyntaxNode right);
+    public SyntaxNode BitwiseOrExpression(SyntaxNode left, SyntaxNode right)
+        => this.SyntaxGeneratorInternal.BitwiseOrExpression(left, right);
 
     /// <summary>
     /// Creates an expression that denotes a bitwise-not operation
@@ -2180,13 +2221,11 @@ public abstract class SyntaxGenerator : ILanguageService
     /// <summary>
     /// Creates a member access expression.
     /// </summary>
-    public virtual SyntaxNode MemberAccessExpression(SyntaxNode? expression, SyntaxNode memberName)
-    {
-        return MemberAccessExpressionWorker(expression, memberName)
-            .WithAdditionalAnnotations(Simplifier.Annotation);
-    }
+    public SyntaxNode MemberAccessExpression(SyntaxNode? expression, SyntaxNode memberName)
+        => this.SyntaxGeneratorInternal.MemberAccessExpression(expression, memberName);
 
-    internal abstract SyntaxNode MemberAccessExpressionWorker(SyntaxNode? expression, SyntaxNode memberName);
+    internal SyntaxNode MemberAccessExpressionWorker(SyntaxNode? expression, SyntaxNode memberName)
+        => this.SyntaxGeneratorInternal.MemberAccessExpressionWorker(expression, memberName);
 
     internal SyntaxNode RefExpression(SyntaxNode expression)
         => SyntaxGeneratorInternal.RefExpression(expression);
@@ -2302,24 +2341,26 @@ public abstract class SyntaxGenerator : ILanguageService
     /// <summary>
     /// Creates an expression that denotes a type cast operation.
     /// </summary>
-    public abstract SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression);
+    public SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression)
+        => this.SyntaxGeneratorInternal.CastExpression(type, expression);
 
     /// <summary>
     /// Creates an expression that denotes a type cast operation.
     /// </summary>
     public SyntaxNode CastExpression(ITypeSymbol type, SyntaxNode expression)
-        => CastExpression(TypeExpression(type), expression);
+        => this.SyntaxGeneratorInternal.CastExpression(type, expression);
 
     /// <summary>
     /// Creates an expression that denotes a type conversion operation.
     /// </summary>
-    public abstract SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression);
+    public SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression)
+        => this.SyntaxGeneratorInternal.ConvertExpression(type, expression);
 
     /// <summary>
     /// Creates an expression that denotes a type conversion operation.
     /// </summary>
     public SyntaxNode ConvertExpression(ITypeSymbol type, SyntaxNode expression)
-        => ConvertExpression(TypeExpression(type), expression);
+        => this.SyntaxGeneratorInternal.ConvertExpression(type, expression);
 
     /// <summary>
     /// Creates an expression that declares a value returning lambda expression.
@@ -2345,25 +2386,25 @@ public abstract class SyntaxGenerator : ILanguageService
     /// Creates an expression that declares a single parameter value returning lambda expression.
     /// </summary>
     public SyntaxNode ValueReturningLambdaExpression(string parameterName, SyntaxNode expression)
-        => ValueReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, expression);
+        => ValueReturningLambdaExpression([LambdaParameter(parameterName)], expression);
 
     /// <summary>
     /// Creates an expression that declares a single parameter void returning lambda expression.
     /// </summary>
     public SyntaxNode VoidReturningLambdaExpression(string parameterName, SyntaxNode expression)
-        => VoidReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, expression);
+        => VoidReturningLambdaExpression([LambdaParameter(parameterName)], expression);
 
     /// <summary>
     /// Creates an expression that declares a single parameter value returning lambda expression.
     /// </summary>
     public SyntaxNode ValueReturningLambdaExpression(string parameterName, IEnumerable<SyntaxNode> statements)
-        => ValueReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, statements);
+        => ValueReturningLambdaExpression([LambdaParameter(parameterName)], statements);
 
     /// <summary>
     /// Creates an expression that declares a single parameter void returning lambda expression.
     /// </summary>
     public SyntaxNode VoidReturningLambdaExpression(string parameterName, IEnumerable<SyntaxNode> statements)
-        => VoidReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, statements);
+        => VoidReturningLambdaExpression([LambdaParameter(parameterName)], statements);
 
     /// <summary>
     /// Creates an expression that declares a zero parameter value returning lambda expression.
@@ -2425,6 +2466,8 @@ public abstract class SyntaxGenerator : ILanguageService
     /// Parses an expression from string
     /// </summary>
     internal abstract SyntaxNode ParseExpression(string stringToParse);
+
+    internal abstract SyntaxNode ParseTypeName(string stringToParse);
 
     internal abstract SyntaxTrivia Trivia(SyntaxNode node);
 

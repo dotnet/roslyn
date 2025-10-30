@@ -9,15 +9,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 
-internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
+internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
 {
     private sealed class GenerateEqualsAndGetHashCodeWithDialogCodeAction(
         GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
@@ -26,7 +24,6 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
         INamedTypeSymbol containingType,
         ImmutableArray<ISymbol> viableMembers,
         ImmutableArray<PickMembersOption> pickMembersOptions,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         ILegacyGlobalOptionsWorkspaceService globalOptions,
         bool generateEquals = false,
         bool generateGetHashCode = false) : CodeActionWithOptions
@@ -39,7 +36,6 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
         private readonly INamedTypeSymbol _containingType = containingType;
         private readonly ImmutableArray<ISymbol> _viableMembers = viableMembers;
         private readonly ImmutableArray<PickMembersOption> _pickMembersOptions = pickMembersOptions;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
         private readonly ILegacyGlobalOptionsWorkspaceService _globalOptions = globalOptions;
 
         public override string EquivalenceKey => Title;
@@ -82,7 +78,7 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
             var generatorOperators = generateOperatorsOption?.Value ?? false;
 
             var action = new GenerateEqualsAndGetHashCodeAction(
-                _document, _typeDeclaration, _containingType, result.Members, _fallbackOptions,
+                _document, _typeDeclaration, _containingType, result.Members,
                 _generateEquals, _generateGetHashCode, implementIEquatable, generatorOperators);
             return await action.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
         }

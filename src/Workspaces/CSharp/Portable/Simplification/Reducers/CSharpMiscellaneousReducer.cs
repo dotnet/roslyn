@@ -8,18 +8,16 @@ using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-internal partial class CSharpMiscellaneousReducer : AbstractCSharpReducer
+internal sealed partial class CSharpMiscellaneousReducer : AbstractCSharpReducer
 {
     private static readonly ObjectPool<IReductionRewriter> s_pool = new(
         () => new Rewriter(s_pool));

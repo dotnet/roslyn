@@ -36,17 +36,29 @@ public static partial class SymbolFinder
     internal static async Task<ImmutableArray<ISymbol>> FindOverridesArrayAsync(
         ISymbol symbol, Solution solution, IImmutableSet<Project>? projects = null, CancellationToken cancellationToken = default)
     {
-        var results = ArrayBuilder<ISymbol>.GetInstance();
 
         symbol = symbol.OriginalDefinition;
-        if (symbol.IsOverridable())
-        {
-            // To find the overrides, we need to walk down the type hierarchy and check all
-            // derived types.
-            var containingType = symbol.ContainingType;
-            var derivedTypes = await FindDerivedClassesAsync(
-                containingType, solution, projects, cancellationToken).ConfigureAwait(false);
+        if (!symbol.IsOverridable())
+            return [];
 
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
+
+        // To find the overrides, we need to walk down the type hierarchy and check all
+        // derived types.
+        var containingType = symbol.ContainingType;
+        var derivedTypes = await FindDerivedClassesAsync(
+            containingType, solution, projects, cancellationToken).ConfigureAwait(false);
+
+        // First try finding exact overrides.  If that fails to find anything, look for overrides that loosely
+        // match due to errors.
+        await FindOverridesAsync(allowLooseMatch: false).ConfigureAwait(false);
+        if (results.Count == 0)
+            await FindOverridesAsync(allowLooseMatch: true).ConfigureAwait(false);
+
+        return results.ToImmutableAndClear();
+
+        async ValueTask FindOverridesAsync(bool allowLooseMatch)
+        {
             foreach (var type in derivedTypes)
             {
                 foreach (var m in type.GetMembers(symbol.Name))
@@ -54,22 +66,20 @@ public static partial class SymbolFinder
                     var sourceMember = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                     var bestMember = sourceMember ?? m;
 
-                    if (await IsOverrideAsync(solution, bestMember, symbol, cancellationToken).ConfigureAwait(false))
-                    {
+                    if (IsOverride(solution, bestMember, symbol, allowLooseMatch))
                         results.Add(bestMember);
-                    }
                 }
             }
         }
-
-        return results.ToImmutableAndFree();
     }
 
-    internal static async Task<bool> IsOverrideAsync(Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
+    internal static bool IsOverride(Solution solution, ISymbol member, ISymbol symbol, bool allowLooseMatch)
     {
-        for (var current = member; current != null; current = current.GetOverriddenMember())
+        for (var current = member;
+             current != null;
+             current = current.GetOverriddenMember(allowLooseMatch))
         {
-            if (await OriginalSymbolsMatchAsync(solution, current.GetOverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
+            if (OriginalSymbolsMatch(solution, current.GetOverriddenMember(allowLooseMatch), symbol.OriginalDefinition))
                 return true;
         }
 
@@ -159,8 +169,7 @@ public static partial class SymbolFinder
                                     var sourceMethod = await FindSourceDefinitionAsync(interfaceMember, solution, cancellationToken).ConfigureAwait(false);
                                     var bestMethod = sourceMethod ?? interfaceMember;
 
-                                    var implementations = await type.FindImplementationsForInterfaceMemberAsync(
-                                        bestMethod, solution, cancellationToken).ConfigureAwait(false);
+                                    var implementations = type.FindImplementationsForInterfaceMember(bestMethod, solution, cancellationToken);
                                     foreach (var implementation in implementations)
                                     {
                                         if (implementation != null &&
@@ -174,7 +183,7 @@ public static partial class SymbolFinder
                         }
                     }
 
-                    return builder.Distinct(SymbolEquivalenceComparer.Instance).ToImmutableArray();
+                    return [.. builder.Distinct(SymbolEquivalenceComparer.Instance)];
                 }
             }
 
@@ -361,7 +370,7 @@ public static partial class SymbolFinder
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
         foreach (var t in allTypes)
         {
-            var implementations = await t.FindImplementationsForInterfaceMemberAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            var implementations = t.FindImplementationsForInterfaceMember(symbol, solution, cancellationToken);
             foreach (var implementation in implementations)
             {
                 var sourceDef = await FindSourceDefinitionAsync(implementation, solution, cancellationToken).ConfigureAwait(false);
@@ -371,6 +380,6 @@ public static partial class SymbolFinder
             }
         }
 
-        return results.Distinct(SymbolEquivalenceComparer.Instance).ToImmutableArray();
+        return [.. results.Distinct(SymbolEquivalenceComparer.Instance)];
     }
 }

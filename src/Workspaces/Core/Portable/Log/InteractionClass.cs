@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
@@ -29,7 +27,7 @@ internal enum InteractionClass
 }
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
-internal class PerfGoalAttribute(InteractionClass interactionClass) : Attribute
+internal sealed class PerfGoalAttribute(InteractionClass interactionClass) : Attribute
 {
     public InteractionClass InteractionClass => interactionClass;
 }

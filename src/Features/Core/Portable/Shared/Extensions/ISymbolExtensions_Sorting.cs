@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal partial class ISymbolExtensions2
+internal static partial class ISymbolExtensions2
 {
     [Obsolete("Use overload without ISymbolDisplayService")]
     public static ImmutableArray<TSymbol> Sort<TSymbol>(
@@ -36,8 +36,7 @@ internal partial class ISymbolExtensions2
         var symbolToParameterTypeNames = new ConcurrentDictionary<TSymbol, string[]>();
         string[] getParameterTypeNames(TSymbol s) => GetParameterTypeNames(s, semanticModel, position);
 
-        return symbols.OrderBy((s1, s2) => Compare(s1, s2, symbolToParameterTypeNames, getParameterTypeNames))
-                      .ToImmutableArray();
+        return [.. symbols.OrderBy((s1, s2) => Compare(s1, s2, symbolToParameterTypeNames, getParameterTypeNames))];
     }
 
     private static INamedTypeSymbol GetNamedType(ITypeSymbol type)
@@ -133,9 +132,7 @@ internal partial class ISymbolExtensions2
         SemanticModel semanticModel,
         int position)
     {
-        return GetMethodOrIndexerOrEventParameters(symbol)
-                     .Select(p => p.Type.ToMinimalDisplayString(semanticModel, position))
-                     .ToArray();
+        return [.. GetMethodOrIndexerOrEventParameters(symbol).Select(p => p.Type.ToMinimalDisplayString(semanticModel, position))];
     }
 
     private static ImmutableArray<IParameterSymbol> GetMethodOrIndexerOrEventParameters(ISymbol symbol)

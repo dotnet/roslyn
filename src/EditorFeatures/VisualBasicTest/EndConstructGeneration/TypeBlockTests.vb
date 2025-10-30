@@ -7,71 +7,71 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class TypeBlockTests
         <WpfFact>
-        Public Sub TestApplyAfterClassStatement()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterClassStatement() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1",
                 beforeCaret:={0, -1},
                 after:="Class c1
 
 End Class",
                 afterCaret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestApplyAfterModuleStatement()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterModuleStatement() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Module m1",
                 beforeCaret:={0, -1},
                 after:="Module m1
 
 End Module",
                 afterCaret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub DoNotApplyForMatchedClass()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DoNotApplyForMatchedClass() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
 End Class",
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestApplyAfterInterfaceStatement()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterInterfaceStatement() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Interface IGoo",
                 beforeCaret:={0, -1},
                 after:="Interface IGoo
 
 End Interface",
                 afterCaret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestApplyAfterStructureStatement()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterStructureStatement() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Structure Goo",
                 beforeCaret:={0, -1},
                 after:="Structure Goo
 
 End Structure",
                 afterCaret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestApplyAfterEnumStatement()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterEnumStatement() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Enum Goo",
                 beforeCaret:={0, -1},
                 after:="Enum Goo
 
 End Enum",
                 afterCaret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyGenericClass()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyGenericClass() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="NameSpace X
     Class C(of T)",
                 beforeCaret:={1, -1},
@@ -80,11 +80,11 @@ End Enum",
 
     End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyStructInAClass()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyStructInAClass() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Structure s
 End Class",
@@ -95,11 +95,11 @@ End Class",
     End Structure
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyClassInAModule()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyClassInAModule() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Module M
     Class C
 End Module",
@@ -110,22 +110,22 @@ End Module",
     End Class
 End Module",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyClassDeclaration()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyClassDeclaration() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Partial Friend MustInherit Class C",
                 beforeCaret:={0, -1},
                  after:="Partial Friend MustInherit Class C
 
 End Class",
                 afterCaret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyEnumInAClass()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyEnumInAClass() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Public Enum e
 End Class",
@@ -136,69 +136,69 @@ End Class",
     End Enum
 End Class",
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidSyntax()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSyntax() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class EC
     Sub S
         Class B
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidSyntax01()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSyntax01() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Enum e(Of T)",
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidSyntax02()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSyntax02() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C Class",
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyInheritsDecl()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyInheritsDecl() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C : Inherits B",
                 beforeCaret:={0, -1},
                  after:="Class C : Inherits B
 
 End Class",
                 afterCaret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInheritsDeclNotApplied()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInheritsDeclNotApplied() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C : Inherits B
 End Class",
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestVerifyImplementsDecl()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyImplementsDecl() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C : Implements IB",
                 beforeCaret:={0, -1},
                  after:="Class C : Implements IB
 
 End Class",
                 afterCaret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyImplementsDeclNotApplied()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyImplementsDeclNotApplied() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C : Implements IB
 End Class",
                 caret:={0, -1})
-        End Sub
+        End Function
     End Class
 End Namespace

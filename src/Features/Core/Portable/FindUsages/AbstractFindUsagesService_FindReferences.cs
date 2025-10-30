@@ -4,18 +4,14 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages;
 
@@ -81,7 +77,7 @@ internal abstract partial class AbstractFindUsagesService
             result.AddIfNotNull(thirdParty);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task FindSymbolReferencesAsync(
@@ -165,7 +161,8 @@ internal abstract partial class AbstractFindUsagesService
         OptionsProvider<ClassificationOptions> classificationOptions,
         CancellationToken cancellationToken)
     {
-        var progress = new FindReferencesProgressAdapter(project.Solution, context, searchOptions, classificationOptions);
+        var progress = new FindReferencesProgressAdapter(
+            project.Solution, symbol, context, searchOptions, classificationOptions);
         return SymbolFinder.FindReferencesAsync(
             symbol, project.Solution, progress, documents: null, searchOptions, cancellationToken);
     }
@@ -182,8 +179,9 @@ internal abstract partial class AbstractFindUsagesService
         // bother with true/false/null as those are likely to have way too many results
         // to be useful.
         var token = await syntaxTree.GetTouchingTokenAsync(
+            semanticModel: null,
             position,
-            t => syntaxFacts.IsNumericLiteral(t) ||
+            (_, t) => syntaxFacts.IsNumericLiteral(t) ||
                  syntaxFacts.IsCharacterLiteral(t) ||
                  syntaxFacts.IsStringLiteral(t),
             cancellationToken).ConfigureAwait(false);

@@ -7,10 +7,8 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -22,17 +20,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(CSharpSuggestionModeCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(CSharpSuggestionModeCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(ObjectAndWithInitializerCompletionProvider))]
-[Shared]
-internal class CSharpSuggestionModeCompletionProvider : AbstractSuggestionModeCompletionProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpSuggestionModeCompletionProvider() : AbstractSuggestionModeCompletionProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpSuggestionModeCompletionProvider()
-    {
-    }
-
     internal override string Language => LanguageNames.CSharp;
 
     protected override async Task<CompletionItem?> GetSuggestionModeItemAsync(
@@ -72,20 +65,20 @@ internal class CSharpSuggestionModeCompletionProvider : AbstractSuggestionModeCo
             }
             else if (tree.IsNamespaceDeclarationNameContext(position, cancellationToken))
             {
-                return CreateSuggestionModeItem(CSharpFeaturesResources.namespace_name, CSharpFeaturesResources.Autoselect_disabled_due_to_namespace_declaration);
+                return CreateSuggestionModeItem(FeaturesResources.namespace_name, CSharpFeaturesResources.Autoselect_disabled_due_to_namespace_declaration);
             }
             else if (tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out var typeDeclaration))
             {
                 switch (typeDeclaration.Keyword.Kind())
                 {
                     case SyntaxKind.ClassKeyword:
-                        return CreateSuggestionModeItem(CSharpFeaturesResources.class_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
+                        return CreateSuggestionModeItem(FeaturesResources.class_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
 
                     case SyntaxKind.StructKeyword:
                         return CreateSuggestionModeItem(CSharpFeaturesResources.struct_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
 
                     case SyntaxKind.InterfaceKeyword:
-                        return CreateSuggestionModeItem(CSharpFeaturesResources.interface_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
+                        return CreateSuggestionModeItem(FeaturesResources.interface_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
                 }
             }
             else if (tree.IsPossibleDeconstructionDesignation(position, cancellationToken))
@@ -193,9 +186,20 @@ internal class CSharpSuggestionModeCompletionProvider : AbstractSuggestionModeCo
     private static ITypeSymbol? GetDelegateType(TypeInferenceInfo typeInferenceInfo, Compilation compilation)
     {
         var typeSymbol = typeInferenceInfo.InferredType;
-        if (typeInferenceInfo.IsParams && typeInferenceInfo.InferredType.IsArrayType())
+        if (typeInferenceInfo.IsParams)
         {
-            typeSymbol = ((IArrayTypeSymbol)typeInferenceInfo.InferredType).ElementType;
+            if (typeInferenceInfo.InferredType.IsSpanOrReadOnlySpan())
+            {
+                typeSymbol = typeInferenceInfo.InferredType.GetTypeArguments().Single();
+            }
+            else
+            {
+                var ienumerableType = typeInferenceInfo.InferredType
+                    .GetAllInterfacesIncludingThis()
+                    .FirstOrDefault(i => i.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
+                if (ienumerableType != null)
+                    typeSymbol = ienumerableType.TypeArguments.Single();
+            }
         }
 
         return typeSymbol.GetDelegateType(compilation);

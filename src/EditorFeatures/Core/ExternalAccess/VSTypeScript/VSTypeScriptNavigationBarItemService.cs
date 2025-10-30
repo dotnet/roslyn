@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
@@ -33,7 +32,7 @@ internal class VSTypeScriptNavigationBarItemService(
         Document document, ITextVersion textVersion, CancellationToken cancellationToken)
     {
         return ((INavigationBarItemService)this).GetItemsAsync(
-            document, workspaceSupportsDocumentChanges: true, forceFrozenPartialSemanticsForCrossProcessOperations: false, textVersion, cancellationToken);
+            document, workspaceSupportsDocumentChanges: true, frozenPartialSemantics: false, textVersion, cancellationToken);
     }
 
     async Task<ImmutableArray<NavigationBarItem>> INavigationBarItemService.GetItemsAsync(
@@ -59,7 +58,7 @@ internal class VSTypeScriptNavigationBarItemService(
         var workspace = document.Project.Solution.Workspace;
         var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
         return await navigationService.TryNavigateToPositionAsync(
-            _threadingContext, workspace, document.Id, navigationSpan.Start, virtualSpace: 0, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+            _threadingContext, workspace, document.Id, navigationSpan.Start, cancellationToken).ConfigureAwait(false);
     }
 
     public bool ShowItemGrayedIfNear(NavigationBarItem item)

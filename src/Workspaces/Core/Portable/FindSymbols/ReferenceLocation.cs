@@ -52,7 +52,7 @@ public readonly record struct ReferenceLocation : IComparable<ReferenceLocation>
     /// <summary>
     /// Additional properties for this reference
     /// </summary>
-    internal ImmutableDictionary<string, string> AdditionalProperties { get; }
+    internal ImmutableArray<(string key, string value)> AdditionalProperties { get; }
 
     /// <summary>
     /// If this reference location is within a string literal, then this property
@@ -69,7 +69,7 @@ public readonly record struct ReferenceLocation : IComparable<ReferenceLocation>
         Location location,
         bool isImplicit,
         SymbolUsageInfo symbolUsageInfo,
-        ImmutableDictionary<string, string> additionalProperties,
+        ImmutableArray<(string key, string value)> additionalProperties,
         CandidateReason candidateReason,
         Location containingStringLocation)
     {
@@ -78,7 +78,7 @@ public readonly record struct ReferenceLocation : IComparable<ReferenceLocation>
         this.Location = location;
         this.IsImplicit = isImplicit;
         this.SymbolUsageInfo = symbolUsageInfo;
-        this.AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
+        this.AdditionalProperties = additionalProperties.NullToEmpty();
         this.CandidateReason = candidateReason;
         this.ContainingStringLocation = containingStringLocation;
     }
@@ -86,7 +86,7 @@ public readonly record struct ReferenceLocation : IComparable<ReferenceLocation>
     /// <summary>
     /// Creates a reference location with the given properties.
     /// </summary>
-    internal ReferenceLocation(Document document, IAliasSymbol? alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties, CandidateReason candidateReason)
+    internal ReferenceLocation(Document document, IAliasSymbol? alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableArray<(string key, string value)> additionalProperties, CandidateReason candidateReason)
         : this(document, alias, location, isImplicit, symbolUsageInfo, additionalProperties, candidateReason, containingStringLocation: Location.None)
     {
     }
@@ -97,7 +97,7 @@ public readonly record struct ReferenceLocation : IComparable<ReferenceLocation>
     /// </summary>
     internal ReferenceLocation(Document document, Location location, Location containingStringLocation)
         : this(document, alias: null, location, isImplicit: false,
-               SymbolUsageInfo.None, additionalProperties: ImmutableDictionary<string, string>.Empty,
+               SymbolUsageInfo.None, additionalProperties: [],
                CandidateReason.None, containingStringLocation)
     {
     }

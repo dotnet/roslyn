@@ -4,19 +4,15 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
-using System.Text;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 
@@ -25,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 /// it can be retrieved later on if the user pastes.
 /// </summary>
 [method: JsonConstructor]
-internal class StringCopyPasteData(ImmutableArray<StringCopyPasteContent> contents)
+internal sealed class StringCopyPasteData(ImmutableArray<StringCopyPasteContent> contents)
 {
     public ImmutableArray<StringCopyPasteContent> Contents { get; } = contents;
 
@@ -44,7 +40,7 @@ internal class StringCopyPasteData(ImmutableArray<StringCopyPasteContent> conten
 
     public static StringCopyPasteData? FromJson(string? json)
     {
-        if (string.IsNullOrWhiteSpace(json))
+        if (RoslynString.IsNullOrWhiteSpace(json))
             return null;
 
         try
@@ -97,7 +93,7 @@ internal class StringCopyPasteData(ImmutableArray<StringCopyPasteContent> conten
 
         // First, try to convert this token to a sequence of virtual chars.
         var virtualChars = virtualCharService.TryConvertToVirtualChars(token);
-        if (virtualChars.IsDefaultOrEmpty)
+        if (virtualChars.IsDefaultOrEmpty())
             return false;
 
         // Then find the start/end of the token's characters that overlap with the selection span.
@@ -118,7 +114,7 @@ internal class StringCopyPasteData(ImmutableArray<StringCopyPasteContent> conten
         var lastCharIndexInclusive = virtualChars.IndexOf(lastOverlappingChar.Value);
 
         // Grab that subsequence of characters and get the final interpreted string for it.
-        var subsequence = virtualChars.GetSubSequence(TextSpan.FromBounds(firstCharIndexInclusive, lastCharIndexInclusive + 1));
+        var subsequence = virtualChars[firstCharIndexInclusive..(lastCharIndexInclusive + 1)];
         normalizedText = subsequence.CreateString();
         return true;
     }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.BracePairs;
@@ -46,13 +47,14 @@ internal abstract class AbstractBracePairsService : IBracePairsService
         Document document, TextSpan span, ArrayBuilder<BracePairData> bracePairs, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
 
-        stack.Add(root);
+        using var pooledStack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
+        var stack = pooledStack.Object;
 
-        while (stack.Count > 0)
+        stack.Push(root);
+
+        while (stack.TryPop(out var current))
         {
-            var current = stack.Pop();
             if (current.IsNode)
             {
                 // Ignore nodes that have no intersection at all with the span we're being asked with. Note: if

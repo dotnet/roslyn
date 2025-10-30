@@ -11,12 +11,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -30,10 +27,8 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
 
     protected abstract bool IsCommentStartCharacter(char ch);
 
-    protected abstract SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
-
-    protected sealed override ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
-        = [FixAllScope.Project, FixAllScope.Solution];
+    protected sealed override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes { get; }
+        = [RefactorAllScope.Project, RefactorAllScope.Solution];
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -43,7 +38,7 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
             return;
         }
 
-        var formattingOptions = await document.GetDocumentFormattingOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetDocumentFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         if (!string.IsNullOrEmpty(formattingOptions.FileHeaderTemplate))
         {
             // If we have a defined file header template, allow the analyzer and code fix to handle it
@@ -56,15 +51,10 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
         var position = span.Start;
         var firstToken = root.GetFirstToken();
         if (!firstToken.FullSpan.IntersectsWith(position))
-        {
             return;
-        }
 
         if (HasExistingBanner(document, root))
-        {
-            // Already has a banner.
             return;
-        }
 
         // Process the other documents in this document's project.  Look at the
         // ones that we can get a root from (without having to parse).  Then
@@ -89,9 +79,10 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         CodeFixesResources.Add_file_header,
-                        _ => AddBannerAsync(document, root, siblingDocument, siblingBanner),
+                        cancellationToken => AddFileBannerHelpers.CopyBannerAsync(
+                            destinationDocument: document, document.FilePath, sourceDocument: siblingDocument, cancellationToken),
                         equivalenceKey: GetEquivalenceKey(siblingDocument, siblingBanner)),
-                    new Text.TextSpan(position, length: 0));
+                    new TextSpan(position, length: 0));
                 return;
             }
         }
@@ -128,40 +119,6 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
         return bannerService.GetFileBanner(token);
     }
 
-    private Task<Document> AddBannerAsync(
-        Document document, SyntaxNode root,
-        Document siblingDocument, ImmutableArray<SyntaxTrivia> banner)
-    {
-        banner = UpdateEmbeddedFileNames(siblingDocument, document, banner);
-
-        var newRoot = root.WithPrependedLeadingTrivia(new SyntaxTriviaList(banner));
-        return Task.FromResult(document.WithSyntaxRoot(newRoot));
-    }
-
-    /// <summary>
-    /// Looks at <paramref name="banner"/> to see if it contains the name of <paramref name="sourceDocument"/>
-    /// in it.  If so, those names will be replaced with <paramref name="destinationDocument"/>'s name.
-    /// </summary>
-    private ImmutableArray<SyntaxTrivia> UpdateEmbeddedFileNames(
-        Document sourceDocument, Document destinationDocument, ImmutableArray<SyntaxTrivia> banner)
-    {
-        var sourceName = IOUtilities.PerformIO(() => Path.GetFileName(sourceDocument.FilePath));
-        var destinationName = IOUtilities.PerformIO(() => Path.GetFileName(destinationDocument.FilePath));
-        if (string.IsNullOrEmpty(sourceName) || string.IsNullOrEmpty(destinationName))
-        {
-            return banner;
-        }
-
-        using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
-        foreach (var trivia in banner)
-        {
-            var updated = CreateTrivia(trivia, trivia.ToFullString().Replace(sourceName, destinationName));
-            result.Add(updated);
-        }
-
-        return result.ToImmutable();
-    }
-
     private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
         Document document, SyntaxNode? root, CancellationToken cancellationToken)
     {
@@ -188,11 +145,10 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
         return bannerService.GetFileBanner(token);
     }
 
-    protected sealed override async Task FixAllAsync(
+    protected sealed override async Task RefactorAllAsync(
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
-        CodeActionOptionsProvider optionsProvider,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {

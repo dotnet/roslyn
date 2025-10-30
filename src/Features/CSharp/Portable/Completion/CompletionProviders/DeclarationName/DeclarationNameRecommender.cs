@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -28,13 +29,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
 
 [ExportDeclarationNameRecommender(nameof(DeclarationNameRecommender)), Shared]
-internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecommender
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRecommender
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public DeclarationNameRecommender()
-    { }
-
     public async Task<ImmutableArray<(string name, Glyph glyph)>> ProvideRecommendedNamesAsync(
         CompletionContext completionContext,
         Document document,
@@ -56,11 +54,11 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
 
         if (!names.IsDefaultOrEmpty)
         {
-            var namingStyleOptions = await document.GetNamingStylePreferencesAsync(completionContext.CompletionOptions.NamingStyleFallbackOptions, cancellationToken).ConfigureAwait(false);
+            var namingStyleOptions = await document.GetNamingStylePreferencesAsync(cancellationToken).ConfigureAwait(false);
             GetRecommendedNames(names, nameInfo, context, result, namingStyleOptions, cancellationToken);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel, NameDeclarationInfo nameInfo)
@@ -207,7 +205,7 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
         NamingStylePreferences namingStyleOptions,
         CancellationToken cancellationToken)
     {
-        var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(FallbackNamingRules.CompletionFallbackRules);
+        var rules = namingStyleOptions.Rules.NamingRules.AddRange(FallbackNamingRules.CompletionFallbackRules);
 
         var supplementaryRules = FallbackNamingRules.CompletionSupplementaryRules;
         var semanticFactsService = context.GetRequiredLanguageService<ISemanticFactsService>();
@@ -217,27 +215,19 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
 
         foreach (var kind in declarationInfo.PossibleSymbolKinds)
         {
-            ProcessRules(rules, firstMatchOnly: true, kind, baseNames, declarationInfo, context, result, semanticFactsService, seenBaseNames, seenUniqueNames, cancellationToken);
-            ProcessRules(supplementaryRules, firstMatchOnly: false, kind, baseNames, declarationInfo, context, result, semanticFactsService, seenBaseNames, seenUniqueNames, cancellationToken);
+            ProcessRules(rules, firstMatchOnly: true, kind);
+            ProcessRules(supplementaryRules, firstMatchOnly: false, kind);
         }
 
-        static void ProcessRules(
+        void ProcessRules(
             ImmutableArray<NamingRule> rules,
             bool firstMatchOnly,
-            SymbolSpecification.SymbolKindOrTypeKind kind,
-            ImmutableArray<ImmutableArray<string>> baseNames,
-            NameDeclarationInfo declarationInfo,
-            CSharpSyntaxContext context,
-            ArrayBuilder<(string, Glyph)> result,
-            ISemanticFactsService semanticFactsService,
-            PooledHashSet<string> seenBaseNames,
-            PooledHashSet<string> seenUniqueNames,
-            CancellationToken cancellationToken)
+            SymbolSpecification.SymbolKindOrTypeKind kind)
         {
             var modifiers = declarationInfo.Modifiers;
             foreach (var rule in rules)
             {
-                if (rule.SymbolSpecification.AppliesTo(kind, declarationInfo.Modifiers, declarationInfo.DeclaredAccessibility))
+                if (rule.SymbolSpecification.AppliesTo(kind, declarationInfo.Modifiers.Modifiers, declarationInfo.DeclaredAccessibility))
                 {
                     foreach (var baseName in baseNames)
                     {
@@ -254,9 +244,9 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
                                 context.TargetToken.GetRequiredParent(),
                                 container: null,
                                 baseName: name,
-                                filter: s => IsRelevantSymbolKind(s),
+                                filter: IsRelevantSymbolKind,
                                 usedNames: [],
-                                cancellationToken: cancellationToken);
+                                cancellationToken);
 
                             if (seenUniqueNames.Add(uniqueName.Text))
                             {
@@ -318,8 +308,8 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
         {
             return baseMethod switch
             {
-                MethodDeclarationSyntax method => namedType.GetMembers(method.Identifier.ValueText).OfType<IMethodSymbol>().ToImmutableArray(),
-                ConstructorDeclarationSyntax constructor => namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).OfType<IMethodSymbol>().ToImmutableArray(),
+                MethodDeclarationSyntax method => [.. namedType.GetMembers(method.Identifier.ValueText).OfType<IMethodSymbol>()],
+                ConstructorDeclarationSyntax constructor => [.. namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).OfType<IMethodSymbol>()],
                 _ => []
             };
         }
@@ -330,9 +320,5 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
     /// Only relevant if symbol could cause a conflict with a local variable.
     /// </summary>
     private static bool IsRelevantSymbolKind(ISymbol symbol)
-    {
-        return symbol.Kind is SymbolKind.Local or
-            SymbolKind.Parameter or
-            SymbolKind.RangeVariable;
-    }
+        => symbol.Kind is SymbolKind.Local or SymbolKind.Parameter or SymbolKind.RangeVariable;
 }

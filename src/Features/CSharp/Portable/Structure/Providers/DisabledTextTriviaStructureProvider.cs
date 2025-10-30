@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
@@ -14,17 +13,17 @@ internal sealed class DisabledTextTriviaStructureProvider : AbstractSyntaxTrivia
 {
     public override void CollectBlockSpans(
         SyntaxTrivia trivia,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(trivia.SyntaxTree);
-        CollectBlockSpans(trivia.SyntaxTree, trivia, ref spans, cancellationToken);
+        CollectBlockSpans(trivia.SyntaxTree, trivia, spans, cancellationToken);
     }
 
     public static void CollectBlockSpans(
         SyntaxTree syntaxTree, SyntaxTrivia trivia,
-        ref TemporaryArray<BlockSpan> spans, CancellationToken cancellationToken)
+        ArrayBuilder<BlockSpan> spans, CancellationToken cancellationToken)
     {
         // We'll always be leading trivia of some token.
         var startPos = trivia.FullSpan.Start;

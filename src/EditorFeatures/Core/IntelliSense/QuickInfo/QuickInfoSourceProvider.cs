@@ -7,7 +7,6 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 [Name("RoslynQuickInfoProvider")]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class QuickInfoSourceProvider(
+internal sealed partial class QuickInfoSourceProvider(
     IThreadingContext threadingContext,
     IUIThreadOperationExecutor operationExecutor,
     IAsynchronousOperationListenerProvider listenerProvider,

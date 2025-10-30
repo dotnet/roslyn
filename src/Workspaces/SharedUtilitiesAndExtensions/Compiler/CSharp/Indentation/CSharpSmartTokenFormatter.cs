@@ -5,21 +5,20 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Indentation;
 
-internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
+internal sealed class CSharpSmartTokenFormatter : ISmartTokenFormatter
 {
     private readonly IndentationOptions _options;
     private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
@@ -58,8 +57,7 @@ internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
         // Exception 2: Similar behavior for do-while
         if (common.ContainsDiagnostics && !CloseBraceOfTryOrDoBlock(endToken))
         {
-            smartTokenformattingRules = ImmutableArray<AbstractFormattingRule>.Empty.Add(
-                new NoLineChangeFormattingRule()).AddRange(_formattingRules);
+            smartTokenformattingRules = [new NoLineChangeFormattingRule(), .. _formattingRules];
         }
 
         var formatter = CSharpSyntaxFormatting.Instance;
@@ -84,7 +82,7 @@ internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
         if (previousToken.Kind() == SyntaxKind.None)
         {
             // no previous token. nothing to format
-            return SpecializedCollections.EmptyList<TextChange>();
+            return [];
         }
 
         // This is a heuristic to prevent brace completion from breaking user expectation/muscle memory in common scenarios (see Devdiv:823958).
@@ -104,7 +102,7 @@ internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
             }
         }
 
-        var smartTokenformattingRules = new SmartTokenFormattingRule().Concat(_formattingRules);
+        ImmutableArray<AbstractFormattingRule> smartTokenFormattingRules = [new SmartTokenFormattingRule(), .. _formattingRules];
         var adjustedStartPosition = previousToken.SpanStart;
         if (token.IsKind(SyntaxKind.OpenBraceToken) &&
             _options.IndentStyle != FormattingOptions2.IndentStyle.Smart)
@@ -118,7 +116,7 @@ internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
 
         var formatter = CSharpSyntaxFormatting.Instance;
         var result = formatter.GetFormattingResult(
-            _root, [TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition)], _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
+            _root, [TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition)], _options.FormattingOptions, smartTokenFormattingRules, cancellationToken);
         return result.GetTextChanges(cancellationToken);
     }
 
@@ -145,9 +143,9 @@ internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
         }
     }
 
-    private class SmartTokenFormattingRule : NoLineChangeFormattingRule
+    private sealed class SmartTokenFormattingRule : NoLineChangeFormattingRule
     {
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             // don't suppress anything
         }

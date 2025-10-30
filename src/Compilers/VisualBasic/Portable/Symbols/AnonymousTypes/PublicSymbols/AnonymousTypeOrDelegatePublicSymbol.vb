@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager
@@ -99,6 +100,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Property
 
             Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
                 Get
                     Return False
                 End Get

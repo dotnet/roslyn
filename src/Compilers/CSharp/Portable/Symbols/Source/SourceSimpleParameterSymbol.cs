@@ -22,10 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
-            ScopedKind scope,
             string name,
             ImmutableArray<Location> locations)
-            : this(owner, parameterType, ordinal, refKind, scope, name, locations.FirstOrDefault())
+            : this(owner, parameterType, ordinal, refKind, name, locations.FirstOrDefault())
         {
             Debug.Assert(locations.Length <= 1);
         }
@@ -35,10 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
-            ScopedKind scope,
             string name,
             Location? location)
-            : base(owner, ordinal, refKind, scope, name, location)
+            : base(owner, ordinal, refKind, ScopedKind.None, name, location)
         {
             _parameterType = parameterType;
         }
@@ -80,6 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
+        internal override bool HasEnumeratorCancellationAttribute
+        {
+            get { return false; }
         }
 
         internal override SyntaxReference? SyntaxReference
@@ -154,9 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CustomAttributesBag<CSharpAttributeData>.Empty;
         }
 
-        internal override ConstantValue DefaultValueFromAttributes
+        internal override ConstantValue? DefaultValueFromAttributes
         {
-            get { return ConstantValue.NotAvailable; }
+            get { return null; }
         }
 
         internal override ScopedKind EffectiveScope => CalculateEffectiveScopeIgnoringAttributes();

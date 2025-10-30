@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            var conversions = method.ContainingAssembly.CorLibrary.TypeConversions;
-            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteInfo);
+            var conversions = compilation?.Conversions ?? (ConversionsBase)method.ContainingAssembly.CorLibrary.TypeConversions;
+            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteInfo, isMethodGroupConversion: false);
             if (!conversion.Exists)
             {
                 return null;
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(reducedFrom.ParameterCount > 0);
 
             _reducedFrom = reducedFrom;
-            _typeMap = TypeMap.Empty.WithAlphaRename(reducedFrom, this, out _typeParameters);
+            _typeMap = TypeMap.Empty.WithAlphaRename(reducedFrom, this, propagateAttributes: false, out _typeParameters);
             _typeArguments = _typeMap.SubstituteTypes(reducedFrom.TypeArgumentsWithAnnotations);
         }
 
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
             _reducedFrom.Parameters[0].TypeWithAnnotations.ToPublicAnnotation();
 
-        public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
+        public override TypeWithAnnotations GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
             if ((object)reducedFromTypeParameter == null)
             {
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new System.ArgumentException();
             }
 
-            return null;
+            return default;
         }
 
         public override MethodSymbol ReducedFrom
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return false;
         }
@@ -443,6 +443,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
             => _reducedFrom.GetUnmanagedCallersOnlyAttributeData(forceComplete);
+
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
 
         public override Accessibility DeclaredAccessibility
         {
@@ -608,6 +610,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
+        internal override int TryGetOverloadResolutionPriority()
+        {
+            return _reducedFrom.TryGetOverloadResolutionPriority();
+        }
+
         private sealed class ReducedExtensionMethodParameterSymbol : WrappedParameterSymbol
         {
             private readonly ReducedExtensionMethodSymbol _containingMethod;
@@ -670,6 +677,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable();
 
             internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable();
+
+            internal override bool HasEnumeratorCancellationAttribute => throw ExceptionUtilities.Unreachable();
 
             public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {

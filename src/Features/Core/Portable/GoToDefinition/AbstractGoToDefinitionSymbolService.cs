@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,16 +15,16 @@ namespace Microsoft.CodeAnalysis.GoToDefinition;
 
 internal abstract class AbstractGoToDefinitionSymbolService : IGoToDefinitionSymbolService
 {
-    protected abstract ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation);
+    protected abstract Task<ISymbol> FindRelatedExplicitlyDeclaredSymbolAsync(Project project, ISymbol symbol, CancellationToken cancellationToken);
 
     protected abstract int? GetTargetPositionIfControlFlow(SemanticModel semanticModel, SyntaxToken token);
 
-    public async Task<(ISymbol?, Project, TextSpan)> GetSymbolProjectAndBoundSpanAsync(Document document, int position, CancellationToken cancellationToken)
+    public async Task<(ISymbol? symbol, Project project, TextSpan boundSpan)> GetSymbolProjectAndBoundSpanAsync(
+        Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
     {
         var project = document.Project;
         var services = document.Project.Solution.Services;
 
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(semanticModel, position, services, cancellationToken).ConfigureAwait(false);
 
         // Prefer references to declarations. It's more likely that the user is attempting to 
@@ -58,21 +57,20 @@ internal abstract class AbstractGoToDefinitionSymbolService : IGoToDefinitionSym
             project = mapping.Project;
         }
 
-        // The compilation will have already been realised, either by the semantic model or the symbol mapping
-        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-        return (FindRelatedExplicitlyDeclaredSymbol(symbol, compilation), project, semanticInfo.Span);
+        var explicitlyDeclaredSymbol = await FindRelatedExplicitlyDeclaredSymbolAsync(project, symbol, cancellationToken).ConfigureAwait(false);
+        return (explicitlyDeclaredSymbol, project, semanticInfo.Span);
     }
 
-    public async Task<(int? targetPosition, TextSpan tokenSpan)> GetTargetIfControlFlowAsync(Document document, int position, CancellationToken cancellationToken)
+    public async Task<(int? targetPosition, TextSpan tokenSpan)> GetTargetIfControlFlowAsync(
+        Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
     {
-        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = semanticModel.SyntaxTree;
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
+        var token = await syntaxTree.GetTouchingTokenAsync(
+            semanticModel, position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
         if (token == default)
             return default;
-
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         return (GetTargetPositionIfControlFlow(semanticModel, token), token.Span);
     }

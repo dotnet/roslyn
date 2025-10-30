@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -19,4 +19,7 @@ internal sealed class WorkspaceAsynchronousOperationListenerProvider(IAsynchrono
 
     public IAsynchronousOperationListener GetListener()
         => _listener;
+
+    public IAsynchronousOperationListener GetListener(string featureName)
+        => listenerProvider.GetListener(featureName);
 }

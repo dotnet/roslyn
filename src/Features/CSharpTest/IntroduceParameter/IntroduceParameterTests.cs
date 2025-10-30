@@ -14,2211 +14,1808 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceParameter
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceParameter;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-    public class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEditor
-    {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
-            => new CSharpIntroduceParameterCodeRefactoringProvider();
-
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
-            => FlattenActions(actions);
-
-        private OptionsCollection UseExpressionBody
-            => Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
-
-        [Fact]
-        public async Task TestExpressionWithNoMethodCallsCase()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    void M(int x, int y, int z) 
-                    {
-                        int m = [|x * y * z;|]
-                    }
-                }
-                """;
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new CSharpIntroduceParameterCodeRefactoringProvider();
 
-            var expected =
-                """
-                using System;
-                class TestClass
-                {
-                    void M(int x, int y, int z, int m) 
-                    {
-                    }
-                }
-                """;
+    protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        => FlattenActions(actions);
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
+    private OptionsCollection UseExpressionBody
+        => Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
 
-        [Fact]
-        public async Task TestExpressionCaseWithLocal()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionWithNoMethodCallsCase()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z) 
                 {
-                    void M(int x, int y, int z) 
-                    {
-                        int l = 5;
-                        int m = [|l * y * z;|]
-                    }
+                    int m = [|x * y * z;|]
                 }
-                """;
-
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestBasicComplexExpressionCase()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z, int m) 
                 {
-                    void M(string x, int y, int z) 
-                    {
-                        int m = [|x.Length * y * z|];
-                    }
-
-                    void M1(string y)
-                    {
-                        M(y, 5, 2);
-                    }
                 }
-                """;
+            }
+            """, index: 0);
 
-            var expected =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseWithLocal()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z) 
                 {
-                    void M(string x, int y, int z, int m) 
-                    {
-                    }
-
-                    void M1(string y)
-                    {
-                        M(y, 5, 2, y.Length * 5 * 2);
-                    }
+                    int l = 5;
+                    int m = [|l * y * z;|]
                 }
-                """;
-
-            await TestInRegularAndScriptAsync(code, expected, 0);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithSingleMethodCall()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    void M(int x, int y, int z)
-                    {
-                        int m = [|x * z * z|];
-                    }
+            }
+            """);
 
-                    void M1(int x, int y, int z) 
-                    {
-                        M(z, x, z);
-                    }
+    [Fact]
+    public Task TestBasicComplexExpressionCase()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(string x, int y, int z) 
+                {
+                    int m = [|x.Length * y * z|];
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M1(string y)
                 {
-                    void M(int x, int y, int z, int m)
-                    {
-                    }
-
-                    void M1(int x, int y, int z) 
-                    {
-                        M(z, x, z, z * z * z);
-                    }
+                    M(y, 5, 2);
                 }
-                """;
-
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
-
-        [Fact]
-        public async Task TestLocalDeclarationMultipleDeclarators()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                void M(string x, int y, int z, int m) 
                 {
-                    void M(int x, int y, int z)
-                    {
-                        int m = [|x * z * z|], y = 0;
-                    }
-
-                    void M1(int x, int y, int z) 
-                    {
-                        M(z, x, z);
-                    }
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M1(string y)
                 {
-                    void M(int x, int y, int z, int v)
-                    {
-                        int m = {|Rename:v|}, y = 0;
-                    }
-
-                    void M1(int x, int y, int z) 
-                    {
-                        M(z, x, z, z * z * z);
-                    }
+                    M(y, 5, 2, y.Length * 5 * 2);
                 }
-                """;
-
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
+            }
+            """, 0);
 
-        [Fact]
-        public async Task TestDeclarationInForLoop()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseWithSingleMethodCall()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
                 {
-                    void M(int a, int b)
-                    {
-                        var v = () =>
-                        {
-                            for (var y = [|a * b|]; ;) { }
-                        };
-                    }
+                    int m = [|x * z * z|];
                 }
-                """;
 
-            await TestMissingAsync(code);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithSingleMethodCallInLocalFunction()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+                void M1(int x, int y, int z) 
                 {
-                    void M(int x, int y, int z)
-                    {
-                        int m = M2(x, z);
-
-                        int M2(int x, int y)
-                        {
-                            int val = [|x * y|];
-                            return val;
-                        }
-                    }
+                    M(z, x, z);
                 }
-                """;
-
-            var expected =
-                """
-                using System;
-                class TestClass
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z, int m)
                 {
-                    void M(int x, int y, int z)
-                    {
-                        int m = M2(x, z, x * z);
-
-                        int M2(int x, int y, int val)
-                        {
-                            return val;
-                        }
-                    }
                 }
-                """;
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithSingleMethodCallInStaticLocalFunction()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+                void M1(int x, int y, int z) 
                 {
-                    void M(int x, int y, int z)
-                    {
-                        int m = M2(x, z);
-
-                        static int M2(int x, int y)
-                        {
-                            int val = [|x * y|];
-                            return val;
-                        }
-                    }
+                    M(z, x, z, z * z * z);
                 }
-                """;
+            }
+            """, index: 0);
 
-            var expected =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestLocalDeclarationMultipleDeclarators()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
                 {
-                    void M(int x, int y, int z)
-                    {
-                        int m = M2(x, z, x * z);
-
-                        static int M2(int x, int y, int val)
-                        {
-                            return val;
-                        }
-                    }
+                    int m = [|x * z * z|], y = 0;
                 }
-                """;
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
+                void M1(int x, int y, int z) 
+                {
+                    M(z, x, z);
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z, int v)
+                {
+                    int m = {|Rename:v|}, y = 0;
+                }
 
-        [Fact]
-        public async Task TestHighlightIncompleteExpressionCaseWithSingleMethodCall()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+                void M1(int x, int y, int z) 
                 {
-                    void M(int x, int y, int z)
-                    {
-                        int m = 5 * [|x * y * z|];
-                    }
+                    M(z, x, z, z * z * z);
+                }
+            }
+            """, index: 0);
 
-                    void M1(int x, int y, int z) 
+    [Fact]
+    public Task TestDeclarationInForLoop()
+        => TestMissingAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int a, int b)
+                {
+                    var v = () =>
                     {
-                        M(z, y, x);
-                    }
+                        for (var y = [|a * b|]; ;) { }
+                    };
                 }
-                """;
+            }
+            """);
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithMultipleMethodCall()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseWithSingleMethodCallInLocalFunction()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
                 {
-                    void M(int x, int y, int z)
-                    {
-                        int m = [|x * y * z|];
-                    }
+                    int m = M2(x, z);
 
-                    void M1(int x, int y, int z) 
+                    int M2(int x, int y)
                     {
-                        M(a + b, 5, x);
-                        M(z, y, x);
+                        int val = [|x * y|];
+                        return val;
                     }
                 }
-                """;
-
-            var expected =
-                """
-                using System;
-                class TestClass
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
                 {
-                    void M(int x, int y, int z, int m)
-                    {
-                    }
+                    int m = M2(x, z, x * z);
 
-                    void M1(int x, int y, int z) 
+                    int M2(int x, int y, int val)
                     {
-                        M(a + b, 5, x, (a + b) * 5 * x);
-                        M(z, y, x, z * y * x);
+                        return val;
                     }
                 }
-                """;
+            }
+            """, index: 0);
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
-
-        [Fact]
-        public async Task TestExpressionAllOccurrences()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseWithSingleMethodCallInStaticLocalFunction()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
                 {
-                    void M(int x, int y, int z)
-                    {
-                        int m = x * y * z;
-                        int f = [|x * y * z|];
-                    }
+                    int m = M2(x, z);
 
-                    void M1(int x, int y, int z) 
+                    static int M2(int x, int y)
                     {
-                        M(a + b, 5, x);
+                        int val = [|x * y|];
+                        return val;
                     }
                 }
-                """;
-
-            var expected =
-                """
-                using System;
-                class TestClass
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
                 {
-                    void M(int x, int y, int z, int f)
-                    {
-                        int m = f;
-                    }
+                    int m = M2(x, z, x * z);
 
-                    void M1(int x, int y, int z) 
+                    static int M2(int x, int y, int val)
                     {
-                        M(a + b, 5, x, (a + b) * 5 * x);
+                        return val;
                     }
                 }
-                """;
+            }
+            """, index: 0);
 
-            await TestInRegularAndScriptAsync(code, expected, index: 3);
-        }
-
-        [Fact]
-        public async Task TestxpressionWithNoMethodCallTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestHighlightIncompleteExpressionCaseWithSingleMethodCall()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
                 {
-                    void M(int x, int y, int z) 
-                    {
-                        int m = [|x * y * z;|]
-                    }
+                    int m = 5 * [|x * y * z|];
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M1(int x, int y, int z) 
                 {
-                    private int GetM(int x, int y, int z)
-                    {
-                        return x * y * z;
-                    }
-
-                    void M(int x, int y, int z, int m) 
-                    {
-                    }
+                    M(z, y, x);
                 }
-                """;
+            }
+            """);
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-        }
-
-        [Fact]
-        public async Task TestExpressionWithSingleMethodCallTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseWithMultipleMethodCall()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
                 {
-                    void M(int x, int y, int z)
-                    {
-                        int m = [|y * x|];
-                    }
-
-                    void M1(int x, int y, int z) 
-                    {
-                        M(z, y, x);
-                    }
+                    int m = [|x * y * z|];
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M1(int x, int y, int z) 
                 {
-                    private int GetM(int x, int y)
-                    {
-                        return y * x;
-                    }
-
-                    void M(int x, int y, int z, int m)
-                    {
-                    }
-
-                    void M1(int x, int y, int z) 
-                    {
-                        M(z, y, x, GetM(z, y));
-                    }
+                    M(a + b, 5, x);
+                    M(z, y, x);
                 }
-                """;
-
-            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-        }
-
-        [Fact]
-        public async Task TestExpressionWithSingleMethodCallAndAccessorsTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z, int m)
                 {
-                    void M(int x, int y, int z)
-                    {
-                        int m = [|y * x|];
-                    }
-
-                    void M1(int x, int y, int z) 
-                    {
-                        this.M(z, y, x);
-                    }
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M1(int x, int y, int z) 
                 {
-                    private int GetM(int x, int y)
-                    {
-                        return y * x;
-                    }
-
-                    void M(int x, int y, int z, int m)
-                    {
-                    }
-
-                    void M1(int x, int y, int z) 
-                    {
-                        this.M(z, y, x, GetM(z, y));
-                    }
+                    M(a + b, 5, x, (a + b) * 5 * x);
+                    M(z, y, x, z * y * x);
                 }
-                """;
-
-            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-        }
+            }
+            """, index: 0);
 
-        [Fact]
-        public async Task TestExpressionWithSingleMethodCallAndAccessorsConditionalTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionAllOccurrences()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
                 {
-                    void M(int x, int y, int z)
-                    {
-                        int m = [|y * x|];
-                    }
-
-                    void M1(int x, int y, int z) 
-                    {
-                        this?.M(z, y, x);
-                    }
+                    int m = x * y * z;
+                    int f = [|x * y * z|];
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M1(int x, int y, int z) 
                 {
-                    private int GetM(int x, int y)
-                    {
-                        return y * x;
-                    }
+                    M(a + b, 5, x);
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z, int f)
+                {
+                    int m = f;
+                }
 
-                    void M(int x, int y, int z, int m)
-                    {
-                    }
+                void M1(int x, int y, int z) 
+                {
+                    M(a + b, 5, x, (a + b) * 5 * x);
+                }
+            }
+            """, index: 3);
 
-                    void M1(int x, int y, int z) 
-                    {
-                        this?.M(z, y, x, this?.GetM(z, y));
-                    }
+    [Fact]
+    public Task TestxpressionWithNoMethodCallTrampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z) 
+                {
+                    int m = [|x * y * z;|]
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private int GetM(int x, int y, int z)
+                {
+                    return x * y * z;
                 }
-                """;
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-        }
+                void M(int x, int y, int z, int m) 
+                {
+                }
+            }
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
-        [Fact]
-        public async Task TestExpressionWithSingleMethodCallMultipleAccessorsTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionWithSingleMethodCallTrampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
                 {
-                    void M(int x, int y, int z) 
-                    {
-                        A a = new A();
-                        var age = a.Prop.ComputeAge(x, y);
-                    }
+                    int m = [|y * x|];
                 }
 
-                class A
+                void M1(int x, int y, int z) 
                 {
-                    public B Prop { get; set; }
+                    M(z, y, x);
                 }
-                class B
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private int GetM(int x, int y)
                 {
-                    public int ComputeAge(int x, int y)
-                    {
-                        var age = [|x + y|];
-                        return age;
-                    }
+                    return y * x;
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M(int x, int y, int z, int m)
                 {
-                    void M(int x, int y, int z) 
-                    {
-                        A a = new A();
-                        var age = a.Prop.ComputeAge(x, y, a.Prop.GetAge(x, y));
-                    }
                 }
 
-                class A
+                void M1(int x, int y, int z) 
                 {
-                    public B Prop { get; set; }
+                    M(z, y, x, GetM(z, y));
                 }
-                class B
-                {
-                    public int GetAge(int x, int y)
-                    {
-                        return x + y;
-                    }
+            }
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
-                    public int ComputeAge(int x, int y, int age)
-                    {
-                        return age;
-                    }
+    [Fact]
+    public Task TestExpressionWithSingleMethodCallAndAccessorsTrampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
+                {
+                    int m = [|y * x|];
                 }
-                """;
-
-            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-        }
 
-        [Fact]
-        public async Task TestExpressionWithSingleMethodCallMultipleAccessorsConditionalTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+                void M1(int x, int y, int z) 
                 {
-                    void M(int x, int y, int z) 
-                    {
-                        A a = new A();
-                        var age = a?.Prop?.ComputeAge(x, y);
-                    }
+                    this.M(z, y, x);
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private int GetM(int x, int y)
+                {
+                    return y * x;
                 }
 
-                class A
+                void M(int x, int y, int z, int m)
                 {
-                    public B Prop { get; set; }
                 }
-                class B
+
+                void M1(int x, int y, int z) 
                 {
-                    public int ComputeAge(int x, int y)
-                    {
-                        var age = [|x + y|];
-                        return age;
-                    }
+                    this.M(z, y, x, GetM(z, y));
                 }
-                """;
+            }
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
-            var expected =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionWithSingleMethodCallAndAccessorsConditionalTrampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
                 {
-                    void M(int x, int y, int z) 
-                    {
-                        A a = new A();
-                        var age = a?.Prop?.ComputeAge(x, y, a?.Prop?.GetAge(x, y));
-                    }
+                    int m = [|y * x|];
                 }
 
-                class A
+                void M1(int x, int y, int z) 
                 {
-                    public B Prop { get; set; }
+                    this?.M(z, y, x);
                 }
-                class B
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private int GetM(int x, int y)
                 {
-                    public int GetAge(int x, int y)
-                    {
-                        return x + y;
-                    }
+                    return y * x;
+                }
 
-                    public int ComputeAge(int x, int y, int age)
-                    {
-                        return age;
-                    }
+                void M(int x, int y, int z, int m)
+                {
                 }
-                """;
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-        }
+                void M1(int x, int y, int z) 
+                {
+                    this?.M(z, y, x, this?.GetM(z, y));
+                }
+            }
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
-        [Fact]
-        public async Task TestExpressionWithSingleMethodCallAccessorsMixedConditionalTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionWithSingleMethodCallMultipleAccessorsTrampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z) 
                 {
-                    void M(int x, int y, int z) 
-                    {
-                        A a = new A();
-                        var age = a.Prop?.ComputeAge(x, y);
-                    }
+                    A a = new A();
+                    var age = a.Prop.ComputeAge(x, y);
                 }
+            }
 
-                class A
+            class A
+            {
+                public B Prop { get; set; }
+            }
+            class B
+            {
+                public int ComputeAge(int x, int y)
                 {
-                    public B Prop { get; set; }
+                    var age = [|x + y|];
+                    return age;
                 }
-                class B
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z) 
                 {
-                    public int ComputeAge(int x, int y)
-                    {
-                        var age = [|x + y|];
-                        return age;
-                    }
+                    A a = new A();
+                    var age = a.Prop.ComputeAge(x, y, a.Prop.GetAge(x, y));
                 }
-                """;
+            }
 
-            var expected =
-                """
-                using System;
-                class TestClass
+            class A
+            {
+                public B Prop { get; set; }
+            }
+            class B
+            {
+                public int GetAge(int x, int y)
                 {
-                    void M(int x, int y, int z) 
-                    {
-                        A a = new A();
-                        var age = a.Prop?.ComputeAge(x, y, a.Prop?.GetAge(x, y));
-                    }
+                    return x + y;
                 }
 
-                class A
+                public int ComputeAge(int x, int y, int age)
                 {
-                    public B Prop { get; set; }
+                    return age;
                 }
-                class B
-                {
-                    public int GetAge(int x, int y)
-                    {
-                        return x + y;
-                    }
+            }
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
-                    public int ComputeAge(int x, int y, int age)
-                    {
-                        return age;
-                    }
+    [Fact]
+    public Task TestExpressionWithSingleMethodCallMultipleAccessorsConditionalTrampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z) 
+                {
+                    A a = new A();
+                    var age = a?.Prop?.ComputeAge(x, y);
                 }
-                """;
-
-            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-        }
+            }
 
-        [Fact]
-        public async Task TestExpressionWithSingleMethodCallTrampolineAllOccurrences()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+            class A
+            {
+                public B Prop { get; set; }
+            }
+            class B
+            {
+                public int ComputeAge(int x, int y)
                 {
-                    void M(int x, int y, int z)
-                    {
-                        int m = [|x * y * z|];
-                        int l = x * y * z;
-                    }
+                    var age = [|x + y|];
+                    return age;
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z) 
+                {
+                    A a = new A();
+                    var age = a?.Prop?.ComputeAge(x, y, a?.Prop?.GetAge(x, y));
+                }
+            }
 
-                    void M1(int x, int y, int z) 
-                    {
-                        M(z, y, x);
-                    }
+            class A
+            {
+                public B Prop { get; set; }
+            }
+            class B
+            {
+                public int GetAge(int x, int y)
+                {
+                    return x + y;
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                public int ComputeAge(int x, int y, int age)
                 {
-                    private int GetM(int x, int y, int z)
-                    {
-                        return x * y * z;
-                    }
+                    return age;
+                }
+            }
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
-                    void M(int x, int y, int z, int m)
-                    {
-                        int l = m;
-                    }
+    [Fact]
+    public Task TestExpressionWithSingleMethodCallAccessorsMixedConditionalTrampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z) 
+                {
+                    A a = new A();
+                    var age = a.Prop?.ComputeAge(x, y);
+                }
+            }
 
-                    void M1(int x, int y, int z) 
-                    {
-                        M(z, y, x, GetM(z, y, x));
-                    }
+            class A
+            {
+                public B Prop { get; set; }
+            }
+            class B
+            {
+                public int ComputeAge(int x, int y)
+                {
+                    var age = [|x + y|];
+                    return age;
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 4, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-        }
-
-        [Fact]
-        public async Task TestExpressionWithNoMethodCallOverload()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    void M(int x, int y, int z) 
-                    {
-                        int m = [|x * y * z;|]
-                    }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z) 
+                {
+                    A a = new A();
+                    var age = a.Prop?.ComputeAge(x, y, a.Prop?.GetAge(x, y));
                 }
-                """;
+            }
 
-            var expected =
-                """
-                using System;
-                class TestClass
+            class A
+            {
+                public B Prop { get; set; }
+            }
+            class B
+            {
+                public int GetAge(int x, int y)
                 {
-                    private void M(int x, int y, int z)
-                    {
-                        M(x, y, z, x * y * z);
-                    }
+                    return x + y;
+                }
 
-                    void M(int x, int y, int z, int m) 
-                    {
-                    }
+                public int ComputeAge(int x, int y, int age)
+                {
+                    return age;
                 }
-                """;
+            }
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-        }
+    [Fact]
+    public Task TestExpressionWithSingleMethodCallTrampolineAllOccurrences()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
+                {
+                    int m = [|x * y * z|];
+                    int l = x * y * z;
+                }
 
-        [Fact]
-        public async Task TestExpressionWithSingleMethodCallOverload()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+                void M1(int x, int y, int z) 
                 {
-                    void M(int x, int y, int z)
-                    {
-                        int m = [|x * y * z|];
-                    }
+                    M(z, y, x);
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private int GetM(int x, int y, int z)
+                {
+                    return x * y * z;
+                }
 
-                    void M1(int x, int y, int z) 
-                    {
-                        M(z, y, x);
-                    }
+                void M(int x, int y, int z, int m)
+                {
+                    int l = m;
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M1(int x, int y, int z) 
                 {
-                    private void M(int x, int y, int z)
-                    {
-                        M(x, y, z, x * y * z);
-                    }
+                    M(z, y, x, GetM(z, y, x));
+                }
+            }
+            """, index: 4, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
-                    void M(int x, int y, int z, int m)
-                    {
-                    }
+    [Fact]
+    public Task TestExpressionWithNoMethodCallOverload()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z) 
+                {
+                    int m = [|x * y * z;|]
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private void M(int x, int y, int z)
+                {
+                    M(x, y, z, x * y * z);
+                }
 
-                    void M1(int x, int y, int z) 
-                    {
-                        M(z, y, x);
-                    }
+                void M(int x, int y, int z, int m) 
+                {
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 2, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-        }
+            }
+            """, index: 2, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
-        [Fact]
-        public async Task TestExpressionBodiedMemberOverload()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionWithSingleMethodCallOverload()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(int x, int y, int z)
                 {
-                    int M(int x, int y, int z) => [|x * y * z|];
+                    int m = [|x * y * z|];
+                }
 
-                    void M1(int x, int y, int z)
-                    {
-                        int prod = M(z, y, x);
-                    }
+                void M1(int x, int y, int z) 
+                {
+                    M(z, y, x);
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private void M(int x, int y, int z)
+                {
+                    M(x, y, z, x * y * z);
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M(int x, int y, int z, int m)
                 {
-                    private int M(int x, int y, int z) => M(x, y, z, x * y * z);
-                    int M(int x, int y, int z, int v) => {|Rename:v|};
+                }
 
-                    void M1(int x, int y, int z)
-                    {
-                        int prod = M(z, y, x);
-                    }
+                void M1(int x, int y, int z) 
+                {
+                    M(z, y, x);
                 }
-                """;
+            }
+            """, index: 2, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, options: UseExpressionBody, parseOptions: CSharpParseOptions.Default);
-        }
+    [Fact]
+    public Task TestExpressionBodiedMemberOverload()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(int x, int y, int z) => [|x * y * z|];
 
-        [Fact]
-        public async Task TestExpressionBodiedMemberTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+                void M1(int x, int y, int z)
                 {
-                    int M(int x, int y, int z) => [|x * y * z|];
-
-                    void M1(int x, int y, int z)
-                    {
-                        int prod = M(z, y, x);
-                    }
+                    int prod = M(z, y, x);
                 }
-                """;
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private int M(int x, int y, int z) => M(x, y, z, x * y * z);
+                int M(int x, int y, int z, int v) => {|Rename:v|};
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M1(int x, int y, int z)
                 {
-                    private int GetV(int x, int y, int z)
-                    {
-                        return x * y * z;
-                    }
+                    int prod = M(z, y, x);
+                }
+            }
+            """, index: 2, new(options: UseExpressionBody, parseOptions: CSharpParseOptions.Default));
 
-                    int M(int x, int y, int z, int v) => {|Rename:v|};
+    [Fact]
+    public Task TestExpressionBodiedMemberTrampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(int x, int y, int z) => [|x * y * z|];
 
-                    void M1(int x, int y, int z)
-                    {
-                        int prod = M(z, y, x, GetV(z, y, x));
-                    }
+                void M1(int x, int y, int z)
+                {
+                    int prod = M(z, y, x);
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private int GetV(int x, int y, int z)
+                {
+                    return x * y * z;
                 }
-                """;
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-        }
+                int M(int x, int y, int z, int v) => {|Rename:v|};
 
-        [Fact]
-        public async Task TestExpressionCaseWithRecursiveCall()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+                void M1(int x, int y, int z)
                 {
-                    int M(int x, int y, int z)
-                    {
-                        int m = [|x * y * z|];
-                        return M(x, x, z);
-                    }
+                    int prod = M(z, y, x, GetV(z, y, x));
                 }
-                """;
+            }
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
-            var expected =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseWithRecursiveCall()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(int x, int y, int z)
                 {
-                    int M(int x, int y, int z, int m)
-                    {
-                        return M(x, x, z, x * x * z);
-                    }
+                    int m = [|x * y * z|];
+                    return M(x, x, z);
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithNestedRecursiveCall()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    int M(int x, int y, int z)
-                    {
-                        int m = [|x * y * z|];
-                        return M(x, x, M(x, y, z));
-                    }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                int M(int x, int y, int z, int m)
+                {
+                    return M(x, x, z, x * x * z);
                 }
-                """;
+            }
+            """, index: 0);
 
-            var expected =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseWithNestedRecursiveCall()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(int x, int y, int z)
                 {
-                    int M(int x, int y, int z, int m)
-                    {
-                        return M(x, x, M(x, y, z, x * y * z), x * x * M(x, y, z, x * y * z));
-                    }
+                    int m = [|x * y * z|];
+                    return M(x, x, M(x, y, z));
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithParamsArg()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    int M(params int[] args)
-                    {
-                        int m = [|args[0] + args[1]|];
-                        return m;
-                    }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                int M(int x, int y, int z, int m)
+                {
+                    return M(x, x, M(x, y, z, x * y * z), x * x * M(x, y, z, x * y * z));
+                }
+            }
+            """, index: 0);
 
-                    void M1()
-                    {
-                        M(5, 6, 7);
-                    }
+    [Fact]
+    public Task TestExpressionCaseWithParamsArg()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(params int[] args)
+                {
+                    int m = [|args[0] + args[1]|];
+                    return m;
                 }
-                """;
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithOptionalParameters()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    int M(int x, int y = 5)
-                    {
-                        int m = [|x * y|];
-                        return m;
-                    }
 
-                    void M1()
-                    {
-                        M(5, 3);
-                    }
+                void M1()
+                {
+                    M(5, 6, 7);
                 }
-                """;
+            }
+            """);
 
-            var expected =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseWithOptionalParameters()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(int x, int y = 5)
                 {
-                    int M(int x, int m, int y = 5)
-                    {
-                        return m;
-                    }
+                    int m = [|x * y|];
+                    return m;
+                }
 
-                    void M1()
-                    {
-                        M(5, 5 * 3, 3);
-                    }
+                void M1()
+                {
+                    M(5, 3);
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithOptionalParametersUsed()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    int M(int x, int y = 5)
-                    {
-                        int m = [|x * y|];
-                        return m;
-                    }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                int M(int x, int m, int y = 5)
+                {
+                    return m;
+                }
 
-                    void M1()
-                    {
-                        M(7);
-                    }
+                void M1()
+                {
+                    M(5, 5 * 3, 3);
                 }
-                """;
+            }
+            """, index: 0);
 
-            var expected =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseWithOptionalParametersUsed()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(int x, int y = 5)
                 {
-                    int M(int x, int m, int y = 5)
-                    {
-                        return m;
-                    }
+                    int m = [|x * y|];
+                    return m;
+                }
 
-                    void M1()
-                    {
-                        M(7, 7 * 5);
-                    }
+                void M1()
+                {
+                    M(7);
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithOptionalParametersUsedOverload()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    int M(int x, int y = 5)
-                    {
-                        int m = [|x * y|];
-                        return m;
-                    }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                int M(int x, int m, int y = 5)
+                {
+                    return m;
+                }
 
-                    void M1()
-                    {
-                        M(7);
-                    }
+                void M1()
+                {
+                    M(7, 7 * 5);
                 }
-                """;
+            }
+            """, index: 0);
 
-            var expected =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseWithOptionalParametersUsedOverload()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(int x, int y = 5)
                 {
-                    private int M(int x, int y = 5)
-                    {
-                        return M(x, x * y, y);
-                    }
+                    int m = [|x * y|];
+                    return m;
+                }
 
-                    int M(int x, int m, int y = 5)
-                    {
-                        return m;
-                    }
+                void M1()
+                {
+                    M(7);
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private int M(int x, int y = 5)
+                {
+                    return M(x, x * y, y);
+                }
 
-                    void M1()
-                    {
-                        M(7);
-                    }
+                int M(int x, int m, int y = 5)
+                {
+                    return m;
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 2);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithOptionalParametersUsedTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    int M(int x, int y = 5)
-                    {
-                        int m = [|x * y|];
-                        return m;
-                    }
 
-                    void M1()
-                    {
-                        M(7);
-                    }
+                void M1()
+                {
+                    M(7);
                 }
-                """;
+            }
+            """, index: 2);
 
-            var expected =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseWithOptionalParametersUsedTrampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(int x, int y = 5)
                 {
-                    private int GetM(int x, int y = 5)
-                    {
-                        return x * y;
-                    }
+                    int m = [|x * y|];
+                    return m;
+                }
 
-                    int M(int x, int m, int y = 5)
-                    {
-                        return m;
-                    }
+                void M1()
+                {
+                    M(7);
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private int GetM(int x, int y = 5)
+                {
+                    return x * y;
+                }
 
-                    void M1()
-                    {
-                        M(7, GetM(7));
-                    }
+                int M(int x, int m, int y = 5)
+                {
+                    return m;
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 1);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithOptionalParametersUnusedTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    int M(int x, int y = 5)
-                    {
-                        int m = [|x * y|];
-                        return m;
-                    }
 
-                    void M1()
-                    {
-                        M(7, 2);
-                    }
+                void M1()
+                {
+                    M(7, GetM(7));
                 }
-                """;
+            }
+            """, index: 1);
 
-            var expected =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseWithOptionalParametersUnusedTrampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(int x, int y = 5)
                 {
-                    private int GetM(int x, int y = 5)
-                    {
-                        return x * y;
-                    }
+                    int m = [|x * y|];
+                    return m;
+                }
 
-                    int M(int x, int m, int y = 5)
-                    {
-                        return m;
-                    }
+                void M1()
+                {
+                    M(7, 2);
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private int GetM(int x, int y = 5)
+                {
+                    return x * y;
+                }
 
-                    void M1()
-                    {
-                        M(7, GetM(7, 2), 2);
-                    }
+                int M(int x, int m, int y = 5)
+                {
+                    return m;
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 1);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithCancellationToken()
-        {
-            var code =
-                """
-                using System;
-                using System.Threading;
-                class TestClass
-                {
-                    int M(int x, CancellationToken cancellationToken)
-                    {
-                        int m = [|x * x|];
-                        return m;
-                    }
 
-                    void M1(CancellationToken cancellationToken)
-                    {
-                        M(7, cancellationToken);
-                    }
+                void M1()
+                {
+                    M(7, GetM(7, 2), 2);
                 }
-                """;
+            }
+            """, index: 1);
 
-            var expected =
-                """
-                using System;
-                using System.Threading;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseWithCancellationToken()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Threading;
+            class TestClass
+            {
+                int M(int x, CancellationToken cancellationToken)
                 {
-                    int M(int x, int m, CancellationToken cancellationToken)
-                    {
-                        return m;
-                    }
+                    int m = [|x * x|];
+                    return m;
+                }
 
-                    void M1(CancellationToken cancellationToken)
-                    {
-                        M(7, 7 * 7, cancellationToken);
-                    }
+                void M1(CancellationToken cancellationToken)
+                {
+                    M(7, cancellationToken);
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithRecursiveCallTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    int M(int x, int y, int z)
-                    {
-                        int m = [|x * y * z|];
-                        return M(x, x, z);
-                    }
+            }
+            """, """
+            using System;
+            using System.Threading;
+            class TestClass
+            {
+                int M(int x, int m, CancellationToken cancellationToken)
+                {
+                    return m;
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M1(CancellationToken cancellationToken)
                 {
-                    private int GetM(int x, int y, int z)
-                    {
-                        return x * y * z;
-                    }
+                    M(7, 7 * 7, cancellationToken);
+                }
+            }
+            """, index: 0);
 
-                    int M(int x, int y, int z, int m)
-                    {
-                        return M(x, x, z, GetM(x, x, z));
-                    }
+    [Fact]
+    public Task TestExpressionCaseWithRecursiveCallTrampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(int x, int y, int z)
+                {
+                    int m = [|x * y * z|];
+                    return M(x, x, z);
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseWithNestedRecursiveCallTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    int M(int x, int y, int z)
-                    {
-                        int m = [|x * y * z|];
-                        return M(x, x, M(x, y, x));
-                    }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private int GetM(int x, int y, int z)
+                {
+                    return x * y * z;
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                int M(int x, int y, int z, int m)
                 {
-                    private int GetM(int x, int y, int z)
-                    {
-                        return x * y * z;
-                    }
-
-                    int M(int x, int y, int z, int m)
-                    {
-                        return M(x, x, M(x, y, x, GetM(x, y, x)), GetM(x, x, M(x, y, x, GetM(x, y, x))));
-                    }
+                    return M(x, x, z, GetM(x, x, z));
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-        }
-
-        [Fact]
-        public async Task TestExpressionCaseInConstructor()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    public TestClass(int x, int y)
-                    {
-                        Math.Max([|x + y|], x * y);
-                    }
+            }
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
-                    void TestMethod()
-                    {
-                        var test = new TestClass(5, 6);
-                    }
+    [Fact]
+    public Task TestExpressionCaseWithNestedRecursiveCallTrampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(int x, int y, int z)
+                {
+                    int m = [|x * y * z|];
+                    return M(x, x, M(x, y, x));
                 }
-                """;
-            var expected =
-                """
-                using System;
-                class TestClass
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private int GetM(int x, int y, int z)
                 {
-                    public TestClass(int x, int y, int val1)
-                    {
-                        Math.Max({|Rename:val1|}, x * y);
-                    }
-
-                    void TestMethod()
-                    {
-                        var test = new TestClass(5, 6, 5 + 6);
-                    }
+                    return x * y * z;
                 }
-                """;
 
-            await TestInRegularAndScriptAsync(code, expected, 0);
-        }
-
-        [Fact]
-        public async Task TestLambdaCaseNormal()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+                int M(int x, int y, int z, int m)
                 {
-                    Func<int, int, int> mult = (x, y) => [|x * y|];
+                    return M(x, x, M(x, y, x, GetM(x, y, x)), GetM(x, x, M(x, y, x, GetM(x, y, x))));
                 }
-                """;
-
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+            }
+            """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
-        [Fact]
-        public async Task TestLambdaCaseTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionCaseInConstructor()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                public TestClass(int x, int y)
                 {
-                    Func<int, int, int> mult = (x, y) => [|x * y|];
-                }
-                """;
-
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestLambdaCaseOverload()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    Func<int, int, int> mult = (x, y) => [|x * y|];
-                }
-                """;
-
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestTopLevelStatements()
-        {
-            var code =
-                """
-                using System;
-                Math.Max(5 + 5, [|6 + 7|]);
-                """;
-
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestFieldInitializer()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    int a = [|5 + 3|];
-                }
-                """;
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestIndexer()
-        {
-            var code =
-                """
-                using System;
-                class SampleCollection<T>
-                {
-                    private T[] arr = new T[100];
-
-                    public T this[int i] => arr[[|i + 5|]];
-                }
-                """;
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestPropertyGetter()
-        {
-            var code =
-                """
-                using System;
-
-                class TimePeriod
-                {
-                   private double _seconds;
-
-                   public double Hours
-                   {
-                       get { return [|_seconds / 3600|]; }
-                   }
-                }
-                """;
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestPropertySetter()
-        {
-            var code =
-                """
-                using System;
-
-                class TimePeriod
-                {
-                   private double _seconds;
-
-                   public double Hours
-                   {
-                       set {
-                          _seconds = [|value * 3600|];
-                        }
-                    }
+                    Math.Max([|x + y|], x * y);
                 }
-                """;
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestDestructor()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    public ~TestClass()
-                    {
-                        Math.Max([|5 + 5|], 5 * 5);
-                    }
+
+                void TestMethod()
+                {
+                    var test = new TestClass(5, 6);
                 }
-                """;
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestExpressionInParameter()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    public void M(int x = [|5 * 5|])
-                    {
-                    }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                public TestClass(int x, int y, int val1)
+                {
+                    Math.Max({|Rename:val1|}, x * y);
                 }
-                """;
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestCrossLanguageInvocations()
-        {
-            var code =
-                """
-                <Workspace>
-                    <Project Language= "C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document>
-                public class Program
-                {
-                    public Program() {}
-
-                    public int M(int x, int y)
-                    {
-                        int m = [|x * y|];
-                        return m;
-                    }
 
-                    void M1()
-                    {
-                        M(7, 2);
-                    }
+                void TestMethod()
+                {
+                    var test = new TestClass(5, 6, 5 + 6);
                 }
-                        </Document>
-                    </Project>
-
-                <Project Language= "Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
-                        <ProjectReference>Assembly1</ProjectReference>
-                        <Document>
-                Class ProgramVB
-                    Sub M2()
-                        Dim programC = New Program()
-                        programC.M(7, 2)
-                    End Sub
-                End Class
-                        </Document>
-                    </Project>
-                </Workspace>
-                """;
-
-            var expected =
-                """
-                <Workspace>
-                    <Project Language= "C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document>
-                public class Program
-                {
-                    public Program() {}
-
-                    public int M(int x, int y, int m)
-                    {
-                        return m;
-                    }
+            }
+            """, 0);
 
-                    void M1()
-                    {
-                        M(7, 2, 7 * 2);
+    [Fact]
+    public Task TestLambdaCaseNormal()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                Func<int, int, int> mult = (x, y) => [|x * y|];
+            }
+            """);
+
+    [Fact]
+    public Task TestLambdaCaseTrampoline()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                Func<int, int, int> mult = (x, y) => [|x * y|];
+            }
+            """);
+
+    [Fact]
+    public Task TestLambdaCaseOverload()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                Func<int, int, int> mult = (x, y) => [|x * y|];
+            }
+            """);
+
+    [Fact]
+    public Task TestTopLevelStatements()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            Math.Max(5 + 5, [|6 + 7|]);
+            """);
+
+    [Fact]
+    public Task TestFieldInitializer()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int a = [|5 + 3|];
+            }
+            """);
+
+    [Fact]
+    public Task TestIndexer()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            class SampleCollection<T>
+            {
+                private T[] arr = new T[100];
+
+                public T this[int i] => arr[[|i + 5|]];
+            }
+            """);
+
+    [Fact]
+    public Task TestPropertyGetter()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+
+            class TimePeriod
+            {
+               private double _seconds;
+
+               public double Hours
+               {
+                   get { return [|_seconds / 3600|]; }
+               }
+            }
+            """);
+
+    [Fact]
+    public Task TestPropertySetter()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+
+            class TimePeriod
+            {
+               private double _seconds;
+
+               public double Hours
+               {
+                   set {
+                      _seconds = [|value * 3600|];
                     }
                 }
-                        </Document>
-                    </Project>
-
-                <Project Language= "Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
-                        <ProjectReference>Assembly1</ProjectReference>
-                        <Document>
-                Class ProgramVB
-                    Sub M2()
-                        Dim programC = New Program()
-                        programC.M(7, 2)
-                    End Sub
-                End Class
-                        </Document>
-                    </Project>
-                </Workspace>
-                """;
-            await TestInRegularAndScriptAsync(code, expected, 0);
-        }
-
-        [Fact]
-        public async Task TestConvertedTypeInExpression()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    void M(double x, double y) 
-                    {
-                        int m = [|(int)(x * y);|]
-                    }
+            }
+            """);
+
+    [Fact]
+    public Task TestDestructor()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                public ~TestClass()
+                {
+                    Math.Max([|5 + 5|], 5 * 5);
                 }
-                """;
+            }
+            """);
 
-            var expected =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestExpressionInParameter()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                public void M(int x = [|5 * 5|])
                 {
-                    void M(double x, double y, int m) 
-                    {
-                    }
                 }
-                """;
+            }
+            """);
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
+    [Fact]
+    public Task TestCrossLanguageInvocations()
+        => TestInRegularAndScriptAsync("""
+            <Workspace>
+                <Project Language= "C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            public class Program
+            {
+                public Program() {}
 
-        [Fact]
-        public async Task TestConvertedTypeInExpressionTrampoline()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+                public int M(int x, int y)
                 {
-                    void M(double x, double y) 
-                    {
-                        int m = [|(int)(x * y);|]
-                    }
+                    int m = [|x * y|];
+                    return m;
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M1()
                 {
-                    private int GetM(double x, double y)
-                    {
-                        return (int)(x * y);
-                    }
-
-                    void M(double x, double y, int m) 
-                    {
-                    }
+                    M(7, 2);
                 }
-                """;
+            }
+                    </Document>
+                </Project>
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1);
-        }
+            <Project Language= "Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                    <ProjectReference>Assembly1</ProjectReference>
+                    <Document>
+            Class ProgramVB
+                Sub M2()
+                    Dim programC = New Program()
+                    programC.M(7, 2)
+                End Sub
+            End Class
+                    </Document>
+                </Project>
+            </Workspace>
+            """, """
+            <Workspace>
+                <Project Language= "C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            public class Program
+            {
+                public Program() {}
 
-        [Fact]
-        public async Task TestThisKeywordInExpression()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+                public int M(int x, int y, int m)
                 {
-                    public int M1()
-                    {
-                        return 5;
-                    }
-
-                    public int M(int x, int y)
-                    {
-                        int m = [|x * this.M1();|]
-                        return m;
-                    }
+                    return m;
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M1()
                 {
-                    public int M1()
-                    {
-                        return 5;
-                    }
-
-                    public int GetM(int x)
-                    {
-                        return x * this.M1();
-                    }
-
-                    public int M(int x, int y, int m)
-                    {
-                        return m;
-                    }
+                    M(7, 2, 7 * 2);
                 }
-                """;
+            }
+                    </Document>
+                </Project>
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
+            <Project Language= "Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
+                    <ProjectReference>Assembly1</ProjectReference>
+                    <Document>
+            Class ProgramVB
+                Sub M2()
+                    Dim programC = New Program()
+                    programC.M(7, 2)
+                End Sub
+            End Class
+                    </Document>
+                </Project>
+            </Workspace>
+            """, 0);
 
-        [Fact]
-        public async Task TestThisImplicitInExpression()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+    [Fact]
+    public Task TestConvertedTypeInExpression()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(double x, double y) 
                 {
-                    public int M1()
-                    {
-                        return 5;
-                    }
-
-                    public int M(int x, int y)
-                    {
-                        int m = [|x * M1();|]
-                        return m;
-                    }
+                    int m = [|(int)(x * y);|]
                 }
-                """;
-
-            var expected =
-                """
-                using System;
-                class TestClass
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                void M(double x, double y, int m) 
                 {
-                    public int M1()
-                    {
-                        return 5;
-                    }
+                }
+            }
+            """, index: 0);
 
-                    public int GetM(int x)
-                    {
-                        return x * M1();
-                    }
+    [Fact]
+    public Task TestConvertedTypeInExpressionTrampoline()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M(double x, double y) 
+                {
+                    int m = [|(int)(x * y);|]
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                private int GetM(double x, double y)
+                {
+                    return (int)(x * y);
+                }
 
-                    public int M(int x, int y, int m)
-                    {
-                        return m;
-                    }
+                void M(double x, double y, int m) 
+                {
                 }
-                """;
+            }
+            """, index: 1);
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
+    [Fact]
+    public Task TestThisKeywordInExpression()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                public int M1()
+                {
+                    return 5;
+                }
 
-        [Fact]
-        public async Task TestStaticMethodCallInExpression()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+                public int M(int x, int y)
                 {
-                    public static int M1()
-                    {
-                        return 5;
-                    }
+                    int m = [|x * this.M1();|]
+                    return m;
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                public int M1()
+                {
+                    return 5;
+                }
 
-                    public int M(int x, int y)
-                    {
-                        int m = [|x * M1();|]
-                        return m;
-                    }
+                public int GetM(int x)
+                {
+                    return x * this.M1();
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                public int M(int x, int y, int m)
                 {
-                    public static int M1()
-                    {
-                        return 5;
-                    }
+                    return m;
+                }
+            }
+            """, index: 0);
 
-                    public int M(int x, int y, int m)
-                    {
-                        return m;
-                    }
+    [Fact]
+    public Task TestThisImplicitInExpression()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                public int M1()
+                {
+                    return 5;
                 }
-                """;
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
+                public int M(int x, int y)
+                {
+                    int m = [|x * M1();|]
+                    return m;
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                public int M1()
+                {
+                    return 5;
+                }
 
-        [Fact]
-        public async Task TestBaseKeywordInExpression()
-        {
-            var code =
-                """
-                using System;
-                class Net
+                public int GetM(int x)
                 {
-                    public int _value = 6;
+                    return x * M1();
                 }
 
-                class Perl : Net
+                public int M(int x, int y, int m)
                 {
-                    public new int _value = 7;
+                    return m;
+                }
+            }
+            """, index: 0);
 
-                    public void Write()
-                    {
-                        int x = [|base._value + 1;|]
-                    }
+    [Fact]
+    public Task TestStaticMethodCallInExpression()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                public static int M1()
+                {
+                    return 5;
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class Net
+                public int M(int x, int y)
+                {
+                    int m = [|x * M1();|]
+                    return m;
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                public static int M1()
                 {
-                    public int _value = 6;
+                    return 5;
                 }
 
-                class Perl : Net
+                public int M(int x, int y, int m)
                 {
-                    public new int _value = 7;
+                    return m;
+                }
+            }
+            """, index: 0);
 
-                    public int GetX()
-                    {
-                        return base._value + 1;
-                    }
+    [Fact]
+    public Task TestBaseKeywordInExpression()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class Net
+            {
+                public int _value = 6;
+            }
 
-                    public void Write(int x)
-                    {
-                    }
+            class Perl : Net
+            {
+                public new int _value = 7;
+
+                public void Write()
+                {
+                    int x = [|base._value + 1;|]
                 }
-                """;
+            }
+            """, """
+            using System;
+            class Net
+            {
+                public int _value = 6;
+            }
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
+            class Perl : Net
+            {
+                public new int _value = 7;
 
-        [Fact]
-        public async Task TestFieldReferenceInOptionalParameter()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
+                public int GetX()
                 {
-                    int M(int x, int y = int.MaxValue)
-                    {
-                        int m = [|x * y|];
-                        return m;
-                    }
-
-                    void M1()
-                    {
-                        M(7);
-                    }
+                    return base._value + 1;
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                public void Write(int x)
                 {
-                    int M(int x, int m, int y = int.MaxValue)
-                    {
-                        return m;
-                    }
+                }
+            }
+            """, index: 0);
 
-                    void M1()
-                    {
-                        M(7, 7 * int.MaxValue);
-                    }
+    [Fact]
+    public Task TestFieldReferenceInOptionalParameter()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(int x, int y = int.MaxValue)
+                {
+                    int m = [|x * y|];
+                    return m;
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
-
-        [Fact]
-        public async Task TestNamedParameterNecessary()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    int M(int x, int y = 5, int z = 3)
-                    {
-                        int m = [|z * y|];
-                        return m;
-                    }
 
-                    void M1()
-                    {
-                        M(z: 0, y: 2);
-                    }
+                void M1()
+                {
+                    M(7);
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                int M(int x, int m, int y = int.MaxValue)
+                {
+                    return m;
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M1()
                 {
-                    int M(int x, int m, int y = 5, int z = 3)
-                    {
-                        return m;
-                    }
+                    M(7, 7 * int.MaxValue);
+                }
+            }
+            """, index: 0);
 
-                    void M1()
-                    {
-                        M(z: 0, m: 0 * 2, y: 2);
-                    }
+    [Fact]
+    public Task TestNamedParameterNecessary()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                int M(int x, int y = 5, int z = 3)
+                {
+                    int m = [|z * y|];
+                    return m;
                 }
-                """;
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
-
-        [Fact]
-        public async Task TestHighlightReturnType()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    [|int|] M(int x)
-                    {
-                        return x;
-                    }
 
-                    void M1()
-                    {
-                        M(5);
-                    }
+                void M1()
+                {
+                    M(z: 0, y: 2);
                 }
-                """;
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestTypeOfOnString()
-        {
-            var code =
-                """
-                using System;
-                class TestClass
-                {
-                    void M()
-                    {
-                        var x = [|typeof(string);|]
-                    }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                int M(int x, int m, int y = 5, int z = 3)
+                {
+                    return m;
                 }
-                """;
 
-            var expected =
-                """
-                using System;
-                class TestClass
+                void M1()
                 {
-                    void M(Type x)
-                    {
-                    }
+                    M(z: 0, m: 0 * 2, y: 2);
                 }
-                """;
-
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
-        }
+            }
+            """, index: 0);
 
-        [Fact]
-        public async Task TestClassObject()
-        {
-            var code =
-                """
-                class F
+    [Fact]
+    public Task TestHighlightReturnType()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                [|int|] M(int x)
                 {
-                    public int x;
-                    public int y;
-
-                    public F(int x, int y)
-                    {
-                        this.x = x;
-                        this.y = y;
-                    }
+                    return x;
                 }
 
-                class TestClass
+                void M1()
                 {
-                    int N(F f)
-                    {
-                        return f.[|x|];
-                    }
-
-                    void M()
-                    {
-                        N(new F(1, 2));
-                    }
+                    M(5);
                 }
-                """;
+            }
+            """);
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+    [Fact]
+    public Task TestTypeOfOnString()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            class TestClass
+            {
+                void M()
+                {
+                    var x = [|typeof(string);|]
+                }
+            }
+            """, """
+            using System;
+            class TestClass
+            {
+                void M(Type x)
+                {
+                }
+            }
+            """, index: 0);
 
-        [Fact]
-        public async Task TestReferenceInDifferentDocumentWithUsings()
-        {
-            var code =
-                """
-                <Workspace>
-                    <Project Language= "C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document>
-                using System;
-                using System.Linq;
+    [Fact]
+    public Task TestClassObject()
+        => TestMissingInRegularAndScriptAsync("""
+            class F
+            {
+                public int x;
+                public int y;
 
-                namespace Foo
+                public F(int x, int y)
                 {
-                    public class Bar
-                    {
-                        public Bar()
-                        {
-                            [|var x = 2|];
-                        }
-                    }
+                    this.x = x;
+                    this.y = y;
                 }
-                        </Document>
+            }
 
-                        <Document>
-                namespace Refactorings
+            class TestClass
+            {
+                int N(F f)
                 {
-                    using Foo;
-                    class Program
-                    {
-                        public Program(int x)
-                        {
-                            var bar = new Bar();
-
-                        }
-                    }
+                    return f.[|x|];
                 }
-                        </Document>
-                    </Project>
-                </Workspace>
-                """;
-
-            var expected =
-                """
-                <Workspace>
-                    <Project Language= "C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document>
-                using System;
-                using System.Linq;
-
-                namespace Foo
-                {
-                    public class Bar
-                    {
-                        public Bar(int x)
-                        {
-                        }
-                    }
+
+                void M()
+                {
+                    N(new F(1, 2));
                 }
-                        </Document>
+            }
+            """);
+
+    [Fact]
+    public Task TestReferenceInDifferentDocumentWithUsings()
+        => TestInRegularAndScriptAsync("""
+            <Workspace>
+                <Project Language= "C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            using System;
+            using System.Linq;
 
-                        <Document>
-                namespace Refactorings
+            namespace Foo
+            {
+                public class Bar
                 {
-                    using Foo;
-                    class Program
+                    public Bar()
                     {
-                        public Program(int x)
-                        {
-                            var bar = new Bar(2);
-
-                        }
+                        [|var x = 2|];
                     }
                 }
-                        </Document>
-                    </Project>
-                </Workspace>
-                """;
-            await TestInRegularAndScriptAsync(code, expected, 0);
-        }
-
-        [Fact]
-        public async Task TestIntroduceParameterOnParameter()
-        {
-            var code =
-                """
-                using System;
+            }
+                    </Document>
 
+                    <Document>
+            namespace Refactorings
+            {
+                using Foo;
                 class Program
                 {
-                    public static void Main(string[] args)
+                    public Program(int x)
                     {
-                        Console.WriteLine([|args|]);
+                        var bar = new Bar();
+
                     }
                 }
-                """;
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, """
+            <Workspace>
+                <Project Language= "C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            using System;
+            using System.Linq;
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [Fact]
-        public async Task TestIntroduceParameterOnExpressionContainingParameter()
-        {
-            var code =
-                """
-                public class C
+            namespace Foo
+            {
+                public class Bar
                 {
-                    public void M(string s)
+                    public Bar(int x)
                     {
-                        localFunction();
-
-                        void localFunction()
-                        {
-                            _ = [|s|].ToString();
-                        }
                     }
                 }
-                """;
+            }
+                    </Document>
 
-            var expected =
-                """
-                public class C
+                    <Document>
+            namespace Refactorings
+            {
+                using Foo;
+                class Program
                 {
-                    public void M(string s)
+                    public Program(int x)
                     {
-                        localFunction(s);
+                        var bar = new Bar(2);
 
-                        void localFunction(string s)
-                        {
-                            _ = {|Rename:s|}.ToString();
-                        }
                     }
                 }
-                """;
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, 0);
 
-            await TestInRegularAndScriptAsync(code, expected, 0);
-        }
+    [Fact]
+    public Task TestIntroduceParameterOnParameter()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
 
-        [Fact]
-        public async Task TestIntroduceParameterOnOverload()
-        {
-            var code =
-                """
-                M();
-                int M(int _) => M([|1234|]);
-                """;
-
-            var expected =
-                """
-                M();
-                int M(int _, int v) => M({|Rename:v|}, 1234);
-                """;
-
-            await TestInRegularAndScriptAsync(code, expected, 0);
-        }
-
-        [Fact]
-        public async Task TestIntroduceParameterOnAttributeArgument()
-        {
-            var code =
-                """
-                public class C
+            class Program
+            {
+                public static void Main(string[] args)
                 {
-                    [Theory]
-                    [InlineData([|"A"|])]
-                    public void Test(string s)
+                    Console.WriteLine([|args|]);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestIntroduceParameterOnExpressionContainingParameter()
+        => TestInRegularAndScriptAsync("""
+            public class C
+            {
+                public void M(string s)
+                {
+                    localFunction();
+
+                    void localFunction()
                     {
+                        _ = [|s|].ToString();
                     }
                 }
-                """;
+            }
+            """, """
+            public class C
+            {
+                public void M(string s)
+                {
+                    localFunction(s);
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-    }
+                    void localFunction(string s)
+                    {
+                        _ = {|Rename:s|}.ToString();
+                    }
+                }
+            }
+            """, 0);
+
+    [Fact]
+    public Task TestIntroduceParameterOnOverload()
+        => TestInRegularAndScriptAsync("""
+            M();
+            int M(int _) => M([|1234|]);
+            """, """
+            M();
+            int M(int _, int v) => M({|Rename:v|}, 1234);
+            """, 0);
+
+    [Fact]
+    public Task TestIntroduceParameterOnAttributeArgument()
+        => TestMissingInRegularAndScriptAsync("""
+            public class C
+            {
+                [Theory]
+                [InlineData([|"A"|])]
+                public void Test(string s)
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOnNamedType1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [||]Console.WriteLine();
+                }
+            }
+            """);
 }

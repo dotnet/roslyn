@@ -8,8 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.CodeStyle;
 
-#if CODE_STYLE
-using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+#if !WORKSPACE
 using PublicIndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions2.IndentStyle;
 #else
 using PublicIndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
@@ -62,17 +61,51 @@ internal sealed partial class FormattingOptions2
     public static PerLanguageOption2<IndentStyle> SmartIndent = new PerLanguageOption2<IndentStyle>(
         "smart_indent",
         defaultValue: IndentationOptions.DefaultIndentStyle,
-        group: FormattingOptionGroups.IndentationAndSpacing)
+        group: FormattingOptionGroups.IndentationAndSpacing,
+        serializer: EditorConfigValueSerializer.CreateSerializerForEnum<IndentStyle>())
         .WithPublicOption(PublicFeatureName, "SmartIndent", static value => (PublicIndentStyle)value, static value => (IndentStyle)value);
 
+    /// <summary>
+    /// Default value of 120 was picked based on the amount of code in a github.com diff at 1080p.
+    /// That resolution is the most common value as per the last DevDiv survey as well as the latest
+    /// Steam hardware survey.  This also seems to a reasonable length default in that shorter
+    /// lengths can often feel too cramped for .NET languages, which are often starting with a
+    /// default indentation of at least 16 (for namespace, class, member, plus the final construct
+    /// indentation).
+    /// 
+    /// TODO: Currently the option has no storage and always has its default value. See https://github.com/dotnet/roslyn/pull/30422#issuecomment-436118696.
+    /// 
+    /// Internal option -- not exposed to tooling.
+    /// </summary>
+    public static readonly PerLanguageOption2<int> WrappingColumn = new(
+        $"dotnet_unsupported_wrapping_column",
+        defaultValue: SyntaxFormattingOptions.CommonDefaults.WrappingColumn,
+        isEditorConfigOption: true);
+
+    /// <summary>
+    /// Internal option -- not exposed to editorconfig tooling.
+    /// </summary>
+    public static readonly PerLanguageOption2<int> ConditionalExpressionWrappingLength = new(
+        $"dotnet_unsupported_conditional_expression_wrapping_length",
+        defaultValue: SyntaxFormattingOptions.CommonDefaults.ConditionalExpressionWrappingLength,
+        isEditorConfigOption: true);
+
 #if !CODE_STYLE
-    internal static readonly ImmutableArray<IOption2> Options = [UseTabs, TabSize, IndentationSize, NewLine, InsertFinalNewLine];
+    /// <summary>
+    /// Options that we expect the user to set in editorconfig.
+    /// </summary>
+    internal static readonly ImmutableArray<IOption2> EditorConfigOptions = [UseTabs, TabSize, IndentationSize, NewLine, InsertFinalNewLine];
+
+    /// <summary>
+    /// Options that can be set via editorconfig but we do not provide tooling support.
+    /// </summary>
+    internal static readonly ImmutableArray<IOption2> UndocumentedOptions = [WrappingColumn, ConditionalExpressionWrappingLength];
 #endif
 }
 
 internal static class FormattingOptionGroups
 {
     public static readonly OptionGroup FormattingOptionGroup = new(name: "formatting", description: "", parent: CodeStyleOptionGroups.CodeStyle);
-    public static readonly OptionGroup IndentationAndSpacing = new(name: "indentation_and_spacing", description: WorkspacesResources.Indentation_and_spacing, priority: 1, parent: FormattingOptionGroup);
-    public static readonly OptionGroup NewLine = new(name: "new_line", description: WorkspacesResources.New_line_preferences, priority: 2, parent: FormattingOptionGroup);
+    public static readonly OptionGroup IndentationAndSpacing = new(name: "indentation_and_spacing", description: CompilerExtensionsResources.Indentation_and_spacing, priority: 1, parent: FormattingOptionGroup);
+    public static readonly OptionGroup NewLine = new(name: "new_line", description: CompilerExtensionsResources.New_line_preferences, priority: 2, parent: FormattingOptionGroup);
 }

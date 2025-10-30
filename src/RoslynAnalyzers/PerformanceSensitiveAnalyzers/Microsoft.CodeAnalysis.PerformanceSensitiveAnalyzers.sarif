@@ -1,0 +1,264 @@
+﻿{
+  "$schema": "http://json.schemastore.org/sarif-1.0.0",
+  "version": "1.0.0",
+  "runs": [
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers",
+        "version": "5.3.0",
+        "language": "en-US"
+      },
+      "rules": {
+        "HAA0101": {
+          "id": "HAA0101",
+          "shortDescription": "Array allocation for params parameter",
+          "fullDescription": "This call site is calling into a function with a 'params' parameter. This results in an array allocation.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "CallSiteImplicitAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HAA0102": {
+          "id": "HAA0102",
+          "shortDescription": "Non-overridden virtual method call on value type",
+          "fullDescription": "Non-overridden virtual method call on a value type adds a boxing or constrained instruction",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "CallSiteImplicitAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HAA0201": {
+          "id": "HAA0201",
+          "shortDescription": "Implicit string concatenation allocation",
+          "fullDescription": "Considering using StringBuilder",
+          "defaultLevel": "warning",
+          "helpUri": "http://msdn.microsoft.com/en-us/library/2839d5h5(v=vs.110).aspx",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "ConcatenationAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HAA0202": {
+          "id": "HAA0202",
+          "shortDescription": "Value type to reference type conversion allocation for string concatenation",
+          "fullDescription": "Value type ({0}) is being boxed to a reference type for a string concatenation",
+          "defaultLevel": "warning",
+          "helpUri": "http://msdn.microsoft.com/en-us/library/yz2be5wk.aspx",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "ConcatenationAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HAA0301": {
+          "id": "HAA0301",
+          "shortDescription": "Closure Allocation Source",
+          "fullDescription": "Heap allocation of closure Captures: {0}",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "DisplayClassAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HAA0302": {
+          "id": "HAA0302",
+          "shortDescription": "Display class allocation to capture closure",
+          "fullDescription": "The compiler will emit a class that will hold this as a field to allow capturing of this closure",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "DisplayClassAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HAA0303": {
+          "id": "HAA0303",
+          "shortDescription": "Lambda or anonymous method in a generic method allocates a delegate instance",
+          "fullDescription": "Considering moving this out of the generic method",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "DisplayClassAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HAA0401": {
+          "id": "HAA0401",
+          "shortDescription": "Possible allocation of reference type enumerator",
+          "fullDescription": "Non-ValueType enumerator may result in a heap allocation",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "EnumeratorAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HAA0601": {
+          "id": "HAA0601",
+          "shortDescription": "Value type to reference type conversion causing boxing allocation",
+          "fullDescription": "Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "TypeConversionAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HAA0602": {
+          "id": "HAA0602",
+          "shortDescription": "Delegate on struct instance caused a boxing allocation",
+          "fullDescription": "Struct instance method being used for delegate creation, this will result in a boxing instruction",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "TypeConversionAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HAA0603": {
+          "id": "HAA0603",
+          "shortDescription": "Delegate allocation from a method group",
+          "fullDescription": "This will allocate a delegate instance",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "TypeConversionAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
+        "HAA0604": {
+          "id": "HAA0604",
+          "shortDescription": "Delegate allocation from a method group",
+          "fullDescription": "This will allocate a delegate instance",
+          "defaultLevel": "note",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "TypeConversionAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes",
+        "version": "5.3.0",
+        "language": "en-US"
+      },
+      "rules": {
+      }
+    },
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers",
+        "version": "5.3.0",
+        "language": "en-US"
+      },
+      "rules": {
+        "HAA0501": {
+          "id": "HAA0501",
+          "shortDescription": "Explicit new array type allocation",
+          "fullDescription": "Explicit new array type allocation",
+          "defaultLevel": "note",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "ExplicitAllocationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ]
+          }
+        },
+        "HAA0502": {
+          "id": "HAA0502",
+          "shortDescription": "Explicit new reference type allocation",
+          "fullDescription": "Explicit new reference type allocation",
+          "defaultLevel": "note",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "ExplicitAllocationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ]
+          }
+        },
+        "HAA0503": {
+          "id": "HAA0503",
+          "shortDescription": "Explicit new anonymous object allocation",
+          "fullDescription": "Explicit new anonymous object allocation",
+          "defaultLevel": "note",
+          "helpUri": "http://msdn.microsoft.com/en-us/library/bb397696.aspx",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "ExplicitAllocationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ]
+          }
+        },
+        "HAA0506": {
+          "id": "HAA0506",
+          "shortDescription": "Let clause induced allocation",
+          "fullDescription": "Let clause induced allocation",
+          "defaultLevel": "note",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "ExplicitAllocationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal readonly struct ExtensionMethodImportCompletionCacheEntry
+internal sealed class ExtensionMethodImportCompletionCacheEntry
 {
     public Checksum Checksum { get; }
     public string Language { get; }
@@ -16,7 +16,7 @@ internal readonly struct ExtensionMethodImportCompletionCacheEntry
     /// <summary>
     /// Mapping from the name of receiver type to extension method symbol infos.
     /// </summary>
-    public readonly MultiDictionary<string, DeclaredSymbolInfo> ReceiverTypeNameToExtensionMethodMap { get; }
+    public MultiDictionary<string, DeclaredSymbolInfo> ReceiverTypeNameToExtensionMethodMap { get; }
 
     public bool ContainsExtensionMethod => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
 
@@ -30,12 +30,12 @@ internal readonly struct ExtensionMethodImportCompletionCacheEntry
         ReceiverTypeNameToExtensionMethodMap = receiverTypeNameToExtensionMethodMap;
     }
 
-    public class Builder(Checksum checksum, string langauge, IEqualityComparer<string> comparer)
+    public sealed class Builder(Checksum checksum, string langauge, IEqualityComparer<string> comparer)
     {
         private readonly Checksum _checksum = checksum;
         private readonly string _language = langauge;
 
-        private readonly MultiDictionary<string, DeclaredSymbolInfo> _mapBuilder = new MultiDictionary<string, DeclaredSymbolInfo>(comparer);
+        private readonly MultiDictionary<string, DeclaredSymbolInfo> _mapBuilder = new(comparer);
 
         public ExtensionMethodImportCompletionCacheEntry ToCacheEntry()
         {

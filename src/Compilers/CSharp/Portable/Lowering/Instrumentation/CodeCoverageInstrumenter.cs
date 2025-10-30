@@ -8,10 +8,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -371,9 +371,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl));
         }
 
-        public override BoundStatement InstrumentIfStatement(BoundIfStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentIfStatementConditionalGoto(BoundIfStatement original, BoundStatement rewritten)
         {
-            return AddDynamicAnalysis(original, base.InstrumentIfStatement(original, rewritten));
+            return AddDynamicAnalysis(original, base.InstrumentIfStatementConditionalGoto(original, rewritten));
         }
 
         public override BoundStatement InstrumentWhileStatementConditionalGotoStartOrBreak(BoundWhileStatement original, BoundStatement ifConditionGotoStart)

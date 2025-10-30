@@ -36,7 +36,7 @@ internal static class MefExtensions
         IEnumerable<IContentType> contentTypes)
         where TMetadata : IContentTypeMetadata
     {
-        return extensions.Where(h => contentTypes.Any(d => d.MatchesAny(h.Metadata.ContentTypes))).ToList();
+        return [.. extensions.Where(h => contentTypes.Any(d => d.MatchesAny(h.Metadata.ContentTypes)))];
     }
 
     public static IList<TExtension> SelectMatchingExtensionValues<TExtension, TMetadata>(
@@ -44,7 +44,7 @@ internal static class MefExtensions
         params IContentType[] contentTypes)
         where TMetadata : IContentTypeMetadata
     {
-        return extensions.SelectMatchingExtensions(contentTypes).Select(p => p.Value).ToList();
+        return [.. extensions.SelectMatchingExtensions(contentTypes).Select(p => p.Value)];
     }
 
     public static Lazy<TExtension, TMetadata> SelectMatchingExtension<TExtension, TMetadata>(

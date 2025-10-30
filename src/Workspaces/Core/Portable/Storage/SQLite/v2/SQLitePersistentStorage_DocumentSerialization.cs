@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2;
 
 using static SQLitePersistentStorageConstants;
 
-internal partial class SQLitePersistentStorage
+internal sealed partial class SQLitePersistentStorage
 {
     protected override Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, Document? document, string name, Checksum checksum, CancellationToken cancellationToken)
         => _documentAccessor.ChecksumMatchesAsync(documentKey, name, checksum, cancellationToken);

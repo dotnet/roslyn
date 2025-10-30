@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
@@ -753,7 +754,7 @@ End Select
     Public Sub ParseFileOnBinaryFile()
         ' This is doing the same thing as ParseFile, but using a MemoryStream
         ' instead of FileStream (because I don't want to write a file to disk).
-        Using data As New MemoryStream(TestMetadata.ResourcesNet451.mscorlib)
+        Using data As New MemoryStream(Net461.Resources.mscorlib)
             Const bug103047IsFixed = False
 
             If bug103047IsFixed Then

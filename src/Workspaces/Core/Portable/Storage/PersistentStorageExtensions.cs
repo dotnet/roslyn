@@ -14,18 +14,12 @@ internal static class PersistentStorageExtensions
 {
     public static IChecksummedPersistentStorageService GetPersistentStorageService(this SolutionServices services)
     {
-        var workspaceConfiguration = services.GetService<IWorkspaceConfigurationService>();
         var configuration = services.GetRequiredService<IPersistentStorageConfiguration>();
 
-        var cacheStorage = workspaceConfiguration?.Options.CacheStorage;
-        return cacheStorage switch
-        {
-#if !DOTNET_BUILD_FROM_SOURCE
-            StorageDatabase.SQLite
-                => services.GetService<SQLitePersistentStorageService>() ??
-                   NoOpPersistentStorageService.GetOrThrow(configuration),
+#if DOTNET_BUILD_FROM_SOURCE
+        return NoOpPersistentStorageService.GetOrThrow(configuration);
+#else
+        return services.GetService<SQLitePersistentStorageService>() ?? NoOpPersistentStorageService.GetOrThrow(configuration);
 #endif
-            _ => NoOpPersistentStorageService.GetOrThrow(configuration),
-        };
     }
 }

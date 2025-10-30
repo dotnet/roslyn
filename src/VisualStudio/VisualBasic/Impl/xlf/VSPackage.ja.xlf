@@ -18,22 +18,66 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
-Regex;
-regular expressions;
-related components under cursor;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
+Colorize regular expression;
+Highlight related components under cursor;
 Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Always use default symbol servers for navigation;
+Import directives;
+Place System directives first when sorting imports;
+Separate import directive groups;
+Suggest imports for types in reference assemblies;
+Suggest imports for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused imports;
+Fade out unused members;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ''';
+Insert ' at the start of new lines when writing ' comments;
+Show preview for rename tracking;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
 JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
-Collapse #regions on file open;
-Collapse Imports on file open;
-Collapse metadata implementations on file open;
-Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">再割り当てされる変数に下線を引く; インラインのヒントを表示する; コンストラクトの終端の自動挿入; 再フォーマット設定の変更; アウトライン モードの変更; Interface と MustOverride メンバーの自動挿入; プロシージャ行の区切り記号の表示/非表示; エラー修正候補のオン/オフの切り替え; 参照とキーワードの強調表示のオン/オフの切り替え; 
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="needs-review-translation">再割り当てされる変数に下線を引く; インラインのヒントを表示する; コンストラクトの終端の自動挿入; 再フォーマット設定の変更; アウトライン モードの変更; Interface と MustOverride メンバーの自動挿入; プロシージャ行の区切り記号の表示/非表示; エラー修正候補のオン/オフの切り替え; 参照とキーワードの強調表示のオン/オフの切り替え; 
 Regex; 
 正規表現; 
 カーソルの下の関連コンポーネント; 
@@ -115,11 +159,6 @@ JSON 文字列のエディター機能の検出と提供;
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する</target>
-        <note>IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">IDE で使用する Visual Basic コンポーネント。プロジェクトの種類や設定に応じて、異なるバージョンのコンパイラを使用できます。</target>
@@ -129,6 +168,36 @@ JSON 文字列のエディター機能の検出と提供;
         <source>Visual Basic Tools</source>
         <target state="translated">Visual Basic ツール</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Enter を押すと常に新しい行を追加します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">常にスニペットを含める</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">識別子の後に ? Tab を入力したときにスニペットを含める</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Enter 時に新しい行を追加しません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">スニペットを含めない</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">単語を完全に入力した後 Enter キーで新しい行のみを追加する</target>
+        <note />
       </trans-unit>
     </body>
   </file>

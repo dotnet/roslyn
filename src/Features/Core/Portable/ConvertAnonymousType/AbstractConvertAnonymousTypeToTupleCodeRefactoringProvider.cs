@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,6 +42,11 @@ internal abstract class AbstractConvertAnonymousTypeToTupleCodeRefactoringProvid
             return;
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+
+        if (semanticFacts.IsInExpressionTree(semanticModel, anonymousNode, semanticModel.Compilation.ExpressionOfTType(), cancellationToken))
+            return;
+
         var allAnonymousNodes = GetAllAnonymousTypesInContainer(document, semanticModel, anonymousNode, cancellationToken);
 
         // If we have multiple different anonymous types in this member, then offer two fixes, one to just fixup this

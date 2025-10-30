@@ -11,129 +11,122 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.ArgumentProviders
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.ArgumentProviders;
+
+[Trait(Traits.Feature, Traits.Features.Completion)]
+public sealed class OutVariableArgumentProviderTests : AbstractCSharpArgumentProviderTests
 {
-    [Trait(Traits.Feature, Traits.Features.Completion)]
-    public class OutVariableArgumentProviderTests : AbstractCSharpArgumentProviderTests
+    private static readonly OptionsCollection s_useExplicitTypeOptions = new(LanguageNames.CSharp)
     {
-        private static readonly OptionsCollection s_useExplicitTypeOptions = new(LanguageNames.CSharp)
-        {
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, false },
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, false },
-            { CSharpCodeStyleOptions.VarElsewhere, false },
-        };
+        { CSharpCodeStyleOptions.VarForBuiltInTypes, false },
+        { CSharpCodeStyleOptions.VarWhenTypeIsApparent, false },
+        { CSharpCodeStyleOptions.VarElsewhere, false },
+    };
 
-        private static readonly OptionsCollection s_useExplicitMetadataTypeOptions = new(LanguageNames.CSharp)
-        {
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, false },
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, false },
-            { CSharpCodeStyleOptions.VarElsewhere, false },
-            { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false },
-        };
+    private static readonly OptionsCollection s_useExplicitMetadataTypeOptions = new(LanguageNames.CSharp)
+    {
+        { CSharpCodeStyleOptions.VarForBuiltInTypes, false },
+        { CSharpCodeStyleOptions.VarWhenTypeIsApparent, false },
+        { CSharpCodeStyleOptions.VarElsewhere, false },
+        { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false },
+    };
 
-        private static readonly OptionsCollection s_useImplicitTypeOptions = new(LanguageNames.CSharp)
-        {
-            { CSharpCodeStyleOptions.VarForBuiltInTypes, true },
-            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, true },
-            { CSharpCodeStyleOptions.VarElsewhere, true },
-        };
+    private static readonly OptionsCollection s_useImplicitTypeOptions = new(LanguageNames.CSharp)
+    {
+        { CSharpCodeStyleOptions.VarForBuiltInTypes, true },
+        { CSharpCodeStyleOptions.VarWhenTypeIsApparent, true },
+        { CSharpCodeStyleOptions.VarElsewhere, true },
+    };
 
-        internal override Type GetArgumentProviderType()
-            => typeof(OutVariableArgumentProvider);
+    internal override Type GetArgumentProviderType()
+        => typeof(OutVariableArgumentProvider);
 
-        [Theory]
-        [InlineData("")]
-        [InlineData("ref")]
-        [InlineData("in")]
-        public async Task TestUnsupportedModifiers(string modifier)
-        {
-            var markup = $@"
-class C
-{{
-    void Method()
-    {{
-        TryParse($$)
-    }}
-
-    bool TryParse({modifier} int value) => throw null;
-}}
-";
-
-            await VerifyDefaultValueAsync(markup, expectedDefaultValue: null);
-        }
-
-        [Fact]
-        public async Task TestDeclareVariable()
-        {
-            var markup = $@"
-class C
-{{
-    void Method()
-    {{
-        int.TryParse(""x"", $$)
-    }}
-}}
-";
-
-            await VerifyDefaultValueAsync(markup, "out var result");
-            await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
-        }
-
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/53056")]
-        [CombinatorialData]
-        public async Task TestDeclareVariableBuiltInType(bool preferVar, bool preferBuiltInType)
-        {
-            var markup = $@"
-using System;
-class C
-{{
-    void Method()
-    {{
-        int.TryParse(""x"", $$)
-    }}
-}}
-";
-
-            var expected = (preferVar, preferBuiltInType) switch
+    [Theory]
+    [InlineData("")]
+    [InlineData("ref")]
+    [InlineData("in")]
+    public Task TestUnsupportedModifiers(string modifier)
+        => VerifyDefaultValueAsync($$"""
+            class C
             {
-                (true, _) => "out var result",
-                (false, true) => "out int result",
-                (false, false) => "out Int32 result",
-            };
+                void Method()
+                {
+                    TryParse($$)
+                }
 
-            var options = (preferVar, preferBuiltInType) switch
+                bool TryParse({{modifier}} int value) => throw null;
+            }
+            """, expectedDefaultValue: null);
+
+    [Fact]
+    public async Task TestDeclareVariable()
+    {
+        var markup = $$"""
+            class C
             {
-                (true, _) => s_useImplicitTypeOptions,
-                (false, true) => s_useExplicitTypeOptions,
-                (false, false) => s_useExplicitMetadataTypeOptions,
-            };
+                void Method()
+                {
+                    int.TryParse("x", $$)
+                }
+            }
+            """;
 
-            await VerifyDefaultValueAsync(markup, expected, options: options);
-        }
+        await VerifyDefaultValueAsync(markup, "out var result");
+        await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
+    }
 
-        [Theory]
-        [InlineData("string")]
-        [InlineData("bool")]
-        [InlineData("int?")]
-        public async Task TestDeclareVariableEscapedIdentifier(string type)
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/53056")]
+    [CombinatorialData]
+    public async Task TestDeclareVariableBuiltInType(bool preferVar, bool preferBuiltInType)
+    {
+        var expected = (preferVar, preferBuiltInType) switch
         {
-            var markup = $@"
-class C
-{{
-    void Method()
-    {{
-        this.Target($$);
-    }}
+            (true, _) => "out var result",
+            (false, true) => "out int result",
+            (false, false) => "out Int32 result",
+        };
 
-    void Target(out {type} @void)
-    {{
-        @void = default;
-    }}
-}}
-";
+        var options = (preferVar, preferBuiltInType) switch
+        {
+            (true, _) => s_useImplicitTypeOptions,
+            (false, true) => s_useExplicitTypeOptions,
+            (false, false) => s_useExplicitMetadataTypeOptions,
+        };
 
-            await VerifyDefaultValueAsync(markup, "out var @void");
-            await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
-        }
+        await VerifyDefaultValueAsync($$"""
+            using System;
+            class C
+            {
+                void Method()
+                {
+                    int.TryParse("x", $$)
+                }
+            }
+            """, expected, options: options);
+    }
+
+    [Theory]
+    [InlineData("string")]
+    [InlineData("bool")]
+    [InlineData("int?")]
+    public async Task TestDeclareVariableEscapedIdentifier(string type)
+    {
+        var markup = $$"""
+            class C
+            {
+                void Method()
+                {
+                    this.Target($$);
+                }
+
+                void Target(out {{type}} @void)
+                {
+                    @void = default;
+                }
+            }
+            """;
+
+        await VerifyDefaultValueAsync(markup, "out var @void");
+        await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
     }
 }

@@ -15,13 +15,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
         Public Property Extensions As (Paths As String(), Id As String)() = Array.Empty(Of (Paths As String(), Id As String))()
 
+        Public Property ContentTypeName As String = "Microsoft.VisualStudio.Analyzer"
+
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         Public Function GetOrCreateProviderAsync(cancellationToken As CancellationToken) As Task(Of VisualStudioDiagnosticAnalyzerProvider) Implements IVisualStudioDiagnosticAnalyzerProviderFactory.GetOrCreateProviderAsync
-            Return Task.FromResult(New VisualStudioDiagnosticAnalyzerProvider(New MockExtensionManager(Extensions), GetType(MockExtensionManager.MockContent)))
+            Return Task.FromResult(New VisualStudioDiagnosticAnalyzerProvider(New MockExtensionManager(Extensions, ContentTypeName), GetType(MockExtensionManager.MockContent)))
         End Function
     End Class
 End Namespace

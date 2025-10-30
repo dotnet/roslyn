@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2;
 
-internal partial class SQLitePersistentStorage
+internal sealed partial class SQLitePersistentStorage
 {
     /// <summary>
     /// Mapping from the workspace's ID for a project, to the ID we use in the DB for the project.

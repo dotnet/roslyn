@@ -5,12 +5,13 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
+        public override BoundNode VisitCatchBlock(BoundCatchBlock catchBlock)
         {
             if (IsInside)
             {
@@ -153,7 +154,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            base.VisitCatchBlock(catchBlock, ref finallyState);
+            base.VisitCatchBlock(catchBlock);
+
+            return null;
         }
 
         public override BoundNode VisitQueryClause(BoundQueryClause node)

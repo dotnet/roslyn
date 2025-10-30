@@ -2,20 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
 internal sealed class TrackingSpanIntrospector(ITextSnapshot snapshot) : IIntervalIntrospector<ITrackingSpan>
 {
-    private readonly ITextSnapshot _snapshot = snapshot;
-
-    public int GetStart(ITrackingSpan value)
-        => value.GetStartPoint(_snapshot);
-
-    public int GetLength(ITrackingSpan value)
-        => value.GetSpan(_snapshot).Length;
+    public TextSpan GetSpan(ITrackingSpan value)
+        => value.GetSpan(snapshot).Span.ToTextSpan();
 }

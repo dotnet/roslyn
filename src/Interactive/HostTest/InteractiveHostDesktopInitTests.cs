@@ -5,19 +5,18 @@
 extern alias InteractiveHost;
 
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+    using Xunit.Abstractions;
 
     [Trait(Traits.Feature, Traits.Features.InteractiveHost)]
-    public sealed class InteractiveHostDesktopInitTests : AbstractInteractiveHostTests
+    public sealed class InteractiveHostDesktopInitTests(ITestOutputHelper testOutputHelper) : AbstractInteractiveHostTests(testOutputHelper)
     {
         internal override InteractiveHostPlatform DefaultPlatform => InteractiveHostPlatform.Desktop32;
         internal override bool UseDefaultInitializationFile => true;

@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands

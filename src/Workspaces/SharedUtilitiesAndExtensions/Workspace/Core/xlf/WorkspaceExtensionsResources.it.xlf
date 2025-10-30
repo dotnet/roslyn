@@ -47,6 +47,11 @@
         <target state="translated">Il tipo di destinazione deve essere {0} o {1}, ma quello specificato è {2}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="translated">Il documento non supporta alberi di sintassi</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="translated">Correggi tutti '{0}'</target>
@@ -120,6 +125,11 @@
       <trans-unit id="The_solution_does_not_contain_the_specified_document">
         <source>The solution does not contain the specified document.</source>
         <target state="translated">La soluzione non contiene il documento specificato.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="translated">Membri tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">

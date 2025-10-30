@@ -6,8 +6,6 @@
 
 using System;
 using System.Composition;
-using System.Windows.Forms;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
@@ -17,7 +15,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification;
 
 [ExportWorkspaceServiceFactory(typeof(INotificationService), ServiceLayer.Host), Shared]
-internal class VSNotificationServiceFactory : IWorkspaceServiceFactory
+internal sealed class VSNotificationServiceFactory : IWorkspaceServiceFactory
 {
     private readonly IVsUIShell _uiShellService;
 
@@ -40,7 +38,7 @@ internal class VSNotificationServiceFactory : IWorkspaceServiceFactory
         return s_singleton;
     }
 
-    private class VSDialogService : INotificationService, INotificationServiceCallback
+    private sealed class VSDialogService : INotificationService, INotificationServiceCallback
     {
         private readonly IVsUIShell _uiShellService;
 

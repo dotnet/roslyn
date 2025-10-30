@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,10 +18,6 @@ namespace Microsoft.CodeAnalysis.Rename;
 
 internal interface IRemoteRenamerService
 {
-    internal interface ICallback : IRemoteOptionsCallback<CodeCleanupOptions>
-    {
-    }
-
     /// <summary>
     /// Runs the entire rename operation OOP and returns the final result. More efficient (due to less back and
     /// forth marshaling) when the intermediary results of rename are not needed. To get the individual parts of
@@ -33,11 +25,9 @@ internal interface IRemoteRenamerService
     /// </summary>
     ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
         Checksum solutionChecksum,
-        RemoteServiceCallbackId callbackId,
         SerializableSymbolAndProjectId symbolAndProjectId,
         string replacementText,
         SymbolRenameOptions options,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken);
 
     ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
@@ -48,25 +38,10 @@ internal interface IRemoteRenamerService
 
     ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(
         Checksum solutionChecksum,
-        RemoteServiceCallbackId callbackId,
         SerializableSymbolAndProjectId symbolAndProjectId,
         SerializableRenameLocations renameLocationSet,
         string replacementText,
-        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken);
-}
-
-[ExportRemoteServiceCallbackDispatcher(typeof(IRemoteRenamerService)), Shared]
-internal sealed class RemoteRenamerServiceCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteRenamerService.ICallback
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RemoteRenamerServiceCallbackDispatcher()
-    {
-    }
-
-    public ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
-        => ((RemoteOptionsProvider<CodeCleanupOptions>)GetCallback(callbackId)).GetOptionsAsync(language, cancellationToken);
 }
 
 [DataContract]
@@ -111,7 +86,9 @@ internal readonly struct SerializableRenameLocation(
 
     public async ValueTask<RenameLocation> RehydrateAsync(Solution solution, CancellationToken cancellation)
     {
-        var document = solution.GetRequiredDocument(DocumentId);
+        var document = await solution.GetRequiredDocumentAsync(DocumentId, includeSourceGenerated: true, cancellation).ConfigureAwait(false);
+        Contract.ThrowIfTrue(DocumentId.IsSourceGenerated && !document.IsRazorSourceGeneratedDocument());
+
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellation).ConfigureAwait(false);
 
         return new RenameLocation(
@@ -125,7 +102,7 @@ internal readonly struct SerializableRenameLocation(
     }
 }
 
-internal partial class LightweightRenameLocations
+internal sealed partial class LightweightRenameLocations
 {
     public SerializableRenameLocations Dehydrate()
         => new(
@@ -135,7 +112,7 @@ internal partial class LightweightRenameLocations
             _referencedSymbols);
 }
 
-internal partial class SymbolicRenameLocations
+internal sealed partial class SymbolicRenameLocations
 {
     internal static async Task<SymbolicRenameLocations?> TryRehydrateAsync(
         ISymbol symbol, Solution solution, SerializableRenameLocations serializableLocations, CancellationToken cancellationToken)
@@ -185,11 +162,11 @@ internal sealed class SerializableRenameLocations(
     public async ValueTask<ImmutableArray<RenameLocation>> RehydrateLocationsAsync(
         Solution solution, CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<RenameLocation>.GetInstance(this.Locations.Length, out var locBuilder);
+        var locBuilder = new FixedSizeArrayBuilder<RenameLocation>(this.Locations.Length);
         foreach (var loc in this.Locations)
             locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
-        return locBuilder.ToImmutableAndClear();
+        return locBuilder.MoveToImmutable();
     }
 }
 

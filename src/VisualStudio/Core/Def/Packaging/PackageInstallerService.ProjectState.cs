@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging;
 
-internal partial class PackageInstallerService
+internal sealed partial class PackageInstallerService
 {
     private readonly struct ProjectState
     {

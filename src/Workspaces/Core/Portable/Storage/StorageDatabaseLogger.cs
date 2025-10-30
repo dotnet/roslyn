@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Storage;
 
-internal class StorageDatabaseLogger
+internal sealed class StorageDatabaseLogger
 {
     private const string Kind = nameof(Kind);
     private const string Reason = nameof(Reason);
@@ -37,11 +37,11 @@ internal class StorageDatabaseLogger
             return;
         }
 
-        Logger.Log(FunctionId.StorageDatabase_Exceptions, KeyValueLogMessage.Create(m =>
+        Logger.Log(FunctionId.StorageDatabase_Exceptions, KeyValueLogMessage.Create(static (m, ex) =>
         {
             // this is okay since it is our exception
             m[Kind] = ex.GetType().ToString();
             m[Reason] = ex.ToString();
-        }));
+        }, ex));
     }
 }

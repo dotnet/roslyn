@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-#if NETCOREAPP
+#if NET
 using System.Diagnostics.CodeAnalysis;
 #endif
 
@@ -167,7 +167,7 @@ internal readonly struct SourceLinkMap
     /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
     public bool TryGetUri(
         string path,
-#if NETCOREAPP
+#if NET
         [NotNullWhen(true)]
 #endif
         out string? uri)

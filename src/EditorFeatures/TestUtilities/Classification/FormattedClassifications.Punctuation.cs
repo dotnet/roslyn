@@ -7,31 +7,32 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Classification;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
+
+public static partial class FormattedClassifications
 {
-    public static partial class FormattedClassifications
+    public static class Punctuation
     {
-        public static class Punctuation
-        {
-            [DebuggerStepThrough]
-            private static FormattedClassification New(string text)
-               => new FormattedClassification(text, ClassificationTypeNames.Punctuation);
+        [DebuggerStepThrough]
+        private static FormattedClassification New(string text)
+           => new(text, ClassificationTypeNames.Punctuation);
 
-            public static FormattedClassification OpenCurly { get; } = New("{");
-            public static FormattedClassification CloseCurly { get; } = New("}");
-            public static FormattedClassification OpenParen { get; } = New("(");
-            public static FormattedClassification CloseParen { get; } = New(")");
-            public static FormattedClassification OpenAngle { get; } = New("<");
-            public static FormattedClassification CloseAngle { get; } = New(">");
-            public static FormattedClassification OpenBracket { get; } = New("[");
-            public static FormattedClassification CloseBracket { get; } = New("]");
-            public static FormattedClassification Comma { get; } = New(",");
-            public static FormattedClassification Semicolon { get; } = New(";");
-            public static FormattedClassification Colon { get; } = New(":");
-            public static FormattedClassification DotDot { get; } = New("..");
+        public static FormattedClassification OpenCurly { get; } = New("{");
+        public static FormattedClassification CloseCurly { get; } = New("}");
+        public static FormattedClassification OpenParen { get; } = New("(");
+        public static FormattedClassification CloseParen { get; } = New(")");
+        public static FormattedClassification OpenAngle { get; } = New("<");
+        public static FormattedClassification CloseAngle { get; } = New(">");
+        public static FormattedClassification OpenBracket { get; } = New("[");
+        public static FormattedClassification CloseBracket { get; } = New("]");
+        public static FormattedClassification Comma { get; } = New(",");
+        public static FormattedClassification Semicolon { get; } = New(";");
+        public static FormattedClassification Colon { get; } = New(":");
+        public static FormattedClassification DotDot { get; } = New("..");
+        public static FormattedClassification XmlOpenAngle { get; } = New("&lt;");
+        public static FormattedClassification XmlCloseAngle { get; } = New("&gt;");
 
-            [DebuggerStepThrough]
-            public static FormattedClassification Text(string text) => New(text);
-        }
+        [DebuggerStepThrough]
+        public static FormattedClassification Text(string text) => New(text);
     }
 }

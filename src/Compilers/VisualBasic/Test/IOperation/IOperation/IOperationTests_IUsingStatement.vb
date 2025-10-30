@@ -2,10 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Roslyn.Test.Utilities
 Imports Microsoft.CodeAnalysis.Operations
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
@@ -1101,11 +1101,7 @@ Block[B0] - Entry
                 Statements (1)
                     IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 's2')
                       Instance Receiver: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 's2')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            (WideningValue)
-                          Operand: 
-                            ILocalReferenceOperation: s2 (OperationKind.LocalReference, Type: S2, IsImplicit) (Syntax: 's2')
+                        ILocalReferenceOperation: s2 (OperationKind.LocalReference, Type: S2, IsImplicit) (Syntax: 's2')
                       Arguments(0)
 
                 Next (StructuredExceptionHandling) Block[null]

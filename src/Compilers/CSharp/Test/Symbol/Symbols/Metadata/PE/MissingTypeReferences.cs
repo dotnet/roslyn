@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 //test
 
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                     {
                                         TestReferences.SymbolsTests.MissingTypes.MDMissingType,
                                         TestReferences.SymbolsTests.MissingTypes.MDMissingTypeLib,
-                                        TestMetadata.Net40.mscorlib
+                                        Net40.References.mscorlib
                                     });
 
             TestMissingTypeReferencesHelper2(assemblies);

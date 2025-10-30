@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol resultType)
         {
             var children = ArrayBuilder<BoundExpression>.GetInstance();
-            children.AddOptional(loweredReceiver);
+            children.AddIfNotNull(loweredReceiver);
             children.AddRange(loweredArguments);
-            children.AddOptional(loweredRight);
+            children.AddIfNotNull(loweredRight);
 
             return LoweredDynamicOperation.Bad(resultType, children.ToImmutableAndFree());
         }

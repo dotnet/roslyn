@@ -4,6 +4,7 @@
 
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -58,35 +59,37 @@ internal partial struct SymbolKey
             SemanticModel semanticModel, SyntaxNode syntaxNode, string name, ISymbol target,
             CancellationToken cancellationToken)
         {
-            var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
-            if (symbol != null)
+            // Don't call on the root compilation unit itself.  For top level programs this will be the synthesized
+            // '<main>' entrypoint.
+            if (syntaxNode is not ICompilationUnitSyntax)
             {
-                if (symbol.Kind == SymbolKind.Alias)
+                var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
+                if (symbol != null)
                 {
-                    var aliasSymbol = (IAliasSymbol)symbol;
-                    if (aliasSymbol.Name == name &&
-                        SymbolEquivalenceComparer.Instance.Equals(aliasSymbol.Target, target))
+                    if (symbol is IAliasSymbol aliasSymbol)
                     {
-                        return new SymbolKeyResolution(aliasSymbol);
+                        if (aliasSymbol.Name == name &&
+                            SymbolEquivalenceComparer.Instance.Equals(aliasSymbol.Target, target))
+                        {
+                            return new SymbolKeyResolution(aliasSymbol);
+                        }
                     }
-                }
-                else if (symbol.Kind != SymbolKind.Namespace)
-                {
-                    // Don't recurse into anything except namespaces.  We can't find aliases
-                    // any deeper than that.
-                    return null;
+                    else if (symbol.Kind != SymbolKind.Namespace)
+                    {
+                        // Don't recurse into anything except namespaces.  We can't find aliases
+                        // any deeper than that.
+                        return null;
+                    }
                 }
             }
 
             foreach (var child in syntaxNode.ChildNodesAndTokens())
             {
-                if (child.IsNode)
+                if (child.AsNode(out var childNode))
                 {
-                    var result = Resolve(semanticModel, child.AsNode()!, name, target, cancellationToken);
+                    var result = Resolve(semanticModel, childNode, name, target, cancellationToken);
                     if (result.HasValue)
-                    {
                         return result;
-                    }
                 }
             }
 

@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -55,7 +54,7 @@ internal static class ContainedLanguageCodeSupport
     }
 
     public static string CreateUniqueEventName(
-        Document document, IGlobalOptionService globalOptions, string className, string objectName, string nameOfEvent, CancellationToken cancellationToken)
+        Document document, string className, string objectName, string nameOfEvent, CancellationToken cancellationToken)
     {
         var type = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetTypeByMetadataName(className);
         var name = objectName + "_" + nameOfEvent;
@@ -65,7 +64,7 @@ internal static class ContainedLanguageCodeSupport
         var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
         var typeNode = type.DeclaringSyntaxReferences.Where(r => r.SyntaxTree == tree).Select(r => r.GetSyntax(cancellationToken)).First();
         var codeModel = document.GetRequiredLanguageService<ICodeModelNavigationPointService>();
-        var options = document.GetLineFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
+        var options = document.GetLineFormattingOptionsAsync(cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
         var point = codeModel.GetStartPoint(typeNode, options, EnvDTE.vsCMPart.vsCMPartBody);
         var reservedNames = semanticModel.LookupSymbols(point.Value.Position, type).Select(m => m.Name);
 
@@ -152,7 +151,6 @@ internal static class ContainedLanguageCodeSupport
         uint itemidInsertionPoint,
         bool useHandlesClause,
         AbstractFormattingRule additionalFormattingRule,
-        IGlobalOptionService globalOptions,
         CancellationToken cancellationToken)
 #pragma warning restore IDE0060 // Remove unused parameter
     {
@@ -191,7 +189,7 @@ internal static class ContainedLanguageCodeSupport
         var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
             attributes: default,
             accessibility: Accessibility.Protected,
-            modifiers: new DeclarationModifiers(),
+            modifiers: DeclarationModifiers.None,
             returnType: targetDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSpecialType(SpecialType.System_Void),
             refKind: RefKind.None,
             explicitInterfaceImplementations: default,
@@ -210,7 +208,7 @@ internal static class ContainedLanguageCodeSupport
 
         var position = type.Locations.First(loc => loc.SourceTree == targetSyntaxTree).SourceSpan.Start;
         var destinationType = syntaxFacts.GetContainingTypeDeclaration(targetSyntaxTree.GetRoot(cancellationToken), position);
-        var documentOptions = targetDocument.GetLineFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
+        var documentOptions = targetDocument.GetLineFormattingOptionsAsync(cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
         var insertionPoint = codeModel.GetEndPoint(destinationType, documentOptions, EnvDTE.vsCMPart.vsCMPartBody);
 
         if (insertionPoint == null)
@@ -218,8 +216,7 @@ internal static class ContainedLanguageCodeSupport
             throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
         }
 
-        var fallbackOptions = globalOptions.GetCleanCodeGenerationOptions(targetDocument.Project.Services);
-        var options = targetDocument.GetCleanCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
+        var options = targetDocument.GetCleanCodeGenerationOptionsAsync(cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
 
         var info = codeGenerationService.GetInfo(new CodeGenerationContext(autoInsertionLocation: false), options.GenerationOptions, destinationType.SyntaxTree.Options);
         var newType = codeGenerationService.AddMethod(destinationType, newMethod, info, cancellationToken);
@@ -228,14 +225,12 @@ internal static class ContainedLanguageCodeSupport
         newRoot = Simplifier.ReduceAsync(
             targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, options.CleanupOptions.SimplifierOptions, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
 
-        var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
-
         newRoot = Formatter.Format(
             newRoot,
             Formatter.Annotation,
             targetDocument.Project.Solution.Services,
             options.CleanupOptions.FormattingOptions,
-            formattingRules,
+            [additionalFormattingRule, .. Formatter.GetDefaultFormattingRules(targetDocument)],
             cancellationToken);
 
         var newMember = newRoot.GetAnnotatedNodesAndTokens(annotation).Single();
@@ -253,7 +248,6 @@ internal static class ContainedLanguageCodeSupport
 
     public static bool TryGetMemberNavigationPoint(
         Document thisDocument,
-        IGlobalOptionService globalOptions,
         string className,
         string uniqueMemberID,
         out VsTextSpan textSpan,
@@ -276,7 +270,7 @@ internal static class ContainedLanguageCodeSupport
         if (memberNode != null)
         {
             var memberNodeDocument = thisDocument.Project.Solution.GetDocument(memberNode.SyntaxTree);
-            var options = memberNodeDocument.GetLineFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
+            var options = memberNodeDocument.GetLineFormattingOptionsAsync(cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
             var navigationPoint = codeModel.GetStartPoint(memberNode, options, EnvDTE.vsCMPart.vsCMPartNavigate);
             if (navigationPoint != null)
             {
@@ -335,7 +329,7 @@ internal static class ContainedLanguageCodeSupport
             var newSolution = Renamer.RenameSymbolAsync(document.Project.Solution, symbol, options, newName, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
             var changedDocuments = newSolution.GetChangedDocuments(document.Project.Solution);
 
-            var undoTitle = string.Format(EditorFeaturesResources.Rename_0_to_1, symbol.Name, newName);
+            var undoTitle = string.Format(WorkspacesResources.Rename_0_to_1, symbol.Name, newName);
             using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(undoTitle))
             {
                 // Notify third parties about the coming rename operation on the workspace, and let

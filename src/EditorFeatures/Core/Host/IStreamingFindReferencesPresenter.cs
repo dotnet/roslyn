@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +22,7 @@ internal interface IStreamingFindUsagesPresenter
     /// <summary>
     /// Tells the presenter that a search is starting.  The returned <see cref="FindUsagesContext"/>
     /// is used to push information about the search into.  i.e. when a reference is found
-    /// <see cref="FindUsagesContext.OnReferenceFoundAsync"/> should be called.  When the
+    /// <see cref="FindUsagesContext.OnReferencesFoundAsync"/> should be called.  When the
     /// search completes <see cref="FindUsagesContext.OnCompletedAsync"/> should be called. 
     /// etc. etc.
     /// </summary>
@@ -121,6 +120,11 @@ internal static class IStreamingFindUsagesPresenterExtensions
         if (presenter == null)
             return null;
 
+        // Find the first location from a non-generated document to navigate to automatically.
+        // This way the user gets taken to their user code while still being able to see all the results
+        // (including generated code) in the tool window.
+        var preferredLocation = GetPreferredNonGeneratedLocation(builder);
+
         var navigableItems = builder.SelectAsArray(t => t.item);
         return new NavigableLocation(async (options, cancellationToken) =>
         {
@@ -145,5 +149,25 @@ internal static class IStreamingFindUsagesPresenterExtensions
 
             return true;
         });
+    }
+
+    /// <summary>
+    /// Finds the first navigable location from a non-generated document in the list of definition items.
+    /// This allows Go To Definition to automatically navigate to user code when there are multiple locations
+    /// including generated code.
+    /// </summary>
+    private static INavigableLocation? GetPreferredNonGeneratedLocation(
+        ArrayBuilder<(DefinitionItem item, INavigableLocation location)> builder)
+    {
+        foreach (var (item, location) in builder)
+        {
+            foreach (var sourceSpan in item.SourceSpans)
+            {
+                if (!sourceSpan.IsGeneratedCode)
+                    return location;
+            }
+        }
+
+        return null;
     }
 }

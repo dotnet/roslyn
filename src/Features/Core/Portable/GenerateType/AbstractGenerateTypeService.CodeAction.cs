@@ -8,12 +8,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateType;
 
@@ -27,20 +26,17 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         private readonly Document _document;
         private readonly State _state;
         private readonly string _equivalenceKey;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
         public GenerateTypeCodeAction(
             TService service,
             Document document,
             State state,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
             bool intoNamespace,
             bool inNewFile)
         {
             _service = service;
             _document = document;
             _state = state;
-            _fallbackOptions = fallbackOptions;
             _intoNamespace = intoNamespace;
             _inNewFile = inNewFile;
             _equivalenceKey = Title;
@@ -70,7 +66,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         {
             var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
 
-            var editor = new Editor(_service, semanticDocument, _state, _fallbackOptions, _intoNamespace, _inNewFile, cancellationToken);
+            var editor = new Editor(_service, semanticDocument, _state, _intoNamespace, _inNewFile, cancellationToken);
 
             return await editor.GetOperationsAsync().ConfigureAwait(false);
         }
@@ -88,14 +84,12 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         private readonly TService _service;
         private readonly Document _document;
         private readonly State _state;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
-        internal GenerateTypeCodeActionWithOption(TService service, Document document, State state, CleanCodeGenerationOptionsProvider fallbackOptions)
+        internal GenerateTypeCodeActionWithOption(TService service, Document document, State state)
         {
             _service = service;
             _document = document;
             _state = state;
-            _fallbackOptions = fallbackOptions;
         }
 
         public override string Title => FeaturesResources.Generate_new_type;
@@ -107,7 +101,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var generateTypeOptionsService = _document.Project.Solution.Services.GetRequiredService<IGenerateTypeOptionsService>();
             var notificationService = _document.Project.Solution.Services.GetService<INotificationService>();
             var projectManagementService = _document.Project.Solution.Services.GetService<IProjectManagementService>();
-            var syntaxFactsService = _document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = _document.GetRequiredLanguageService<ISyntaxFactsService>();
             var typeKindValue = GetTypeKindOption(_state);
             var isPublicOnlyAccessibility = IsPublicOnlyAccessibility(_state, _document.Project);
             return generateTypeOptionsService.GetGenerateTypeOptions(
@@ -145,8 +139,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 return true;
             }
 
-            if (_service.TryGetBaseList(state.NameOrMemberAccessExpression, out var typeKindValue) ||
-                _service.TryGetBaseList(state.SimpleName, out typeKindValue))
+            if (_service.TryGetBaseList(state.NameOrMemberAccessExpression, out var typeKindValue))
             {
                 typeKindValueFinal = typeKindValue;
                 return true;
@@ -183,7 +176,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             if (options is GenerateTypeOptionsResult generateTypeOptions && !generateTypeOptions.IsCancelled)
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
-                var editor = new Editor(_service, semanticDocument, _state, _fallbackOptions, fromDialog: true, generateTypeOptions, cancellationToken);
+                var editor = new Editor(_service, semanticDocument, _state, fromDialog: true, generateTypeOptions, cancellationToken);
                 operations = await editor.GetOperationsAsync().ConfigureAwait(false);
             }
 

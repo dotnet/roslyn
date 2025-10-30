@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Text;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer;
 
@@ -24,7 +22,7 @@ internal sealed class VSDebugCallstackParser : IStackFrameParser
         var startPoint = -1;
         for (var i = 0; i < line.Length; i++)
         {
-            if (line[i].Value == '!')
+            if (line[i] == '!')
             {
                 // +1 here because we always want to skip the '!' character
                 startPoint = i + 1;
@@ -37,7 +35,7 @@ internal sealed class VSDebugCallstackParser : IStackFrameParser
             return false;
         }
 
-        var textToParse = line.GetSubSequence(TextSpan.FromBounds(startPoint, line.Length));
+        var textToParse = line[startPoint..];
         var tree = StackFrameParser.TryParse(textToParse);
 
         if (tree is null)

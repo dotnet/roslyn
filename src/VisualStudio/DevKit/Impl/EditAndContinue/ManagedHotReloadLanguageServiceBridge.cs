@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 [ExportBrokeredService(ManagedHotReloadLanguageServiceDescriptor.MonikerName, ManagedHotReloadLanguageServiceDescriptor.ServiceVersion, Audience = ServiceAudience.Local)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalContracts.IManagedHotReloadLanguageService service) : IManagedHotReloadLanguageService, IExportedBrokeredService
+internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalContracts.IManagedHotReloadLanguageService3 service) : IManagedHotReloadLanguageService3, IExportedBrokeredService
 {
     ServiceRpcDescriptor IExportedBrokeredService.Descriptor
         => ManagedHotReloadLanguageServiceDescriptor.Descriptor;
@@ -40,11 +41,29 @@ internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalCont
     public ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
         => service.OnCapabilitiesChangedAsync(cancellationToken);
 
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
-        => (await service.GetUpdatesAsync(cancellationToken).ConfigureAwait(false)).FromContract();
+    [Obsolete]
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+        => throw new NotImplementedException();
+
+    [Obsolete]
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
+    {
+        // StreamJsonRpc may use this overload when the method is invoked with empty parameters. Call the new implementation instead.
+        if (!runningProjects.IsEmpty)
+            throw new NotImplementedException();
+
+        return GetUpdatesAsync(ImmutableArray<RunningProjectInfo>.Empty, cancellationToken);
+    }
+
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
+        => (await service.GetUpdatesAsync(runningProjects.SelectAsArray(static info => info.ToContract()), cancellationToken).ConfigureAwait(false)).FromContract();
 
     public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         => service.CommitUpdatesAsync(cancellationToken);
+
+    [Obsolete]
+    public ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+        => throw new NotImplementedException();
 
     public ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
         => service.DiscardUpdatesAsync(cancellationToken);

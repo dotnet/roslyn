@@ -9,17 +9,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -30,16 +30,12 @@ namespace Microsoft.CodeAnalysis.GoToDefinition;
 [Name(PredefinedCommandHandlerNames.GoToDefinition)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class GoToDefinitionCommandHandler(
-    IGlobalOptionService globalOptionService,
+internal sealed class GoToDefinitionCommandHandler(
     IThreadingContext threadingContext,
-    IUIThreadOperationExecutor executor,
     IAsynchronousOperationListenerProvider listenerProvider) :
     ICommandHandler<GoToDefinitionCommandArgs>
 {
-    private readonly IGlobalOptionService _globalOptionService = globalOptionService;
     private readonly IThreadingContext _threadingContext = threadingContext;
-    private readonly IUIThreadOperationExecutor _executor = executor;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.GoToDefinition);
 
     public string DisplayName => EditorFeaturesResources.Go_to_Definition;
@@ -119,19 +115,26 @@ internal class GoToDefinitionCommandHandler(
         {
             var cancellationToken = backgroundIndicator.UserCancellationToken;
 
+            // Switch to a background thread before continuing. We don't want synchronous work before the first yield to
+            // prevent the background work indicator from functioning properly.
+            await TaskScheduler.Default;
+
             // determine the location first.
             var definitionLocation = await service.GetDefinitionLocationAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
 
             // make sure that if our background indicator got canceled, that we do not still perform the navigation.
-            if (backgroundIndicator.UserCancellationToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
                 return;
 
             // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
             // causing ourselves to self-cancel.
-            backgroundIndicator.CancelOnFocusLost = false;
+            var disposable = await backgroundIndicator.SuppressAutoCancelAsync().ConfigureAwait(false);
+            await using var _2 = disposable.ConfigureAwait(false);
+
             succeeded = definitionLocation != null && await definitionLocation.Location.TryNavigateToAsync(
-                _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
+                _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true),
+                cancellationToken).ConfigureAwait(false);
         }
 
         if (!succeeded)

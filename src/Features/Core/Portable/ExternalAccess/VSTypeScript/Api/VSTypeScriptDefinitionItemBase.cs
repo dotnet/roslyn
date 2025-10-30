@@ -15,12 +15,12 @@ internal abstract class VSTypeScriptDefinitionItemBase : DefinitionItem
         : base(
             tags,
             displayParts,
-            [],
+            nameDisplayParts: [],
             sourceSpans: default,
-            metadataLocations: ImmutableArray<AssemblyLocation>.Empty,
+            metadataLocations: [],
             classifiedSpans: default,
             properties: null,
-            displayableProperties: ImmutableDictionary<string, string>.Empty,
+            displayableProperties: [],
             displayIfNoReferences: true)
     {
     }

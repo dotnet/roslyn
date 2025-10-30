@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -16,17 +15,17 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceLocalForExpression), Shared]
-internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
+internal sealed class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
     AbstractIntroduceLocalForExpressionCodeRefactoringProvider<
         ExpressionSyntax,
         StatementSyntax,
@@ -64,7 +63,7 @@ internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
         {
             var expression = expressionStatement.Expression;
             localDeclaration = localDeclaration.ReplaceNode(value, expression.WithoutLeadingTrivia());
-            semicolonToken = Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(expression.GetTrailingTrivia());
+            semicolonToken = SemicolonToken.WithTrailingTrivia(expression.GetTrailingTrivia());
         }
 
         return localDeclaration.WithSemicolonToken(semicolonToken);
@@ -80,7 +79,7 @@ internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
         {
             var expression = expressionStatement.Expression;
             deconstruction = deconstruction.ReplaceNode(binary.Right, expression.WithoutLeadingTrivia());
-            semicolonToken = Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(expression.GetTrailingTrivia());
+            semicolonToken = SemicolonToken.WithTrailingTrivia(expression.GetTrailingTrivia());
         }
 
         return deconstruction.WithSemicolonToken(semicolonToken);
@@ -88,13 +87,12 @@ internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
 
     protected override async Task<ExpressionStatementSyntax> CreateTupleDeconstructionAsync(
         Document document,
-        CodeActionOptionsProvider optionsProvider,
         INamedTypeSymbol tupleType,
         ExpressionSyntax expression,
         CancellationToken cancellationToken)
     {
         var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-        var simplifierOptions = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+        var simplifierOptions = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var tupleUnderlyingType = tupleType.TupleUnderlyingType ?? tupleType;

@@ -9,6 +9,8 @@ namespace Microsoft.CodeAnalysis.LanguageService;
 
 internal interface IFileBannerFacts
 {
+    SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
+
     ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
     ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxToken firstToken);
     string GetBannerText(SyntaxNode? documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken);

@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.BinaryExpression;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.ChainedExpression;
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping;
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.Wrapping), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class CSharpWrappingCodeRefactoringProvider() : AbstractWrappingCodeRefactoringProvider(s_wrappers)
+internal sealed class CSharpWrappingCodeRefactoringProvider() : AbstractWrappingCodeRefactoringProvider(s_wrappers)
 {
     private static readonly ImmutableArray<ISyntaxWrapper> s_wrappers =
         [
@@ -30,6 +29,6 @@ internal class CSharpWrappingCodeRefactoringProvider() : AbstractWrappingCodeRef
             new CSharpCollectionExpressionWrapper(),
         ];
 
-    protected override SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options, CodeActionOptions ideOptions)
-        => options.GetCSharpSyntaxWrappingOptions(ideOptions);
+    protected override SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options)
+        => options.GetCSharpSyntaxWrappingOptions();
 }

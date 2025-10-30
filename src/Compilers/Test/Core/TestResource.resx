@@ -554,7 +554,7 @@ namespace My
         [Obsolete]
         private volatile int f2;
         public abstract int m&lt;T&gt;(T t)
-          where T : struct
+          where T : struct, allows ref struct
         {
             return 1;
         }
@@ -875,6 +875,26 @@ class RawStringLiterals
     public const string MultiLine = """
                                     Multi line
                                     """;
+}
+
+static class Extensions
+{
+  extension(int)
+  {
+    public static void M() { }
+    public static int P => 0;
+  }
+}
+
+record R(int X)
+{
+  public R CloneMe() => this with { X = 0 };
+}
+
+class CollectionExpressions
+{
+  static int[] X = [0];
+  static int[] Y = [..X];
 }
 
 #line 6

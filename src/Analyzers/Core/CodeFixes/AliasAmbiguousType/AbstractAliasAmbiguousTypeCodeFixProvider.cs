@@ -6,12 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -48,7 +47,7 @@ internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvi
         var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
         var compilation = semanticModel.Compilation;
 
-        var placementOption = await document.GetAddImportPlacementOptionsAsync(addImportService, context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
+        var placementOption = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
         foreach (var symbol in Sort(symbolInfo.CandidateSymbols.Cast<ITypeSymbol>(), placementOption.PlaceSystemNamespaceFirst))

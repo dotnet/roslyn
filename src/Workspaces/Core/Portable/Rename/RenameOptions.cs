@@ -4,9 +4,7 @@
 
 using System;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Rename;
 

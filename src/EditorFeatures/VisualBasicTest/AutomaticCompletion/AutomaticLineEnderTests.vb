@@ -2,10 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Options
@@ -32,16 +32,14 @@ $$</code>, <code>$$</code>)
 </code>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         Public Sub TestNamespace()
             Test(<code>Namespace NS
     $$
 End Namespace</code>, <code>Namespace NS$$</code>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         Public Sub TestClass()
             Test(<code>Class C
     $$
@@ -102,7 +100,7 @@ End Class</code>)
         End Sub
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712977")>
-        <WpfFact()>
+        <WpfFact>
         Public Sub TestDim3()
             Test(<code>Class C
     Sub Method()
@@ -118,8 +116,7 @@ $$
 End Class</code>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         Public Sub TestDim_After_MalformedStatement()
             Test(<code>Class C
     Sub Method()
@@ -156,8 +153,7 @@ End Class
 </code>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         Public Sub TestIf_Trivia()
             Test(
 <code>
@@ -178,8 +174,7 @@ End Class
 </code>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530591")>
         Public Sub TestIf_Trivia2()
             Test(
 <code>
@@ -200,8 +195,7 @@ End Class
 </code>)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577920")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577920")>
         Public Sub TestEndOfFile_SkippedToken()
             Test(
 <code>
@@ -277,6 +271,7 @@ End Module
 
         Protected Overrides Function CreateNextHandler(workspace As EditorTestWorkspace) As Action
             Dim endConstructor = New EndConstructCommandHandler(
+                workspace.GetService(Of IThreadingContext),
                 workspace.GetService(Of IEditorOperationsFactoryService),
                 workspace.GetService(Of ITextUndoHistoryRegistry),
                 workspace.GetService(Of EditorOptionsService))

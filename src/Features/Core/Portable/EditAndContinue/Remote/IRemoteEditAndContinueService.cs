@@ -6,10 +6,10 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -27,25 +27,25 @@ internal interface IRemoteEditAndContinueService
     }
 
     ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
-    ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, CancellationToken cancellationToken);
+    ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects, CancellationToken cancellationToken);
 
     /// <summary>
     /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
     /// </summary>
-    ValueTask<ImmutableArray<DocumentId>> CommitSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
+    ValueTask CommitSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
     ValueTask DiscardSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
 
-    ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken);
+    ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, bool reportDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
     /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
     /// </summary>
-    ValueTask<ImmutableArray<DocumentId>> BreakStateOrCapabilitiesChangedAsync(DebuggingSessionId sessionId, bool? isBreakState, CancellationToken cancellationToken);
+    ValueTask BreakStateOrCapabilitiesChangedAsync(DebuggingSessionId sessionId, bool? isBreakState, CancellationToken cancellationToken);
 
     /// <summary>
     /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
     /// </summary>
-    ValueTask<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
+    ValueTask EndDebuggingSessionAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
     ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
     ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, DocumentId documentId, CancellationToken cancellationToken);
 

@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -28,7 +27,7 @@ internal sealed partial class ContainedDocument
 {
     // this is to support old venus/razor case before dev16. 
     // all new razor (asp.NET core after dev16) should use their own implementation not ours
-    public class DocumentServiceProvider : IDocumentServiceProvider
+    public sealed class DocumentServiceProvider : IDocumentServiceProvider
     {
         private readonly SpanMapper _spanMapper;
         private readonly DocumentExcerpter _excerpter;
@@ -58,7 +57,7 @@ internal sealed partial class ContainedDocument
         private static ITextSnapshot GetRoslynSnapshot(SourceText sourceText)
             => sourceText.FindCorrespondingEditorTextSnapshot();
 
-        private class SpanMapper : AbstractSpanMappingService
+        private sealed class SpanMapper : AbstractSpanMappingService
         {
             private readonly ITextBuffer _primaryBuffer;
 
@@ -246,7 +245,7 @@ internal sealed partial class ContainedDocument
                     }
                 }
 
-                return builder.ToImmutableArray();
+                return [.. builder];
             }
 
             private static int GetNonWhitespaceStartPositionOnContent(SnapshotSpan spanOnPrimarySnapshot)

@@ -2,17 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
@@ -27,17 +23,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseSimpleUsingStatement), Shared]
-internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class UseSimpleUsingStatementCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public UseSimpleUsingStatementCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId];
 
@@ -49,16 +42,17 @@ internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFix
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var topmostUsingStatements = diagnostics.Select(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
-        var blocks = topmostUsingStatements.Select(u => (BlockSyntax)u.Parent);
+        var topmostUsingStatements = diagnostics.Select(
+            d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken)).ToSet();
+        var blockLikes = topmostUsingStatements.Select(u => u.Parent is GlobalStatementSyntax ? u.Parent.GetRequiredParent() : u.GetRequiredParent()).ToSet();
 
         // Process blocks in reverse order so we rewrite from inside-to-outside with nested
         // usings.
         var root = editor.OriginalRoot;
         var updatedRoot = root.ReplaceNodes(
-            blocks.OrderByDescending(b => b.SpanStart),
+            blockLikes.OrderByDescending(b => b.SpanStart),
             (original, current) => RewriteBlock(original, current, topmostUsingStatements));
 
         editor.ReplaceNode(root, updatedRoot);
@@ -66,26 +60,57 @@ internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFix
         return Task.CompletedTask;
     }
 
-    private static BlockSyntax RewriteBlock(
-        BlockSyntax originalBlock, BlockSyntax currentBlock,
+    private static SyntaxNode RewriteBlock(
+        SyntaxNode originalBlockLike,
+        SyntaxNode currentBlockLike,
         ISet<UsingStatementSyntax> topmostUsingStatements)
     {
-        if (originalBlock.Statements.Count == currentBlock.Statements.Count)
+        var originalBlockStatements = CSharpBlockFacts.Instance.GetExecutableBlockStatements(originalBlockLike);
+        var currentBlockStatements = CSharpBlockFacts.Instance.GetExecutableBlockStatements(currentBlockLike);
+
+        if (originalBlockStatements.Count == currentBlockStatements.Count)
         {
-            var statementToUpdateIndex = originalBlock.Statements.IndexOf(s => topmostUsingStatements.Contains(s));
-            var statementToUpdate = currentBlock.Statements[statementToUpdateIndex];
+            var statementToUpdateIndex = IndexOf(originalBlockStatements, s => topmostUsingStatements.Contains(s));
+            var statementToUpdate = currentBlockStatements[statementToUpdateIndex];
 
             if (statementToUpdate is UsingStatementSyntax usingStatement &&
                 usingStatement.Declaration != null)
             {
-                var updatedStatements = currentBlock.Statements.ReplaceRange(
-                    statementToUpdate,
-                    Expand(usingStatement));
-                return currentBlock.WithStatements(updatedStatements);
+                var expandedUsing = Expand(usingStatement);
+
+                return WithStatements(currentBlockLike, usingStatement, expandedUsing);
             }
         }
 
-        return currentBlock;
+        return currentBlockLike;
+    }
+
+    public static int IndexOf<T>(IReadOnlyList<T> list, Func<T, bool> predicate)
+    {
+        for (var i = 0; i < list.Count; i++)
+        {
+            if (predicate(list[i]))
+                return i;
+        }
+
+        return -1;
+    }
+
+    private static SyntaxNode WithStatements(
+        SyntaxNode currentBlockLike,
+        UsingStatementSyntax usingStatement,
+        ImmutableArray<StatementSyntax> expandedUsingStatements)
+    {
+        return currentBlockLike switch
+        {
+            BlockSyntax currentBlock => currentBlock.WithStatements(
+                currentBlock.Statements.ReplaceRange(usingStatement, expandedUsingStatements)),
+
+            CompilationUnitSyntax compilationUnit => compilationUnit.WithMembers(
+                compilationUnit.Members.ReplaceRange((GlobalStatementSyntax)usingStatement.GetRequiredParent(), expandedUsingStatements.Select(GlobalStatement))),
+
+            _ => throw ExceptionUtilities.UnexpectedValue(currentBlockLike),
+        };
     }
 
     private static ImmutableArray<StatementSyntax> Expand(UsingStatementSyntax usingStatement)
@@ -103,7 +128,7 @@ internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFix
         for (int i = 0, n = result.Count; i < n; i++)
             result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static SyntaxTriviaList Expand(ArrayBuilder<StatementSyntax> result, UsingStatementSyntax usingStatement)
@@ -168,15 +193,13 @@ internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFix
         }
 
         return default;
-    }
 
-    private static LocalDeclarationStatementSyntax Convert(UsingStatementSyntax usingStatement)
-    {
-        return LocalDeclarationStatement(
-            usingStatement.AwaitKeyword,
-            usingStatement.UsingKeyword.WithAppendedTrailingTrivia(ElasticMarker),
-            modifiers: default,
-            usingStatement.Declaration,
-            Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
+        static LocalDeclarationStatementSyntax Convert(UsingStatementSyntax usingStatement)
+            => LocalDeclarationStatement(
+                usingStatement.AwaitKeyword,
+                usingStatement.UsingKeyword.WithAppendedTrailingTrivia(ElasticMarker),
+                modifiers: default,
+                usingStatement.Declaration!,
+                SemicolonToken).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
     }
 }

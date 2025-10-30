@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -21,9 +20,10 @@ internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractBui
     private static readonly DiagnosticDescriptor s_useBlockBodyForLambda = CreateDescriptorWithId(UseExpressionBodyForLambdaHelpers.UseBlockBodyTitle, UseExpressionBodyForLambdaHelpers.UseBlockBodyTitle);
 
     public UseExpressionBodyForLambdaDiagnosticAnalyzer() : base(
-        ImmutableDictionary<DiagnosticDescriptor, Options.IOption2>.Empty
-            .Add(s_useExpressionBodyForLambda, CSharpCodeStyleOptions.PreferExpressionBodiedLambdas)
-            .Add(s_useBlockBodyForLambda, CSharpCodeStyleOptions.PreferExpressionBodiedLambdas))
+        [
+            (s_useExpressionBodyForLambda, CSharpCodeStyleOptions.PreferExpressionBodiedLambdas),
+            (s_useBlockBodyForLambda, CSharpCodeStyleOptions.PreferExpressionBodiedLambdas)
+        ])
     {
     }
 
@@ -71,30 +71,30 @@ internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractBui
         SemanticModel semanticModel, CodeStyleOption2<ExpressionBodyPreference> option,
         LambdaExpressionSyntax declaration, AnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
     {
-        if (UseExpressionBodyForLambdaHelpers.CanOfferUseExpressionBody(option.Value, declaration, declaration.GetLanguageVersion(), cancellationToken))
+        if (UseExpressionBodyForLambdaHelpers.CanOfferUseExpressionBody(
+                semanticModel, option.Value, declaration, declaration.GetLanguageVersion(), cancellationToken))
         {
-            var location = GetDiagnosticLocation(declaration);
-
-            var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
-            var properties = ImmutableDictionary<string, string?>.Empty;
             return DiagnosticHelper.Create(
                 s_useExpressionBodyForLambda,
-                location, option.Notification,
-                analyzerOptions, additionalLocations, properties);
+                GetDiagnosticLocation(declaration),
+                option.Notification,
+                analyzerOptions,
+                [declaration.GetLocation()],
+                ImmutableDictionary<string, string?>.Empty);
         }
 
-        if (UseExpressionBodyForLambdaHelpers.CanOfferUseBlockBody(semanticModel, option.Value, declaration, cancellationToken))
+        if (UseExpressionBodyForLambdaHelpers.CanOfferUseBlockBody(
+                semanticModel, option.Value, declaration, cancellationToken))
         {
             // They have an expression body.  Create a diagnostic to convert it to a block
             // if they don't want expression bodies for this member.  
-            var location = GetDiagnosticLocation(declaration);
-
-            var properties = ImmutableDictionary<string, string?>.Empty;
-            var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
             return DiagnosticHelper.Create(
                 s_useBlockBodyForLambda,
-                location, option.Notification,
-                analyzerOptions, additionalLocations, properties);
+                 GetDiagnosticLocation(declaration),
+                option.Notification,
+                analyzerOptions,
+                [declaration.GetLocation()],
+                ImmutableDictionary<string, string?>.Empty);
         }
 
         return null;

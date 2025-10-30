@@ -1,13 +1,14 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Roslyn.Utilities;
 
@@ -61,12 +62,12 @@ internal abstract class AsyncLazy<T>
         private Task<T>? _cachedResult;
 
         /// <summary>
-        /// Mutex used to protect reading and writing to all mutable objects and fields.  Traces
-        /// indicate that there's negligible contention on this lock, hence we can save some memory
-        /// by using a single lock for all AsyncLazy instances.  Only trivial and non-reentrant work
-        /// should be done while holding the lock.
+        /// Mutex used to protect reading and writing to all mutable objects and fields.  Traces indicate that there's
+        /// negligible contention on this lock (and on any particular async-lazy in general), hence we can save some
+        /// memory by using ourselves as the lock, even though this may inhibit cancellation.  Work done while holding
+        /// the lock should be kept to a minimum.
         /// </summary>
-        private static readonly NonReentrantLock s_gate = new(useThisInstanceForSynchronization: true);
+        private object SyncObject => this;
 
         /// <summary>
         /// The hash set of all currently outstanding asynchronous requests. Null if there are no requests,
@@ -136,7 +137,10 @@ internal abstract class AsyncLazy<T>
         /// </summary>
         private WaitThatValidatesInvariants TakeLock(CancellationToken cancellationToken)
         {
-            s_gate.Wait(cancellationToken);
+            Contract.ThrowIfTrue(Monitor.IsEntered(SyncObject), "Attempt to take the lock while already holding it!");
+
+            cancellationToken.ThrowIfCancellationRequested();
+            Monitor.Enter(SyncObject);
             AssertInvariants_NoLock();
             return new WaitThatValidatesInvariants(this);
         }
@@ -146,7 +150,8 @@ internal abstract class AsyncLazy<T>
             public void Dispose()
             {
                 asyncLazy.AssertInvariants_NoLock();
-                s_gate.Release();
+                Contract.ThrowIfFalse(Monitor.IsEntered(asyncLazy.SyncObject));
+                Monitor.Exit(asyncLazy.SyncObject);
             }
         }
 

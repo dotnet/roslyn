@@ -21,36 +21,10 @@
     <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <!-- ⚠ Consuming projects outside dotnet/roslyn will be required to manually reproduce the APIs for any linked files added here -->
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="NullableAttributes.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Internal\Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Collections.Internal.SR" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" />
   </ItemGroup>
 
-  <!--
-    Source packaging helpers.
-  -->
-
-  <PropertyGroup>
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddResourceFilesToSourcePackage</TargetsForTfmSpecificContentInPackage>
-  </PropertyGroup>
-
-  <Target Name="_AddResourceFilesToSourcePackage">
-    <PropertyGroup>
-      <!-- TODO: language to dir name mapping (https://github.com/Microsoft/msbuild/issues/2101) -->
-      <_LanguageDirName>$(DefaultLanguageSourceExtension.TrimStart('.'))</_LanguageDirName>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <_File Remove="@(_File)"/>
-      <_File Include="$(MSBuildProjectDirectory)\**\*.resx" TargetDir="contentFiles/$(_LanguageDirName)/$(TargetFramework)" BuildAction="EmbeddedResource" />
-      <_File Include="$(MSBuildProjectDirectory)\**\*.xlf" TargetDir="contentFiles/$(_LanguageDirName)/$(TargetFramework)" BuildAction="None" />
-
-      <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)"/>
-    </ItemGroup>
-  </Target>
+  <Import Project="..\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+  <Import Project="..\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
 </Project>

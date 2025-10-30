@@ -7,16 +7,12 @@
 using System;
 using System.Globalization;
 using System.Threading;
-using System.Xml;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DocumentationComments;
 
-internal class VisualStudioDocumentationProvider : DocumentationProvider
+internal sealed class VisualStudioDocumentationProvider : DocumentationProvider
 {
     private readonly string _filePath;
     private readonly IVsXMLMemberIndexService _memberIndexService;

@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.RemoveUnusedMembers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -15,6 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
             IdentifierNameSyntax,
             TypeBlockSyntax,
             StatementSyntax)
+
+        Protected Overrides ReadOnly Property SemanticFacts As ISemanticFacts = VisualBasicSemanticFacts.Instance
 
         Protected Overrides Sub HandleNamedTypeSymbolStart(context As SymbolStartAnalysisContext, onSymbolUsageFound As Action(Of ISymbol, ValueUsageInfo))
             ' Mark all methods with handles clause as having a read reference
@@ -58,6 +61,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
 
         Protected Overrides Function GetMembers(typeDeclaration As TypeBlockSyntax) As SyntaxList(Of StatementSyntax)
             Return typeDeclaration.Members
+        End Function
+
+        Protected Overrides Function GetParentIfSoleDeclarator(node As SyntaxNode) As SyntaxNode
+            Dim modifiedIdentifier = TryCast(node, ModifiedIdentifierSyntax)
+            Dim declarator = TryCast(modifiedIdentifier?.Parent, VariableDeclaratorSyntax)
+            Dim field = TryCast(declarator?.Parent, FieldDeclarationSyntax)
+
+            If declarator?.Names.Count = 1 AndAlso field?.Declarators.Count = 1 Then
+                Return field
+            End If
+
+            Return node
         End Function
     End Class
 End Namespace

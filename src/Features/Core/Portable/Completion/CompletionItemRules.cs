@@ -100,7 +100,6 @@ public sealed class CompletionItemRules
     /// <param name="enterKeyRule">Rule about whether the enter key is passed through to the editor after the selected item has been committed.</param>
     /// <param name="formatOnCommit">True if the modified text should be formatted automatically.</param>
     /// <param name="matchPriority">True if the related completion item should be initially selected.</param>
-    /// <returns></returns>
     public static CompletionItemRules Create(
         ImmutableArray<CharacterSetModificationRule> filterCharacterRules,
         ImmutableArray<CharacterSetModificationRule> commitCharacterRules,
@@ -123,7 +122,6 @@ public sealed class CompletionItemRules
     /// <param name="formatOnCommit">True if the modified text should be formatted automatically.</param>
     /// <param name="matchPriority">True if the related completion item should be initially selected.</param>
     /// <param name="selectionBehavior">How this item should be selected if no text has been typed after the completion list is brought up.</param>
-    /// <returns></returns>
     public static CompletionItemRules Create(
         ImmutableArray<CharacterSetModificationRule> filterCharacterRules = default,
         ImmutableArray<CharacterSetModificationRule> commitCharacterRules = default,
@@ -157,7 +155,6 @@ public sealed class CompletionItemRules
     /// <param name="enterKeyRule">Rule about whether the enter key is passed through to the editor after the selected item has been committed.</param>
     /// <param name="formatOnCommit">True if the modified text should be formatted automatically.</param>
     /// <param name="preselect">True if the related completion item should be initially selected.</param>
-    /// <returns></returns>
     internal static CompletionItemRules Create(
         ImmutableArray<CharacterSetModificationRule> filterCharacterRules,
         ImmutableArray<CharacterSetModificationRule> commitCharacterRules,

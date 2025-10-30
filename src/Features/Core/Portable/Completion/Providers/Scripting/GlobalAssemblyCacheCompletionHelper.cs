@@ -2,26 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal sealed class GlobalAssemblyCacheCompletionHelper
 {
     private static readonly Lazy<List<string>> s_lazyAssemblySimpleNames =
-        new(() => GlobalAssemblyCache.Instance.GetAssemblySimpleNames().ToList());
+        new(() => [.. GlobalAssemblyCache.Instance.GetAssemblySimpleNames()]);
 
     private readonly CompletionItemRules _itemRules;
 
@@ -59,7 +54,7 @@ internal sealed class GlobalAssemblyCacheCompletionHelper
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName)

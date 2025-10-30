@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
@@ -34,34 +34,17 @@ internal static class FormattingExtensions
     }
 
     public static IEnumerable<AbstractFormattingRule> Concat(this AbstractFormattingRule rule, IEnumerable<AbstractFormattingRule> rules)
-        => SpecializedCollections.SingletonEnumerable(rule).Concat(rules);
-
-    public static void AddRange<T>(this IList<T> list, IEnumerable<T> values)
-    {
-        foreach (var v in values)
-        {
-            list.Add(v);
-        }
-    }
+        => [rule, .. rules];
 
     [return: NotNullIfNotNull(nameof(list1)), NotNullIfNotNull(nameof(list2))]
     public static List<T>? Combine<T>(this List<T>? list1, List<T>? list2)
-    {
-        if (list1 == null)
+        => (list1, list2) switch
         {
-            return list2;
-        }
-        else if (list2 == null)
-        {
-            return list1;
-        }
-
-        // normal case
-        var combinedList = new List<T>(list1);
-        combinedList.AddRange(list2);
-
-        return combinedList;
-    }
+            (null, _) => list2,
+            (_, null) => list1,
+            // normal case
+            _ => [.. list1, .. list2]
+        };
 
     public static bool ContainsElasticTrivia(this SuppressOperation operation, TokenStream tokenStream)
     {
@@ -70,7 +53,8 @@ internal static class FormattingExtensions
         var endToken = tokenStream.GetTokenData(operation.EndToken);
         var previousToken = endToken.GetPreviousTokenData();
 
-        return tokenStream.GetTriviaData(startToken, nextToken).TreatAsElastic || tokenStream.GetTriviaData(previousToken, endToken).TreatAsElastic;
+        return CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(startToken.Token, nextToken.Token) ||
+               CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken.Token, endToken.Token);
     }
 
     public static bool HasAnyWhitespaceElasticTrivia(this SyntaxTriviaList list)
@@ -79,9 +63,7 @@ internal static class FormattingExtensions
         foreach (var trivia in list)
         {
             if (trivia.IsElastic())
-            {
                 return true;
-            }
         }
 
         return false;
@@ -296,33 +278,37 @@ internal static class FormattingExtensions
         {
             foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation))
             {
-                var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                yield return GetSpan(firstToken, lastToken);
+                var (firstToken, lastToken) = nodeOrToken.AsNode(out var childNode)
+                    ? (childNode.GetFirstToken(includeZeroWidth: true), childNode.GetLastToken(includeZeroWidth: true))
+                    : (nodeOrToken.AsToken(), nodeOrToken.AsToken());
+                yield return GetSpanIncludingPreviousAndNextTokens(firstToken, lastToken);
             }
         }
     }
 
-    internal static TextSpan GetSpan(SyntaxToken firstToken, SyntaxToken lastToken)
+    /// <summary>
+    /// Attempt to get a span that encompassed these tokens, but is expanded to go from the normal start of the
+    /// token that precedes them to the normal end of the token that follows.  If there is no token that precedes
+    /// or follows, then we expand to consume at least the full span of the <paramref name="firstToken"/> and 
+    /// <paramref name="lastToken"/> so that we at least will try to format any trivia on them.
+    /// </summary>
+    internal static TextSpan GetSpanIncludingPreviousAndNextTokens(SyntaxToken firstToken, SyntaxToken lastToken)
     {
         var previousToken = firstToken.GetPreviousToken();
+        var start = previousToken.RawKind != 0
+            ? previousToken.SpanStart
+            : firstToken.FullSpan.Start;
+
         var nextToken = lastToken.GetNextToken();
+        var end = nextToken.RawKind != 0
+            ? nextToken.Span.End
+            : lastToken.FullSpan.End;
 
-        if (previousToken.RawKind != 0)
-        {
-            firstToken = previousToken;
-        }
-
-        if (nextToken.RawKind != 0)
-        {
-            lastToken = nextToken;
-        }
-
-        return TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
+        return TextSpan.FromBounds(start, end);
     }
 
     internal static TextSpan GetElasticSpan(SyntaxToken token)
-        => GetSpan(token, token);
+        => GetSpanIncludingPreviousAndNextTokens(token, token);
 
     private static IEnumerable<TextSpan> AggregateSpans(IEnumerable<TextSpan> spans)
     {

@@ -10,6 +10,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 [ExportArgumentProvider(nameof(OutVariableArgumentProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(ContextVariableArgumentProvider))]
 [Shared]
@@ -44,12 +47,12 @@ internal sealed class OutVariableArgumentProvider : ArgumentProvider
             name = "@" + name;
         }
 
-        var syntax = SyntaxFactory.Argument(
+        var syntax = Argument(
             nameColon: null,
-            refKindKeyword: SyntaxFactory.Token(SyntaxKind.OutKeyword),
-            SyntaxFactory.DeclarationExpression(
-                type: SyntaxFactory.IdentifierName("var"),
-                designation: SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(
+            refKindKeyword: OutKeyword,
+            DeclarationExpression(
+                type: IdentifierName("var"),
+                designation: SingleVariableDesignation(Identifier(
                     [],
                     contextualKind: SyntaxKind.None,
                     text: name,

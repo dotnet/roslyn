@@ -4,7 +4,6 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
 

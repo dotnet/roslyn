@@ -3,8 +3,10 @@
     x:Name="dialog"
     x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog.PullMemberUpDialog"
     x:ClassModifier="internal"
+    xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
     xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
     xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns:vsutil="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -21,7 +23,8 @@
     ShowInTaskbar="False"
     ResizeMode="CanResizeWithGrip"
     Title="{Binding ElementName=dialog, Path=PullMembersUpTitle}"
-    Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
+    Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}"
+    platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -48,6 +51,7 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
+            <platformimaging:ThemedImageSourceConverter x:Uid="ThemedImageSourceConverter" x:Key="ThemedImageSourceConverter" />
         </ResourceDictionary>
     </Window.Resources>
     <Grid Margin="12">
@@ -90,7 +94,21 @@
                             HorizontalAlignment="Stretch"
                             Focusable="False"
                             VerticalAlignment="Stretch">
-                            <Image Source="{Binding Glyph}" Margin="0, 0, 5, 0" />
+                            <Image
+                                Margin="0, 0, 5, 0"
+                                Width="16"
+                                Height="16">
+                                <Image.Source>
+                                    <MultiBinding x:Uid="MultiBinding_1" Converter="{StaticResource ThemedImageSourceConverter}">
+                                        <Binding x:Uid="Binding_1" Path="Glyph" />
+                                        <Binding
+                                            x:Uid="Binding_2"
+                                            Path="(platformimaging:ImageThemingUtilities.ImageBackgroundColor)"
+                                            RelativeSource="{RelativeSource Self}" />
+                                        <Binding x:Uid="Binding_3" Source="{x:Static vsutil:Boxes.BooleanTrue}" />
+                                    </MultiBinding>
+                                </Image.Source>
+                            </Image>
                             <TextBlock
                                 x:Uid="DestinationTextBlock"
                                 Text="{Binding SymbolName}"

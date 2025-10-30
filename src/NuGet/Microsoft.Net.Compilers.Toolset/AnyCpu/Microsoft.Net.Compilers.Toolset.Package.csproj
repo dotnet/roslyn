@@ -13,25 +13,26 @@
 
       This package is primarily intended as a method for rapidly shipping hotfixes to customers. Using it as a long term solution for providing newer compilers on older MSBuild installations is explicitly not supported. That can and will break on a regular basis.
 
-      The supported mechanism for providing new compilers in a build enviroment is updating to the newer .NET SDK or Visual Studio Build Tools SKU.
+      The supported mechanism for providing new compilers in a build environment is updating to the newer .NET SDK or Visual Studio Build Tools SKU.
 
       This package requires either MSBuild 16.3 and .NET Desktop 4.7.2+ or .NET Core 2.1+
 
       $(RoslynPackageDescriptionDetails)
     </PackageDescription>
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFiles</TargetsForTfmSpecificContentInPackage>
     <!-- Remove NU5128 once https://github.com/NuGet/Home/issues/8583 is fixed -->
     <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
 
-    <_DependsOn Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_DependsOn>
-    <_DependsOn Condition="'$(TargetFramework)' != 'net472'">InitializeCoreClrCompilerArtifacts</_DependsOn>
+    <_InitializeArtifactsTargetName Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_InitializeArtifactsTargetName>
+    <_InitializeArtifactsTargetName Condition="'$(TargetFramework)' != 'net472'">InitializeCoreClrCompilerArtifacts</_InitializeArtifactsTargetName>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\CSharp\csc\AnyCpu\csc.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\vbc\AnyCpu\vbc.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\MSBuild\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\Sdk\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj" PrivateAssets="All" Condition="'$(TargetFramework)' == 'net472'" />
     <ProjectReference Include="..\..\..\Compilers\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj" PrivateAssets="All"/>
 
     <ProjectReference Update="@(ProjectReference)"
@@ -47,17 +48,28 @@
     <Content Include="buildMultiTargeting\**\*.*" PackagePath="buildMultiTargeting\" />
   </ItemGroup>
 
-  <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
+  <Target Name="_GetFiles" DependsOnTargets="$(_InitializeArtifactsTargetName);Build">
     <ItemGroup>
       <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
       <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
-      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/netcore"/>
       <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/netcore"/>
       <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcore/bincore"/>
       <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcore/bincore/runtimes"/>
-     
-      <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+      <_File Include="@(BridgeCompilerArtifact)" TargetDir="tasks/netcore/binfx"/>
+      <_File Include="@(BridgeCompilerResourceArtifact)" TargetDir="tasks/netcore/binfx"/>
+
+      <_FileWithPath Include="@(_File)" TargetPath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+
+      <TfmSpecificPackageFile Include="@(_FileWithPath)" PackagePath="%(_FileWithPath.TargetPath)" />
     </ItemGroup>
+  </Target>
+
+  <!-- Used to lay out all DLLs in one folder on disk via `dotnet build -p:InnerTargets=CopyFilesForDebugging`
+    so they can be then used for debugging parts of the toolset (e.g., build tasks). -->
+  <Target Name="CopyFilesForDebugging" DependsOnTargets="_GetFiles">
+    <Copy SourceFiles="@(_FileWithPath)"
+          DestinationFiles="$(BaseOutputPath)$(Configuration)\%(_FileWithPath.TargetPath)"
+          SkipUnchangedFiles="true" />
   </Target>
 
   <Import Project="..\DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />

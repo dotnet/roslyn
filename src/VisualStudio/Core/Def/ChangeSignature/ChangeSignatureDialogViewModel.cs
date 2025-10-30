@@ -15,14 +15,13 @@ using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 
-internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyChanged
 {
     private readonly IClassificationFormatMap _classificationFormatMap;
     private readonly ClassificationTypeMap _classificationTypeMap;
@@ -39,24 +38,23 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
     private readonly HashSet<ParameterViewModel> _disabledParameters = [];
 
     private readonly ImmutableArray<SymbolDisplayPart> _declarationParts;
-    private bool _previewChanges;
 
     /// <summary>
     /// The document where the symbol we are changing signature is defined.
     /// </summary>
-    private readonly Document _document;
+    private readonly SemanticDocument _document;
     private readonly int _positionForTypeBinding;
 
     internal ChangeSignatureDialogViewModel(
+        SemanticDocument document,
         ParameterConfiguration parameters,
         ISymbol symbol,
-        Document document,
         int positionForTypeBinding,
         IClassificationFormatMap classificationFormatMap,
         ClassificationTypeMap classificationTypeMap)
     {
-        _originalParameterConfiguration = parameters;
         _document = document;
+        _originalParameterConfiguration = parameters;
         _positionForTypeBinding = positionForTypeBinding;
         _classificationFormatMap = classificationFormatMap;
         _classificationTypeMap = classificationTypeMap;
@@ -114,7 +112,7 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
             if (!parameter.IsRemoved)
             {
                 parameterNameOverlapMap
-                    .GetOrAdd(parameter.ParameterName, _ => new List<ParameterViewModel>())
+                    .GetOrAdd(parameter.ParameterName, _ => [])
                     .Add(parameter);
             }
             else
@@ -172,18 +170,7 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
         return -1;
     }
 
-    public bool PreviewChanges
-    {
-        get
-        {
-            return _previewChanges;
-        }
-
-        set
-        {
-            _previewChanges = value;
-        }
-    }
+    public bool PreviewChanges { get; set; }
 
     public bool CanRemove
     {
@@ -237,9 +224,9 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
 
     internal void Remove()
     {
-        if (AllParameters[_selectedIndex!.Value] is AddedParameterViewModel)
+        if (AllParameters[SelectedIndex!.Value] is AddedParameterViewModel)
         {
-            var parameterToRemove = AllParameters[_selectedIndex!.Value];
+            var parameterToRemove = AllParameters[SelectedIndex!.Value];
 
             if (!_parametersWithoutDefaultValues.Remove(parameterToRemove))
             {
@@ -248,7 +235,7 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
         }
         else
         {
-            AllParameters[_selectedIndex!.Value].IsRemoved = true;
+            AllParameters[SelectedIndex!.Value].IsRemoved = true;
         }
 
         UpdateNameConflictMarkers();
@@ -257,7 +244,7 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
 
     internal void Restore()
     {
-        AllParameters[_selectedIndex!.Value].IsRemoved = false;
+        AllParameters[SelectedIndex!.Value].IsRemoved = false;
         UpdateNameConflictMarkers();
         RemoveRestoreNotifyPropertyChanged();
     }
@@ -292,8 +279,8 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
     {
         return new ParameterConfiguration(
             _originalParameterConfiguration.ThisParameter,
-            _parametersWithoutDefaultValues.Where(p => !p.IsRemoved).Select(p => p.Parameter).ToImmutableArray(),
-            _parametersWithDefaultValues.Where(p => !p.IsRemoved).Select(p => p.Parameter).ToImmutableArray(),
+            _parametersWithoutDefaultValues.SelectAsArray(p => !p.IsRemoved, p => p.Parameter),
+            _parametersWithDefaultValues.SelectAsArray(p => !p.IsRemoved, p => p.Parameter),
             (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : (ExistingParameter)_paramsParameter.Parameter,
             selectedIndex: -1);
     }
@@ -519,23 +506,19 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
         return _disabledParameters.Contains(parameterViewModel);
     }
 
-    private int? _selectedIndex;
     public int? SelectedIndex
     {
-        get
-        {
-            return _selectedIndex;
-        }
+        get;
 
         set
         {
             var newSelectedIndex = value == -1 ? null : value;
-            if (newSelectedIndex == _selectedIndex)
+            if (newSelectedIndex == field)
             {
                 return;
             }
 
-            _selectedIndex = newSelectedIndex;
+            field = newSelectedIndex;
 
             NotifyPropertyChanged(nameof(CanMoveUp));
             NotifyPropertyChanged(nameof(MoveUpAutomationText));

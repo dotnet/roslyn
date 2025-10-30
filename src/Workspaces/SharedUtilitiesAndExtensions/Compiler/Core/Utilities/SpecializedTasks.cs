@@ -7,10 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Roslyn.Utilities;
 
@@ -56,7 +55,7 @@ internal static class SpecializedTasks
     {
         var taskArray = tasks.AsArray();
         if (taskArray.Length == 0)
-            return ValueTaskFactory.FromResult(Array.Empty<T>());
+            return ValueTask.FromResult(Array.Empty<T>());
 
         var allCompletedSuccessfully = true;
         for (var i = 0; i < taskArray.Length; i++)
@@ -76,7 +75,7 @@ internal static class SpecializedTasks
                 result[i] = taskArray[i].Result;
             }
 
-            return ValueTaskFactory.FromResult(result);
+            return ValueTask.FromResult(result);
         }
         else
         {
@@ -87,14 +86,13 @@ internal static class SpecializedTasks
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Naming is modeled after Task.WhenAll.")]
     public static async ValueTask<ImmutableArray<TResult>> WhenAll<TResult>(this IReadOnlyCollection<Task<TResult>> tasks)
     {
-        using var _ = ArrayBuilder<TResult>.GetInstance(tasks.Count, out var result);
-
         // Explicit cast to IEnumerable<Task> so we call the overload that doesn't allocate an array as the result.
         await Task.WhenAll((IEnumerable<Task>)tasks).ConfigureAwait(false);
+        var result = new FixedSizeArrayBuilder<TResult>(tasks.Count);
         foreach (var task in tasks)
             result.Add(await task.ConfigureAwait(false));
 
-        return result.ToImmutableAndClear();
+        return result.MoveToImmutable();
     }
 
     /// <summary>
@@ -120,7 +118,6 @@ internal static class SpecializedTasks
     /// <param name="transform">The synchronous transformation to apply to the result of <paramref name="func"/>.</param>
     /// <param name="arg">The state to pass to <paramref name="func"/> and <paramref name="transform"/>.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the operation will observe.</param>
-    /// <returns></returns>
     public static ValueTask<TResult> TransformWithoutIntermediateCancellationExceptionAsync<TArg, TIntermediate, TResult>(
         Func<TArg, CancellationToken, ValueTask<TIntermediate>> func,
         Func<TIntermediate, TArg, TResult> transform,

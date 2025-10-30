@@ -5,13 +5,12 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal interface IRemoteExtensionMethodImportCompletionService
 {
-    ValueTask<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
+    ValueTask<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
         Checksum solutionChecksum,
         DocumentId documentId,
         int position,

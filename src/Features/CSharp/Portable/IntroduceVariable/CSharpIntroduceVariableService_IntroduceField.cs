@@ -16,7 +16,10 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 
-internal partial class CSharpIntroduceVariableService
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
+internal sealed partial class CSharpIntroduceVariableService
 {
     protected override Task<Document> IntroduceFieldAsync(
         SemanticDocument document,
@@ -34,20 +37,20 @@ internal partial class CSharpIntroduceVariableService
         var typeDisplayString = oldType.ToMinimalDisplayString(document.SemanticModel, expression.SpanStart);
 
         var newQualifiedName = oldTypeDeclaration != null
-            ? SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.ParseName(typeDisplayString), SyntaxFactory.IdentifierName(newNameToken))
-            : (ExpressionSyntax)SyntaxFactory.IdentifierName(newNameToken);
+            ? MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ParseName(typeDisplayString), IdentifierName(newNameToken))
+            : (ExpressionSyntax)IdentifierName(newNameToken);
 
         newQualifiedName = newQualifiedName.WithAdditionalAnnotations(Simplifier.Annotation);
 
-        var newFieldDeclaration = SyntaxFactory.FieldDeclaration(
+        var newFieldDeclaration = FieldDeclaration(
             default,
             MakeFieldModifiers(isConstant, inScript: oldType.IsScriptClass),
-            SyntaxFactory.VariableDeclaration(
+            VariableDeclaration(
                 GetTypeSymbol(document, expression, cancellationToken).GenerateTypeSyntax(),
-                [SyntaxFactory.VariableDeclarator(
+                [VariableDeclarator(
                     newNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                     null,
-                    SyntaxFactory.EqualsValueClause(expression.WithoutTrivia()))])).WithAdditionalAnnotations(Formatter.Annotation);
+                    EqualsValueClause(expression.WithoutTrivia()))])).WithAdditionalAnnotations(Formatter.Annotation);
 
         if (oldTypeDeclaration != null)
         {
@@ -78,7 +81,7 @@ internal partial class CSharpIntroduceVariableService
     protected override int DetermineConstantInsertPosition(TypeDeclarationSyntax oldType, TypeDeclarationSyntax newType)
         => DetermineConstantInsertPosition(oldType.Members, newType.Members);
 
-    protected static int DetermineConstantInsertPosition(
+    private static int DetermineConstantInsertPosition(
         SyntaxList<MemberDeclarationSyntax> oldMembers,
         SyntaxList<MemberDeclarationSyntax> newMembers)
     {
@@ -118,7 +121,7 @@ internal partial class CSharpIntroduceVariableService
     protected override int DetermineFieldInsertPosition(TypeDeclarationSyntax oldType, TypeDeclarationSyntax newType)
         => DetermineFieldInsertPosition(oldType.Members, newType.Members);
 
-    protected static int DetermineFieldInsertPosition(
+    private static int DetermineFieldInsertPosition(
         SyntaxList<MemberDeclarationSyntax> oldMembers,
         SyntaxList<MemberDeclarationSyntax> newMembers)
     {
@@ -157,11 +160,11 @@ internal partial class CSharpIntroduceVariableService
     private static bool IsConstantField(MemberDeclarationSyntax member)
         => member is FieldDeclarationSyntax field && field.Modifiers.Any(SyntaxKind.ConstKeyword);
 
-    protected static int DetermineFirstChange(SyntaxList<MemberDeclarationSyntax> oldMembers, SyntaxList<MemberDeclarationSyntax> newMembers)
+    private static int DetermineFirstChange(SyntaxList<MemberDeclarationSyntax> oldMembers, SyntaxList<MemberDeclarationSyntax> newMembers)
     {
         for (var i = 0; i < oldMembers.Count; i++)
         {
-            if (!SyntaxFactory.AreEquivalent(oldMembers[i], newMembers[i], topLevel: false))
+            if (!AreEquivalent(oldMembers[i], newMembers[i], topLevel: false))
             {
                 return i;
             }
@@ -170,7 +173,7 @@ internal partial class CSharpIntroduceVariableService
         return -1;
     }
 
-    protected static TypeDeclarationSyntax InsertMember(
+    private static TypeDeclarationSyntax InsertMember(
         TypeDeclarationSyntax typeDeclaration,
         MemberDeclarationSyntax memberDeclaration,
         int index)
@@ -183,15 +186,15 @@ internal partial class CSharpIntroduceVariableService
     {
         if (isConstant)
         {
-            return [SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.ConstKeyword)];
+            return [PrivateKeyword, ConstKeyword];
         }
         else if (inScript)
         {
-            return [SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)];
+            return [PrivateKeyword, ReadOnlyKeyword];
         }
         else
         {
-            return [SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)];
+            return [PrivateKeyword, StaticKeyword, ReadOnlyKeyword];
         }
     }
 }

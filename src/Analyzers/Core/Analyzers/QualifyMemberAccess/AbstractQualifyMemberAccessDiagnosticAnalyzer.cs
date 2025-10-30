@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess;
 
@@ -34,18 +31,6 @@ internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<
                new LocalizableResourceString(nameof(AnalyzersResources.Member_access_should_be_qualified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                new LocalizableResourceString(nameof(AnalyzersResources.Add_this_or_Me_qualification), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     {
-    }
-
-    public override bool OpenFileOnly(SimplifierOptions? options)
-    {
-        // analyzer is only active in C# and VB projects
-        Contract.ThrowIfNull(options);
-
-        return
-           !(options.QualifyFieldAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
-             options.QualifyPropertyAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
-             options.QualifyMethodAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
-             options.QualifyEventAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
     }
 
     /// <summary>

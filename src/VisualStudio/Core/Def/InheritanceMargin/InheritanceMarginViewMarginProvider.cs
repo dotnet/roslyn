@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -28,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 [MarginContainer(PredefinedMarginNames.LeftSelection)]
 [Order(After = DefaultOrderings.Lowest)]
 [TextViewRole(PredefinedTextViewRoles.Document)]
-internal class InheritanceMarginViewMarginProvider : IWpfTextViewMarginProvider
+internal sealed class InheritanceMarginViewMarginProvider : IWpfTextViewMarginProvider
 {
     private readonly Workspace _workspace;
     private readonly IViewTagAggregatorFactoryService _tagAggregatorFactoryService;

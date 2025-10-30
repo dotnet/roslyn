@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
@@ -11,7 +12,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 Imports TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
@@ -201,7 +201,6 @@ End Class
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
-                    workspace.GlobalOptions,
                     className:="_Default",
                     objectName:="Button1",
                     nameOfEvent:="Click",
@@ -230,7 +229,6 @@ End Class
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
-                    workspace.GlobalOptions,
                     className:="_Default",
                     objectName:="Button1",
                     nameOfEvent:="Click",
@@ -257,7 +255,6 @@ End Class</text>.Value
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
-                    workspace.GlobalOptions,
                     className:="_Default",
                     objectName:="Button1",
                     nameOfEvent:="Click",
@@ -285,7 +282,6 @@ End Class</text>.Value
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
-                    workspace.GlobalOptions,
                     className:="_Default",
                     objectName:="Button1",
                     nameOfEvent:="Click",
@@ -315,7 +311,6 @@ End Class</text>.Value
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
-                    workspace.GlobalOptions,
                     className:="_Default",
                     objectName:="Button1",
                     nameOfEvent:="Click",
@@ -561,7 +556,6 @@ End Class</text>.Value
                     itemidInsertionPoint:=0,
                     useHandlesClause:=True,
                     additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
-                    workspace.GlobalOptions,
                     cancellationToken:=Nothing)
 
                 ' Since a valid handler exists, item2 and item3 of the tuple returned must be nothing
@@ -606,7 +600,6 @@ End Sub</text>.NormalizedValue
                     itemidInsertionPoint:=0,
                     useHandlesClause:=True,
                     additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
-                    workspace.GlobalOptions,
                     cancellationToken:=Nothing)
 
                 Assert.Equal("Button1_Click(Object,System.EventArgs)", eventHandlerIdTextPosition.Item1)
@@ -650,7 +643,6 @@ End Sub"
                     itemidInsertionPoint:=0,
                     useHandlesClause:=True,
                     additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
-                    workspace.GlobalOptions,
                     cancellationToken:=Nothing)
 
                 Assert.Equal("Page_Load(Object,System.EventArgs)", eventHandlerIdTextPosition.Item1)
@@ -697,7 +689,6 @@ End Class</text>.Value
                 Dim actualSpan As TextSpan = Nothing
                 If Not ContainedLanguageCodeSupport.TryGetMemberNavigationPoint(
                     thisDocument:=document,
-                    workspace.GlobalOptions,
                     className:="_Default",
                     uniqueMemberID:="Button1_Click(Object,System.EventArgs)",
                     textSpan:=actualSpan,

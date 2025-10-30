@@ -4,15 +4,12 @@
 
 Imports System.Collections.Immutable
 Imports System.Linq.Enumerable
-Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -2325,7 +2322,7 @@ Module Program
 End Module    
 </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={TestMetadata.Net40.SystemCore})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={Net40.References.SystemCore})
             compilation.AssertNoDiagnostics()
             ' NOTE: this did not succeed in Dev10, but it does in Roslyn because we do a full overload resolution and can decide whether this 
             ' is ambiguous or not.
@@ -2375,7 +2372,7 @@ Module Program
 End Module
 </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={TestMetadata.Net40.SystemCore})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={Net40.References.SystemCore})
             AssertTheseDiagnostics(compilation,
                               <expected>
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -2428,7 +2425,7 @@ Module Program
 End Module
 </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={TestMetadata.Net40.SystemCore})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={Net40.References.SystemCore})
             AssertTheseDiagnostics(compilation,
                               <expected>
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -3240,7 +3237,7 @@ BC30105: Number of indices is less than the number of dimensions of the indexed 
 1
 2
 3
-]]>, references:={TestMetadata.Net40.SystemCore})
+]]>, references:={Net40.References.SystemCore})
         End Sub
 
         <Fact()>

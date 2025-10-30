@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
@@ -16,15 +17,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Options;
 using Microsoft.VisualStudio.LanguageServices.UnitTests;
 using Microsoft.VisualStudio.Settings;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
 [UseExportProvider]
-public class VisualStudioSettingsOptionPersisterTests
+public sealed class VisualStudioSettingsOptionPersisterTests
 {
-    private class MockSettingsSubset : ISettingsSubset
+    private sealed class MockSettingsSubset : ISettingsSubset
     {
         public event PropertyChangedAsyncEventHandler? SettingChangedAsync;
 
@@ -32,7 +32,7 @@ public class VisualStudioSettingsOptionPersisterTests
             => SettingChangedAsync?.Invoke(this, new PropertyChangedEventArgs(storageName));
     }
 
-    private class MockSettingsManager : ISettingsManager
+    private sealed class MockSettingsManager : ISettingsManager
     {
         public Func<string, Type, (GetValueResult, object?)>? GetValueImpl;
         public Action<string, object?>? SetValueImpl;
@@ -101,7 +101,7 @@ public class VisualStudioSettingsOptionPersisterTests
            throw ExceptionUtilities.UnexpectedValue(optionType);
 
     private static bool IsDefaultImmutableArray(object array)
-        => (bool)array.GetType().GetMethod("get_IsDefault").Invoke(array, [])!;
+        => (bool)array.GetType().GetMethod("get_IsDefault").Invoke(array, []);
 
     [Fact]
     public void SettingsChangeEvent()
@@ -155,8 +155,7 @@ public class VisualStudioSettingsOptionPersisterTests
         refreshedOptions.Clear();
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public void SettingsManagerReadOptionValue_Success(
         [CombinatorialValues(
             typeof(bool),
@@ -189,8 +188,7 @@ public class VisualStudioSettingsOptionPersisterTests
         Assert.Equal(optionValue, result.Value);
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public void SettingsManagerReadOptionValue_Error(
         [CombinatorialValues(
             GetValueResult.Missing,

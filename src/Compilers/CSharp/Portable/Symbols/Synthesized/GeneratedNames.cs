@@ -70,6 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<" + propertyName + ">i__Field";
         }
 
+        internal static string MakeExtensionName(int index)
+        {
+            Debug.Assert((char)GeneratedNameKind.Extension == 'E');
+            return "<>E__" + StringExtensions.GetNumeral(index);
+        }
+
         internal static string MakeAnonymousTypeParameterName(string propertyName)
         {
             return "<" + propertyName + ">j__TPar";
@@ -172,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (methodOrdinal >= 0)
                 {
-                    builder.Append(methodOrdinal);
+                    builder.Append(methodOrdinal.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     AppendOptionalGeneration(builder, methodGeneration);
                 }
 
@@ -183,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         builder.Append(GeneratedNameConstants.IdSeparator);
                     }
 
-                    builder.Append(entityOrdinal);
+                    builder.Append(entityOrdinal.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     AppendOptionalGeneration(builder, entityGeneration);
                 }
             }
@@ -196,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (generation > 0)
             {
                 builder.Append(GeneratedNameConstants.GenerationSeparator);
-                builder.Append(generation);
+                builder.Append(generation.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
         }
 
@@ -238,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             builder.Append("__");
-            builder.Append(slotIndex + 1);
+            builder.Append((slotIndex + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             return result.ToStringAndFree();
         }
@@ -498,12 +504,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (methodOrdinal > -1)
             {
-                builder.Append(GeneratedNameConstants.SuffixSeparator).Append(methodOrdinal);
+                builder.Append(GeneratedNameConstants.SuffixSeparator).Append(methodOrdinal.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
 
             if (ownerUniqueId > -1)
             {
-                builder.Append(GeneratedNameConstants.IdSeparator).Append(ownerUniqueId);
+                builder.Append(GeneratedNameConstants.IdSeparator).Append(ownerUniqueId.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
 
             AppendOptionalGeneration(builder, generation);
@@ -516,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = PooledStringBuilder.GetInstance();
             var builder = result.Builder;
 
-            builder.Append('<').Append(id).Append(">__").Append(targetMethod);
+            builder.Append('<').Append(id.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(">__").Append(targetMethod);
 
             return result.ToStringAndFree();
         }

@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -92,7 +91,7 @@ internal abstract class AbstractSelectedMembers<
             AddSelectedMemberDeclarations(member, membersToKeep);
         }
 
-        return selectedMembers.ToImmutable();
+        return selectedMembers.ToImmutableAndClear();
 
         void AddAllMembers(TMemberDeclarationSyntax member)
         {

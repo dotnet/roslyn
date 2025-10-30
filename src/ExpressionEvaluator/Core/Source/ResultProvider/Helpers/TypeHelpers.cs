@@ -7,11 +7,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
-using Roslyn.Utilities;
 using MethodAttributes = System.Reflection.MethodAttributes;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 using TypeCode = Microsoft.VisualStudio.Debugger.Metadata.TypeCode;
@@ -30,12 +30,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this Type type,
             ArrayBuilder<MemberAndDeclarationInfo> includedMembers,
             Predicate<MemberInfo> predicate,
+            ResultProvider resultProvider,
             Type declaredType,
             DkmClrAppDomain appDomain,
             bool includeInherited,
             bool hideNonPublic,
             bool isProxyType,
-            bool includeCompilerGenerated,
+            bool raw,
             bool supportsFavorites,
             DkmClrObjectFavoritesInfo favoritesInfo)
         {
@@ -99,9 +100,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 foreach (var member in type.GetMembers(MemberBindingFlags))
                 {
                     var memberName = member.Name;
-                    if (!includeCompilerGenerated && memberName.IsCompilerGenerated())
+                    var isGenerated = memberName.IsCompilerGenerated();
+
+                    if (isGenerated)
                     {
-                        continue;
+                        // Some generated names are displayed under their original (unmangled) name,
+                        // others are only shown when displaying raw object.
+                        if (resultProvider.TryGetGeneratedMemberDisplay(memberName, out var unmangledMemberName))
+                        {
+                            memberName = unmangledMemberName;
+                        }
+                        else if (!raw)
+                        {
+                            continue;
+                        }
                     }
 
                     // The native EE shows proxy members regardless of accessibility if they have a
@@ -172,9 +184,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         includedMembers.Add(
                             new MemberAndDeclarationInfo(
                                 member,
+                                memberName,
                                 browsableStateValue,
                                 previousDeclaration,
                                 inheritanceLevel,
+                                isGenerated: isGenerated,
                                 canFavorite: supportsFavorites && !previousDeclaration.HasFlag(DeclarationInfo.IncludeTypeInMemberName),
                                 isFavorite: favoritesMemberNames?.ContainsKey(memberName) == true && !previousDeclaration.HasFlag(DeclarationInfo.IncludeTypeInMemberName)));
                     }
@@ -557,7 +571,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
-                result ??= new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
+                result ??= [];
 
                 // There can be multiple same attributes for derived classes.
                 // Debugger provides attributes starting from derived classes and then up to base ones.
@@ -876,9 +890,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static MemberAndDeclarationInfo GetMemberByName(this DkmClrType type, string name)
         {
-            var members = type.GetLmrType().GetMember(name, TypeHelpers.MemberBindingFlags);
-            Debug.Assert(members.Length == 1);
-            return new MemberAndDeclarationInfo(members[0], browsableState: null, info: DeclarationInfo.None, inheritanceLevel: 0, canFavorite: false, isFavorite: false);
+            var member = type.GetLmrType().GetMember(name, MemberBindingFlags).Single();
+            return new MemberAndDeclarationInfo(member, displayName: member.Name, browsableState: null, info: DeclarationInfo.None, inheritanceLevel: 0, isGenerated: false, canFavorite: false, isFavorite: false);
         }
     }
 }

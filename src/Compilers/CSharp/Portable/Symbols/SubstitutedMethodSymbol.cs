@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     // C<X>.M<Y> is a ConstructedMethodSymbol.
     internal class SubstitutedMethodSymbol : WrappedMethodSymbol
     {
-        private readonly NamedTypeSymbol _containingType;
+        private readonly Symbol _containingSymbol;
         private readonly MethodSymbol _underlyingMethod;
         private readonly TypeMap _inputMap;
         private readonly MethodSymbol _constructedFrom;
@@ -43,11 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(TypeSymbol.Equals(originalDefinition.ContainingType, containingSymbol.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
         }
 
-        protected SubstitutedMethodSymbol(NamedTypeSymbol containingSymbol, TypeMap map, MethodSymbol originalDefinition, MethodSymbol constructedFrom)
+        protected SubstitutedMethodSymbol(Symbol containingSymbol, TypeMap map, MethodSymbol originalDefinition, MethodSymbol constructedFrom)
         {
             Debug.Assert((object)originalDefinition != null);
             Debug.Assert(originalDefinition.IsDefinition);
-            _containingType = containingSymbol;
+            _containingSymbol = containingSymbol;
             _underlyingMethod = originalDefinition;
             _inputMap = map;
             if ((object)constructedFrom != null)
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void EnsureMapAndTypeParameters()
         {
-            if (!_lazyTypeParameters.IsDefault)
+            if (!RoslynImmutableInterlocked.VolatileRead(ref _lazyTypeParameters).IsDefault)
             {
                 return;
             }
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(ReferenceEquals(_constructedFrom, this));
 
             // We're creating a new unconstructed Method from another; alpha-rename type parameters.
-            var newMap = _inputMap.WithAlphaRename(this.OriginalDefinition, this, out typeParameters);
+            var newMap = _inputMap.WithAlphaRename(this.OriginalDefinition, this, propagateAttributes: false, out typeParameters);
 
             var prevMap = Interlocked.CompareExchange(ref _lazyMap, newMap, null);
             if (prevMap != null)
@@ -169,13 +170,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
+        public override TypeWithAnnotations GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
             // This will throw if API shouldn't be supported or there is a problem with the argument.
             var notUsed = OriginalDefinition.GetTypeInferredDuringReduction(reducedFromTypeParameter);
 
-            Debug.Assert((object)notUsed == null && (object)OriginalDefinition.ReducedFrom != null);
-            return this.TypeArgumentsWithAnnotations[reducedFromTypeParameter.Ordinal].Type;
+            Debug.Assert(notUsed.Type is null && OriginalDefinition.ReducedFrom is not null);
+            return this.TypeArgumentsWithAnnotations[reducedFromTypeParameter.Ordinal];
         }
 
         public sealed override MethodSymbol ReducedFrom
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _containingType;
+                return _containingSymbol;
             }
         }
 
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _containingType;
+                return _containingSymbol is NamedTypeSymbol nt ? nt : _containingSymbol.ContainingType;
             }
         }
 
@@ -214,6 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
             => this.OriginalDefinition.GetUnmanagedCallersOnlyAttributeData(forceComplete);
+
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
 
         public sealed override Symbol AssociatedSymbol
         {
@@ -308,25 +311,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.Map; }
         }
 
-        internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+#nullable enable
+
+        internal sealed override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             // Required in EE scenarios.  Specifically, the EE binds in the context of a 
             // substituted method, whereas the core compiler always binds within the
             // context of an original definition.  
             // There should never be any reason to call this in normal compilation
             // scenarios, but the behavior should be sensible if it does occur.
-            ParameterSymbol originalThisParameter;
+            ParameterSymbol? originalThisParameter;
             if (!OriginalDefinition.TryGetThisParameter(out originalThisParameter))
             {
                 thisParameter = null;
                 return false;
             }
 
-            thisParameter = (object)originalThisParameter != null
+            thisParameter = originalThisParameter is not null
                 ? new ThisParameterSymbol(this)
                 : null;
             return true;
         }
+
+#nullable disable
+
+        internal override int TryGetOverloadResolutionPriority()
+            => OriginalDefinition.TryGetOverloadResolutionPriority();
 
         private ImmutableArray<ParameterSymbol> SubstituteParameters()
         {
@@ -366,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // it's possible that we will compare equal to the original definition under certain conditions 
             // (e.g, ignoring nullability) and want to retain the same hashcode. As such, consider only
             // the original definition for the hashcode when we know equality is possible
-            containingHashCode = _containingType.GetHashCode();
+            containingHashCode = _containingSymbol.GetHashCode();
             if (containingHashCode == this.OriginalDefinition.ContainingType.GetHashCode() &&
                 wasConstructedForAnnotations(this))
             {

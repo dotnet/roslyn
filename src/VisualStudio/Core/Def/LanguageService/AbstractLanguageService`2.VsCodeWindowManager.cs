@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -12,9 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -26,7 +23,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -35,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
 internal abstract partial class AbstractLanguageService<TPackage, TLanguageService>
 {
-    internal class VsCodeWindowManager : IVsCodeWindowManager, IVsCodeWindowEvents, IVsDocOutlineProvider
+    internal sealed class VsCodeWindowManager : IVsCodeWindowManager, IVsCodeWindowEvents, IVsDocOutlineProvider
     {
         private readonly TLanguageService _languageService;
         private readonly IVsCodeWindow _codeWindow;
@@ -61,15 +57,12 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         private void SetupView(IVsTextView view)
             => _languageService.SetupNewTextView(view);
 
-        private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
+        private void GlobalOptionChanged(object sender, object target, OptionChangedEventArgs e)
         {
-            if (e.Language != _languageService.RoslynLanguageName ||
-                e.Option != NavigationBarViewOptionsStorage.ShowNavigationBar)
+            if (e.ChangedOptions.Any(item => item.key.Language == _languageService.RoslynLanguageName && item.key.Option.Equals(NavigationBarViewOptionsStorage.ShowNavigationBar)))
             {
-                return;
+                AddOrRemoveDropdown();
             }
-
-            AddOrRemoveDropdown();
         }
 
         private void AddOrRemoveDropdown()
@@ -84,7 +77,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                 return;
             }
 
-            var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer);
+            var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var textBuffer = editorAdaptersFactoryService.GetDataBuffer(buffer);
             var document = textBuffer?.AsTextContainer()?.GetRelatedDocuments().FirstOrDefault();
             // TODO - Remove the TS check once they move the liveshare navbar to LSP.  Then we can also switch to LSP
             // for the local navbar implementation.
@@ -162,10 +156,11 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
                 return;
             }
 
-            var navigationBarClient = new NavigationBarClient(dropdownManager, _codeWindow, _languageService.SystemServiceProvider, _languageService.Workspace);
-            var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer);
+            var navigationBarClient = new NavigationBarClient(dropdownManager, _codeWindow, _languageService.SystemServiceProvider, _languageService.Workspace.Value);
+            var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var textBuffer = editorAdaptersFactoryService.GetDataBuffer(buffer);
             var controllerFactoryService = _languageService.Package.ComponentModel.GetService<INavigationBarControllerFactoryService>();
-            var newController = controllerFactoryService.CreateController(navigationBarClient, textBuffer);
+            var newController = controllerFactoryService.CreateController(navigationBarClient, textBuffer!);
             var hr = dropdownManager.AddDropdownBar(cCombos: 3, pClient: navigationBarClient);
 
             if (ErrorHandler.Failed(hr))
@@ -249,13 +244,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         private void GetOutline(out IntPtr phwnd)
         {
-            phwnd = default;
-
-            var enabled = _globalOptions.GetOption(DocumentOutlineOptionsStorage.EnableDocumentOutline)
-                ?? !_globalOptions.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag);
-            if (!enabled)
-                return;
-
             var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
             threadingContext.ThrowIfNotOnUIThread();
 

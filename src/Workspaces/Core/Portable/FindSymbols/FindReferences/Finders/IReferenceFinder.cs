@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -49,9 +50,10 @@ internal interface IReferenceFinder
     /// 
     /// Implementations of this method must be thread-safe.
     /// </summary>
-    Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    Task DetermineDocumentsToSearchAsync<TData>(
         ISymbol symbol, HashSet<string>? globalAliases,
         Project project, IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult, TData processResultData,
         FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
     /// <summary>
@@ -61,9 +63,11 @@ internal interface IReferenceFinder
     /// 
     /// Implementations of this method must be thread-safe.
     /// </summary>
-    ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    void FindReferencesInDocument<TData>(
         ISymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken);
 }

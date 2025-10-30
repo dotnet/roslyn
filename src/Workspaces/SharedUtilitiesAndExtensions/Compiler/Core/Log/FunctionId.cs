@@ -284,7 +284,7 @@ internal enum FunctionId
     WorkCoordinator_Shutdown = 229,
 
     DiagnosticAnalyzerService_Analyzers = 230,
-    DiagnosticAnalyzerDriver_AnalyzerCrash = 231,
+    // DiagnosticAnalyzerDriver_AnalyzerCrash = 231, no longer used
     DiagnosticAnalyzerDriver_AnalyzerTypeCount = 232,
     // obsolete: PersistedSemanticVersion_Info = 233,
     StorageDatabase_Exceptions = 234,
@@ -317,8 +317,8 @@ internal enum FunctionId
     Tagger_Diagnostics_Updated = 259,
     SuggestedActions_HasSuggestedActionsAsync = 260,
     SuggestedActions_GetSuggestedActions = 261,
-    AnalyzerDependencyCheckingService_LogConflict = 262,
-    AnalyzerDependencyCheckingService_LogMissingDependency = 263,
+    // AnalyzerDependencyCheckingService_LogConflict = 262, no longer used
+    // AnalyzerDependencyCheckingService_LogMissingDependency = 263, no longer used
     VirtualMemory_MemoryLow = 264,
     Extension_Exception = 265,
 
@@ -411,7 +411,7 @@ internal enum FunctionId
     SolutionCreator_AssetDifferences = 326,
     Extension_InfoBar = 327,
     FxCopAnalyzersInstall = 328,
-    AssetStorage_ForceGC = 329,
+    // obsolete: AssetStorage_ForceGC = 329,
     // obsolete: RemoteHost_Bitness = 330,
     Intellisense_Completion = 331,
     MetadataOnlyImage_EmitFailure = 332,
@@ -578,6 +578,11 @@ internal enum FunctionId
     SourceGenerator_SolutionStatistics = 620,
     SourceGenerator_OtherWorkspaceSessionStatistics = 621,
 
+    /// <summary>
+    /// Telemetry for source generators that were ran in-process; this is only expected to be fired if calling into OOP failed.
+    /// </summary>
+    SourceGenerator_SolutionInProcStatistics = 622,
+
     // 630-650 for sqlite errors.
     SQLite_SqlException = 630,
     SQLite_StorageDisabled = 631,
@@ -592,6 +597,7 @@ internal enum FunctionId
     // 670-680 for newer rename ids
     Rename_TryApplyRename_WorkspaceChanged = 670,
     Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange = 671,
+    InlineRenameAdornmentChoice = 672,
 
     // 680-690 LSP Initialization info ids.
     LSP_Initialize = 680,
@@ -626,5 +632,42 @@ internal enum FunctionId
 
     // 800-850 for Copilot performance logging.
     Copilot_Suggestion_Dismissed = 800,
-    Copilot_Rename = 851
+    Copilot_On_The_Fly_Docs_Showed_Link = 810,
+    Copilot_On_The_Fly_Docs_Loading_State_Entered = 811,
+    Copilot_On_The_Fly_Docs_Results_Displayed = 812,
+    Copilot_On_The_Fly_Docs_Error_Displayed = 813,
+    Copilot_On_The_Fly_Docs_Results_Canceled = 814,
+    Copilot_On_The_Fly_Docs_Get_Counts = 815,
+    Copilot_On_The_Fly_Docs_Content_Excluded = 816,
+
+    Copilot_Generate_Documentation_Dismissed = 820,
+    Copilot_Generate_Documentation_Diverged = 821,
+    Copilot_Generate_Documentation_Displayed = 822,
+    Copilot_Generate_Documentation_Accepted = 823,
+    Copilot_Generate_Documentation_Canceled = 824,
+
+    Copilot_Implement_NotImplementedException_Fix_Registered = 830,
+    Copilot_Implement_NotImplementedException_Failed = 831,
+    Copilot_Implement_NotImplementedException_Completed = 832,
+
+    Copilot_AnalyzeChange = 840,
+    Copilot_AdjustProposal = 841,
+
+    Copilot_Rename = 851,
+
+    VSCode_LanguageServer_Started = 860,
+    VSCode_Project_Load_Started = 861,
+    VSCode_Projects_Load_Completed = 862,
+
+    GraphQuery_Calls = 870,
+    GraphQuery_Contains = 871,
+    GraphQuery_InheritedBy = 872,
+    GraphQuery_Inherits = 873,
+    GraphQuery_OverriddenBy = 874,
+    GraphQuery_Search = 875,
+
+    // 900-999 for items that don't fit into other categories.
+    Workspace_EventsImmediate = 900,
+    ChecksumUpdater_SynchronizeTextChangesStatus = 901,
+    RemoteHostService_SynchronizeTextAsyncStatus = 902,
 }

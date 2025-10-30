@@ -2,17 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Runtime.CompilerServices
-Imports CompilationCreationTestHelpers
-Imports Microsoft.CodeAnalysis.Collections
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -28,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestResources.General.MDTestLib2,
                     TestResources.SymbolsTests.Methods.CSMethods,
                     TestResources.SymbolsTests.Methods.VBMethods,
-                    ResourcesNet40.mscorlib,
+                    Net40.Resources.mscorlib,
                     TestResources.SymbolsTests.Methods.ByRefReturn
                 }, importInternals:=True)
 
@@ -430,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationGeneric()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {Net451.mscorlib,
+                {NetFramework.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
@@ -462,7 +456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationConstructed()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {Net451.mscorlib,
+                {NetFramework.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
@@ -525,7 +519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationOfUnrelatedGenericInterfaceMethod()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {Net451.mscorlib,
+                {NetFramework.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.IL})
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
 
@@ -554,7 +548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestTypeParameterPositions()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {Net451.mscorlib,
+                {NetFramework.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace

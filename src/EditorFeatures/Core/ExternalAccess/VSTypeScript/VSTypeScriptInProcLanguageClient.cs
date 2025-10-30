@@ -5,20 +5,19 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Utilities;
 using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
@@ -57,6 +56,18 @@ internal class VSTypeScriptInProcLanguageClient(
         serverCapabilities.ProjectContextProvider = true;
 
         serverCapabilities.SupportsDiagnosticRequests = true;
+        serverCapabilities.DiagnosticProvider = new()
+        {
+            SupportsMultipleContextsDiagnostics = true,
+            DiagnosticKinds =
+            [
+                new(PullDiagnosticCategories.Task),
+                new(PullDiagnosticCategories.WorkspaceDocumentsAndProject),
+                new(PullDiagnosticCategories.DocumentAnalyzerSyntax),
+                new(PullDiagnosticCategories.DocumentAnalyzerSemantic),
+            ]
+        };
+
         return serverCapabilities;
     }
 

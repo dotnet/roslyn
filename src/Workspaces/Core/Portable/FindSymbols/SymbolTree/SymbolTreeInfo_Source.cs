@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Storage;
@@ -16,9 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class SymbolTreeInfo
+internal sealed partial class SymbolTreeInfo
 {
-    private static readonly SimplePool<MultiDictionary<string, INamespaceOrTypeSymbol>> s_symbolMapPool = new(() => []);
+    private static readonly ObjectPool<MultiDictionary<string, INamespaceOrTypeSymbol>> s_symbolMapPool = new(() => []);
 
     private static MultiDictionary<string, INamespaceOrTypeSymbol> AllocateSymbolMap()
         => s_symbolMapPool.Allocate();

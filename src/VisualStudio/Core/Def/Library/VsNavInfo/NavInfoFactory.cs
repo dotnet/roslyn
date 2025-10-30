@@ -8,11 +8,10 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo;
 
-internal class NavInfoFactory
+internal sealed class NavInfoFactory
 {
     internal AbstractLibraryService LibraryService { get; }
 

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo;
 /// same symbol, just for different projects just feels like clutter in the UI without real benefit for the user
 /// (since navigating will just take the user to the same location).
 /// </summary>
-internal class NavigateToSearchResultComparer : IEqualityComparer<INavigateToSearchResult>
+internal sealed class NavigateToSearchResultComparer : IEqualityComparer<INavigateToSearchResult>
 {
     public static readonly IEqualityComparer<INavigateToSearchResult> Instance = new NavigateToSearchResultComparer();
 

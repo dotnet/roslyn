@@ -8,8 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -43,7 +41,7 @@ internal sealed class RuleSetEventHandler : IVsTrackProjectDocumentsEvents2, IVs
     {
         if (!_eventsHookedUp)
         {
-            var trackProjectDocuments = await serviceProvider.GetServiceAsync<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+            var trackProjectDocuments = await serviceProvider.GetServiceAsync<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(cancellationToken).ConfigureAwait(false);
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (!_eventsHookedUp)

@@ -17,8 +17,8 @@ internal sealed record class VisualBasicCodeGenerationOptions : CodeGenerationOp
     {
     }
 
-    internal VisualBasicCodeGenerationOptions(IOptionsReader options, VisualBasicCodeGenerationOptions? fallbackOptions)
-        : base(options, fallbackOptions ?? Default, LanguageNames.VisualBasic)
+    internal VisualBasicCodeGenerationOptions(IOptionsReader options)
+        : base(options, LanguageNames.VisualBasic)
     {
     }
 }

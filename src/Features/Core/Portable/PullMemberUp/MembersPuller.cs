@@ -12,10 +12,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -38,8 +38,7 @@ internal static class MembersPuller
     public static CodeAction TryComputeCodeAction(
         Document document,
         ImmutableArray<ISymbol> selectedMembers,
-        INamedTypeSymbol destination,
-        CleanCodeGenerationOptionsProvider fallbackOptions)
+        INamedTypeSymbol destination)
     {
         var result = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination,
             selectedMembers.SelectAsArray(m => (member: m, makeAbstract: false)));
@@ -50,27 +49,23 @@ internal static class MembersPuller
             return null;
         }
 
-        var title = selectedMembers.IsSingle()
-            ? string.Format(FeaturesResources.Pull_0_up_to_1, selectedMembers.Single().Name, result.Destination.Name)
-            : string.Format(FeaturesResources.Pull_selected_members_up_to_0, result.Destination.Name);
-
+        var title = result.Destination.Name;
         return SolutionChangeAction.Create(
             title,
-            cancellationToken => PullMembersUpAsync(document, result, fallbackOptions, cancellationToken),
+            cancellationToken => PullMembersUpAsync(document, result, cancellationToken),
             title);
     }
 
     public static Task<Solution> PullMembersUpAsync(
         Document document,
         PullMembersUpOptions pullMembersUpOptions,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         return pullMembersUpOptions.Destination.TypeKind switch
         {
-            TypeKind.Interface => PullMembersIntoInterfaceAsync(document, pullMembersUpOptions, fallbackOptions, cancellationToken),
+            TypeKind.Interface => PullMembersIntoInterfaceAsync(document, pullMembersUpOptions, cancellationToken),
             // We can treat VB modules as a static class
-            TypeKind.Class or TypeKind.Module => PullMembersIntoClassAsync(document, pullMembersUpOptions, fallbackOptions, cancellationToken),
+            TypeKind.Class or TypeKind.Module => PullMembersIntoClassAsync(document, pullMembersUpOptions, cancellationToken),
             _ => throw ExceptionUtilities.UnexpectedValue(pullMembersUpOptions.Destination),
         };
     }
@@ -96,14 +91,13 @@ internal static class MembersPuller
     private static async Task<Solution> PullMembersIntoInterfaceAsync(
         Document document,
         PullMembersUpOptions pullMemberUpOptions,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var solution = document.Project.Solution;
         var solutionEditor = new SolutionEditor(solution);
         var codeGenerationService = document.Project.Services.GetRequiredService<ICodeGenerationService>();
-        var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
-            solution, pullMemberUpOptions.Destination, location: null, cancellationToken).ConfigureAwait(false);
+        var destinationSyntaxNode = codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclaration(
+            solution, pullMemberUpOptions.Destination, location: null, cancellationToken);
         var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
         var symbolsToPullUp = pullMemberUpOptions.MemberAnalysisResults.SelectAsArray(GetSymbolsToPullUp);
 
@@ -116,7 +110,7 @@ internal static class MembersPuller
             generateMethodBodies: false,
             generateMembers: false);
 
-        var info = await destinationEditor.OriginalDocument.GetCodeGenerationInfoAsync(context, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = await destinationEditor.OriginalDocument.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
         var destinationWithMembersAdded = info.Service.AddMembers(destinationSyntaxNode, symbolsToPullUp, info, cancellationToken);
 
         destinationEditor.ReplaceNode(destinationSyntaxNode, (syntaxNode, generator) => destinationWithMembersAdded);
@@ -254,10 +248,7 @@ internal static class MembersPuller
                 accessibility: Accessibility.Public,
                 modifiers: modifiers);
 
-            var eventGenerationInfo = info.WithContext(new CodeGenerationContext(
-                null,
-                null,
-                generateMethodBodies: false));
+            var eventGenerationInfo = info.WithContext(new CodeGenerationContext(generateMethodBodies: false));
 
             var publicAndNonStaticSyntax = codeGenerationService.CreateEventDeclaration(publicAndNonStaticSymbol, CodeGenerationDestination.ClassType, eventGenerationInfo, cancellationToken);
             // Insert a new declaration and remove the original declaration
@@ -275,15 +266,14 @@ internal static class MembersPuller
     private static async Task<Solution> PullMembersIntoClassAsync(
         Document document,
         PullMembersUpOptions result,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var solution = document.Project.Solution;
         var solutionEditor = new SolutionEditor(solution);
         var codeGenerationService = document.Project.Services.GetRequiredService<ICodeGenerationService>();
 
-        var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
-            solution, result.Destination, location: null, cancellationToken).ConfigureAwait(false);
+        var destinationSyntaxNode = codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclaration(
+            solution, result.Destination, location: null, cancellationToken);
 
         var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
             solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
@@ -310,7 +300,7 @@ internal static class MembersPuller
             reuseSyntax: true,
             generateMethodBodies: false);
 
-        var options = await destinationEditor.OriginalDocument.GetCleanCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await destinationEditor.OriginalDocument.GetCleanCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
         var info = codeGenerationService.GetInfo(context, options.GenerationOptions, destinationEditor.OriginalDocument.Project.ParseOptions);
 
         var newDestination = codeGenerationService
@@ -391,7 +381,6 @@ internal static class MembersPuller
         var destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(
             destinationEditor.GetChangedDocument(),
             node => node.HasAnnotation(s_removableImportAnnotation),
-            options.CleanupOptions.FormattingOptions,
             cancellationToken).ConfigureAwait(false);
 
         // Format whitespace trivia within the import statements we pull up
@@ -445,10 +434,9 @@ internal static class MembersPuller
     {
         return start.AncestorsAndSelf()
             .Where(node => node is ICompilationUnitSyntax || syntaxFacts.IsBaseNamespaceDeclaration(node))
-            .SelectMany(node => node is ICompilationUnitSyntax
+            .SelectManyAsArray(node => node is ICompilationUnitSyntax
                 ? syntaxFacts.GetImportsOfCompilationUnit(node)
-                : syntaxFacts.GetImportsOfBaseNamespaceDeclaration(node))
-            .ToImmutableArray();
+                : syntaxFacts.GetImportsOfBaseNamespaceDeclaration(node));
     }
 
     private static ISymbol MakeAbstractVersion(ISymbol member)
@@ -489,7 +477,7 @@ internal static class MembersPuller
         {
             var tasks = memberAnalysisResult.Member.DeclaringSyntaxReferences.SelectAsArray(@ref => @ref.GetSyntaxAsync(cancellationToken));
             var allSyntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
-            symbolToDeclarationsBuilder.Add(memberAnalysisResult.Member, allSyntaxes.ToImmutableArray());
+            symbolToDeclarationsBuilder.Add(memberAnalysisResult.Member, [.. allSyntaxes]);
         }
 
         return symbolToDeclarationsBuilder.ToImmutableDictionary();
@@ -501,14 +489,9 @@ internal static class MembersPuller
     /// </summary>
     private static bool IsSelectedMemberDeclarationAlreadyInDestination(ISymbol selectedMember, INamedTypeSymbol destination)
     {
-        if (destination.TypeKind == TypeKind.Interface)
-        {
-            return IsSelectedMemberDeclarationAlreadyInDestinationInterface(selectedMember, destination);
-        }
-        else
-        {
-            return IsSelectedMemberDeclarationAlreadyInDestinationClass(selectedMember, destination);
-        }
+        return destination.TypeKind == TypeKind.Interface
+            ? IsSelectedMemberDeclarationAlreadyInDestinationInterface(selectedMember, destination)
+            : IsSelectedMemberDeclarationAlreadyInDestinationClass(selectedMember, destination);
     }
 
     private static bool IsSelectedMemberDeclarationAlreadyInDestinationClass(ISymbol selectedMember, INamedTypeSymbol destination)

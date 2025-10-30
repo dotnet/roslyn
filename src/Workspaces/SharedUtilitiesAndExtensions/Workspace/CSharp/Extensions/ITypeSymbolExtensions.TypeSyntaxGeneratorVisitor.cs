@@ -3,13 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -17,17 +14,24 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 internal partial class ITypeSymbolExtensions
 {
-    private class TypeSyntaxGeneratorVisitor : SymbolVisitor<TypeSyntax>
+    private sealed class TypeSyntaxGeneratorVisitor(bool nameOnly) : SymbolVisitor<TypeSyntax>
     {
-        private readonly bool _nameOnly;
-
         private static readonly TypeSyntaxGeneratorVisitor NameOnlyInstance = new(nameOnly: true);
         private static readonly TypeSyntaxGeneratorVisitor NotNameOnlyInstance = new(nameOnly: false);
 
-        private TypeSyntaxGeneratorVisitor(bool nameOnly)
-            => _nameOnly = nameOnly;
+        private static readonly QualifiedNameSyntax SystemObjectType =
+            QualifiedName(
+                AliasQualifiedName(
+                    CreateGlobalIdentifier(),
+                    IdentifierName("System")),
+                IdentifierName("Object"));
+
+        private readonly bool _nameOnly = nameOnly;
 
         public static TypeSyntaxGeneratorVisitor Create(bool nameOnly = false)
             => nameOnly ? NameOnlyInstance : NotNameOnlyInstance;
@@ -38,7 +42,7 @@ internal partial class ITypeSymbolExtensions
         private static TTypeSyntax AddInformationTo<TTypeSyntax>(TTypeSyntax syntax, ISymbol symbol)
             where TTypeSyntax : TypeSyntax
         {
-            syntax = syntax.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker);
+            syntax = syntax.WithPrependedLeadingTrivia(ElasticMarker).WithAppendedTrailingTrivia(ElasticMarker);
             syntax = syntax.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol));
 
             return syntax;
@@ -91,17 +95,17 @@ internal partial class ITypeSymbolExtensions
             var arrayType = symbol;
             while (arrayType != null && !arrayType.Equals(underlyingType))
             {
-                ranks.Add(SyntaxFactory.ArrayRankSpecifier(
-                    [.. Enumerable.Repeat<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression(), arrayType.Rank)]));
+                ranks.Add(ArrayRankSpecifier(
+                    [.. Enumerable.Repeat<ExpressionSyntax>(OmittedArraySizeExpression(), arrayType.Rank)]));
 
                 arrayType = arrayType.ElementType as IArrayTypeSymbol;
             }
 
-            TypeSyntax arrayTypeSyntax = SyntaxFactory.ArrayType(elementTypeSyntax, [.. ranks]);
+            TypeSyntax arrayTypeSyntax = ArrayType(elementTypeSyntax, [.. ranks]);
 
             if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
             {
-                arrayTypeSyntax = SyntaxFactory.NullableType(arrayTypeSyntax);
+                arrayTypeSyntax = NullableType(arrayTypeSyntax);
             }
 
             return AddInformationTo(arrayTypeSyntax, symbol);
@@ -109,9 +113,9 @@ internal partial class ITypeSymbolExtensions
 
         public override TypeSyntax VisitDynamicType(IDynamicTypeSymbol symbol)
         {
-            var typeSyntax = SyntaxFactory.IdentifierName("dynamic");
+            var typeSyntax = IdentifierName("dynamic");
             return symbol.NullableAnnotation is NullableAnnotation.Annotated
-                ? AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol)
+                ? AddInformationTo(NullableType(typeSyntax), symbol)
                 : AddInformationTo(typeSyntax, symbol);
         }
 
@@ -119,7 +123,7 @@ internal partial class ITypeSymbolExtensions
         {
             if (symbol.IsNativeIntegerType)
             {
-                syntax = SyntaxFactory.IdentifierName(symbol.SpecialType == SpecialType.System_IntPtr ? "nint" : "nuint");
+                syntax = IdentifierName(symbol.SpecialType == SpecialType.System_IntPtr ? "nint" : "nuint");
                 return true;
             }
 
@@ -151,24 +155,24 @@ internal partial class ITypeSymbolExtensions
                     _ => throw ExceptionUtilities.UnexpectedValue(symbol.Signature.CallingConvention),
                 };
 
-                callingConventionSyntax = SyntaxFactory.FunctionPointerCallingConvention(
-                    SyntaxFactory.Token(SyntaxKind.UnmanagedKeyword),
+                callingConventionSyntax = FunctionPointerCallingConvention(
+                    UnmanagedKeyword,
                     conventionsList is object
-                        ? SyntaxFactory.FunctionPointerUnmanagedCallingConventionList([.. conventionsList])
+                        ? FunctionPointerUnmanagedCallingConventionList([.. conventionsList])
                         : null);
 
                 static FunctionPointerUnmanagedCallingConventionSyntax GetConventionForString(string identifier)
-                    => SyntaxFactory.FunctionPointerUnmanagedCallingConvention(SyntaxFactory.Identifier(identifier));
+                    => FunctionPointerUnmanagedCallingConvention(Identifier(identifier));
             }
 
-            var parameters = symbol.Signature.Parameters.Select(p => (p.Type, RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(p.RefKind)))
-                .Concat(SpecializedCollections.SingletonEnumerable((
+            var parameters = symbol.Signature.Parameters.Select(p => (p.Type, RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(p)))
+                .Concat([(
                     Type: symbol.Signature.ReturnType,
-                    RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(symbol.Signature.RefKind, forFunctionPointerReturnParameter: true))))
-                .SelectAsArray(t => SyntaxFactory.FunctionPointerParameter(t.Type.GenerateTypeSyntax()).WithModifiers(t.RefKindModifiers));
+                    RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(isScoped: false, symbol.Signature.RefKind, isParams: false, forFunctionPointerReturnParameter: true))])
+                .SelectAsArray(t => FunctionPointerParameter(t.Type.GenerateTypeSyntax()).WithModifiers(t.RefKindModifiers));
 
             return AddInformationTo(
-                SyntaxFactory.FunctionPointerType(callingConventionSyntax, SyntaxFactory.FunctionPointerParameterList([.. parameters])), symbol);
+                FunctionPointerType(callingConventionSyntax, FunctionPointerParameterList([.. parameters])), symbol);
         }
 
         public TypeSyntax CreateSimpleTypeSyntax(INamedTypeSymbol symbol)
@@ -186,46 +190,36 @@ internal partial class ITypeSymbolExtensions
             }
 
             if (symbol.Name == string.Empty || symbol.IsAnonymousType)
-            {
-                return CreateSystemObject();
-            }
+                return SystemObjectType;
 
             if (symbol.TypeParameters.Length == 0)
             {
                 if (symbol.TypeKind == TypeKind.Error && symbol.Name == "var")
-                {
-                    return CreateSystemObject();
-                }
+                    return SystemObjectType;
 
                 return symbol.Name.ToIdentifierName();
             }
 
             var typeArguments = symbol.IsUnboundGenericType
-                ? Enumerable.Repeat((TypeSyntax)SyntaxFactory.OmittedTypeArgument(), symbol.TypeArguments.Length)
+                ? Enumerable.Repeat((TypeSyntax)OmittedTypeArgument(), symbol.TypeArguments.Length)
                 : symbol.TypeArguments.SelectAsArray(t => t.GenerateTypeSyntax());
 
-            return SyntaxFactory.GenericName(
+            return GenericName(
                 symbol.Name.ToIdentifierToken(),
-                SyntaxFactory.TypeArgumentList([.. typeArguments]));
+                TypeArgumentList([.. typeArguments]));
         }
 
         public static QualifiedNameSyntax CreateSystemObject()
-        {
-            return SyntaxFactory.QualifiedName(
-                SyntaxFactory.AliasQualifiedName(
-                    CreateGlobalIdentifier(),
-                    SyntaxFactory.IdentifierName("System")),
-                SyntaxFactory.IdentifierName("Object"));
-        }
+            => SystemObjectType;
 
         private static IdentifierNameSyntax CreateGlobalIdentifier()
-            => SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
+            => IdentifierName(GlobalKeyword);
 
         private static TypeSyntax? TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
         {
             if (symbol.SpecialType == SpecialType.System_Void)
             {
-                return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
+                return PredefinedType(VoidKeyword);
             }
 
             if (symbol.IsTupleType && symbol.TupleElements.Length >= 2)
@@ -240,7 +234,7 @@ internal partial class ITypeSymbolExtensions
                 if (innerType.TypeKind != TypeKind.Pointer)
                 {
                     return AddInformationTo(
-                        SyntaxFactory.NullableType(innerType.GenerateTypeSyntax()), symbol);
+                        NullableType(innerType.GenerateTypeSyntax()), symbol);
                 }
             }
 
@@ -253,11 +247,11 @@ internal partial class ITypeSymbolExtensions
 
             foreach (var element in symbol.TupleElements)
             {
-                var name = element.IsImplicitlyDeclared ? default : SyntaxFactory.Identifier(element.Name);
-                list = list.Add(SyntaxFactory.TupleElement(element.Type.GenerateTypeSyntax(), name));
+                var name = element.IsImplicitlyDeclared ? default : Identifier(element.Name);
+                list = list.Add(TupleElement(element.Type.GenerateTypeSyntax(), name));
             }
 
-            return AddInformationTo(SyntaxFactory.TupleType(list), symbol);
+            return AddInformationTo(TupleType(list), symbol);
         }
 
         public override TypeSyntax VisitNamedType(INamedTypeSymbol symbol)
@@ -278,7 +272,7 @@ internal partial class ITypeSymbolExtensions
                     if (containingTypeSyntax is NameSyntax name)
                     {
                         typeSyntax = AddInformationTo(
-                            SyntaxFactory.QualifiedName(name, simpleNameSyntax),
+                            QualifiedName(name, simpleNameSyntax),
                             symbol);
                     }
                     else
@@ -299,7 +293,7 @@ internal partial class ITypeSymbolExtensions
                 else
                 {
                     var container = symbol.ContainingNamespace.Accept(this)!;
-                    typeSyntax = AddInformationTo(SyntaxFactory.QualifiedName(
+                    typeSyntax = AddInformationTo(QualifiedName(
                         (NameSyntax)container,
                         simpleNameSyntax), symbol);
                 }
@@ -309,7 +303,7 @@ internal partial class ITypeSymbolExtensions
             {
                 // value type with nullable annotation may be composed from unconstrained nullable generic
                 // doesn't mean nullable value type in this case
-                typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);
+                typeSyntax = AddInformationTo(NullableType(typeSyntax), symbol);
             }
 
             return typeSyntax;
@@ -330,7 +324,7 @@ internal partial class ITypeSymbolExtensions
             else
             {
                 var container = symbol.ContainingNamespace.Accept(this)!;
-                return AddInformationTo(SyntaxFactory.QualifiedName(
+                return AddInformationTo(QualifiedName(
                     (NameSyntax)container,
                     syntax), symbol);
             }
@@ -343,7 +337,7 @@ internal partial class ITypeSymbolExtensions
         private static TypeSyntax AddGlobalAlias(INamespaceOrTypeSymbol symbol, SimpleNameSyntax syntax)
         {
             return AddInformationTo(
-                SyntaxFactory.AliasQualifiedName(
+                AliasQualifiedName(
                     CreateGlobalIdentifier(),
                     syntax), symbol);
         }
@@ -353,7 +347,7 @@ internal partial class ITypeSymbolExtensions
             ThrowIfNameOnly();
 
             return AddInformationTo(
-                SyntaxFactory.PointerType(symbol.PointedAtType.GenerateTypeSyntax()),
+                PointerType(symbol.PointedAtType.GenerateTypeSyntax()),
                 symbol);
         }
 
@@ -364,7 +358,7 @@ internal partial class ITypeSymbolExtensions
             {
                 // value type with nullable annotation may be composed from unconstrained nullable generic
                 // doesn't mean nullable value type in this case
-                typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);
+                typeSyntax = AddInformationTo(NullableType(typeSyntax), symbol);
             }
 
             return typeSyntax;

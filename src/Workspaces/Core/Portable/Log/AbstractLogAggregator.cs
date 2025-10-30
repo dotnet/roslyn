@@ -8,7 +8,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
@@ -40,7 +39,9 @@ internal abstract class AbstractLogAggregator<TKey, TValue> : IEnumerable<KeyVal
     public void Clear() => _map.Clear();
 
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-        => _map.Select(static kvp => new KeyValuePair<TKey, TValue>((TKey)kvp.Key, kvp.Value)).GetEnumerator();
+        => _map.Select(static kvp => KeyValuePair.Create((TKey)kvp.Key, kvp.Value)).GetEnumerator();
+
+    public int Count => _map.Count;
 
     IEnumerator IEnumerable.GetEnumerator()
         => this.GetEnumerator();

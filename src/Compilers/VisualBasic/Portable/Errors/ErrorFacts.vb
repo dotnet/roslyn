@@ -19,8 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case ERRID.ERR_TypeRefResolutionError3,
                      ERRID.ERR_MissingRuntimeHelper,
                      ERRID.ERR_CannotGotoNonScopeBlocksWithClosure,
-                     ERRID.ERR_SymbolDefinedInAssembly
-                    ' Update src\EditorFeatures\VisualBasic\LanguageServer\VisualBasicLspBuildOnlyDiagnostics.vb
+                     ERRID.ERR_SymbolDefinedInAssembly,
+                     ERRID.ERR_AsyncSubMain
+                    ' Update src\Features\VisualBasic\Portable\Diagnostics\LanguageServer\VisualBasicLspBuildOnlyDiagnostics.vb
+                    ' and TestIsBuildOnlyDiagnostic in src\Compilers\VisualBasic\Test\Semantic\Diagnostics\DiagnosticTests.vb
                     ' whenever new values are added here.
                     Return True
                 Case ERRID.Void,
@@ -449,7 +451,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_NameNotEvent2,
                      ERRID.ERR_AddOrRemoveHandlerEvent,
                      ERRID.ERR_UnrecognizedEnd,
-                     ERRID.ERR_ArrayInitForNonArray2,
                      ERRID.ERR_EndRegionNoRegion,
                      ERRID.ERR_ExpectedEndRegion,
                      ERRID.ERR_InheritsStmtWrongOrder,
@@ -1192,7 +1193,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_BadGetAwaiterMethod1,
                      ERRID.ERR_RestrictedResumableType1,
                      ERRID.ERR_BadAwaitNothing,
-                     ERRID.ERR_AsyncSubMain,
                      ERRID.ERR_PartialMethodsMustNotBeAsync1,
                      ERRID.ERR_InvalidAsyncIteratorModifiers,
                      ERRID.ERR_BadAwaitNotInAsyncMethodOrLambda,
@@ -1215,6 +1215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_FailureSigningAssembly,
                      ERRID.ERR_SignButNoPrivateKey,
                      ERRID.ERR_InvalidVersionFormat,
+                     ERRID.ERR_InvalidVersionFormatDeterministic,
                      ERRID.ERR_ExpectedSingleScript,
                      ERRID.ERR_ReferenceDirectiveOnlyAllowedInScripts,
                      ERRID.ERR_NamespaceNotAllowedInScript,
@@ -1234,7 +1235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_PublicKeyFileFailure,
                      ERRID.ERR_PublicKeyContainerFailure,
                      ERRID.ERR_InvalidAssemblyCulture,
-                     ERRID.ERR_EncUpdateFailedMissingAttribute,
+                     ERRID.ERR_EncUpdateFailedMissingSymbol,
                      ERRID.ERR_CantAwaitAsyncSub1,
                      ERRID.ERR_ResumableLambdaInExpressionTree,
                      ERRID.ERR_DllImportOnResumableMethod,
@@ -1302,6 +1303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_InvalidPathMap,
                      ERRID.ERR_PublicSignNoKey,
                      ERRID.ERR_TooManyUserStrings,
+                     ERRID.ERR_TooManyUserStrings_RestartRequired,
                      ERRID.ERR_PeWritingFailure,
                      ERRID.ERR_OptionMustBeAbsolutePath,
                      ERRID.ERR_DocFileGen,
@@ -1364,6 +1366,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_NewConstraintCannotHaveRequiredMembers,
                      ERRID.ERR_DoNotUseRequiredMember,
                      ERRID.ERR_UnsupportedRefReturningCallInWithStatement,
+                     ERRID.ERR_TypeReserved,
+                     ERRID.ERR_UnmanagedConstraintNotSatisfied,
+                     ERRID.ERR_CannotApplyOverloadResolutionPriorityToOverride,
+                     ERRID.ERR_CannotApplyOverloadResolutionPriorityToMember,
                      ERRID.ERR_NextAvailable,
                      ERRID.WRN_UseOfObsoleteSymbol2,
                      ERRID.WRN_InvalidOverrideDueToTupleNames2,
@@ -1418,7 +1424,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_MissingAsClauseinOperator,
                      ERRID.WRN_ConstraintsFailedForInferredArgs2,
                      ERRID.WRN_ConditionalNotValidOnFunction,
-                     ERRID.WRN_UseSwitchInsteadOfAttribute,
                      ERRID.WRN_TupleLiteralNameMismatch,
                      ERRID.WRN_ReferencedAssemblyDoesNotHaveStrongName,
                      ERRID.WRN_RecursiveAddHandlerCall,
@@ -1529,6 +1534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_UnableToLoadAnalyzer,
                      ERRID.WRN_AttributeIgnoredWhenPublicSigning,
                      ERRID.WRN_Experimental,
+                     ERRID.WRN_ExperimentalWithMessage,
                      ERRID.WRN_AttributeNotSupportedInVB,
                      ERRID.WRN_GeneratorFailedDuringInitialization,
                      ERRID.WRN_GeneratorFailedDuringGeneration,
@@ -1539,7 +1545,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_DuplicateAnalyzerReference,
                      ERRID.ERR_InvalidExperimentalDiagID,
                      ERRID.ERR_LockTypeUnsupported,
-                     ERRID.WRN_ConvertingLock
+                     ERRID.WRN_ConvertingLock,
+                     ERRID.ERR_EmbeddedAttributeMustFollowPattern,
+                     ERRID.ERR_MethodImplAttributeAsyncCannotBeUsed,
+                     ERRID.ERR_AttributeCannotBeAppliedManually
                     Return False
                 Case Else
                     ' NOTE: All error codes must be explicitly handled in the below select case statement

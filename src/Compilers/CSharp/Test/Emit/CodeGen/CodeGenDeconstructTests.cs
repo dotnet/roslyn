@@ -1906,7 +1906,7 @@ class C
     static int field;
     static long x { set { System.Console.WriteLine($""setX {value}""); } }
     static string y { get; set; }
-    static ref int z { get { return ref field; } }
+    static ref int z { get { return ref @field; } }
 
     static void Main()
     {
@@ -1941,7 +1941,7 @@ class C
     static int field;
     static long x { set { System.Console.WriteLine($""setX {value}""); } }
     static string y { get; set; }
-    static ref int z { get { return ref field; } }
+    static ref int z { get { return ref @field; } }
 
     static void Main()
     {
@@ -5043,7 +5043,7 @@ System.Console.Write($""{x} {y}"");
                 Assert.Equal("alias=System.Int32", model.GetAliasInfo(yType).ToTestDisplayString());
             };
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42", sourceSymbolValidator: validator);
@@ -5116,7 +5116,7 @@ System.Console.Write($""{x} {y}"");
 System.Console.Write(x);
 System.Console.Write(y);
 ";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
 
@@ -5134,7 +5134,7 @@ System.Console.Write(y);
 (string x, (int y, int z)) = (""hello"", (42, 43));
 System.Console.Write($""{x} {y} {z}"");
 ";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 43");
@@ -5148,7 +5148,7 @@ System.Console.Write($""{x} {y} {z}"");
 (var x, var y) = (""hello"", 42);
 System.Console.Write($""{x} {y}"");
 ";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42");
@@ -5194,7 +5194,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
                 Assert.Equal("(System.Int32 x2, System.Int32 x3)", model.GetSymbolInfo(x23Var.Type).Symbol.ToTestDisplayString());
             };
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 43", sourceSymbolValidator: validator);
@@ -5209,7 +5209,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
 var (x2, x3) = M(out var x1);
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "1 2 3");
@@ -5318,7 +5318,7 @@ foreach ((string x1, var (x2, x3)) in new[] { (""hello"", (42, ""world"")) })
                 Assert.Equal(SymbolKind.Local, x2Symbol.Kind);
             };
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 world", sourceSymbolValidator: validator);
@@ -5354,7 +5354,7 @@ for ((string x1, var (x2, x3)) = (""hello"", (42, ""world"")); ; )
                 Assert.Equal(SymbolKind.Local, x2Symbol.Kind);
             };
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 world", sourceSymbolValidator: validator);
@@ -5368,7 +5368,7 @@ for ((string x1, var (x2, x3)) = (""hello"", (42, ""world"")); ; )
 var (x, y) = (1, 2);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6), options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6), options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics(
                 // (2,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
@@ -5388,7 +5388,7 @@ var (x, y) = (1, 2);
 int (x, y) = (1, 2);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (2,5): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 // int (x, y) = (1, 2);
@@ -5421,7 +5421,7 @@ int (x, y) = (1, 2);
 (int (x, y), int z) = ((1, 2), 3);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (2,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 // (int (x, y), int z) = ((1, 2), 3);
@@ -5456,7 +5456,7 @@ var (x1, x2) = (1, 2);
 System.Console.Write(x1);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (3,6): error CS0102: The type 'Script' already contains a definition for 'x1'
                 // var (x1, x2) = (1, 2);
@@ -5491,7 +5491,7 @@ var (x, y) = (1, 2);
 var (z, y) = (1, 2);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (3,9): error CS0102: The type 'Script' already contains a definition for 'y'
                 // var (z, y) = (1, 2);
@@ -5522,7 +5522,7 @@ var (z, y) = (1, 2);
 var (x, (y, x)) = (1, (2, ""hello""));
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (2,13): error CS0102: The type 'Script' already contains a definition for 'x'
                 // var (x, (y, x)) = (1, (2, "hello"));
@@ -5554,7 +5554,7 @@ System.Console.Write(x);
 var (x, y) = (1, 2);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
 
@@ -5579,7 +5579,7 @@ var (x, y) = (1, 2);
 var (x, y) = (1, null);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.GetDeclarationDiagnostics().Verify(
                 // (2,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
                 // var (x, y) = (1, null);
@@ -5627,7 +5627,7 @@ var (x, y) = (1, null);
 var (x1, x2) = (x2, x1);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.GetDeclarationDiagnostics().Verify(
                 // (2,10): error CS7019: Type of 'x2' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // var (x1, x2) = (x2, x1);
@@ -5668,7 +5668,7 @@ var (x1, x2) = (y1, y2);
 var (y1, y2) = (x1, x2);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.GetDeclarationDiagnostics().Verify(
                 // (3,6): error CS7019: Type of 'y1' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // var (y1, y2) = (x1, x2);
@@ -5713,7 +5713,7 @@ var (x1, (x2, x3)) = (1, (2, 3));
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (3,5): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 // var (x1, (x2, x3)) = (1, (2, 3));
@@ -5755,7 +5755,7 @@ var (x1, (x2, x3)) = (1, (2, 3));
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (6,5): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 // var (x1, (x2, x3)) = (1, (2, 3));
@@ -5794,7 +5794,7 @@ using @var = System.Byte;
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2 3");
 
@@ -5844,7 +5844,7 @@ class @var
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "var var var");
 
@@ -6677,7 +6677,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         System.Threading.Tasks.Task.Delay(new System.TimeSpan(0));
@@ -6874,7 +6874,7 @@ using @alias = System.Int32;
                 Assert.Equal("(System.String, System.Int32)", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
             };
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, sourceSymbolValidator: validator);
@@ -6893,7 +6893,7 @@ public class C
 (string _, string _) = new C();
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "ctor");
@@ -6908,7 +6908,7 @@ int M() { System.Console.Write(""M""); return 1; }
 _ = M();
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "M");
         }
@@ -6943,7 +6943,7 @@ System.Console.Write($""{x3}"");
                 Assert.Null(model.GetSymbolInfo(tuple).Symbol);
             };
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "43", sourceSymbolValidator: validator);
@@ -8204,7 +8204,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "3");
         }
@@ -8225,7 +8225,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (8,11): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         ((x, x), this.x, C.y) = ((x, (1, 2)), x, y);
@@ -8256,7 +8256,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (9,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         (x, (y, z)) = (x, (y, z));
@@ -8291,7 +8291,7 @@ class D
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (8,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         (x, y) = (x, (C)(D)y);
@@ -8321,7 +8321,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (14,14): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         (_, (x, y)) = (1, (x, b));
@@ -8350,7 +8350,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 );
 
@@ -8406,7 +8406,7 @@ static class Extensions
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (9,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         (x, (y, z)) = (x, y);
@@ -8429,7 +8429,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll); // no ValueTuple reference
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll); // no ValueTuple reference
             comp.VerifyDiagnostics(
                 // (4,5): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 //     Error M()
@@ -8441,10 +8441,10 @@ class C
         public void TestDeconstructOnErrorTypeFromImageReference()
         {
             var missing_cs = "public class Missing { }";
-            var missing = CreateCompilationWithMscorlib45(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
+            var missing = CreateCompilationWithMscorlib461(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
 
             var lib_cs = "public class C { public Missing M() { throw null; } }";
-            var lib = CreateCompilationWithMscorlib45(lib_cs, references: new[] { missing.EmitToImageReference() }, options: TestOptions.DebugDll);
+            var lib = CreateCompilationWithMscorlib461(lib_cs, references: new[] { missing.EmitToImageReference() }, options: TestOptions.DebugDll);
 
             var source =
 @"
@@ -8458,7 +8458,7 @@ class D
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { lib.EmitToImageReference() }, options: TestOptions.DebugDll); // no ValueTuple reference
+            var comp = CreateCompilationWithMscorlib461(source, references: new[] { lib.EmitToImageReference() }, options: TestOptions.DebugDll); // no ValueTuple reference
             comp.VerifyDiagnostics(
                 // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (x, y) = new C().M();
@@ -8470,10 +8470,10 @@ class D
         public void TestDeconstructOnErrorTypeFromCompilationReference()
         {
             var missing_cs = "public class Missing { }";
-            var missing = CreateCompilationWithMscorlib45(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
+            var missing = CreateCompilationWithMscorlib461(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
 
             var lib_cs = "public class C { public Missing M() { throw null; } }";
-            var lib = CreateCompilationWithMscorlib45(lib_cs, references: new[] { missing.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var lib = CreateCompilationWithMscorlib461(lib_cs, references: new[] { missing.ToMetadataReference() }, options: TestOptions.DebugDll);
 
             var source =
 @"
@@ -8487,7 +8487,7 @@ class D
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { lib.ToMetadataReference() }, options: TestOptions.DebugDll); // no ValueTuple reference
+            var comp = CreateCompilationWithMscorlib461(source, references: new[] { lib.ToMetadataReference() }, options: TestOptions.DebugDll); // no ValueTuple reference
             comp.VerifyDiagnostics(
                 // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (x, y) = new C().M();

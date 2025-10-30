@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -25,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 [TagType(typeof(InheritanceMarginTag))]
 // This would ensure the margin is clickable.
 [Order(After = "VsTextMarker")]
-internal class InheritanceGlyphFactoryProvider : IGlyphFactoryProvider
+internal sealed class InheritanceGlyphFactoryProvider : IGlyphFactoryProvider
 {
     private readonly Workspace _workspace;
     private readonly IThreadingContext _threadingContext;

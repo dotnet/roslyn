@@ -1,0 +1,8 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants),MICROSOFT_CODEANALYSIS_ANALYZERS</DefineConstants>
+  </PropertyGroup>
+</Project>

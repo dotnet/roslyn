@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -25,14 +26,12 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
     Document document,
     IMoveStaticMembersOptionsService service,
     INamedTypeSymbol selectedType,
-    CleanCodeGenerationOptionsProvider fallbackOptions,
     ImmutableArray<ISymbol> selectedMembers) : CodeActionWithOptions
 {
     private readonly Document _document = document;
     private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
     private readonly INamedTypeSymbol _selectedType = selectedType;
     private readonly IMoveStaticMembersOptionsService _service = service;
-    private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
     public override string Title => FeaturesResources.Move_static_members_to_another_type;
 
@@ -51,36 +50,40 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
         var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        // add annotations to the symbols that we selected so we can find them later to pull up
+        // Get member nodes that we will need to annotate so we can find them later to pull up
         // These symbols should all have (singular) definitions, but in the case that we can't find
         // any location, we just won't move that particular symbol
         var memberNodes = moveOptions.SelectedMembers
             .Select(symbol => symbol.Locations.FirstOrDefault())
             .WhereNotNull()
             .SelectAsArray(loc => loc.FindNode(cancellationToken));
-        root = root.TrackNodes(memberNodes);
-        var sourceDoc = _document.WithSyntaxRoot(root);
 
         if (!moveOptions.IsNewType)
         {
             // we already have our destination type, but we need to find the document it is in
             // When it is an existing type, "FileName" points to a full path rather than just the name
             // There should be no two docs that have the same file path
-            var destinationDocId = _document.Project.Solution.GetDocumentIdsWithFilePath(moveOptions.FileName).Single();
+            var destinationDocId = _document.Project.Solution.GetDocumentIdsWithFilePath(moveOptions.FilePath).Single();
+
             var fixedSolution = await RefactorAndMoveAsync(
                 moveOptions.SelectedMembers,
                 memberNodes,
-                sourceDoc.Project.Solution,
+                _document.Project.Solution,
                 moveOptions.Destination!,
                 // TODO: Find a way to merge/change generic type args for classes, or change PullMembersUp to handle instead
                 typeArgIndices: [],
-                sourceDoc.Id,
+                _document.Id,
                 destinationDocId,
                 cancellationToken).ConfigureAwait(false);
-            return new CodeActionOperation[] { new ApplyChangesOperation(fixedSolution) };
+            return [new ApplyChangesOperation(fixedSolution)];
         }
 
         // otherwise, we need to create a destination ourselves
+
+        // annotate the members so we can find them later
+        root = root.TrackNodes(memberNodes);
+        var sourceDoc = _document.WithSyntaxRoot(root);
+
         var typeParameters = ExtractTypeHelpers.GetRequiredTypeParametersForMembers(_selectedType, moveOptions.SelectedMembers);
         // which indices of the old type params should we keep for a new class reference, used for refactoring usages
         var typeArgIndices = Enumerable.Range(0, _selectedType.TypeParameters.Length)
@@ -99,12 +102,11 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         var (newDoc, annotation) = await ExtractTypeHelpers.AddTypeToNewFileAsync(
             sourceDoc.Project.Solution,
             moveOptions.NamespaceDisplay,
-            moveOptions.FileName,
-            _document.Project.Id,
-            _document.Folders,
+            moveOptions.FilePath,
+            sourceDoc.Project.Id,
+            sourceDoc.Folders,
             newType,
-            _document,
-            _fallbackOptions,
+            sourceDoc,
             cancellationToken).ConfigureAwait(false);
 
         // get back type declaration in the newly created file
@@ -113,10 +115,18 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         newType = (INamedTypeSymbol)destSemanticModel.GetRequiredDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken);
 
         // refactor references across the entire solution
-        var memberReferenceLocations = await FindMemberReferencesAsync(moveOptions.SelectedMembers, newDoc.Project.Solution, cancellationToken).ConfigureAwait(false);
+        var memberReferenceLocations = await FindMemberReferencesAsync(newDoc.Project.Solution, newDoc.Project.Id, moveOptions.SelectedMembers, cancellationToken).ConfigureAwait(false);
         var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
         var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, newDoc.Project.Solution, newType, typeArgIndices, cancellationToken).ConfigureAwait(false);
 
+        // Qualify static member references in the moved members
+        solutionWithFixedReferences = await QualifyStaticMemberReferencesAsync(
+            solutionWithFixedReferences,
+            sourceDoc.Id,
+            memberNodes,
+            _selectedType,
+            moveOptions.SelectedMembers,
+            cancellationToken).ConfigureAwait(false);
         sourceDoc = solutionWithFixedReferences.GetRequiredDocument(sourceDoc.Id);
 
         // get back nodes from our changes
@@ -125,12 +135,12 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         var members = memberNodes
             .Select(node => root.GetCurrentNode(node))
             .WhereNotNull()
-            .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
+            .SelectAsArray(node => (semanticModel.GetRequiredDeclaredSymbol(node, cancellationToken), false));
 
         var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
-        var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
 
-        return new CodeActionOperation[] { new ApplyChangesOperation(movedSolution) };
+        return [new ApplyChangesOperation(movedSolution)];
     }
 
     /// <summary>
@@ -154,7 +164,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
     /// <param name="typeArgIndices">generic type arg indices to keep when refactoring generic class access to the new type. Empty if not relevant</param>
     /// <param name="sourceDocId">Id of the document where the mebers are being moved from</param>
     /// <returns>The solution with references refactored and members moved to the newType</returns>
-    private async Task<Solution> RefactorAndMoveAsync(
+    private static async Task<Solution> RefactorAndMoveAsync(
         ImmutableArray<ISymbol> selectedMembers,
         ImmutableArray<SyntaxNode> oldMemberNodes,
         Solution oldSolution,
@@ -164,20 +174,43 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         DocumentId newTypeDocId,
         CancellationToken cancellationToken)
     {
-        // annotate our new type, in case our refactoring changes it
+        // get our new type before we annotate members to ensure the original symbol gives us back the correct node.
         var newTypeDoc = await oldSolution.GetRequiredDocumentAsync(newTypeDocId, cancellationToken: cancellationToken).ConfigureAwait(false);
         var newTypeRoot = await newTypeDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var newTypeNode = newType.DeclaringSyntaxReferences
             .SelectAsArray(sRef => sRef.GetSyntax(cancellationToken))
             .First(node => newTypeRoot.Contains(node));
-        newTypeRoot = newTypeRoot.TrackNodes(newTypeNode);
-        oldSolution = newTypeDoc.WithSyntaxRoot(newTypeRoot).Project.Solution;
+
+        var oldSourceRoot = await oldSolution.GetRequiredDocument(sourceDocId).GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        if (sourceDocId == newTypeDocId)
+        {
+            // the members and destination are in the same tree, annotate them all together to avoid missing nodes due to tree changes.
+            oldSourceRoot = oldSourceRoot.TrackNodes(oldMemberNodes.Concat(newTypeNode));
+            oldSolution = oldSolution.WithDocumentSyntaxRoot(sourceDocId, oldSourceRoot);
+        }
+        else
+        {
+            // members and destination are in different documents, annotate each root.
+            oldSourceRoot = oldSourceRoot.TrackNodes(oldMemberNodes);
+            newTypeRoot = newTypeRoot.TrackNodes(newTypeNode);
+            oldSolution = oldSolution.WithDocumentSyntaxRoots([(sourceDocId, oldSourceRoot), (newTypeDocId, newTypeRoot)]);
+        }
 
         // refactor references across the entire solution
-        var memberReferenceLocations = await FindMemberReferencesAsync(selectedMembers, oldSolution, cancellationToken).ConfigureAwait(false);
+        var memberReferenceLocations = await FindMemberReferencesAsync(
+            oldSolution, sourceDocId.ProjectId, selectedMembers, cancellationToken).ConfigureAwait(false);
         var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
         var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, oldSolution, newType, typeArgIndices, cancellationToken).ConfigureAwait(false);
 
+        // Qualify static member references in the moved members
+        var originalType = selectedMembers.First().ContainingType;
+        solutionWithFixedReferences = await QualifyStaticMemberReferencesAsync(
+            solutionWithFixedReferences,
+            sourceDocId,
+            oldMemberNodes,
+            originalType,
+            selectedMembers,
+            cancellationToken).ConfigureAwait(false);
         var sourceDoc = solutionWithFixedReferences.GetRequiredDocument(sourceDocId);
 
         // get back tracked nodes from our changes
@@ -186,7 +219,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         var members = oldMemberNodes
             .Select(node => root.GetCurrentNode(node))
             .WhereNotNull()
-            .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
+            .SelectAsArray(node => (semanticModel.GetRequiredDeclaredSymbol(node, cancellationToken), false));
 
         newTypeDoc = solutionWithFixedReferences.GetRequiredDocument(newTypeDoc.Id);
         newTypeRoot = await newTypeDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -194,7 +227,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         newType = (INamedTypeSymbol)newTypeSemanticModel.GetRequiredDeclaredSymbol(newTypeRoot.GetCurrentNode(newTypeNode)!, cancellationToken);
 
         var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
-        return await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+        return await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<Solution> RefactorReferencesAsync(
@@ -216,7 +249,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
             {
                 var doc = project.GetRequiredDocument(docId);
                 var updatedRoot = await FixReferencesSingleDocumentAsync(
-                    referencesForDoc.ToImmutableArray(),
+                    [.. referencesForDoc],
                     doc,
                     newType,
                     typeArgIndices,
@@ -326,11 +359,27 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
     }
 
     private static async Task<ImmutableArray<(ReferenceLocation location, bool isExtension)>> FindMemberReferencesAsync(
-        ImmutableArray<ISymbol> members,
         Solution solution,
+        ProjectId projectId,
+        ImmutableArray<ISymbol> members,
         CancellationToken cancellationToken)
     {
-        var tasks = members.Select(symbol => SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken));
+        var project = solution.GetRequiredProject(projectId);
+        var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+        using var _ = ArrayBuilder<Task<IEnumerable<ReferencedSymbol>>>.GetInstance(out var tasks);
+        foreach (var member in members)
+        {
+            tasks.Add(Task.Run(async () =>
+            {
+                var symbolKey = member.GetSymbolKey(cancellationToken);
+                var resolvedMember = symbolKey.Resolve(compilation, ignoreAssemblyKey: false, cancellationToken).GetAnySymbol();
+                return resolvedMember is null
+                    ? []
+                    : await SymbolFinder.FindReferencesAsync(resolvedMember, solution, cancellationToken).ConfigureAwait(false);
+            }));
+        }
+
         var symbolRefs = await Task.WhenAll(tasks).ConfigureAwait(false);
         return symbolRefs
             .Flatten()
@@ -338,5 +387,64 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
                 .Where(loc => !loc.IsCandidateLocation && !loc.IsImplicit)
                 .Select(loc => (loc, refSymbol.Definition.IsExtensionMethod())))
             .ToImmutableArrayOrEmpty();
+    }
+
+    /// <summary>
+    /// Process the bodies of members being moved to qualify references to static members
+    /// that remain in the original class.
+    /// </summary>
+    private static async Task<Solution> QualifyStaticMemberReferencesAsync(
+        Solution solution,
+        DocumentId sourceDocId,
+        ImmutableArray<SyntaxNode> memberNodes,
+        INamedTypeSymbol originalType,
+        ImmutableArray<ISymbol> selectedMembers,
+        CancellationToken cancellationToken)
+    {
+        var sourceDoc = solution.GetRequiredDocument(sourceDocId);
+        var root = await sourceDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFacts = sourceDoc.GetRequiredLanguageService<ISyntaxFactsService>();
+        var generator = SyntaxGenerator.GetGenerator(sourceDoc);
+
+        var members = memberNodes
+            .Select(node => root.GetCurrentNode(node))
+            .WhereNotNull();
+        var nodesToUpdate = new Dictionary<SyntaxNode, SyntaxNode>();
+
+        // Only walking into the members being moved since those are the only places where we need to qualify
+        // references to static members from the original class that are not being moved.
+        foreach (var memberNode in members)
+        {
+            foreach (var identifierNode in memberNode.DescendantNodes().Where(
+                n => syntaxFacts.IsIdentifierName(n) &&
+                    !syntaxFacts.IsNameOfAnyMemberAccessExpression(n)))
+            {
+                var symbolInfo = semanticModel.GetSymbolInfo(identifierNode, cancellationToken);
+                var symbol = symbolInfo.Symbol;
+
+                // Check if it's a static member from the original class that isn't being moved
+                if (symbol is { IsStatic: true, ContainingType: { } containingType } &&
+                    symbol.ContainingType.Name == originalType.Name &&
+                    !selectedMembers.Contains(symbol))
+                {
+                    var qualified = generator.MemberAccessExpression(
+                        generator.TypeExpression(originalType),
+                        identifierNode);
+
+                    nodesToUpdate.Add(identifierNode, qualified);
+                }
+            }
+        }
+
+        if (nodesToUpdate.Count > 0)
+        {
+            root = root.ReplaceNodes(nodesToUpdate.Keys,
+                (original, _) => nodesToUpdate[original]);
+
+            solution = solution.WithDocumentSyntaxRoot(sourceDocId, root);
+        }
+
+        return solution;
     }
 }

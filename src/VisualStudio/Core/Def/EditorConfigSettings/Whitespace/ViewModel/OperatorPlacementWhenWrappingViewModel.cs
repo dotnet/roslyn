@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 
 [Export(typeof(IEnumSettingViewModelFactory)), Shared]
-internal class OperatorPlacementWhenWrappingViewModelFactory : IEnumSettingViewModelFactory
+internal sealed class OperatorPlacementWhenWrappingViewModelFactory : IEnumSettingViewModelFactory
 {
     private readonly OptionKey2 _key;
 
@@ -34,7 +33,7 @@ internal class OperatorPlacementWhenWrappingViewModelFactory : IEnumSettingViewM
 
     public bool IsSupported(OptionKey2 key) => _key == key;
 
-    private class OperatorPlacementWhenWrappingViewModel : EnumSettingViewModel<OperatorPlacementWhenWrappingPreference>
+    private sealed class OperatorPlacementWhenWrappingViewModel : EnumSettingViewModel<OperatorPlacementWhenWrappingPreference>
     {
         private readonly Setting _setting;
 

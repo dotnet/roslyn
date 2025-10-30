@@ -6,21 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode;
 
@@ -28,11 +22,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class IntentSourceProvider(
-    [ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders,
-    IGlobalOptionService globalOptions) : IIntentSourceProvider
+    [ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders) : IIntentSourceProvider
 {
     private readonly ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> _lazyIntentProviders = CreateProviderMap(lazyIntentProviders);
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     private static ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> CreateProviderMap(
         IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders)
@@ -53,11 +45,12 @@ internal class IntentSourceProvider(
         var languageName = currentDocument.Project.Language;
         if (!_lazyIntentProviders.TryGetValue((LanguageName: languageName, IntentName: intentRequestContext.IntentName), out var provider))
         {
-            Logger.Log(FunctionId.Intellicode_UnknownIntent, KeyValueLogMessage.Create(LogType.UserAction, m =>
+            Logger.Log(FunctionId.Intellicode_UnknownIntent, KeyValueLogMessage.Create(LogType.UserAction, static (m, args) =>
             {
+                var (intentRequestContext, languageName) = args;
                 m["intent"] = intentRequestContext.IntentName;
                 m["language"] = languageName;
-            }));
+            }, (intentRequestContext, languageName)));
 
             return [];
         }
@@ -71,9 +64,7 @@ internal class IntentSourceProvider(
             originalDocument,
             selectionTextSpan,
             currentDocument,
-            new IntentDataProvider(
-                intentRequestContext.IntentData,
-                _globalOptions.CreateProvider()),
+            new IntentDataProvider(intentRequestContext.IntentData),
             cancellationToken).ConfigureAwait(false);
 
         if (results.IsDefaultOrEmpty)
@@ -88,7 +79,7 @@ internal class IntentSourceProvider(
             convertedResults.AddIfNotNull(convertedIntent);
         }
 
-        return convertedResults.ToImmutable();
+        return convertedResults.ToImmutableAndClear();
     }
 
     private static async Task<IntentSource?> ConvertToIntelliCodeResultAsync(

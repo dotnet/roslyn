@@ -5,13 +5,12 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.BraceMatching;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceMatching;
 
 [ExportBraceMatcher(LanguageNames.CSharp), Shared]
-internal class OpenCloseParenBraceMatcher : AbstractCSharpBraceMatcher
+internal sealed class OpenCloseParenBraceMatcher : AbstractCSharpBraceMatcher
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

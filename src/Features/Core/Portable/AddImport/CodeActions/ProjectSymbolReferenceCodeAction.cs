@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport;
@@ -20,7 +18,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     /// find a source symbol in a different project, we'll also add a p2p reference when
     /// we apply the code action.
     /// </summary>
-    private class ProjectSymbolReferenceCodeAction : SymbolReferenceCodeAction
+    private sealed class ProjectSymbolReferenceCodeAction : SymbolReferenceCodeAction
     {
         /// <summary>
         /// This code action may or may not add a project reference.  If it does, it requires a non document change

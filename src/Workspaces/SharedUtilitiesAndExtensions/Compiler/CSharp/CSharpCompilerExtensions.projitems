@@ -10,9 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpCodeGenerationOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpSyntaxTokens.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CSharpCodeStyleOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CSharpCodeStyleOptions_Parsing.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CSharpIdeCodeStyleOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\PreferBracesPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\TypeStyle\TypeStyleHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\TypeStyle\UseVarPreference.cs" />
@@ -30,7 +30,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DefaultExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ForEachStatementSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ILocalSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LanguageVersionExtensions.cs" />
@@ -98,6 +97,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\AbstractCSharpPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\CSharpPatternPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\CSharpExpressionPrecedenceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\RefactoringHelpers\CSharpRefactoringHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\CSharpSelectedMembers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\CSharpSemanticFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpAccessibilityFacts.cs" />

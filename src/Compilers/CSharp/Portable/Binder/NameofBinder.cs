@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -19,18 +21,24 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class NameofBinder : Binder
     {
-        private readonly SyntaxNode _nameofArgument;
+        private readonly ExpressionSyntax _nameofArgument;
         private readonly WithTypeParametersBinder? _withTypeParametersBinder;
         private readonly Binder? _withParametersBinder;
         private ThreeState _lazyIsNameofOperator;
 
-        internal NameofBinder(SyntaxNode nameofArgument, Binder next, WithTypeParametersBinder? withTypeParametersBinder, Binder? withParametersBinder)
+        private readonly Dictionary<GenericNameSyntax, bool>? _allowedMap;
+
+        internal NameofBinder(ExpressionSyntax nameofArgument, Binder next, WithTypeParametersBinder? withTypeParametersBinder, Binder? withParametersBinder)
             : base(next)
         {
             _nameofArgument = nameofArgument;
             _withTypeParametersBinder = withTypeParametersBinder;
             _withParametersBinder = withParametersBinder;
+            OpenTypeVisitor.Visit(nameofArgument, out _allowedMap);
         }
+
+        protected override bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
+            => _allowedMap != null && _allowedMap.TryGetValue(syntax, out bool allowed) && allowed;
 
         private bool IsNameofOperator
         {

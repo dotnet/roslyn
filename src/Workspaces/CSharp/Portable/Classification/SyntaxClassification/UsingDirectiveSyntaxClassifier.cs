@@ -9,12 +9,11 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
 
-internal class UsingDirectiveSyntaxClassifier : AbstractSyntaxClassifier
+internal sealed class UsingDirectiveSyntaxClassifier : AbstractSyntaxClassifier
 {
     public override void AddClassifications(
         SyntaxNode syntax,

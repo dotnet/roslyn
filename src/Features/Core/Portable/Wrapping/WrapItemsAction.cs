@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -83,7 +81,7 @@ internal sealed class WrapItemsAction(string title, string parentTitle, Func<IPr
     private static string GetSortTitle(CodeAction codeAction)
         => (codeAction as WrapItemsAction)?.SortTitle ?? codeAction.Title;
 
-    private class RecordCodeActionOperation(string sortTitle, string parentTitle) : CodeActionOperation
+    private sealed class RecordCodeActionOperation(string sortTitle, string parentTitle) : CodeActionOperation
     {
         private readonly string _sortTitle = sortTitle;
         private readonly string _parentTitle = parentTitle;

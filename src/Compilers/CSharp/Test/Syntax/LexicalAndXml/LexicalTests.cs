@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -441,28 +442,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [Trait("Feature", "Comments")]
-        public void TestAtColonTreatedAsComment_RazorRecovery()
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentToken_RazorRecovery()
         {
             var text = "@: More text";
             var token = LexToken(text);
 
             Assert.NotEqual(default, token);
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             var errors = token.Errors();
             errors.Verify(
-                // error CS1056: Unexpected character '@'
-                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
-            var trivia = token.GetLeadingTrivia().ToArray();
-            Assert.Equal(1, trivia.Length);
-            Assert.NotEqual(default, trivia[0]);
-            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].Kind());
+                // error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                TestBase.Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral).WithLocation(1, 1));
+            Assert.Empty(token.LeadingTrivia);
+            Assert.Empty(token.TrailingTrivia);
         }
 
         [Fact]
-        [Trait("Feature", "Comments")]
-        public void TestAtColonTreatedAsCommentAsTrailingTrivia_RazorRecovery()
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentTokenEndOfLine_RazorRecovery()
         {
             var text = """
                 Identifier @: More text
@@ -474,19 +473,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
-            var errors = token.Errors();
-            errors.Verify(
-                // error CS1056: Unexpected character '@'
-                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
-            var trivia = token.GetLeadingTrivia().ToArray();
-            Assert.Equal(0, trivia.Length);
-            trivia = token.GetTrailingTrivia().ToArray();
-            Assert.Equal(3, trivia.Length);
-            Assert.NotEqual(default, trivia[1]);
-            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[1].Kind());
-            Assert.Equal("@: More text", trivia[1].ToFullString());
+            Assert.Empty(token.Errors());
 
             token = tokens[1];
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                TestBase.Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral).WithLocation(1, 1));
+            Assert.Empty(token.LeadingTrivia);
+            Assert.Single(token.TrailingTrivia);
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, token.TrailingTrivia[0].Kind());
+            Assert.Equal("@: More text", token.Text);
+
+            token = tokens[2];
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal("""
@@ -496,8 +497,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [Trait("Feature", "Comments")]
-        public void TestAtColonTreatedAsComment_TrailingMultiLine_RazorRecovery()
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentToken_TrailingMultiLine_RazorRecovery()
         {
             var text = """
                 @: /*
@@ -509,26 +510,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = tokens[0];
 
             Assert.NotEqual(default, token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
-            Assert.Equal("""
-                @: /*
-                Identifier
-
-                """, token.ToFullString());
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
+            Assert.Equal("@: /*", token.ToString());
             var errors = token.Errors();
             errors.Verify(
-                // error CS1056: Unexpected character '@'
-                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
-            var trivia = token.GetLeadingTrivia().ToArray();
-            Assert.Equal(2, trivia.Length);
-            Assert.NotEqual(default, trivia[0]);
-            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].Kind());
-            Assert.Equal("@: /*", trivia[0].ToFullString());
+                // error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                TestBase.Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral).WithLocation(1, 1));
+            Assert.Empty(token.LeadingTrivia);
+            Assert.Single(token.TrailingTrivia);
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, token.TrailingTrivia[0].Kind());
+
+            token = tokens[1];
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal("Identifier", token.Text);
         }
 
         [Fact]
-        [Trait("Feature", "Comments")]
-        public void TestAtColonTreatedAsComment_PreprocessorDisabled_RazorRecovery()
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentToken_PreprocessorDisabled_RazorRecovery()
         {
             var text = """
                 #if false
@@ -551,8 +550,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [Trait("Feature", "Comments")]
-        public void TestAtColonTreatedAsComment_PreprocessorEnabled_RazorRecovery()
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentToken_PreprocessorEnabled_RazorRecovery()
         {
             var text = """
                 #if true
@@ -560,21 +559,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 #endif
                 """;
 
-            var token = LexToken(text);
+            var tokens = Lex(text).ToArray();
+            Assert.Equal(2, tokens.Length);
+            var token = tokens[0];
 
             Assert.NotEqual(default, token);
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
-            Assert.Equal(text, token.ToFullString());
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
+            Assert.Equal("""
+                #if true
+                @:
+
+                """, token.ToFullString());
             var errors = token.Errors();
             errors.Verify(
-                // error CS1056: Unexpected character '@'
-                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
-            var trivia = token.GetLeadingTrivia().ToArray();
-            Assert.Equal(4, trivia.Length);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, trivia[0].Kind());
-            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[1].Kind());
-            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia[2].Kind());
-            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, trivia[3].Kind());
+                // error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                TestBase.Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral).WithLocation(1, 1));
+            Assert.Single(token.GetLeadingTrivia());
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, token.GetLeadingTrivia()[0].Kind());
+
+            token = tokens[1];
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal("#endif", token.ToFullString());
+            Assert.Single(token.GetLeadingTrivia());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, token.GetLeadingTrivia()[0].Kind());
+            Assert.Empty(token.GetTrailingTrivia());
         }
 
         [Fact]
@@ -1149,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            AssertEx.EqualOrDiff("error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            AssertEx.EqualOrDiff("error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
             Assert.Equal(value, token.ValueText);
         }
 
@@ -1161,7 +1169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "\e"
                 """;
             var value = "\u001b";
-            var token = LexToken(text, TestOptions.RegularNext);
+            var token = LexToken(text, TestOptions.Regular13);
 
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
@@ -1330,7 +1338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            AssertEx.EqualOrDiff("error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            AssertEx.EqualOrDiff("error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
             Assert.Equal(value, token.ValueText);
         }
 
@@ -1340,7 +1348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\u001b";
             var text = "'\\e'";
-            var token = LexToken(text, TestOptions.RegularNext);
+            var token = LexToken(text, TestOptions.Regular13);
 
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
@@ -4564,6 +4572,67 @@ class C
             Assert.Equal(">>>>>>> Actually the end", trivia.ToFullString());
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78593")]
+        public void TestDotPrefixedNumberStartingAtStartOfSlidingTextWindow()
+        {
+            // Make a file that looks effectively like:
+            //
+            //      ////// <long stream of slashes>
+            //      ;
+            //      ..0;
+            //
+            // We want both dots at the end of the window.  When we lex the first dot, we'll peek ahead to see if we're
+            // on a number, and we don't want that to move the window forward.  Then when we lex the second dot, we will
+            // peek forward, making the text window point at "0;".
+            //
+            // Because we will have seen `.0` we will attempt to peek backwards to see if the prior token was a dot.
+            // This will involve reading back a chunk that includes that dot.
+            var windowEnd = "\r\n;\r\n..";
+            var code = new string('/', SlidingTextWindow.DefaultWindowLength - windowEnd.Length) + windowEnd + "0;";
+
+            var sourceText = SourceText.From(code);
+
+            {
+                // Run a full parse, and validate the tree returned).
+
+                using var lexer = new Lexer(sourceText, CSharpParseOptions.Default);
+
+                using var parser = new LanguageParser(lexer, oldTree: null, changes: null);
+
+                Microsoft.CodeAnalysis.SyntaxTreeExtensions.VerifySource(
+                    sourceText, parser.ParseCompilationUnit().CreateRed());
+            }
+
+            {
+                // Now, replicate the same conditions that hte parser runs through by driving the a new lexer here
+                // directly.  That ensures that we are actually validating exactly the conditions that led to the bug
+                // (a dot token starting a number, right at the start of the character window).
+                var lexer = new Lexer(sourceText, CSharpParseOptions.Default);
+
+                var mode = LexerMode.Syntax;
+                var token1 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.SemicolonToken, token1.Kind);
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 2, token1.FullWidth);
+
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 2, SlidingTextWindow.TestAccessor.GetOffset(lexer.TextWindow));
+                var token2 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.DotToken, token2.Kind);
+
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 1, SlidingTextWindow.TestAccessor.GetOffset(lexer.TextWindow));
+                var token3 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.DotToken, token3.Kind);
+
+                // We will have jumped the window backwards to be able to read the prior dot.
+                Assert.Equal(code.IndexOf('.'), SlidingTextWindow.TestAccessor.GetCharacterWindowStartPositionInText(lexer.TextWindow));
+                Assert.Equal(2, SlidingTextWindow.TestAccessor.GetOffset(lexer.TextWindow));
+                Assert.StartsWith("..0;", SlidingTextWindow.TestAccessor.GetCharacterWindow(lexer.TextWindow).AsSpan().ToString());
+
+                var token4 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.NumericLiteralToken, token4.Kind);
+                Assert.Equal("0", token4.ValueText);
+            }
         }
     }
 }

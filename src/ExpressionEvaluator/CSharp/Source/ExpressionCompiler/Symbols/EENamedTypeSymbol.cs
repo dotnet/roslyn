@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -22,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly NamedTypeSymbol _baseType;
         private readonly string _name;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
-        private readonly ImmutableArray<MethodSymbol> _methods;
 
         internal EENamedTypeSymbol(
             NamespaceSymbol container,
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             this.SourceTypeParameters = sourceTypeParameters;
             _typeParameters = getTypeParameters(currentFrame.ContainingType, this);
             VerifyTypeParameters(this, _typeParameters);
-            _methods = getMethods(currentFrame, this);
+            Methods = getMethods(currentFrame, this);
         }
 
         internal EENamedTypeSymbol(
@@ -91,16 +91,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             this.SubstitutedSourceType = typeMap.SubstituteNamedType(sourceType);
             TypeParameterChecker.Check(this.SubstitutedSourceType, _typeParameters);
 
-            _methods = getMethods(currentFrame, this);
+            Methods = getMethods(currentFrame, this);
         }
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
             => throw ExceptionUtilities.Unreachable();
 
-        internal ImmutableArray<MethodSymbol> Methods
-        {
-            get { return _methods; }
-        }
+        internal ImmutableArray<MethodSymbol> Methods { get; }
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
         {
@@ -109,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override IEnumerable<MethodSymbol> GetMethodsToEmit()
         {
-            return _methods;
+            return Methods;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit()
@@ -171,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            return _methods.Cast<MethodSymbol, Symbol>();
+            return Methods.Cast<MethodSymbol, Symbol>();
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
@@ -349,6 +346,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
+
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
@@ -357,6 +356,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IsRecordStruct => false;
         internal override bool HasPossibleWellKnownCloneMethod() => false;
         internal override bool IsInterpolatedStringHandlerType => false;
+
+#nullable enable
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+        internal sealed override string? ExtensionGroupingName => null;
+        internal sealed override string? ExtensionMarkerName => null;
+#nullable disable
 
         [Conditional("DEBUG")]
         internal static void VerifyTypeParameters(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters)

@@ -6,13 +6,10 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeDefinitionWindow
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
     <UseExportProvider>
@@ -89,6 +86,10 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
             Public Function GetNavigableItemsAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of INavigableItem)) Implements INavigableItemsService.GetNavigableItemsAsync
                 Return Task.FromResult(ImmutableArray.Create(Of INavigableItem)(New FakeNavigableItem(document)))
             End Function
+
+            Public Function GetNavigableItemsAsync(document As Document, position As Integer, forSymbolType As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of INavigableItem)) Implements INavigableItemsService.GetNavigableItemsAsync
+                Return Task.FromResult(ImmutableArray.Create(Of INavigableItem)(New FakeNavigableItem(document)))
+            End Function
         End Class
 
         <Fact>
@@ -108,10 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
                 Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
                 Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
-                    workspace,
-                    document,
-                    hostDocument.CursorPosition.Value,
-                    CancellationToken.None)
+                    document, hostDocument.CursorPosition.Value, CancellationToken.None)
 
                 Dim expectedLocation = New CodeDefinitionWindowLocation(
                     "DisplayText",

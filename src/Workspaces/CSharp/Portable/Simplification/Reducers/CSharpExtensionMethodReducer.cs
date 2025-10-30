@@ -10,13 +10,12 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-internal partial class CSharpExtensionMethodReducer : AbstractCSharpReducer
+internal sealed partial class CSharpExtensionMethodReducer : AbstractCSharpReducer
 {
     private static readonly ObjectPool<IReductionRewriter> s_pool = new(
         () => new Rewriter(s_pool));
@@ -118,12 +117,11 @@ internal partial class CSharpExtensionMethodReducer : AbstractCSharpReducer
                         candidateRewrittenNode,
                         SpeculativeBindingOption.BindAsExpression).Symbol;
 
-                    if (oldSymbol != null && newSymbol != null)
+                    if (oldSymbol != null &&
+                        newSymbol is IMethodSymbol newMethod &&
+                        oldSymbol.Equals(newMethod.GetConstructedReducedFrom()))
                     {
-                        if (newSymbol.Kind == SymbolKind.Method && oldSymbol.Equals(((IMethodSymbol)newSymbol).GetConstructedReducedFrom()))
-                        {
-                            rewrittenNode = candidateRewrittenNode;
-                        }
+                        rewrittenNode = candidateRewrittenNode;
                     }
                 }
             }

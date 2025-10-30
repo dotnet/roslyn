@@ -7,13 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class HiddenKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class HiddenKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.HiddenKeyword, isValidInPreprocessorContext: true)
 {
-    public HiddenKeywordRecommender()
-        : base(SyntaxKind.HiddenKeyword, isValidInPreprocessorContext: true)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         // cases:

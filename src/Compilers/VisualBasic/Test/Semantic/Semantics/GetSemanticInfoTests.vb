@@ -3,19 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.IO
-Imports System.Linq
 Imports System.Runtime.CompilerServices
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities.TestMetadata
-
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -4488,7 +4483,7 @@ Module Program
     End Function
 End Module
         </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             comp.VerifyDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -4550,7 +4545,7 @@ Module Program
     End Sub
 End Module
         </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             comp.AssertNoDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -5293,7 +5288,7 @@ End Namespace End Class
        apInitScenario("7. generic T_Method B ----------------------------
 
 }]]></file>
-    </compilation>, {Net40.SystemCore, Net40.System, Net40.SystemData}, TestOptions.ReleaseDll.WithOptionExplicit(False).WithOptionInfer(True))
+    </compilation>, {Net40.References.SystemCore, Net40.References.System, Net40.References.SystemData}, TestOptions.ReleaseDll.WithOptionExplicit(False).WithOptionInfer(True))
 
             compilation.GetDiagnostics()
 

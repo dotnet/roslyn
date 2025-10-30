@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     /// <summary>
     /// Flags controlling if generator documents should be created or not.
@@ -15,6 +15,15 @@ internal partial class SolutionCompilationState
         /// Source generators should be run and should produce up to date results.
         /// </summary>
         Create,
+
+        /// <summary>
+        /// Source generators that are considered required should be run and produce results. Previously
+        /// computed results should be reused for other generators.
+        /// </summary>
+        /// <remarks>
+        /// Today the only required generator is Razor.
+        /// </remarks>
+        CreateOnlyRequired,
 
         /// <summary>
         /// Source generators should not run.  Whatever results were previously computed should be reused.

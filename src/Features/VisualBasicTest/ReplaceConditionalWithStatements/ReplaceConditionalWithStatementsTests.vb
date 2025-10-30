@@ -2,20 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Text
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-Imports Xunit
-
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements.VisualBasicReplaceConditionalWithStatementsCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ReplaceConditionalWithStatements
-
+    <UseExportProvider>
     Public Class ReplaceConditionalWithStatementsTests
         <Fact>
         Public Async Function TestAssignment_ObjectType() As Task

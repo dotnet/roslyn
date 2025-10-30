@@ -9,15 +9,16 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class SuppressFormattingRule : BaseFormattingRule
+internal sealed class SuppressFormattingRule : BaseFormattingRule
 {
     internal const string Name = "CSharp Suppress Formatting Rule";
 
-    public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+    public override void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
     {
         nextOperation.Invoke();
 
@@ -32,7 +33,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
         AddSpecificNodesSuppressOperations(list, node);
     }
 
-    private static void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+    private static void AddSpecificNodesSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         if (node is IfStatementSyntax ifStatementNode)
         {
@@ -166,7 +167,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
             }
 
             var propertyDeclNode = node as PropertyDeclarationSyntax;
-            if (propertyDeclNode?.Initializer != null && propertyDeclNode?.AccessorList != null)
+            if (propertyDeclNode is { Initializer: not null, AccessorList: not null })
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, propertyDeclNode.AccessorList.GetLastToken());
             }
@@ -219,9 +220,9 @@ internal class SuppressFormattingRule : BaseFormattingRule
 
         if (node is ParameterSyntax parameterNode)
         {
-            if (parameterNode.AttributeLists.Count != 0)
+            if (parameterNode.AttributeLists is [var firstAttribute, ..])
             {
-                var anchorToken = parameterNode.AttributeLists.First().OpenBracketToken;
+                var anchorToken = firstAttribute.OpenBracketToken;
                 AddSuppressAllOperationIfOnMultipleLine(list, anchorToken, parameterNode.GetLastToken());
             }
         }
@@ -229,7 +230,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
         if (node is TryStatementSyntax tryStatement)
         {
             // Add a suppression operation if the try keyword and the block are in the same line
-            if (!tryStatement.TryKeyword.IsMissing && tryStatement.Block != null && !tryStatement.Block.CloseBraceToken.IsMissing)
+            if (tryStatement is { TryKeyword.IsMissing: false, Block: not null } && !tryStatement.Block.CloseBraceToken.IsMissing)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, tryStatement.TryKeyword, tryStatement.Block.CloseBraceToken);
             }
@@ -238,7 +239,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
         if (node is CatchClauseSyntax catchClause)
         {
             // Add a suppression operation if the catch keyword and the corresponding block are in the same line
-            if (!catchClause.CatchKeyword.IsMissing && catchClause.Block != null && !catchClause.Block.CloseBraceToken.IsMissing)
+            if (catchClause is { CatchKeyword.IsMissing: false, Block: not null } && !catchClause.Block.CloseBraceToken.IsMissing)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, catchClause.CatchKeyword, catchClause.Block.CloseBraceToken);
             }
@@ -247,7 +248,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
         if (node is FinallyClauseSyntax finallyClause)
         {
             // Add a suppression operation if the finally keyword and the corresponding block are in the same line
-            if (!finallyClause.FinallyKeyword.IsMissing && finallyClause.Block != null && !finallyClause.Block.CloseBraceToken.IsMissing)
+            if (finallyClause is { FinallyKeyword.IsMissing: false, Block: not null } && !finallyClause.Block.CloseBraceToken.IsMissing)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, finallyClause.FinallyKeyword, finallyClause.Block.CloseBraceToken);
             }
@@ -259,7 +260,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
         }
     }
 
-    private static void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+    private static void AddStatementExceptBlockSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         if (node is not StatementSyntax statementNode || statementNode.Kind() == SyntaxKind.Block)
         {
@@ -272,7 +273,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
         AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
     }
 
-    private static void AddFormatSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+    private static void AddFormatSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         if (!node.ContainsDirectives)
         {
@@ -293,7 +294,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
         return;
 
         // Local functions
-        static void ProcessTriviaList(List<SuppressOperation> list, SyntaxTriviaList triviaList)
+        static void ProcessTriviaList(ArrayBuilder<SuppressOperation> list, SyntaxTriviaList triviaList)
         {
             foreach (var trivia in triviaList)
             {
@@ -301,7 +302,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
             }
         }
 
-        static void ProcessTrivia(List<SuppressOperation> list, SyntaxTrivia trivia)
+        static void ProcessTrivia(ArrayBuilder<SuppressOperation> list, SyntaxTrivia trivia)
         {
             if (!(trivia.HasStructure))
             {
@@ -311,7 +312,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
             ProcessStructuredTrivia(list, trivia.GetStructure()!);
         }
 
-        static void ProcessStructuredTrivia(List<SuppressOperation> list, SyntaxNode structure)
+        static void ProcessStructuredTrivia(ArrayBuilder<SuppressOperation> list, SyntaxNode structure)
         {
             if (structure is not PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia)
             {
@@ -365,7 +366,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
         return false;
     }
 
-    private static void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+    private static void AddInitializerSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         // array or collection initializer case
         if (node.IsInitializerForArrayOrCollectionCreationExpression())
@@ -395,7 +396,7 @@ internal class SuppressFormattingRule : BaseFormattingRule
         }
     }
 
-    private static void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode parent, IEnumerable<SyntaxNode> items)
+    private static void AddInitializerSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode parent, IEnumerable<SyntaxNode> items)
     {
         // make creation node itself to not break into multiple line, if it is on same line
         AddSuppressWrappingIfOnSingleLineOperation(list, parent.GetFirstToken(includeZeroWidth: true), parent.GetLastToken(includeZeroWidth: true));

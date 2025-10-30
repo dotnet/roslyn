@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses;
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.AddRequiredParentheses), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId];
@@ -29,19 +29,14 @@ internal class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBasedCodeFi
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var firstDiagnostic = context.Diagnostics[0];
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                AnalyzersResources.Add_parentheses_for_clarity,
-                GetDocumentUpdater(context),
-                firstDiagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey]!),
-            context.Diagnostics);
+        RegisterCodeFix(
+            context, AnalyzersResources.Add_parentheses_for_clarity, context.Diagnostics[0].Properties[AddRequiredParenthesesConstants.EquivalenceKey]!);
         return Task.CompletedTask;
     }
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 

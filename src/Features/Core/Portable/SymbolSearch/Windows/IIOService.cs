@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.IO;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
@@ -17,7 +16,7 @@ internal interface IIOService
     void Delete(FileInfo file);
     bool Exists(FileSystemInfo info);
     byte[] ReadAllBytes(string path);
-    void Replace(string sourceFileName, string destinationFileName, string destinationBackupFileName, bool ignoreMetadataErrors);
+    void Replace(string sourceFileName, string destinationFileName, string? destinationBackupFileName, bool ignoreMetadataErrors);
     void Move(string sourceFileName, string destinationFileName);
-    void WriteAndFlushAllBytes(string path, byte[] bytes);
+    void WriteAndFlushAllBytes(string path, ArraySegment<byte> bytes);
 }

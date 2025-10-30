@@ -19,7 +19,7 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        HandlePossibleTypingCommand(args, nextHandler, (activeSession, span) =>
+        HandlePossibleTypingCommand(args, nextHandler, context.OperationContext, (activeSession, _, span) =>
         {
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)

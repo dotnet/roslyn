@@ -2,16 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Wpf;
-using Microsoft.CodeAnalysis.InheritanceMargin;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 
@@ -28,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 /// }
 /// And this view model is used to show the first level entry to let the user choose member.
 /// </summary>
-internal class MemberMenuItemViewModel : MenuItemViewModel
+internal sealed class MemberMenuItemViewModel : MenuItemViewModel
 {
     /// <summary>
     /// Inheritance Targets for this member.

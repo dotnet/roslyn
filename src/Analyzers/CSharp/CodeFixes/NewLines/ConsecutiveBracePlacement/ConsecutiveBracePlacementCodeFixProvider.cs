@@ -21,14 +21,10 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConsecutiveBracePlacement), Shared]
-internal sealed class ConsecutiveBracePlacementCodeFixProvider : CodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ConsecutiveBracePlacementCodeFixProvider() : CodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ConsecutiveBracePlacementCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.ConsecutiveBracePlacementDiagnosticId];
 

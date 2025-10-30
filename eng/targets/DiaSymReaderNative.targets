@@ -18,7 +18,7 @@
     package can't be referenced directly but rather has to have it's assets manually copied 
     out. This logic is responsible for doing that.
   -->
-  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
     <Content Include="$(PkgMicrosoft_DiaSymReader_Native)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>

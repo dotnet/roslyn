@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we can apply conversion before doing the null check that allows for a more efficient IL emit.
             Debug.Assert(rewrittenLeft.Type is { });
             if (rewrittenLeft.Type.IsReferenceType &&
-                BoundNode.GetConversion(leftConversion, leftPlaceholder) is { IsImplicit: true, IsUserDefined: false })
+                BoundNode.GetConversion(leftConversion, leftPlaceholder) is { Kind: ConversionKind.Identity or ConversionKind.ImplicitReference })
             {
                 rewrittenLeft = ApplyConversionIfNotIdentity(leftConversion, leftPlaceholder, rewrittenLeft);
 

@@ -13,7 +13,7 @@ internal abstract class CodeStyleSetting(OptionKey2 optionKey, string descriptio
 {
     private static readonly bool[] s_boolValues = [true, false];
 
-    public abstract ICodeStyleOption GetCodeStyle();
+    public abstract ICodeStyleOption2 GetCodeStyle();
 
     public ReportDiagnostic GetSeverity()
     {

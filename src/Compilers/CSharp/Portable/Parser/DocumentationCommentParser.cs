@@ -691,9 +691,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (prefixTrailingWidth > 0 || colonLeadingWidth > 0)
                 {
-                    // NOTE: offset is relative to full-span start of colon (i.e. before leading trivia).
-                    int offset = -prefixTrailingWidth;
+                    // NOTE: offset is relative to Start (not FullStart) of colon.
                     int width = prefixTrailingWidth + colonLeadingWidth;
+                    int offset = -width;
                     colon = WithAdditionalDiagnostics(colon, new XmlSyntaxDiagnosticInfo(offset, width, XmlParseErrorCode.XML_InvalidWhitespace));
                 }
 
@@ -704,9 +704,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 int localNameLeadingWidth = id.GetLeadingTriviaWidth();
                 if (colonTrailingWidth > 0 || localNameLeadingWidth > 0)
                 {
-                    // NOTE: offset is relative to full-span start of identifier (i.e. before leading trivia).
-                    int offset = -colonTrailingWidth;
+                    // NOTE: offset is relative to Start (not FullStart) of identifier.
                     int width = colonTrailingWidth + localNameLeadingWidth;
+                    int offset = -width;
                     id = WithAdditionalDiagnostics(id, new XmlSyntaxDiagnosticInfo(offset, width, XmlParseErrorCode.XML_InvalidWhitespace));
 
                     // CONSIDER: Another interpretation would be that the local part of this name is a missing identifier and the identifier
@@ -807,15 +807,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected override SyntaxDiagnosticInfo GetExpectedTokenError(SyntaxKind expected, SyntaxKind actual)
+        protected override SyntaxDiagnosticInfo GetExpectedMissingNodeOrTokenError(
+            GreenNode missingNodeOrToken, SyntaxKind expected, SyntaxKind actual)
         {
+            Debug.Assert(missingNodeOrToken.IsMissing);
+
             // NOTE: There are no errors in crefs - only warnings.  We accomplish this by wrapping every diagnostic in ErrorCode.WRN_ErrorOverride.
             if (InCref)
             {
-                int offset, width;
-                this.GetDiagnosticSpanForMissingToken(out offset, out width);
-
-                return GetExpectedTokenError(expected, actual, offset, width);
+                return base.GetExpectedMissingNodeOrTokenError(missingNodeOrToken, expected, actual);
             }
 
             switch (expected)
@@ -946,6 +946,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ExplicitKeyword:
                 case SyntaxKind.ImplicitKeyword:
                     return ParseConversionOperatorMemberCref();
+                case SyntaxKind.IdentifierToken when CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword:
+                    return ParsePossibleExtensionMemberCref();
                 default:
                     return ParseNameMemberCref();
             }
@@ -975,6 +977,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxFactory.IndexerMemberCref(thisKeyword, parameters);
         }
 
+#nullable enable
+        /// <summary>
+        /// If we have `extension` (with optional type arguments) and parameter list and a dot, then we have an extension member cref.
+        /// Otherwise, we fall back to producing the same result as <see cref="ParseNameMemberCref"/>
+        /// </summary>
+        private MemberCrefSyntax ParsePossibleExtensionMemberCref()
+        {
+            Debug.Assert(CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword);
+
+            SyntaxToken identifierToken = EatToken();
+            TypeArgumentListSyntax? typeArguments = (CurrentToken.Kind == SyntaxKind.LessThanToken) ? ParseTypeArguments(typeArgumentsMustBeIdentifiers: true) : null;
+            CrefParameterListSyntax? parameters = (CurrentToken.Kind == SyntaxKind.OpenParenToken) ? ParseCrefParameterList() : null;
+
+            if (parameters is null || CurrentToken.Kind != SyntaxKind.DotToken)
+            {
+                SimpleNameSyntax name = typeArguments is not null
+                    ? SyntaxFactory.GenericName(identifierToken, typeArguments)
+                    : SyntaxFactory.IdentifierName(identifierToken);
+
+                return SyntaxFactory.NameMemberCref(name, parameters);
+            }
+
+            SyntaxToken dotToken = EatToken(SyntaxKind.DotToken);
+            MemberCrefSyntax member = ParseMemberCref();
+            if (member is ExtensionMemberCrefSyntax)
+            {
+                member = AddErrorAsWarning(member, ErrorCode.ERR_MisplacedExtension);
+            }
+
+            return SyntaxFactory.ExtensionMemberCref(ConvertToKeyword(identifierToken), typeArguments, parameters, dotToken, member);
+        }
+#nullable disable
+
         /// <summary>
         /// Parse an overloadable operator, with optional parameters.
         /// </summary>
@@ -995,9 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 operatorToken = SyntaxFactory.MissingToken(SyntaxKind.PlusToken);
 
                 // Grab the offset and width before we consume the invalid keyword and change our position.
-                int offset;
-                int width;
-                GetDiagnosticSpanForMissingToken(out offset, out width);
+                var (offset, width) = this.GetDiagnosticSpanForMissingNodeOrToken(missingNodeOrToken: operatorToken);
 
                 if (SyntaxFacts.IsUnaryOperatorDeclarationToken(CurrentToken.Kind) || SyntaxFacts.IsBinaryExpressionOperatorToken(CurrentToken.Kind))
                 {
@@ -1012,13 +1045,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Have to fake >>/>>> because it looks like the closing of nested type parameter lists (e.g. A<A<T>>).
             // Have to fake >= so the lexer doesn't mishandle >>=.
-            if (operatorToken.Kind == SyntaxKind.GreaterThanToken && operatorToken.GetTrailingTriviaWidth() == 0 && CurrentToken.GetLeadingTriviaWidth() == 0)
+            if (operatorToken.Kind == SyntaxKind.GreaterThanToken && LanguageParser.NoTriviaBetween(operatorToken, CurrentToken))
             {
                 if (CurrentToken.Kind == SyntaxKind.GreaterThanToken)
                 {
                     var operatorToken2 = this.EatToken();
 
-                    if (operatorToken2.GetTrailingTriviaWidth() == 0 && CurrentToken.GetLeadingTriviaWidth() == 0 &&
+                    if (LanguageParser.NoTriviaBetween(operatorToken2, CurrentToken) &&
                         CurrentToken.Kind is (SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken))
                     {
                         var operatorToken3 = this.EatToken();
@@ -1036,24 +1069,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
                         else
                         {
-                            var nonOverloadableOperator = SyntaxFactory.Token(
+                            operatorToken = SyntaxFactory.Token(
                                 operatorToken.GetLeadingTrivia(),
                                 SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
                                 operatorToken.Text + operatorToken2.Text + operatorToken3.Text,
                                 operatorToken.ValueText + operatorToken2.ValueText + operatorToken3.ValueText,
                                 operatorToken3.GetTrailingTrivia());
-
-                            operatorToken = SyntaxFactory.MissingToken(SyntaxKind.PlusToken);
-
-                            // Add non-overloadable operator as skipped token.
-                            operatorToken = AddTrailingSkippedSyntax(operatorToken, nonOverloadableOperator);
-
-                            // Add an appropriate diagnostic.
-                            const int offset = 0;
-                            int width = nonOverloadableOperator.Width;
-                            SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.ERR_OvlOperatorExpected);
-                            SyntaxDiagnosticInfo crefInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
-                            operatorToken = WithAdditionalDiagnostics(operatorToken, crefInfo);
+                            operatorToken = CheckFeatureAvailability(operatorToken, MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators, forceWarning: true);
                         }
                     }
                     else
@@ -1079,25 +1101,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 else if (CurrentToken.Kind == SyntaxKind.GreaterThanEqualsToken)
                 {
                     var operatorToken2 = this.EatToken();
-                    var nonOverloadableOperator = SyntaxFactory.Token(
+                    operatorToken = SyntaxFactory.Token(
                         operatorToken.GetLeadingTrivia(),
                         SyntaxKind.GreaterThanGreaterThanEqualsToken,
                         operatorToken.Text + operatorToken2.Text,
                         operatorToken.ValueText + operatorToken2.ValueText,
                         operatorToken2.GetTrailingTrivia());
-
-                    operatorToken = SyntaxFactory.MissingToken(SyntaxKind.PlusToken);
-
-                    // Add non-overloadable operator as skipped token.
-                    operatorToken = AddTrailingSkippedSyntax(operatorToken, nonOverloadableOperator);
-
-                    // Add an appropriate diagnostic.
-                    const int offset = 0;
-                    int width = nonOverloadableOperator.Width;
-                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.ERR_OvlOperatorExpected);
-                    SyntaxDiagnosticInfo crefInfo = new SyntaxDiagnosticInfo(offset, width, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
-                    operatorToken = WithAdditionalDiagnostics(operatorToken, crefInfo);
+                    operatorToken = CheckFeatureAvailability(operatorToken, MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators, forceWarning: true);
                 }
+            }
+
+            switch (operatorToken.Kind)
+            {
+                case SyntaxKind.PlusToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.PlusEqualsToken);
+                    break;
+                case SyntaxKind.MinusToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.MinusEqualsToken);
+                    break;
+                case SyntaxKind.AsteriskToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.AsteriskEqualsToken);
+                    break;
+                case SyntaxKind.SlashToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.SlashEqualsToken);
+                    break;
+                case SyntaxKind.PercentToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.PercentEqualsToken);
+                    break;
+                case SyntaxKind.AmpersandToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.AmpersandEqualsToken);
+                    break;
+                case SyntaxKind.BarToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.BarEqualsToken);
+                    break;
+                case SyntaxKind.CaretToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.CaretEqualsToken);
+                    break;
+                case SyntaxKind.LessThanLessThanToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.LessThanLessThanEqualsToken);
+                    break;
+                case SyntaxKind.GreaterThanGreaterThanToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.GreaterThanGreaterThanEqualsToken);
+                    break;
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+                    operatorToken = tryParseCompoundAssignmentOperatorToken(operatorToken, SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
+                    break;
             }
 
             Debug.Assert(SyntaxFacts.IsAnyOverloadableOperator(operatorToken.Kind));
@@ -1105,6 +1153,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             CrefParameterListSyntax parameters = ParseCrefParameterList();
 
             return SyntaxFactory.OperatorMemberCref(operatorKeyword, checkedKeyword, operatorToken, parameters);
+
+            SyntaxToken tryParseCompoundAssignmentOperatorToken(SyntaxToken operatorToken, SyntaxKind kind)
+            {
+                if (LanguageParser.NoTriviaBetween(operatorToken, CurrentToken) && CurrentToken.Kind == SyntaxKind.EqualsToken)
+                {
+                    Debug.Assert(kind is not (SyntaxKind.GreaterThanGreaterThanEqualsToken or SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)); // Reaching this code path is not expected
+                    var operatorToken2 = this.EatToken();
+                    operatorToken = SyntaxFactory.Token(
+                        operatorToken.GetLeadingTrivia(),
+                        kind,
+                        operatorToken.Text + operatorToken2.Text,
+                        operatorToken.ValueText + operatorToken2.ValueText,
+                        operatorToken2.GetTrailingTrivia());
+                    operatorToken = CheckFeatureAvailability(operatorToken, MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators, forceWarning: true);
+                }
+
+                return operatorToken;
+            }
         }
 
         private SyntaxToken TryEatCheckedKeyword(bool isConversion, ref SyntaxToken operatorKeyword)
@@ -1290,6 +1356,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return SyntaxFactory.IdentifierName(identifierToken);
             }
 
+            return SyntaxFactory.GenericName(identifierToken, ParseTypeArguments(typeArgumentsMustBeIdentifiers));
+        }
+
+        private TypeArgumentListSyntax ParseTypeArguments(bool typeArgumentsMustBeIdentifiers)
+        {
+            Debug.Assert(CurrentToken.Kind == SyntaxKind.LessThanToken);
             var open = EatToken();
 
             var list = _pool.AllocateSeparated<TypeSyntax>();
@@ -1325,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 open = CheckFeatureAvailability(open, MessageID.IDS_FeatureGenerics, forceWarning: true);
 
-                return SyntaxFactory.GenericName(identifierToken, SyntaxFactory.TypeArgumentList(open, list, close));
+                return SyntaxFactory.TypeArgumentList(open, list, close);
             }
             finally
             {

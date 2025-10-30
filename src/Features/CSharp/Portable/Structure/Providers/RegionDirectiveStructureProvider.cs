@@ -5,7 +5,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -32,7 +32,7 @@ internal sealed class RegionDirectiveStructureProvider : AbstractSyntaxNodeStruc
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,
         RegionDirectiveTriviaSyntax regionDirective,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {

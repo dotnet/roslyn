@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 
 internal sealed partial class RenameTrackingTaggerProvider
 {
-    private class Tagger : ITagger<RenameTrackingTag>, ITagger<IErrorTag>, IDisposable
+    private sealed class Tagger : ITagger<RenameTrackingTag>, ITagger<IErrorTag>, IDisposable
     {
         private readonly StateMachine _stateMachine;
 
@@ -45,7 +43,7 @@ internal sealed partial class RenameTrackingTaggerProvider
         IEnumerable<ITagSpan<IErrorTag>> ITagger<IErrorTag>.GetTags(NormalizedSnapshotSpanCollection spans)
             => GetTags(spans, new ErrorTag(PredefinedErrorTypeNames.Suggestion));
 
-        private IEnumerable<ITagSpan<T>> GetTags<T>(NormalizedSnapshotSpanCollection spans, T tag) where T : ITag
+        private IEnumerable<TagSpan<T>> GetTags<T>(NormalizedSnapshotSpanCollection spans, T tag) where T : ITag
         {
             if (!_stateMachine.GlobalOptions.GetOption(RenameTrackingOptionsStorage.RenameTracking))
             {

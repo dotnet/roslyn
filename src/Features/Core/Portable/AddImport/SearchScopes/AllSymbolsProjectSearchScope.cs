@@ -16,7 +16,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     /// i.e. the symbols created from source *and* symbols from references (both project and
     /// metadata).
     /// </summary>
-    private class AllSymbolsProjectSearchScope(
+    private sealed class AllSymbolsProjectSearchScope(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
         Project project,
         bool exact) : ProjectSearchScope(provider, project, exact)

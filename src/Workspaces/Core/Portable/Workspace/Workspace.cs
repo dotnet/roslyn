@@ -11,17 +11,19 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.WorkspaceEventMap;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -34,10 +36,13 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 public abstract partial class Workspace : IDisposable
 {
-    private readonly string? _workspaceKind;
-    private readonly HostWorkspaceServices _services;
-
     private readonly ILegacyGlobalOptionService _legacyOptions;
+
+    private readonly IAsynchronousOperationListener _asyncOperationListener;
+
+    private readonly AsyncBatchingWorkQueue<(EventArgs, EventHandlerSet)> _eventHandlerWorkQueue;
+    private readonly CancellationTokenSource _workQueueTokenSource = new();
+    private readonly ITaskSchedulerProvider _taskSchedulerProvider;
 
     // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
     private readonly SemaphoreSlim _serializationLock = new(initialCount: 1);
@@ -49,11 +54,6 @@ public abstract partial class Workspace : IDisposable
     /// Current solution.  Must be locked with <see cref="_serializationLock"/> when writing to it.
     /// </summary>
     private Solution _latestSolution;
-
-    private readonly TaskQueue _taskQueue;
-
-    // test hooks.
-    internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
 
     /// <summary>
     /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
@@ -69,38 +69,44 @@ public abstract partial class Workspace : IDisposable
     /// <param name="workspaceKind">A string that can be used to identify the kind of workspace. Usually this matches the name of the class.</param>
     protected Workspace(HostServices host, string? workspaceKind)
     {
-        _workspaceKind = workspaceKind;
+        Kind = workspaceKind;
 
-        _services = host.CreateWorkspaceServices(this);
+        Services = host.CreateWorkspaceServices(this);
 
-        _legacyOptions = _services.GetRequiredService<ILegacyWorkspaceOptionService>().LegacyGlobalOptions;
+        _legacyOptions = Services.GetRequiredService<ILegacyWorkspaceOptionService>().LegacyGlobalOptions;
         _legacyOptions.RegisterWorkspace(this);
 
         // queue used for sending events
-        var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();
-        var listenerProvider = _services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-        _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
+        _taskSchedulerProvider = Services.GetRequiredService<ITaskSchedulerProvider>();
+
+        var listenerProvider = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+        _asyncOperationListener = listenerProvider.GetListener();
+        _eventHandlerWorkQueue = new(
+            TimeSpan.Zero,
+            ProcessEventHandlerWorkQueueAsync,
+            _asyncOperationListener,
+            _workQueueTokenSource.Token);
 
         // initialize with empty solution
-        var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
-
-        var emptyOptions = new SolutionOptionSet(_legacyOptions);
-
-        _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
+        _latestSolution = CreateSolution(
+            SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()),
+            new SolutionOptionSet(_legacyOptions),
+            analyzerReferences: [],
+            fallbackAnalyzerOptions: ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty);
 
         _updateSourceGeneratorsQueue = new AsyncBatchingWorkQueue<(ProjectId? projectId, bool forceRegeneration)>(
             // Idle processing speed
             TimeSpan.FromMilliseconds(1500),
             ProcessUpdateSourceGeneratorRequestAsync,
             EqualityComparer<(ProjectId? projectId, bool forceRegeneration)>.Default,
-            listenerProvider.GetListener(),
+            listenerProvider.GetListener(FeatureAttribute.SourceGenerators),
             _updateSourceGeneratorsQueueTokenSource.Token);
     }
 
     /// <summary>
     /// Services provider by the host for implementing workspace features.
     /// </summary>
-    public HostWorkspaceServices Services => _services;
+    public HostWorkspaceServices Services { get; }
 
     /// <summary>
     /// Override this property if the workspace supports partial semantics for documents.
@@ -113,7 +119,7 @@ public abstract partial class Workspace : IDisposable
     /// any other name used for a specific kind of workspace.
     /// </summary>
     // TODO (https://github.com/dotnet/roslyn/issues/37110): decide if Kind should be non-null
-    public string? Kind => _workspaceKind;
+    public string? Kind { get; }
 
     /// <summary>
     /// Create a new empty solution instance associated with this workspace.
@@ -121,14 +127,14 @@ public abstract partial class Workspace : IDisposable
     protected internal Solution CreateSolution(SolutionInfo solutionInfo)
     {
         var options = new SolutionOptionSet(_legacyOptions);
-        return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences);
+        return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences, solutionInfo.FallbackAnalyzerOptions);
     }
 
     /// <summary>
     /// Create a new empty solution instance associated with this workspace, and with the given options.
     /// </summary>
-    private Solution CreateSolution(SolutionInfo solutionInfo, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-        => new(this, solutionInfo.Attributes, options, analyzerReferences);
+    private Solution CreateSolution(SolutionInfo solutionInfo, SolutionOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences, ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
+        => new(this, solutionInfo.Attributes, options, analyzerReferences, fallbackAnalyzerOptions);
 
     /// <summary>
     /// Create a new empty solution instance associated with this workspace.
@@ -154,7 +160,7 @@ public abstract partial class Workspace : IDisposable
     }
 
     /// <summary>
-    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see cref="WorkspaceChanged"/> event.
+    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a WorkspaceChange event.
     /// </summary>
     /// <remarks>
     /// This method does not guarantee that linked files will have the same contents. Callers
@@ -164,9 +170,9 @@ public abstract partial class Workspace : IDisposable
         => SetCurrentSolutionEx(solution).newSolution;
 
     /// <summary>
-    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see
-    /// cref="WorkspaceChanged"/> event.  This method should be used <em>sparingly</em>.  As much as possible,
-    /// derived types should use the SetCurrentSolution overloads that take a transformation.
+    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a
+    /// WorkspaceChange event.  This method should be used <em>sparingly</em>.
+    /// As much as possible, derived types should use the SetCurrentSolution overloads that take a transformation.
     /// </summary>
     /// <remarks>
     /// This method does not guarantee that linked files will have the same contents. Callers
@@ -186,7 +192,7 @@ public abstract partial class Workspace : IDisposable
                 return (solution, solution);
             }
 
-            _latestSolution = solution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
+            _latestSolution = solution.WithNewWorkspaceFrom(oldSolution);
             return (oldSolution, _latestSolution);
         }
     }
@@ -255,6 +261,8 @@ public abstract partial class Workspace : IDisposable
             {
                 var newSolution = data.transformation(oldSolution);
 
+                newSolution = data.@this.InitializeAnalyzerFallbackOptions(oldSolution, newSolution);
+
                 // Attempt to unify the syntax trees in the new solution.
                 return UnifyLinkedDocumentContents(oldSolution, newSolution);
             },
@@ -285,6 +293,9 @@ public abstract partial class Workspace : IDisposable
 
             var changes = newSolution.GetChanges(oldSolution);
 
+            using var _1 = PooledHashSet<DocumentId>.GetInstance(out var changedDocumentIds);
+            using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var addedDocumentIds);
+
             // For all added documents, see if they link to an existing document.  If so, use that existing documents text/tree.
             foreach (var addedProject in changes.GetAddedProjects())
             {
@@ -292,15 +303,8 @@ public abstract partial class Workspace : IDisposable
                 if (!addedProject.SupportsCompilation)
                     continue;
 
-                // It's likely when adding files that if we link them to files in another project, that we will do the
-                // same for other sibling files being added.  Keep that information around so help speed up the linked
-                // file search as we process siblings.
-                ProjectId? relatedProjectIdHint = null;
-                foreach (var addedDocument in addedProject.Documents)
-                    (newSolution, relatedProjectIdHint) = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument.Id, relatedProjectIdHint);
+                addedDocumentIds.AddRange(addedProject.DocumentIds);
             }
-
-            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenChangedDocuments);
 
             foreach (var projectChanges in changes.GetProjectChanges())
             {
@@ -308,68 +312,143 @@ public abstract partial class Workspace : IDisposable
                 if (!projectChanges.NewProject.SupportsCompilation)
                     continue;
 
-                // Now do the same for all added documents in a project.
-                ProjectId? relatedProjectIdHint = null;
-                foreach (var addedDocument in projectChanges.GetAddedDocuments())
-                    (newSolution, relatedProjectIdHint) = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument, relatedProjectIdHint);
-
-                // now, for any changed document, ensure we go and make all links to it have the same text/tree.
-                foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
-                    newSolution = UpdateExistingDocumentsToChangedDocumentContents(newSolution, changedDocumentId, seenChangedDocuments);
+                // Now do the same for all added and changed documents in a project.
+                addedDocumentIds.AddRange(projectChanges.GetAddedDocuments());
+                changedDocumentIds.AddRange(projectChanges.GetChangedDocuments());
             }
+
+            newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocumentIds);
+
+            // now, for any changed document, ensure we go and make all links to it have the same text/tree.
+            newSolution = UpdateExistingDocumentsToChangedDocumentContents(newSolution, changedDocumentIds);
 
             return newSolution;
         }
 
-        static (Solution newSolution, ProjectId? relatedProjectId) UpdateAddedDocumentToExistingContentsInSolution(
-            Solution solution, DocumentId addedDocumentId, ProjectId? relatedProjectIdHint)
+        static Solution UpdateAddedDocumentToExistingContentsInSolution(
+            Solution solution, ArrayBuilder<DocumentId> addedDocumentIds)
         {
-            Contract.ThrowIfTrue(addedDocumentId.ProjectId == relatedProjectIdHint);
+            ProjectId? relatedProjectIdHint = null;
+            using var _ = ArrayBuilder<(DocumentId, DocumentState)>.GetInstance(out var relatedDocumentIdsAndStates);
 
-            // Look for a related document we can create our contents from.  We only have to look for a single related
-            // doc as we'll be done once we update our contents to theirs.  Note: GetFirstRelatedDocumentId will also
-            // not search the project that addedDocumentId came from.  So this will help ensure we don't repeatedly add
-            // documents to a project, then look for related docs *within that project*, forcing the file-path map in it
-            // to be recreated for each document.
-            var relatedDocumentId = solution.GetFirstRelatedDocumentId(addedDocumentId, relatedProjectIdHint);
+            foreach (var addedDocumentId in addedDocumentIds)
+            {
+                // Ensure we don't search in addedDocumentId's project for the related document
+                if (addedDocumentId.ProjectId == relatedProjectIdHint)
+                    relatedProjectIdHint = null;
 
-            // Couldn't find a related document.  Keep the same solution, and keep track of the best related project we
-            // found while processing this project.
-            if (relatedDocumentId is null)
-                return (solution, relatedProjectIdHint);
+                // Look for a related document we can create our contents from.  We only have to look for a single related
+                // doc as we'll be done once we update our contents to theirs.  Note: GetFirstRelatedDocumentId will also
+                // not search the project that addedDocumentId came from.  So this will help ensure we don't repeatedly add
+                // documents to a project, then look for related docs *within that project*, forcing the file-path map in it
+                // to be recreated for each document.
+                var relatedDocumentId = solution.GetFirstRelatedDocumentId(addedDocumentId, relatedProjectIdHint);
 
-            var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
+                // Couldn't find a related document.
+                if (relatedDocumentId is null)
+                    continue;
 
-            // Should never return a file as its own related document
-            Contract.ThrowIfTrue(relatedDocumentId == addedDocumentId);
+                var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
 
-            // Related document must come from a distinct project.
-            Contract.ThrowIfTrue(relatedDocumentId.ProjectId == addedDocumentId.ProjectId);
+                // Should never return a file as its own related document
+                Contract.ThrowIfTrue(relatedDocumentId == addedDocumentId);
 
-            var newSolution = solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
-            return (newSolution, relatedProjectId: relatedDocumentId.ProjectId);
+                // Related document must come from a distinct project.
+                Contract.ThrowIfTrue(relatedDocumentId.ProjectId == addedDocumentId.ProjectId);
+
+                relatedProjectIdHint = relatedDocumentId.ProjectId;
+                relatedDocumentIdsAndStates.Add((addedDocumentId, relatedDocument.DocumentState));
+            }
+
+            if (relatedDocumentIdsAndStates.IsEmpty)
+                return solution;
+
+            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStates.ToImmutableAndClear());
         }
 
-        static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, DocumentId changedDocumentId, HashSet<DocumentId> processedDocuments)
+        static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, HashSet<DocumentId> changedDocumentIds)
         {
+            if (changedDocumentIds.Count == 0)
+                return solution;
+
             // Changing a document in a linked-doc-chain will end up producing N changed documents.  We only want to
             // process that chain once.
-            if (processedDocuments.Add(changedDocumentId))
+            using var _ = PooledDictionary<DocumentId, DocumentState>.GetInstance(out var relatedDocumentIdsAndStates);
+
+            foreach (var changedDocumentId in changedDocumentIds)
             {
-                var changedDocument = solution.GetRequiredDocument(changedDocumentId);
+                DocumentState? changedDocumentState = null;
                 var relatedDocumentIds = solution.GetRelatedDocumentIds(changedDocumentId);
+
                 foreach (var relatedDocumentId in relatedDocumentIds)
                 {
                     if (relatedDocumentId == changedDocumentId)
                         continue;
 
-                    if (processedDocuments.Add(relatedDocumentId))
-                        solution = solution.WithDocumentContentsFrom(relatedDocumentId, changedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
+                    if (!changedDocumentIds.Contains(relatedDocumentId))
+                    {
+                        changedDocumentState ??= solution.SolutionState.GetRequiredDocumentState(changedDocumentId);
+                        relatedDocumentIdsAndStates[relatedDocumentId] = changedDocumentState;
+                    }
                 }
             }
 
-            return solution;
+            if (relatedDocumentIdsAndStates.Count == 0)
+                return solution;
+
+            var relatedDocumentIdsAndStatesArray = relatedDocumentIdsAndStates.SelectAsArray(static kvp => (kvp.Key, kvp.Value));
+
+            return solution.WithDocumentContentsFrom(relatedDocumentIdsAndStatesArray);
         }
+    }
+
+    /// <summary>
+    /// Ensures that whenever a new language is added to <see cref="CurrentSolution"/> we 
+    /// allow the host to initialize <see cref="Solution.FallbackAnalyzerOptions"/> for that language.
+    /// Conversely, if a language is no longer present in <see cref="CurrentSolution"/> 
+    /// we clear out its <see cref="Solution.FallbackAnalyzerOptions"/>.
+    /// 
+    /// This mechanism only takes care of flowing the initial snapshot of option values.
+    /// It's up to the host to keep the individual values up-to-date by updating 
+    /// <see cref="CurrentSolution"/> as appropriate.
+    /// 
+    /// Implementing the initialization here allows us to uphold an invariant that
+    /// the host had the opportunity to initialize <see cref="Solution.FallbackAnalyzerOptions"/>
+    /// of any <see cref="Solution"/> snapshot stored in <see cref="CurrentSolution"/>.
+    /// </summary>
+    private Solution InitializeAnalyzerFallbackOptions(Solution oldSolution, Solution newSolution)
+    {
+        var newFallbackOptions = newSolution.FallbackAnalyzerOptions;
+
+        // Clear out languages that are no longer present in the solution.
+        // If we didn't, the workspace might clear the solution (which removes the fallback options)
+        // and we would never re-initialize them from global options.
+        foreach (var (language, _) in oldSolution.SolutionState.ProjectCountByLanguage)
+        {
+            if (!newSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
+            {
+                newFallbackOptions = newFallbackOptions.Remove(language);
+            }
+        }
+
+        // Update solution snapshot to include options for newly added languages:
+        foreach (var (language, _) in newSolution.SolutionState.ProjectCountByLanguage)
+        {
+            if (oldSolution.SolutionState.ProjectCountByLanguage.ContainsKey(language))
+            {
+                continue;
+            }
+
+            if (newFallbackOptions.ContainsKey(language))
+            {
+                continue;
+            }
+
+            var provider = Services.GetRequiredService<IFallbackAnalyzerConfigOptionsProvider>();
+            newFallbackOptions = newFallbackOptions.Add(language, provider.GetOptions(language));
+        }
+
+        return newSolution.WithFallbackAnalyzerOptions(newFallbackOptions);
     }
 
     /// <summary>
@@ -387,13 +466,13 @@ public abstract partial class Workspace : IDisposable
     /// <param name="onBeforeUpdate">Action to perform immediately prior to updating <see cref="CurrentSolution"/>.
     /// The action will be passed the old <see cref="CurrentSolution"/> that will be replaced and the exact solution
     /// it will be replaced with. The latter may be different than the solution returned by <paramref
-    /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-    /// accordingly.  This will only be run once.</param>
+    /// name="transformation"/> as it may its <see cref="Solution.SolutionStateContentVersion"/> updated
+    /// (if it's <see cref="SolutionState"/> actually changed).  This will only be run once.</param>
     /// <param name="onAfterUpdate">Action to perform once <see cref="CurrentSolution"/> has been updated.  The
     /// action will be passed the old <see cref="CurrentSolution"/> that was just replaced and the exact solution it
     /// was replaced with. The latter may be different than the solution returned by <paramref
-    /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
-    /// accordingly.  This will only be run once.</param>
+    /// name="transformation"/> as it may have its <see cref="Solution.SolutionStateContentVersion"/> updated
+    /// (if it's <see cref="SolutionState"/> actually changed).  This will only be run once.</param>
     private protected (Solution oldSolution, Solution newSolution) SetCurrentSolution<TData>(
         TData data,
         Func<Solution, TData, Solution> transformation,
@@ -457,7 +536,7 @@ public abstract partial class Workspace : IDisposable
                         continue;
                     }
 
-                    newSolution = newSolution.WithNewWorkspace(oldSolution.WorkspaceKind, oldSolution.WorkspaceVersion + 1, oldSolution.Services);
+                    newSolution = newSolution.WithNewWorkspaceFrom(oldSolution);
 
                     // Prior to updating the latest solution, let the caller do any other state updates they want.
                     onBeforeUpdate?.Invoke(oldSolution, newSolution, data);
@@ -514,15 +593,39 @@ public abstract partial class Workspace : IDisposable
     /// Executes an action as a background task, as part of a sequential queue of tasks.
     /// </summary>
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
+#pragma warning disable IDE0060 // Remove unused parameter
     protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
-        => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", action, CancellationToken.None);
+    {
+        // Require main thread on the callback as this is publicly exposed and the given actions may have main thread dependencies.
+        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => action(), WorkspaceEventOptions.RequiresMainThreadOptions);
+        var handlerSet = EventHandlerSet.Create(handlerAndOptions);
+
+        return ScheduleTask(EventArgs.Empty, handlerSet);
+    }
+
+    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
+    internal Task ScheduleTask(EventArgs args, EventHandlerSet handlerSet)
+    {
+        _eventHandlerWorkQueue.AddWork((args, handlerSet));
+        return _eventHandlerWorkQueue.WaitUntilCurrentBatchCompletesAsync();
+    }
 
     /// <summary>
     /// Execute a function as a background task, as part of a sequential queue of tasks.
     /// </summary>
     [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-    protected internal Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
-        => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", func, CancellationToken.None);
+    protected internal async Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
+    {
+        T? result = default;
+
+        // Require main thread on the callback as this is publicly exposed and the given actions may have main thread dependencies.
+        var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => result = func(), WorkspaceEventOptions.RequiresMainThreadOptions);
+        var handlerSet = EventHandlerSet.Create(handlerAndOptions);
+
+        await ScheduleTask(EventArgs.Empty, handlerSet).ConfigureAwait(false);
+        return result!;
+    }
+#pragma warning restore IDE0060 // Remove unused parameter
 
     /// <summary>
     /// Override this method to act immediately when the text of a document has changed, as opposed
@@ -617,24 +720,66 @@ public abstract partial class Workspace : IDisposable
             // tearing ourselves down.
             this.ClearSolution(reportChangeEvent: false);
 
-            this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
+            _workspaceEventListenerService?.Stop();
         }
 
         _legacyOptions.UnregisterWorkspace(this);
 
-        // Directly dispose IRemoteHostClientProvider if necessary. This is a test hook to ensure RemoteWorkspace
-        // gets disposed in unit tests as soon as TestWorkspace gets disposed. This would be superseded by direct
-        // support for IDisposable in https://github.com/dotnet/roslyn/pull/47951.
-        if (Services.GetService<IRemoteHostClientProvider>() is IDisposable disposableService)
-        {
-            disposableService.Dispose();
-        }
+        // Dispose per-instance services created for this workspace (direct MEF exports, including factories, will
+        // be disposed when the MEF catalog is disposed).
+        Services.Dispose();
 
         // We're disposing this workspace.  Stop any work to update SG docs in the background.
         _updateSourceGeneratorsQueueTokenSource.Cancel();
+        _workQueueTokenSource.Cancel();
+    }
+
+    private async ValueTask ProcessEventHandlerWorkQueueAsync(ImmutableSegmentedList<(EventArgs Args, EventHandlerSet HandlerSet)> list, CancellationToken cancellationToken)
+    {
+        // Currently, this method maintains ordering of events to their callbacks. If that were no longer necessary,
+        // further performance optimizations of this method could be considered, such as grouping together 
+        // callbacks by eventargs/registries or parallelizing callbacks.
+
+        // ABWQ callbacks occur on threadpool threads, so we can process the handlers immediately that don't require the main thread.
+        ProcessWorkQueueHelper(list, shouldRaise: static options => !options.RequiresMainThread, cancellationToken);
+
+        // Verify there are handlers which require the main thread before performing the thread switch.
+        if (list.Any(static x => x.HandlerSet.HasMatchingOptions(isMatch: static options => options.RequiresMainThread)))
+        {
+            await Task.Factory.StartNew(() =>
+            {
+                // As the scheduler has moved us to the main thread, we can now process the handlers that require the main thread.
+                ProcessWorkQueueHelper(list, shouldRaise: static options => options.RequiresMainThread, cancellationToken);
+            }, cancellationToken, TaskCreationOptions.None, _taskSchedulerProvider.CurrentContextScheduler).ConfigureAwait(false);
+        }
+
+        static void ProcessWorkQueueHelper(
+            ImmutableSegmentedList<(EventArgs Args, EventHandlerSet handlerSet)> list,
+            Func<WorkspaceEventOptions, bool> shouldRaise,
+            CancellationToken cancellationToken)
+        {
+            foreach (var (args, handlerSet) in list)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                handlerSet.RaiseEvent(args, shouldRaise);
+            }
+        }
     }
 
     #region Host API
+
+    private static Solution CheckAndAddProjects(Solution solution, IReadOnlyList<ProjectInfo> projects)
+    {
+        using var _ = ArrayBuilder<ProjectInfo>.GetInstance(projects.Count, out var builder);
+        foreach (var project in projects)
+        {
+            CheckProjectIsNotInSolution(solution, project.Id);
+            builder.Add(project);
+        }
+
+        return solution.AddProjects(builder);
+    }
 
     private static Solution CheckAndAddProject(Solution newSolution, ProjectInfo project)
     {
@@ -654,8 +799,7 @@ public abstract partial class Workspace : IDisposable
 
                 var newSolution = this.CreateSolution(solutionInfo);
 
-                foreach (var project in solutionInfo.Projects)
-                    newSolution = CheckAndAddProject(newSolution, project);
+                newSolution = CheckAndAddProjects(newSolution, solutionInfo.Projects);
 
                 return newSolution;
             }, WorkspaceChangeKind.SolutionAdded);
@@ -671,8 +815,7 @@ public abstract partial class Workspace : IDisposable
             {
                 var newSolution = this.CreateSolution(reloadedSolutionInfo);
 
-                foreach (var project in reloadedSolutionInfo.Projects)
-                    newSolution = CheckAndAddProject(newSolution, project);
+                newSolution = CheckAndAddProjects(newSolution, reloadedSolutionInfo.Projects);
 
                 return this.AdjustReloadedSolution(oldSolution, newSolution);
             }, WorkspaceChangeKind.SolutionReloaded);
@@ -900,6 +1043,12 @@ public abstract partial class Workspace : IDisposable
     }
 
     /// <summary>
+    /// Call this method when <see cref="Solution.FallbackAnalyzerOptions"/> change in the host environment.
+    /// </summary>
+    internal void OnSolutionFallbackAnalyzerOptionsChanged(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
+        => SetCurrentSolution(oldSolution => oldSolution.WithFallbackAnalyzerOptions(options), WorkspaceChangeKind.SolutionChanged);
+
+    /// <summary>
     /// Call this method when status of project has changed to incomplete.
     /// See <see cref="ProjectInfo.HasAllInformation"/> for more information.
     /// </summary>
@@ -1002,10 +1151,7 @@ public abstract partial class Workspace : IDisposable
 
                 if (oldAttributes.FilePath != newInfo.FilePath)
                 {
-                    // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
-                    // filePath is null, but it's odd because we *do* support null file paths. The suppression here is to silence it
-                    // but should be removed when the bug is fixed.
-                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath!);
+                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath);
                 }
 
                 if (oldAttributes.SourceCodeKind != newInfo.SourceCodeKind)
@@ -1178,20 +1324,20 @@ public abstract partial class Workspace : IDisposable
                 {
                     updatedDocumentIds.Add(documentId);
 
-                    // Now go update the linked docs to have the same doc contents.
-                    var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId);
+                    // Now go update the linked docs to have the same doc contents. Note: We want to do this even across
+                    // languags.  If two projects are actually referring to the same file and that file changes, we need
+                    // them all to agree on the contents to leave us in a consistent state.
+                    var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId, includeDifferentLanguages: true);
                     if (linkedDocumentIds.Length > 0)
                     {
                         // Have the linked documents point *into* the same instance data that the initial document
                         // points at.  This way things like tree data can be shared across docs.
 
-                        var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-
                         var newDocument = newSolution.GetRequiredDocument(documentId);
                         foreach (var linkedDocumentId in linkedDocumentIds)
                         {
                             previousSolution = newSolution;
-                            newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
+                            newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState);
 
                             if (previousSolution != newSolution)
                                 updatedDocumentIds.Add(linkedDocumentId);
@@ -1421,7 +1567,7 @@ public abstract partial class Workspace : IDisposable
             var oldSolution = this.CurrentSolution;
 
             // If the workspace has already accepted an update, then fail
-            if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
+            if (newSolution.SolutionStateContentVersion != oldSolution.SolutionStateContentVersion)
             {
                 Logger.Log(
                     FunctionId.Workspace_ApplyChanges,
@@ -1429,9 +1575,7 @@ public abstract partial class Workspace : IDisposable
                     {
                         // 'oldSolution' is the current workspace solution; if we reach this point we know
                         // 'oldSolution' is newer than the expected workspace solution 'newSolution'.
-                        var oldWorkspaceVersion = oldSolution.WorkspaceVersion;
-                        var newWorkspaceVersion = newSolution.WorkspaceVersion;
-                        return $"Apply Failed: Workspace has already been updated (from version '{newWorkspaceVersion}' to '{oldWorkspaceVersion}')";
+                        return $"Apply Failed: Content version has already been updated (from '{newSolution.SolutionStateContentVersion}' to '{oldSolution.SolutionStateContentVersion}')";
                     },
                     oldSolution,
                     newSolution);
@@ -1456,6 +1600,7 @@ public abstract partial class Workspace : IDisposable
 
             foreach (var projectChanges in projectChangesList)
             {
+                progressTracker.Report(CodeAnalysisProgress.Description(string.Format(WorkspacesResources.Applying_changes_to_0, projectChanges.NewProject.Name)));
                 this.ApplyProjectChanges(projectChanges);
                 progressTracker.ItemCompleted();
             }
@@ -1471,10 +1616,15 @@ public abstract partial class Workspace : IDisposable
                 this.ApplyProjectRemoved(proj.Id);
             }
 
-            if (this.CurrentSolution.Options != newSolution.Options)
+            if (oldSolution.Options != newSolution.Options)
             {
                 var changedOptions = newSolution.SolutionState.Options.GetChangedOptions();
                 _legacyOptions.SetOptions(changedOptions.internallyDefined, changedOptions.externallyDefined);
+            }
+
+            if (CurrentSolution.FallbackAnalyzerOptions != newSolution.FallbackAnalyzerOptions)
+            {
+                OnSolutionFallbackAnalyzerOptionsChanged(newSolution.FallbackAnalyzerOptions);
             }
 
             if (!CurrentSolution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences))
@@ -1523,7 +1673,7 @@ public abstract partial class Workspace : IDisposable
         {
             // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
             ApplyDocumentInfoChanged(newDoc.Id,
-                new DocumentInfo(newDoc.DocumentState.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
+                new DocumentInfo(newDoc.DocumentState.Attributes, loader: null, documentServiceProvider: newDoc.State.DocumentServiceProvider));
         }
     }
 
@@ -1889,7 +2039,7 @@ public abstract partial class Workspace : IDisposable
             {
                 // We have the old text, but no new text is easily available. This typically happens when the content is modified via changes to the syntax tree.
                 // Ask document to compute equivalent text changes by comparing the syntax trees, and use them to
-                var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
+                var textChanges = newDoc.GetTextChangesSynchronously(oldDoc, CancellationToken.None);
                 this.ApplyDocumentTextChanged(documentId, oldText.WithChanges(textChanges));
             }
             else
@@ -1899,15 +2049,6 @@ public abstract partial class Workspace : IDisposable
                 this.ApplyDocumentTextChanged(documentId, newText);
             }
         }
-    }
-
-    [Conditional("DEBUG")]
-    private static void CheckNoChanges(Solution oldSolution, Solution newSolution)
-    {
-        var changes = newSolution.GetChanges(oldSolution);
-        Contract.ThrowIfTrue(changes.GetAddedProjects().Any());
-        Contract.ThrowIfTrue(changes.GetRemovedProjects().Any());
-        Contract.ThrowIfTrue(changes.GetProjectChanges().Any());
     }
 
     private static ProjectInfo CreateProjectInfo(Project project)
@@ -1938,7 +2079,7 @@ public abstract partial class Workspace : IDisposable
             filePath: doc.FilePath,
             isGenerated: doc.State.Attributes.IsGenerated)
             .WithDesignTimeOnly(doc.State.Attributes.DesignTimeOnly)
-            .WithDocumentServiceProvider(doc.Services);
+            .WithDocumentServiceProvider(doc.DocumentServiceProvider);
 
     /// <summary>
     /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a project to the current solution.

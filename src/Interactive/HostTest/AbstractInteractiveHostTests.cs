@@ -10,7 +10,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -18,12 +17,12 @@ using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+    using Xunit.Abstractions;
 
     public abstract class AbstractInteractiveHostTests : CSharpTestBase, IAsyncLifetime
     {
@@ -32,6 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         private int[] _outputReadPosition = [0, 0];
 
         internal readonly InteractiveHost Host;
+        internal readonly ITestOutputHelper TestOutputHelper;
 
         // DOTNET_ROOT must be set in order to run host process on .NET Core on machines (like CI)
         // that do not have the required version of the runtime installed globally.
@@ -59,12 +59,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             }
         }
 
-        protected AbstractInteractiveHostTests()
+        protected AbstractInteractiveHostTests(ITestOutputHelper testOutputHelper)
         {
+            TestOutputHelper = testOutputHelper;
             Host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1, joinOutputWritingThreadsOnDisposal: true);
 
             Host.InteractiveHostProcessCreationFailed += (exception, exitCode) =>
-                Assert.False(true, (exception?.Message ?? "Host process terminated unexpectedly.") + $" Exit code: {exitCode?.ToString() ?? "<unknown>"}");
+                testOutputHelper.WriteLine((exception?.Message ?? "Host process terminated unexpectedly.") + $" Exit code: {exitCode?.ToString() ?? "<unknown>"}");
 
             RedirectOutput();
         }
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public static ImmutableArray<string> SplitLines(string text)
         {
-            return ImmutableArray.Create(text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
+            return ImmutableArray.Create(text.Split(["\r\n"], StringSplitOptions.RemoveEmptyEntries));
         }
 
         public async Task<bool> LoadReference(string reference)

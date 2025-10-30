@@ -5,522 +5,487 @@
 #nullable disable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Wrapping;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+public sealed class ChainedExpressionWrappingTests : AbstractWrappingTests
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-    public class ChainedExpressionWrappingTests : AbstractWrappingTests
-    {
-        [Fact]
-        public async Task TestMissingWithSyntaxError()
-        {
-            await TestMissingAsync(
-                """
-                class C {
-                    void Bar() {
-                        [||]the.quick().brown.fox(,);
-                    }
+    [Fact]
+    public Task TestMissingWithSyntaxError()
+        => TestMissingAsync(
+            """
+            class C {
+                void Bar() {
+                    [||]the.quick().brown.fox(,);
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestMissingWithoutEnoughChunks()
-        {
-            await TestMissingAsync(
-                """
-                class C {
-                    void Bar() {
-                        [||]the.quick();
-                    }
+    [Fact]
+    public Task TestMissingWithoutEnoughChunks()
+        => TestMissingAsync(
+            """
+            class C {
+                void Bar() {
+                    [||]the.quick();
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestWithEnoughChunks()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        [||]the.quick.brown().fox.jumped();
-                    }
+    [Fact]
+    public Task TestWithEnoughChunks()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    [||]the.quick.brown().fox.jumped();
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the.quick.brown().fox
-                            .jumped();
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                        .jumped();
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the.quick.brown().fox
-                                 .jumped();
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                             .jumped();
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestGenericNames()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        [||]the.quick.brown<int>().fox.jumped<string, bool>();
-                    }
+    [Fact]
+    public Task TestGenericNames()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    [||]the.quick.brown<int>().fox.jumped<string, bool>();
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the.quick.brown<int>().fox
-                            .jumped<string, bool>();
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown<int>().fox
+                        .jumped<string, bool>();
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the.quick.brown<int>().fox
-                                 .jumped<string, bool>();
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown<int>().fox
+                             .jumped<string, bool>();
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestElementAccess()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        [||]the.quick.brown[1, 2, 3].fox.jumped[1][2][3];
-                    }
+    [Fact]
+    public Task TestElementAccess()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    [||]the.quick.brown[1, 2, 3].fox.jumped[1][2][3];
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the.quick.brown[1, 2, 3].fox
-                            .jumped[1][2][3];
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown[1, 2, 3].fox
+                        .jumped[1][2][3];
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the.quick.brown[1, 2, 3].fox
-                                 .jumped[1][2][3];
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown[1, 2, 3].fox
+                             .jumped[1][2][3];
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestUnwrap()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        [||]the.quick.brown[1, 2, 3].fox
-                                 .jumped[1][2][3];
-                    }
+    [Fact]
+    public Task TestUnwrap()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    [||]the.quick.brown[1, 2, 3].fox
+                             .jumped[1][2][3];
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the.quick.brown[1, 2, 3].fox
-                            .jumped[1][2][3];
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown[1, 2, 3].fox
+                        .jumped[1][2][3];
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the.quick.brown[1, 2, 3].fox.jumped[1][2][3];
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown[1, 2, 3].fox.jumped[1][2][3];
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestWrapAndUnwrap()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        [||]the.quick.
-                                brown[1, 2, 3]
-                           .fox.jumped[1][2][3];
-                    }
+    [Fact]
+    public Task TestWrapAndUnwrap()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    [||]the.quick.
+                            brown[1, 2, 3]
+                       .fox.jumped[1][2][3];
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the.quick.brown[1, 2, 3].fox
-                            .jumped[1][2][3];
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown[1, 2, 3].fox
+                        .jumped[1][2][3];
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the.quick.brown[1, 2, 3].fox
-                                 .jumped[1][2][3];
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown[1, 2, 3].fox
+                             .jumped[1][2][3];
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the.quick.brown[1, 2, 3].fox.jumped[1][2][3];
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown[1, 2, 3].fox.jumped[1][2][3];
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestChunkMustHaveDottedSection()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        [||]the().quick.brown[1, 2, 3].fox.jumped[1][2][3];
-                    }
+    [Fact]
+    public Task TestChunkMustHaveDottedSection()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    [||]the().quick.brown[1, 2, 3].fox.jumped[1][2][3];
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the().quick.brown[1, 2, 3].fox
-                            .jumped[1][2][3];
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the().quick.brown[1, 2, 3].fox
+                        .jumped[1][2][3];
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the().quick.brown[1, 2, 3].fox
-                                   .jumped[1][2][3];
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the().quick.brown[1, 2, 3].fox
+                               .jumped[1][2][3];
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TrailingNonCallIsNotWrapped()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        [||]the.quick.brown().fox.jumped().over;
-                    }
+    [Fact]
+    public Task TrailingNonCallIsNotWrapped()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    [||]the.quick.brown().fox.jumped().over;
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the.quick.brown().fox
-                            .jumped().over;
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                        .jumped().over;
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the.quick.brown().fox
-                                 .jumped().over;
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                             .jumped().over;
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TrailingLongWrapping1()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        [||]the.quick.brown().fox.jumped().over.the().lazy().dog();
-                    }
+    [Fact]
+    public Task TrailingLongWrapping1()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    [||]the.quick.brown().fox.jumped().over.the().lazy().dog();
                 }
-                """,
-GetIndentionColumn(35),
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-            .jumped().over
-            .the()
-            .lazy()
-            .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-                 .jumped().over
-                 .the()
-                 .lazy()
-                 .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-            .jumped().over.the()
-            .lazy().dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-                 .jumped().over
-                 .the().lazy()
-                 .dog();
-    }
-}
-""");
-        }
+            }
+            """,
+            GetIndentionColumn(35),
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                        .jumped().over
+                        .the()
+                        .lazy()
+                        .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                             .jumped().over
+                             .the()
+                             .lazy()
+                             .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                        .jumped().over.the()
+                        .lazy().dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                             .jumped().over
+                             .the().lazy()
+                             .dog();
+                }
+            }
+            """);
 
-        [Fact]
-        public async Task TrailingLongWrapping2()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        [||]the.quick.brown().fox.jumped().over.the().lazy().dog();
-                    }
+    [Fact]
+    public Task TrailingLongWrapping2()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    [||]the.quick.brown().fox.jumped().over.the().lazy().dog();
                 }
-                """,
-GetIndentionColumn(40),
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-            .jumped().over
-            .the()
-            .lazy()
-            .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-                 .jumped().over
-                 .the()
-                 .lazy()
-                 .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-            .jumped().over.the().lazy()
-            .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-                 .jumped().over.the()
-                 .lazy().dog();
-    }
-}
-""");
-        }
+            }
+            """,
+            GetIndentionColumn(40),
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                        .jumped().over
+                        .the()
+                        .lazy()
+                        .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                             .jumped().over
+                             .the()
+                             .lazy()
+                             .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                        .jumped().over.the().lazy()
+                        .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                             .jumped().over.the()
+                             .lazy().dog();
+                }
+            }
+            """);
 
-        [Fact]
-        public async Task TrailingLongWrapping3()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        [||]the.quick.brown().fox.jumped().over.the().lazy().dog();
-                    }
+    [Fact]
+    public Task TrailingLongWrapping3()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    [||]the.quick.brown().fox.jumped().over.the().lazy().dog();
                 }
-                """,
-GetIndentionColumn(60),
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-            .jumped().over
-            .the()
-            .lazy()
-            .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox
-                 .jumped().over
-                 .the()
-                 .lazy()
-                 .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox.jumped().over.the().lazy()
-            .dog();
-    }
-}
-""",
-"""
-class C {
-    void Bar() {
-        the.quick.brown().fox.jumped().over.the().lazy()
-                 .dog();
-    }
-}
-""");
-        }
+            }
+            """,
+            GetIndentionColumn(60),
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                        .jumped().over
+                        .the()
+                        .lazy()
+                        .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox
+                             .jumped().over
+                             .the()
+                             .lazy()
+                             .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox.jumped().over.the().lazy()
+                        .dog();
+                }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the.quick.brown().fox.jumped().over.the().lazy()
+                             .dog();
+                }
+            }
+            """);
 
-        [Fact]
-        public async Task TestInConditionalAccess()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        the?.[||]quick.brown().fox.jumped();
-                    }
+    [Fact]
+    public Task TestInConditionalAccess()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    the?.[||]quick.brown().fox.jumped();
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the?.quick.brown().fox
-                            .jumped();
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the?.quick.brown().fox
+                        .jumped();
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the?.quick.brown().fox
-                                  .jumped();
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the?.quick.brown().fox
+                              .jumped();
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestInConditionalAccess2()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        the?.[||]quick.brown()?.fox.jumped();
-                    }
+    [Fact]
+    public Task TestInConditionalAccess2()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    the?.[||]quick.brown()?.fox.jumped();
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the?.quick.brown()?.fox
-                            .jumped();
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the?.quick.brown()?.fox
+                        .jumped();
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the?.quick.brown()?.fox
-                                  .jumped();
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the?.quick.brown()?.fox
+                              .jumped();
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestInConditionalAccess3()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        the?.[||]quick.brown()?.fox().jumped();
-                    }
+    [Fact]
+    public Task TestInConditionalAccess3()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    the?.[||]quick.brown()?.fox().jumped();
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the?.quick.brown()?.fox()
-                            .jumped();
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the?.quick.brown()?.fox()
+                        .jumped();
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the?.quick.brown()?.fox()
-                                  .jumped();
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the?.quick.brown()?.fox()
+                              .jumped();
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestInConditionalAccess4()
-        {
-            await TestAllWrappingCasesAsync(
-                """
-                class C {
-                    void Bar() {
-                        [||]the?.quick().brown()?.fox().jumped();
-                    }
+    [Fact]
+    public Task TestInConditionalAccess4()
+        => TestAllWrappingCasesAsync(
+            """
+            class C {
+                void Bar() {
+                    [||]the?.quick().brown()?.fox().jumped();
                 }
-                """,
-                """
-                class C {
-                    void Bar() {
-                        the?.quick()
-                            .brown()?.fox()
-                            .jumped();
-                    }
+            }
+            """,
+            """
+            class C {
+                void Bar() {
+                    the?.quick()
+                        .brown()?.fox()
+                        .jumped();
                 }
-                """);
-        }
-    }
+            }
+            """);
 }

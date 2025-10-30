@@ -92,6 +92,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static string CompoundAssignmentOperatorNameFromSyntaxKind(SyntaxKind kind, bool isChecked)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.PlusEqualsToken: return isChecked ? WellKnownMemberNames.CheckedAdditionAssignmentOperatorName : WellKnownMemberNames.AdditionAssignmentOperatorName;
+                case SyntaxKind.MinusEqualsToken: return isChecked ? WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName : WellKnownMemberNames.SubtractionAssignmentOperatorName;
+                case SyntaxKind.AsteriskEqualsToken: return isChecked ? WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName : WellKnownMemberNames.MultiplicationAssignmentOperatorName;
+                case SyntaxKind.SlashEqualsToken: return isChecked ? WellKnownMemberNames.CheckedDivisionAssignmentOperatorName : WellKnownMemberNames.DivisionAssignmentOperatorName;
+                case SyntaxKind.PercentEqualsToken: return WellKnownMemberNames.ModulusAssignmentOperatorName;
+                case SyntaxKind.CaretEqualsToken: return WellKnownMemberNames.ExclusiveOrAssignmentOperatorName;
+                case SyntaxKind.AmpersandEqualsToken: return WellKnownMemberNames.BitwiseAndAssignmentOperatorName;
+                case SyntaxKind.BarEqualsToken: return WellKnownMemberNames.BitwiseOrAssignmentOperatorName;
+                case SyntaxKind.LessThanLessThanEqualsToken: return WellKnownMemberNames.LeftShiftAssignmentOperatorName;
+                case SyntaxKind.GreaterThanGreaterThanEqualsToken: return WellKnownMemberNames.RightShiftAssignmentOperatorName;
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken: return WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName;
+                case SyntaxKind.PlusPlusToken: return isChecked ? WellKnownMemberNames.CheckedIncrementAssignmentOperatorName : WellKnownMemberNames.IncrementAssignmentOperatorName;
+                case SyntaxKind.MinusMinusToken: return isChecked ? WellKnownMemberNames.CheckedDecrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+        internal static bool IsCompoundAssignmentOperatorName(string operatorMetadataName)
+        {
+            switch (operatorMetadataName)
+            {
+                case WellKnownMemberNames.CheckedDecrementAssignmentOperatorName:
+                case WellKnownMemberNames.DecrementAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedIncrementAssignmentOperatorName:
+                case WellKnownMemberNames.IncrementAssignmentOperatorName:
+                case WellKnownMemberNames.AdditionAssignmentOperatorName:
+                case WellKnownMemberNames.SubtractionAssignmentOperatorName:
+                case WellKnownMemberNames.MultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.DivisionAssignmentOperatorName:
+                case WellKnownMemberNames.ModulusAssignmentOperatorName:
+                case WellKnownMemberNames.BitwiseAndAssignmentOperatorName:
+                case WellKnownMemberNames.BitwiseOrAssignmentOperatorName:
+                case WellKnownMemberNames.ExclusiveOrAssignmentOperatorName:
+                case WellKnownMemberNames.LeftShiftAssignmentOperatorName:
+                case WellKnownMemberNames.RightShiftAssignmentOperatorName:
+                case WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedAdditionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName:
+                case WellKnownMemberNames.CheckedDivisionAssignmentOperatorName:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
         public static string UnaryOperatorNameFromSyntaxKind(SyntaxKind kind, bool isChecked)
         {
             return UnaryOperatorNameFromSyntaxKindIfAny(kind, isChecked) ??
@@ -139,7 +191,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (SyntaxFacts.IsUnaryOperatorDeclarationToken(opTokenKind))
             {
+                if (opTokenKind is SyntaxKind.PlusPlusToken or SyntaxKind.MinusMinusToken &&
+                    declaration.ParameterList.Parameters.Count == 0)
+                {
+                    return OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(opTokenKind, isChecked);
+                }
+
                 return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opTokenKind, isChecked);
+            }
+            else if (SyntaxFacts.IsOverloadableCompoundAssignmentOperator(opTokenKind))
+            {
+                return OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(opTokenKind, isChecked);
             }
             else
             {

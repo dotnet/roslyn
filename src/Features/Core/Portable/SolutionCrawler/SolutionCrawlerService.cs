@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler;
 
-internal partial class SolutionCrawlerRegistrationService
+internal sealed partial class SolutionCrawlerRegistrationService
 {
     internal static readonly Option2<bool> EnableSolutionCrawler = new("dotnet_enable_solution_crawler", defaultValue: true);
 }

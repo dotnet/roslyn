@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -14,10 +13,6 @@ internal static class XmlDocCommentCompletionItem
 
     public static CompletionItem Create(string displayText, string beforeCaretText, string afterCaretText, CompletionItemRules rules)
     {
-        var props = ImmutableArray.Create(
-            new KeyValuePair<string, string>(BeforeCaretText, beforeCaretText),
-            new KeyValuePair<string, string>(AfterCaretText, afterCaretText));
-
         // Set isComplexTextEdit to be always true for simplicity, even
         // though we don't always need to make change outside the default
         // completion list Span.
@@ -27,7 +22,9 @@ internal static class XmlDocCommentCompletionItem
             displayText: displayText,
             displayTextSuffix: "",
             glyph: Glyph.Keyword,
-            properties: props,
+            properties: [
+                KeyValuePair.Create(BeforeCaretText, beforeCaretText),
+                KeyValuePair.Create(AfterCaretText, afterCaretText)],
             rules: rules,
             isComplexTextEdit: true);
     }

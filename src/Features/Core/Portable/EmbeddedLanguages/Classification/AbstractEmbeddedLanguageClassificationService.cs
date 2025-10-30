@@ -86,11 +86,10 @@ internal abstract class AbstractEmbeddedLanguageClassificationService :
             using var pooledStack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
             var stack = pooledStack.Object;
             stack.Push(node);
-            while (stack.Count > 0)
+            while (stack.TryPop(out var currentNodeOrToken))
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                var currentNodeOrToken = stack.Pop();
-                if (currentNodeOrToken.Span.IntersectsWith(_textSpan))
+                if (currentNodeOrToken.FullSpan.IntersectsWith(_textSpan))
                 {
                     if (currentNodeOrToken.IsNode)
                     {

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TaggerEventSources
 {
-    private class CompositionEventSource : ITaggerEventSource
+    private sealed class CompositionEventSource : ITaggerEventSource
     {
         private readonly ITaggerEventSource[] _providers;
 

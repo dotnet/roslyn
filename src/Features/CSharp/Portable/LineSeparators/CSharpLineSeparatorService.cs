@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -15,12 +14,11 @@ using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.LineSeparators;
 
 [ExportLanguageService(typeof(ILineSeparatorService), LanguageNames.CSharp), Shared]
-internal class CSharpLineSeparatorService : ILineSeparatorService
+internal sealed class CSharpLineSeparatorService : ILineSeparatorService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -64,7 +62,7 @@ internal class CSharpLineSeparatorService : ILineSeparatorService
             }
         }
 
-        return spans.ToImmutable();
+        return spans.ToImmutableAndClear();
     }
 
     /// <summary>Node types that are interesting for line separation.</summary>
@@ -299,7 +297,7 @@ internal class CSharpLineSeparatorService : ILineSeparatorService
         {
             if (!seenSeparator)
             {
-                var nextToLast = children[children.Count - 2];
+                var nextToLast = children[^2];
                 AddLineSeparatorSpanForNode(nextToLast, spans, cancellationToken);
             }
 

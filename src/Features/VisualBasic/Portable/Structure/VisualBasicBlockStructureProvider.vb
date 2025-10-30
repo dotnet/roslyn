@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
-    Friend Class VisualBasicBlockStructureProvider
+    Friend NotInheritable Class VisualBasicBlockStructureProvider
         Inherits AbstractBlockStructureProvider
 
         Public Shared Function CreateDefaultNodeStructureProviderMap() As ImmutableDictionary(Of Type, ImmutableArray(Of AbstractSyntaxStructureProvider))

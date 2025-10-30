@@ -13,6 +13,9 @@ using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHe
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 internal static class DestructorGenerator
 {
     private static MemberDeclarationSyntax? LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
@@ -46,14 +49,14 @@ internal static class DestructorGenerator
 
         var hasNoBody = !info.Context.GenerateMethodBodies;
 
-        var declaration = SyntaxFactory.DestructorDeclaration(
+        var declaration = DestructorDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(destructor.GetAttributes(), info),
             modifiers: default,
-            tildeToken: SyntaxFactory.Token(SyntaxKind.TildeToken),
+            tildeToken: TildeToken,
             identifier: CodeGenerationDestructorInfo.GetTypeName(destructor).ToIdentifierToken(),
-            parameterList: SyntaxFactory.ParameterList(),
+            parameterList: ParameterList(),
             body: hasNoBody ? null : GenerateBlock(destructor),
-            semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
+            semicolonToken: hasNoBody ? SemicolonToken : default);
 
         return AddFormatterAndCodeGeneratorAnnotationsTo(
             ConditionallyAddDocumentationCommentTo(declaration, destructor, info, cancellationToken));
@@ -66,6 +69,6 @@ internal static class DestructorGenerator
             ? default
             : StatementGenerator.GenerateStatements(CodeGenerationDestructorInfo.GetStatements(constructor));
 
-        return SyntaxFactory.Block(statements);
+        return Block(statements);
     }
 }

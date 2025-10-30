@@ -3,11 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -308,7 +307,7 @@ Module E
     End Sub
 End Module
 ]]></file>
-</compilation>, {TestMetadata.Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
 
             Dim tree = compilation.SyntaxTrees.Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)

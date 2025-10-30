@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode loop,
             BoundExpression rewrittenCondition,
             BoundStatement rewrittenBody,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             bool hasErrors)
         {
             Debug.Assert(loop.Kind is BoundKind.WhileStatement or BoundKind.ForEachStatement or BoundKind.CollectionExpressionSpreadElement);
@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalSymbol> locals,
             BoundExpression rewrittenCondition,
             BoundStatement rewrittenBody,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             bool hasErrors)
         {
             if (locals.IsEmpty)

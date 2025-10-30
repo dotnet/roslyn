@@ -1,0 +1,470 @@
+﻿{
+  "$schema": "http://json.schemastore.org/sarif-1.0.0",
+  "version": "1.0.0",
+  "runs": [
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+        "version": "5.3.0",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS0016": {
+          "id": "RS0016",
+          "shortDescription": "Add public types and members to the declared API",
+          "fullDescription": "All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0017": {
+          "id": "RS0017",
+          "shortDescription": "Remove deleted types and members from the declared API",
+          "fullDescription": "When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0022": {
+          "id": "RS0022",
+          "shortDescription": "Constructor make noninheritable base class inheritable",
+          "fullDescription": "Constructor makes its noninheritable base class inheritable, thereby exposing its protected members",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0024": {
+          "id": "RS0024",
+          "shortDescription": "The contents of the public API files are invalid",
+          "fullDescription": "The contents of the public API files are invalid: {0}",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0025": {
+          "id": "RS0025",
+          "shortDescription": "Do not duplicate symbols in public API files",
+          "fullDescription": "The symbol '{0}' appears more than once in the public API files",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0026": {
+          "id": "RS0026",
+          "shortDescription": "Do not add multiple public overloads with optional parameters",
+          "fullDescription": "Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0027": {
+          "id": "RS0027",
+          "shortDescription": "API with optional parameter(s) should have the most parameters amongst its public overloads",
+          "fullDescription": "'{0}' violates the backcompat requirement: 'API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0036": {
+          "id": "RS0036",
+          "shortDescription": "Annotate nullability of public types and members in the declared API",
+          "fullDescription": "All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0037": {
+          "id": "RS0037",
+          "shortDescription": "Enable tracking of nullability of reference types in the declared API",
+          "fullDescription": "PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0041": {
+          "id": "RS0041",
+          "shortDescription": "Public members should not use oblivious types",
+          "fullDescription": "All public members should use either nullable or non-nullable reference types, but no oblivious reference types.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0048": {
+          "id": "RS0048",
+          "shortDescription": "Missing shipped or unshipped public API file",
+          "fullDescription": "Public API file '{0}' is missing or not marked as an additional analyzer file",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0050": {
+          "id": "RS0050",
+          "shortDescription": "API is marked as removed but it exists in source code",
+          "fullDescription": "Symbol '{0}' is marked as removed but it isn't deleted in source code",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0051": {
+          "id": "RS0051",
+          "shortDescription": "Add internal types and members to the declared API",
+          "fullDescription": "All internal types and members should be declared in InternalAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0052": {
+          "id": "RS0052",
+          "shortDescription": "Remove deleted types and members from the declared internal API",
+          "fullDescription": "When removing a internal type or member, put that entry in InternalAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0053": {
+          "id": "RS0053",
+          "shortDescription": "The contents of the internal API files are invalid",
+          "fullDescription": "The contents of the internal API files are invalid: {0}",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0054": {
+          "id": "RS0054",
+          "shortDescription": "Do not duplicate symbols in internal API files",
+          "fullDescription": "The symbol '{0}' appears more than once in the internal API files",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0055": {
+          "id": "RS0055",
+          "shortDescription": "Annotate nullability of internal types and members in the declared API",
+          "fullDescription": "All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0056": {
+          "id": "RS0056",
+          "shortDescription": "Enable tracking of nullability of reference types in the declared API",
+          "fullDescription": "InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0057": {
+          "id": "RS0057",
+          "shortDescription": "Internal members should not use oblivious types",
+          "fullDescription": "All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0058": {
+          "id": "RS0058",
+          "shortDescription": "Missing shipped or unshipped internal API file",
+          "fullDescription": "Internal API file '{0}' is missing or not marked as an additional analyzer file",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0059": {
+          "id": "RS0059",
+          "shortDescription": "Do not add multiple public overloads with optional parameters",
+          "fullDescription": "Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0060": {
+          "id": "RS0060",
+          "shortDescription": "API with optional parameter(s) should have the most parameters amongst its public overloads",
+          "fullDescription": "'{0}' violates the backcompat requirement: 'API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0061": {
+          "id": "RS0061",
+          "shortDescription": "Constructor make noninheritable base class inheritable",
+          "fullDescription": "Constructor makes its noninheritable base class inheritable, thereby exposing its protected members",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes",
+        "version": "5.3.0",
+        "language": "en-US"
+      },
+      "rules": {
+      }
+    }
+  ]
+}

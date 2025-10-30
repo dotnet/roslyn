@@ -10,1082 +10,992 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
+
+[Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
-    [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-    public partial class ChangeSignatureTests : AbstractChangeSignatureTests
+    [Fact]
+    public async Task ReorderLocalFunctionParametersAndArguments_OnDeclaration()
     {
-        [Fact]
-        public async Task ReorderLocalFunctionParametersAndArguments_OnDeclaration()
-        {
-            var markup = """
-                using System;
-                class MyClass
-                {
-                    public void M()
-                    {
-                        Goo(1, 2);
-                        void $$Goo(int x, string y)
-                        {
-                        }
-                    }
-                }
-                """;
-            var permutation = new[] { 1, 0 };
-            var updatedCode = """
-                using System;
-                class MyClass
-                {
-                    public void M()
-                    {
-                        Goo(2, 1);
-                        void Goo(string y, int x)
-                        {
-                        }
-                    }
-                }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderLocalFunctionParametersAndArguments_OnInvocation()
-        {
-            var markup = """
-                using System;
-                class MyClass
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            using System;
+            class MyClass
+            {
+                public void M()
                 {
-                    public void M()
+                    Goo(1, 2);
+                    void $$Goo(int x, string y)
                     {
-                        $$Goo(1, null);
-                        void Goo(int x, string y)
-                        {
-                        }
                     }
                 }
-                """;
-            var permutation = new[] { 1, 0 };
-            var updatedCode = """
-                using System;
-                class MyClass
-                {
-                    public void M()
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            using System;
+            class MyClass
+            {
+                public void M()
+                {
+                    Goo(2, 1);
+                    void Goo(string y, int x)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderLocalFunctionParametersAndArguments_OnInvocation()
+    {
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            using System;
+            class MyClass
+            {
+                public void M()
+                {
+                    $$Goo(1, null);
+                    void Goo(int x, string y)
+                    {
+                    }
+                }
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            using System;
+            class MyClass
+            {
+                public void M()
+                {
+                    Goo(null, 1);
+                    void Goo(string y, int x)
                     {
-                        Goo(null, 1);
-                        void Goo(string y, int x)
-                        {
-                        }
                     }
                 }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task ReorderMethodParameters()
-        {
-            var markup = """
-                using System;
-                class MyClass
+    [Fact]
+    public async Task ReorderMethodParameters()
+    {
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            using System;
+            class MyClass
+            {
+                public void $$Goo(int x, string y)
                 {
-                    public void $$Goo(int x, string y)
-                    {
-                    }
                 }
-                """;
-            var permutation = new[] { 1, 0 };
-            var updatedCode = """
-                using System;
-                class MyClass
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            using System;
+            class MyClass
+            {
+                public void Goo(string y, int x)
                 {
-                    public void Goo(string y, int x)
-                    {
-                    }
                 }
-                """;
+            }
+            """);
+    }
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderMethodParametersAndArguments()
-        {
-            var markup = """
-                using System;
-                class MyClass
+    [Fact]
+    public async Task ReorderMethodParametersAndArguments()
+    {
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            using System;
+            class MyClass
+            {
+                public void $$Goo(int x, string y)
                 {
-                    public void $$Goo(int x, string y)
-                    {
-                        Goo(3, "hello");
-                    }
+                    Goo(3, "hello");
                 }
-                """;
-            var permutation = new[] { 1, 0 };
-            var updatedCode = """
-                using System;
-                class MyClass
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            using System;
+            class MyClass
+            {
+                public void Goo(string y, int x)
                 {
-                    public void Goo(string y, int x)
-                    {
-                        Goo("hello", 3);
-                    }
+                    Goo("hello", 3);
                 }
-                """;
+            }
+            """);
+    }
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderMethodParametersAndArgumentsOfNestedCalls()
-        {
-            var markup = """
-                using System;
-                class MyClass
-                {
-                    public int $$Goo(int x, string y)
-                    {
-                        return Goo(Goo(4, "inner"), "outer");
-                    }
-                }
-                """;
-            var permutation = new[] { 1, 0 };
-            var updatedCode = """
-                using System;
-                class MyClass
+    [Fact]
+    public async Task ReorderMethodParametersAndArgumentsOfNestedCalls()
+    {
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            using System;
+            class MyClass
+            {
+                public int $$Goo(int x, string y)
                 {
-                    public int Goo(string y, int x)
-                    {
-                        return Goo("outer", Goo("inner", 4));
-                    }
+                    return Goo(Goo(4, "inner"), "outer");
                 }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderConstructorParametersAndArguments()
-        {
-            var markup = """
-                using System;
-
-                class MyClass2 : MyClass
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            using System;
+            class MyClass
+            {
+                public int Goo(string y, int x)
                 {
-                    public MyClass2() : base(5, "test2")
-                    {
-                    }
+                    return Goo("outer", Goo("inner", 4));
                 }
-
-                class MyClass
-                {
-                    public MyClass() : this(2, "test")
-                    {
-                    }
+            }
+            """);
+    }
 
-                    public $$MyClass(int x, string y)
-                    {
-                        var t = new MyClass(x, y);
-                    }
-                }
-                """;
-            var permutation = new[] { 1, 0 };
-            var updatedCode = """
-                using System;
+    [Fact]
+    public async Task ReorderConstructorParametersAndArguments()
+    {
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            using System;
 
-                class MyClass2 : MyClass
+            class MyClass2 : MyClass
+            {
+                public MyClass2() : base(5, "test2")
                 {
-                    public MyClass2() : base("test2", 5)
-                    {
-                    }
                 }
+            }
 
-                class MyClass
+            class MyClass
+            {
+                public MyClass() : this(2, "test")
                 {
-                    public MyClass() : this("test", 2)
-                    {
-                    }
-
-                    public MyClass(string y, int x)
-                    {
-                        var t = new MyClass(y, x);
-                    }
                 }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44126")]
-        public async Task ReorderConstructorParametersAndArguments_ImplicitObjectCreation()
-        {
-            var markup = """
-                using System;
-
-                class MyClass2 : MyClass
+                public $$MyClass(int x, string y)
                 {
-                    public MyClass2() : base(5, "test2")
-                    {
-                    }
+                    var t = new MyClass(x, y);
                 }
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            using System;
 
-                class MyClass
+            class MyClass2 : MyClass
+            {
+                public MyClass2() : base("test2", 5)
                 {
-                    public MyClass() : this(2, "test")
-                    {
-                    }
-
-                    public MyClass(int x, string y)
-                    {
-                        MyClass t = new$$(x, y);
-                    }
                 }
-                """;
-            var permutation = new[] { 1, 0 };
-            var updatedCode = """
-                using System;
+            }
 
-                class MyClass2 : MyClass
+            class MyClass
+            {
+                public MyClass() : this("test", 2)
                 {
-                    public MyClass2() : base("test2", 5)
-                    {
-                    }
                 }
 
-                class MyClass
+                public MyClass(string y, int x)
                 {
-                    public MyClass() : this("test", 2)
-                    {
-                    }
-
-                    public MyClass(string y, int x)
-                    {
-                        MyClass t = new(y, x);
-                    }
+                    var t = new MyClass(y, x);
                 }
-                """;
+            }
+            """);
+    }
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44126")]
+    public async Task ReorderConstructorParametersAndArguments_ImplicitObjectCreation()
+    {
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            using System;
 
-        [Fact]
-        public async Task ReorderAttributeConstructorParametersAndArguments()
-        {
-            var markup = """
-                [My("test", 8)]
-                class MyClass
+            class MyClass2 : MyClass
+            {
+                public MyClass2() : base(5, "test2")
                 {
                 }
+            }
 
-                class MyAttribute : System.Attribute
-                {
-                    public MyAttribute(string x, int y)$$
-                    {
-                    }
-                }
-                """;
-            var permutation = new[] { 1, 0 };
-            var updatedCode = """
-                [My(8, "test")]
-                class MyClass
+            class MyClass
+            {
+                public MyClass() : this(2, "test")
                 {
                 }
 
-                class MyAttribute : System.Attribute
+                public MyClass(int x, string y)
                 {
-                    public MyAttribute(int y, string x)
-                    {
-                    }
+                    MyClass t = new$$(x, y);
                 }
-                """;
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            using System;
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderExtensionMethodParametersAndArguments_StaticCall()
-        {
-            var markup = """
-                public class C
+            class MyClass2 : MyClass
+            {
+                public MyClass2() : base("test2", 5)
                 {
-                    static void Main(string[] args)
-                    {
-                        CExt.M(new C(), 1, 2, "three", "four", "five");
-                    }
                 }
+            }
 
-                public static class CExt
-                {
-                    public static void M(this $$C goo, int x, int y, string a = "test_a", string b = "test_b", string c = "test_c")
-                    { }
-                }
-                """;
-            var permutation = new[] { 0, 2, 1, 5, 4, 3 };
-            var updatedCode = """
-                public class C
+            class MyClass
+            {
+                public MyClass() : this("test", 2)
                 {
-                    static void Main(string[] args)
-                    {
-                        CExt.M(new C(), 2, 1, "five", "four", "three");
-                    }
                 }
 
-                public static class CExt
+                public MyClass(string y, int x)
                 {
-                    public static void M(this C goo, int y, int x, string c = "test_c", string b = "test_b", string a = "test_a")
-                    { }
+                    MyClass t = new(y, x);
                 }
-                """;
-
-            // Although the `ParameterConfig` has 0 for the `SelectedIndex`, the UI dialog will make an adjustment
-            // and select parameter `y` instead because the `this` parameter cannot be moved or removed.
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
-                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task ReorderExtensionMethodParametersAndArguments_ExtensionCall()
-        {
-            var markup = """
-                public class C
-                {
-                    static void Main(string[] args)
-                    {
-                        new C().M(1, 2, "three", "four", "five");
-                    }
-                }
+    [Fact]
+    public async Task ReorderAttributeConstructorParametersAndArguments()
+    {
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            [My("test", 8)]
+            class MyClass
+            {
+            }
 
-                public static class CExt
-                {
-                    public static void M(this C goo, int x$$, int y, string a = "test_a", string b = "test_b", string c = "test_c")
-                    { }
-                }
-                """;
-            var permutation = new[] { 0, 2, 1, 5, 4, 3 };
-            var updatedCode = """
-                public class C
+            class MyAttribute : System.Attribute
+            {
+                public MyAttribute(string x, int y)$$
                 {
-                    static void Main(string[] args)
-                    {
-                        new C().M(2, 1, "five", "four", "three");
-                    }
                 }
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            [My(8, "test")]
+            class MyClass
+            {
+            }
 
-                public static class CExt
+            class MyAttribute : System.Attribute
+            {
+                public MyAttribute(int y, string x)
                 {
-                    public static void M(this C goo, int y, int x, string c = "test_c", string b = "test_b", string a = "test_a")
-                    { }
                 }
-                """;
+            }
+            """);
+    }
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
-                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 1);
-        }
+    [Fact]
+    public async Task ReorderExtensionMethodParametersAndArguments_StaticCall()
+    {
+        var permutation = new[] { 0, 2, 1, 5, 4, 3 };
 
-        [Fact]
-        public async Task ReorderParamsMethodParametersAndArguments_ParamsAsArray()
-        {
-            var markup = """
-                public class C
-                {
-                    void $$M(int x, int y, params int[] p)
-                    {
-                        M(x, y, new[] { 1, 2, 3 });
-                    }
-                }
-                """;
-            var permutation = new[] { 1, 0, 2 };
-            var updatedCode = """
-                public class C
+        // Although the `ParameterConfig` has 0 for the `SelectedIndex`, the UI dialog will make an adjustment
+        // and select parameter `y` instead because the `this` parameter cannot be moved or removed.
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                static void Main(string[] args)
                 {
-                    void M(int y, int x, params int[] p)
-                    {
-                        M(y, x, new[] { 1, 2, 3 });
-                    }
+                    CExt.M(new C(), 1, 2, "three", "four", "five");
                 }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
+            }
 
-        [Fact]
-        public async Task ReorderParamsMethodParametersAndArguments_ParamsExpanded()
-        {
-            var markup = """
-                public class C
+            public static class CExt
+            {
+                public static void M(this $$C goo, int x, int y, string a = "test_a", string b = "test_b", string c = "test_c")
+                { }
+            }
+            """, updatedSignature: permutation,
+            expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                static void Main(string[] args)
                 {
-                    void $$M(int x, int y, params int[] p)
-                    {
-                        M(x, y, 1, 2, 3);
-                    }
-                }
-                """;
-            var permutation = new[] { 1, 0, 2 };
-            var updatedCode = """
-                public class C
-                {
-                    void M(int y, int x, params int[] p)
-                    {
-                        M(y, x, 1, 2, 3);
-                    }
+                    CExt.M(new C(), 2, 1, "five", "four", "three");
                 }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
+            }
 
-        [Fact]
-        public async Task ReorderExtensionAndParamsMethodParametersAndArguments_VariedCallsites()
-        {
-            var markup = """
-                public class C
-                {
-                    static void Main(string[] args)
-                    {
-                        CExt.M(new C(), 1, 2, "three", "four", "five", new[] { 6, 7, 8 });
-                        CExt.M(new C(), 1, 2, "three", "four", "five", 6, 7, 8);
-                        new C().M(1, 2, "three", "four", "five", new[] { 6, 7, 8 });
-                        new C().M(1, 2, "three", "four", "five", 6, 7, 8);
-                    }
-                }
+            public static class CExt
+            {
+                public static void M(this C goo, int y, int x, string c = "test_c", string b = "test_b", string a = "test_a")
+                { }
+            }
+            """, expectedSelectedIndex: 0);
+    }
 
-                public static class CExt
+    [Fact]
+    public async Task ReorderExtensionMethodParametersAndArguments_ExtensionCall()
+    {
+        var permutation = new[] { 0, 2, 1, 5, 4, 3 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                static void Main(string[] args)
                 {
-                    public static void $$M(this C goo, int x, int y, string a = "test_a", string b = "test_b", string c = "test_c", params int[] p)
-                    { }
-                }
-                """;
-            var permutation = new[] { 0, 2, 1, 5, 4, 3, 6 };
-            var updatedCode = """
-                public class C
-                {
-                    static void Main(string[] args)
-                    {
-                        CExt.M(new C(), 2, 1, "five", "four", "three", new[] { 6, 7, 8 });
-                        CExt.M(new C(), 2, 1, "five", "four", "three", 6, 7, 8);
-                        new C().M(2, 1, "five", "four", "three", new[] { 6, 7, 8 });
-                        new C().M(2, 1, "five", "four", "three", 6, 7, 8);
-                    }
+                    new C().M(1, 2, "three", "four", "five");
                 }
+            }
 
-                public static class CExt
+            public static class CExt
+            {
+                public static void M(this C goo, int x$$, int y, string a = "test_a", string b = "test_b", string c = "test_c")
+                { }
+            }
+            """, updatedSignature: permutation,
+            expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                static void Main(string[] args)
                 {
-                    public static void M(this C goo, int y, int x, string c = "test_c", string b = "test_b", string a = "test_a", params int[] p)
-                    { }
+                    new C().M(2, 1, "five", "four", "three");
                 }
-                """;
+            }
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
-                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
-        }
+            public static class CExt
+            {
+                public static void M(this C goo, int y, int x, string c = "test_c", string b = "test_b", string a = "test_a")
+                { }
+            }
+            """, expectedSelectedIndex: 1);
+    }
 
-        [Fact]
-        public async Task ReorderIndexerParametersAndArguments()
-        {
-            var markup = """
-                class Program
+    [Fact]
+    public async Task ReorderParamsMethodParametersAndArguments_ParamsAsArray()
+    {
+        var permutation = new[] { 1, 0, 2 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                void $$M(int x, int y, params int[] p)
                 {
-                    void M()
-                    {
-                        var x = new Program()[1, 2];
-                        new Program()[1, 2] = x;
-                    }
-
-                    public int this[int x, int y]$$
-                    {
-                        get { return 5; }
-                        set { }
-                    }
-                }
-                """;
-            var permutation = new[] { 1, 0 };
-            var updatedCode = """
-                class Program
-                {
-                    void M()
-                    {
-                        var x = new Program()[2, 1];
-                        new Program()[2, 1] = x;
-                    }
-
-                    public int this[int y, int x]
-                    {
-                        get { return 5; }
-                        set { }
-                    }
+                    M(x, y, new[] { 1, 2, 3 });
                 }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_SingleLineDocComments_OnIndividualLines()
-        {
-            var markup = """
-                public class C
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                void M(int y, int x, params int[] p)
                 {
-                    /// <param name="a"></param>
-                    /// <param name="b"></param>
-                    /// <param name="c"></param>
-                    void $$Goo(int a, int b, int c)
-                    {
-
-                    }
-                }
-                """;
-            var permutation = new[] { 2, 1, 0 };
-            var updatedCode = """
-                public class C
-                {
-                    /// <param name="c"></param>
-                    /// <param name="b"></param>
-                    /// <param name="a"></param>
-                    void Goo(int c, int b, int a)
-                    {
-
-                    }
+                    M(y, x, new[] { 1, 2, 3 });
                 }
-                """;
+            }
+            """);
+    }
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_SingleLineDocComments_OnSameLine()
-        {
-            var markup = """
-                public class C
+    [Fact]
+    public async Task ReorderParamsMethodParametersAndArguments_ParamsExpanded()
+    {
+        var permutation = new[] { 1, 0, 2 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                void $$M(int x, int y, params int[] p)
                 {
-                    /// <param name="a">a is fun</param><param name="b">b is fun</param><param name="c">c is fun</param>
-                    void $$Goo(int a, int b, int c)
-                    {
-
-                    }
+                    M(x, y, 1, 2, 3);
                 }
-                """;
-            var permutation = new[] { 2, 1, 0 };
-            var updatedCode = """
-                public class C
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                void M(int y, int x, params int[] p)
                 {
-                    /// <param name="c">c is fun</param><param name="b">b is fun</param><param name="a">a is fun</param>
-                    void Goo(int c, int b, int a)
-                    {
-
-                    }
-                }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_SingleLineDocComments_MixedLineDistribution()
-        {
-            var markup = """
-                public class C
-                {
-                    /// <param name="a"></param><param name="b"></param>
-                    /// <param name="c"></param>
-                    /// <param name="d"></param>
-                    /// <param name="e">Comments spread
-                    /// over several
-                    /// lines</param><param name="f"></param>
-                    void $$Goo(int a, int b, int c, int d, int e, int f)
-                    {
-
-                    }
-                }
-                """;
-            var permutation = new[] { 5, 4, 3, 2, 1, 0 };
-            var updatedCode = """
-                public class C
-                {
-                    /// <param name="f"></param><param name="e">Comments spread
-                    /// over several
-                    /// lines</param>
-                    /// <param name="d"></param>
-                    /// <param name="c"></param>
-                    /// <param name="b"></param><param name="a"></param>
-                    void Goo(int f, int e, int d, int c, int b, int a)
-                    {
-
-                    }
+                    M(y, x, 1, 2, 3);
                 }
-                """;
+            }
+            """);
+    }
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_SingleLineDocComments_MixedWithRegularComments()
-        {
-            var markup = """
-                public class C
+    [Fact]
+    public async Task ReorderExtensionAndParamsMethodParametersAndArguments_VariedCallsites()
+    {
+        var permutation = new[] { 0, 2, 1, 5, 4, 3, 6 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                static void Main(string[] args)
                 {
-                    /// <param name="a"></param><param name="b"></param>
-                    // Why is there a regular comment here?
-                    /// <param name="c"></param><param name="d"></param><param name="e"></param>
-                    void $$Goo(int a, int b, int c, int d, int e)
-                    {
-
-                    }
-                }
-                """;
-            var permutation = new[] { 4, 3, 2, 1, 0 };
-            var updatedCode = """
-                public class C
-                {
-                    /// <param name="e"></param><param name="d"></param>
-                    // Why is there a regular comment here?
-                    /// <param name="c"></param><param name="b"></param><param name="a"></param>
-                    void Goo(int e, int d, int c, int b, int a)
-                    {
-
-                    }
-                }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_MultiLineDocComments_OnSeparateLines1()
-        {
-            var markup = """
-                class Program
-                {
-                    /**
-                     * <param name="x">x!</param>
-                     * <param name="y">y!</param>
-                     * <param name="z">z!</param>
-                     */
-                    static void $$M(int x, int y, int z)
-                    {
-                    }
-                }
-                """;
-            var permutation = new[] { 2, 1, 0 };
-            var updatedCode = """
-                class Program
-                {
-                    /**
-                     * <param name="z">z!</param>
-                     * <param name="y">y!</param>
-                     * <param name="x">x!</param>
-                     */
-                    static void M(int z, int y, int x)
-                    {
-                    }
+                    CExt.M(new C(), 1, 2, "three", "four", "five", new[] { 6, 7, 8 });
+                    CExt.M(new C(), 1, 2, "three", "four", "five", 6, 7, 8);
+                    new C().M(1, 2, "three", "four", "five", new[] { 6, 7, 8 });
+                    new C().M(1, 2, "three", "four", "five", 6, 7, 8);
                 }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
+            }
 
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_MultiLineDocComments_OnSingleLine()
-        {
-            var markup = """
-                class Program
-                {
-                    /** <param name="x">x!</param><param name="y">y!</param><param name="z">z!</param> */
-                    static void $$M(int x, int y, int z)
-                    {
-                    }
-                }
-                """;
-            var permutation = new[] { 2, 1, 0 };
-            var updatedCode = """
-                class Program
+            public static class CExt
+            {
+                public static void $$M(this C goo, int x, int y, string a = "test_a", string b = "test_b", string c = "test_c", params int[] p)
+                { }
+            }
+            """, updatedSignature: permutation,
+            expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                static void Main(string[] args)
                 {
-                    /** <param name="z">z!</param><param name="y">y!</param><param name="x">x!</param> */
-                    static void M(int z, int y, int x)
-                    {
-                    }
+                    CExt.M(new C(), 2, 1, "five", "four", "three", new[] { 6, 7, 8 });
+                    CExt.M(new C(), 2, 1, "five", "four", "three", 6, 7, 8);
+                    new C().M(2, 1, "five", "four", "three", new[] { 6, 7, 8 });
+                    new C().M(2, 1, "five", "four", "three", 6, 7, 8);
                 }
-                """;
+            }
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
+            public static class CExt
+            {
+                public static void M(this C goo, int y, int x, string c = "test_c", string b = "test_b", string a = "test_a", params int[] p)
+                { }
+            }
+            """, expectedSelectedIndex: 0);
+    }
 
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_IncorrectOrder_MaintainsOrder()
-        {
-            var markup = """
-                public class C
+    [Fact]
+    public async Task ReorderIndexerParametersAndArguments()
+    {
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            class Program
+            {
+                void M()
                 {
-                    /// <param name="a"></param>
-                    /// <param name="c"></param>
-                    /// <param name="b"></param>
-                    void $$Goo(int a, int b, int c)
-                    {
-
-                    }
-                }
-                """;
-            var permutation = new[] { 2, 1, 0 };
-            var updatedCode = """
-                public class C
-                {
-                    /// <param name="a"></param>
-                    /// <param name="c"></param>
-                    /// <param name="b"></param>
-                    void Goo(int c, int b, int a)
-                    {
-
-                    }
-                }
-                """;
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_WrongNames_MaintainsOrder()
-        {
-            var markup = """
-                public class C
-                {
-                    /// <param name="a2"></param>
-                    /// <param name="b"></param>
-                    /// <param name="c"></param>
-                    void $$Goo(int a, int b, int c)
-                    {
-
-                    }
-                }
-                """;
-            var permutation = new[] { 2, 1, 0 };
-            var updatedCode = """
-                public class C
-                {
-                    /// <param name="a2"></param>
-                    /// <param name="b"></param>
-                    /// <param name="c"></param>
-                    void Goo(int c, int b, int a)
-                    {
-
-                    }
-                }
-                """;
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_InsufficientTags_MaintainsOrder()
-        {
-            var markup = """
-                public class C
-                {
-                    /// <param name="a"></param>
-                    /// <param name="c"></param>
-                    void $$Goo(int a, int b, int c)
-                    {
-
-                    }
-                }
-                """;
-            var permutation = new[] { 2, 1, 0 };
-            var updatedCode = """
-                public class C
-                {
-                    /// <param name="a"></param>
-                    /// <param name="c"></param>
-                    void Goo(int c, int b, int a)
-                    {
-
-                    }
-                }
-                """;
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_ExcessiveTags_MaintainsOrder()
-        {
-            var markup = """
-                public class C
-                {
-                    /// <param name="a"></param>
-                    /// <param name="b"></param>
-                    /// <param name="c"></param>
-                    /// <param name="d"></param>
-                    void $$Goo(int a, int b, int c)
-                    {
-
-                    }
-                }
-                """;
-            var permutation = new[] { 2, 1, 0 };
-            var updatedCode = """
-                public class C
-                {
-                    /// <param name="a"></param>
-                    /// <param name="b"></param>
-                    /// <param name="c"></param>
-                    /// <param name="d"></param>
-                    void Goo(int c, int b, int a)
-                    {
-
-                    }
-                }
-                """;
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_OnConstructors()
-        {
-            var markup = """
-                public class C
-                {
-                    /// <param name="a"></param>
-                    /// <param name="b"></param>
-                    /// <param name="c"></param>
-                    public $$C(int a, int b, int c)
-                    {
-
-                    }
+                    var x = new Program()[1, 2];
+                    new Program()[1, 2] = x;
                 }
-                """;
-            var permutation = new[] { 2, 1, 0 };
-            var updatedCode = """
-                public class C
-                {
-                    /// <param name="c"></param>
-                    /// <param name="b"></param>
-                    /// <param name="a"></param>
-                    public C(int c, int b, int a)
-                    {
-
-                    }
-                }
-                """;
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_OnIndexers()
-        {
-            var markup = """
-                public class C
-                {
-                    /// <param name="a"></param>
-                    /// <param name="b"></param>
-                    /// <param name="c"></param>
-                    public int $$this[int a, int b, int c]
-                    {
-                        get { return 5; }
-                        set { }
-                    }
-                }
-                """;
-            var permutation = new[] { 2, 1, 0 };
-            var updatedCode = """
-                public class C
-                {
-                    /// <param name="c"></param>
-                    /// <param name="b"></param>
-                    /// <param name="a"></param>
-                    public int this[int c, int b, int a]
-                    {
-                        get { return 5; }
-                        set { }
-                    }
-                }
-                """;
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
 
-        [Fact]
-        public async Task ReorderParametersInCrefs()
-        {
-            var markup = """
-                class C
-                {
-                    /// <summary>
-                    /// See <see cref="M(int, string)"/> and <see cref="M"/>
-                    /// </summary>
-                    $$void M(int x, string y)
-                    { }
-                }
-                """;
-            var permutation = new[] { 1, 0 };
-            var updatedCode = """
-                class C
+                public int this[int x, int y]$$
                 {
-                    /// <summary>
-                    /// See <see cref="M(string, int)"/> and <see cref="M"/>
-                    /// </summary>
-                    void M(string y, int x)
-                    { }
+                    get { return 5; }
+                    set { }
                 }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderParametersInMethodThatImplementsInterfaceMethodOnlyThroughADerivedType1()
-        {
-            var markup = """
-                interface I
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            class Program
+            {
+                void M()
                 {
-                    $$void M(int x, string y);
+                    var x = new Program()[2, 1];
+                    new Program()[2, 1] = x;
                 }
 
-                class C
+                public int this[int y, int x]
                 {
-                    public void M(int x, string y)
-                    {
-                    }
+                    get { return 5; }
+                    set { }
                 }
+            }
+            """);
+    }
 
-                class D : C, I
-                {
-                }
-                """;
-            var permutation = new[] { 1, 0 };
-            var updatedCode = """
-                interface I
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_SingleLineDocComments_OnIndividualLines()
+    {
+        var permutation = new[] { 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                /// <param name="a"></param>
+                /// <param name="b"></param>
+                /// <param name="c"></param>
+                void $$Goo(int a, int b, int c)
                 {
-                    void M(string y, int x);
-                }
 
-                class C
-                {
-                    public void M(string y, int x)
-                    {
-                    }
                 }
-
-                class D : C, I
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                /// <param name="c"></param>
+                /// <param name="b"></param>
+                /// <param name="a"></param>
+                void Goo(int c, int b, int a)
                 {
-                }
-                """;
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderParametersInMethodThatImplementsInterfaceMethodOnlyThroughADerivedType2()
-        {
-            var markup = """
-                interface I
-                {
-                    void M(int x, string y);
                 }
+            }
+            """);
+    }
 
-                class C
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_SingleLineDocComments_OnSameLine()
+    {
+        var permutation = new[] { 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                /// <param name="a">a is fun</param><param name="b">b is fun</param><param name="c">c is fun</param>
+                void $$Goo(int a, int b, int c)
                 {
-                    $$public void M(int x, string y)
-                    {
-                    }
-                }
 
-                class D : C, I
-                {
                 }
-                """;
-            var permutation = new[] { 1, 0 };
-            var updatedCode = """
-                interface I
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                /// <param name="c">c is fun</param><param name="b">b is fun</param><param name="a">a is fun</param>
+                void Goo(int c, int b, int a)
                 {
-                    void M(string y, int x);
-                }
 
-                class C
-                {
-                    public void M(string y, int x)
-                    {
-                    }
                 }
+            }
+            """);
+    }
 
-                class D : C, I
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_SingleLineDocComments_MixedLineDistribution()
+    {
+        var permutation = new[] { 5, 4, 3, 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                /// <param name="a"></param><param name="b"></param>
+                /// <param name="c"></param>
+                /// <param name="d"></param>
+                /// <param name="e">Comments spread
+                /// over several
+                /// lines</param><param name="f"></param>
+                void $$Goo(int a, int b, int c, int d, int e, int f)
                 {
-                }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
 
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_Record()
-        {
-            var markup = """
-                /// <param name="A"></param>
-                /// <param name="B"></param>
-                /// <param name="C"></param>
-                record $$R(int A, int B, int C)
-                {
-                    public static R Instance = new(0, 1, 2);
-                }
-                """;
-            var permutation = new[] { 2, 1, 0 };
-            var updatedCode = """
-                /// <param name="C"></param>
-                /// <param name="B"></param>
-                /// <param name="A"></param>
-                record R(int C, int B, int A)
-                {
-                    public static R Instance = new(2, 1, 0);
                 }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                /// <param name="f"></param><param name="e">Comments spread
+                /// over several
+                /// lines</param>
+                /// <param name="d"></param>
+                /// <param name="c"></param>
+                /// <param name="b"></param><param name="a"></param>
+                void Goo(int f, int e, int d, int c, int b, int a)
+                {
+
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_SingleLineDocComments_MixedWithRegularComments()
+    {
+        var permutation = new[] { 4, 3, 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                /// <param name="a"></param><param name="b"></param>
+                // Why is there a regular comment here?
+                /// <param name="c"></param><param name="d"></param><param name="e"></param>
+                void $$Goo(int a, int b, int c, int d, int e)
+                {
 
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_PrimaryConstructor_Class()
-        {
-            var markup = """
-                /// <param name="A"></param>
-                /// <param name="B"></param>
-                /// <param name="C"></param>
-                class $$R(int A, int B, int C)
-                {
-                    public static R Instance = new(0, 1, 2);
                 }
-                """;
-            var permutation = new[] { 2, 1, 0 };
-            var updatedCode = """
-                /// <param name="C"></param>
-                /// <param name="B"></param>
-                /// <param name="A"></param>
-                class R(int C, int B, int A)
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                /// <param name="e"></param><param name="d"></param>
+                // Why is there a regular comment here?
+                /// <param name="c"></param><param name="b"></param><param name="a"></param>
+                void Goo(int e, int d, int c, int b, int a)
+                {
+
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_MultiLineDocComments_OnSeparateLines1()
+    {
+        var permutation = new[] { 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            class Program
+            {
+                /**
+                 * <param name="x">x!</param>
+                 * <param name="y">y!</param>
+                 * <param name="z">z!</param>
+                 */
+                static void $$M(int x, int y, int z)
                 {
-                    public static R Instance = new(2, 1, 0);
-                }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [Fact]
-        public async Task ReorderParamTagsInDocComments_PrimaryConstructor_Struct()
-        {
-            var markup = """
-                /// <param name="A"></param>
-                /// <param name="B"></param>
-                /// <param name="C"></param>
-                struct $$R(int A, int B, int C)
+                }
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            class Program
+            {
+                /**
+                 * <param name="z">z!</param>
+                 * <param name="y">y!</param>
+                 * <param name="x">x!</param>
+                 */
+                static void M(int z, int y, int x)
                 {
-                    public static R Instance = new(0, 1, 2);
-                }
-                """;
-            var permutation = new[] { 2, 1, 0 };
-            var updatedCode = """
-                /// <param name="C"></param>
-                /// <param name="B"></param>
-                /// <param name="A"></param>
-                struct R(int C, int B, int A)
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_MultiLineDocComments_OnSingleLine()
+    {
+        var permutation = new[] { 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            class Program
+            {
+                /** <param name="x">x!</param><param name="y">y!</param><param name="z">z!</param> */
+                static void $$M(int x, int y, int z)
                 {
-                    public static R Instance = new(2, 1, 0);
                 }
-                """;
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            class Program
+            {
+                /** <param name="z">z!</param><param name="y">y!</param><param name="x">x!</param> */
+                static void M(int z, int y, int x)
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_IncorrectOrder_MaintainsOrder()
+    {
+        var permutation = new[] { 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                /// <param name="a"></param>
+                /// <param name="c"></param>
+                /// <param name="b"></param>
+                void $$Goo(int a, int b, int c)
+                {
+
+                }
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                /// <param name="a"></param>
+                /// <param name="c"></param>
+                /// <param name="b"></param>
+                void Goo(int c, int b, int a)
+                {
+
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_WrongNames_MaintainsOrder()
+    {
+        var permutation = new[] { 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                /// <param name="a2"></param>
+                /// <param name="b"></param>
+                /// <param name="c"></param>
+                void $$Goo(int a, int b, int c)
+                {
+
+                }
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                /// <param name="a2"></param>
+                /// <param name="b"></param>
+                /// <param name="c"></param>
+                void Goo(int c, int b, int a)
+                {
+
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_InsufficientTags_MaintainsOrder()
+    {
+        var permutation = new[] { 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                /// <param name="a"></param>
+                /// <param name="c"></param>
+                void $$Goo(int a, int b, int c)
+                {
+
+                }
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                /// <param name="a"></param>
+                /// <param name="c"></param>
+                void Goo(int c, int b, int a)
+                {
+
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_ExcessiveTags_MaintainsOrder()
+    {
+        var permutation = new[] { 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                /// <param name="a"></param>
+                /// <param name="b"></param>
+                /// <param name="c"></param>
+                /// <param name="d"></param>
+                void $$Goo(int a, int b, int c)
+                {
+
+                }
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                /// <param name="a"></param>
+                /// <param name="b"></param>
+                /// <param name="c"></param>
+                /// <param name="d"></param>
+                void Goo(int c, int b, int a)
+                {
+
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_OnConstructors()
+    {
+        var permutation = new[] { 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                /// <param name="a"></param>
+                /// <param name="b"></param>
+                /// <param name="c"></param>
+                public $$C(int a, int b, int c)
+                {
+
+                }
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                /// <param name="c"></param>
+                /// <param name="b"></param>
+                /// <param name="a"></param>
+                public C(int c, int b, int a)
+                {
+
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_OnIndexers()
+    {
+        var permutation = new[] { 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public class C
+            {
+                /// <param name="a"></param>
+                /// <param name="b"></param>
+                /// <param name="c"></param>
+                public int $$this[int a, int b, int c]
+                {
+                    get { return 5; }
+                    set { }
+                }
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            public class C
+            {
+                /// <param name="c"></param>
+                /// <param name="b"></param>
+                /// <param name="a"></param>
+                public int this[int c, int b, int a]
+                {
+                    get { return 5; }
+                    set { }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParametersInCrefs()
+    {
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            class C
+            {
+                /// <summary>
+                /// See <see cref="M(int, string)"/> and <see cref="M"/>
+                /// </summary>
+                $$void M(int x, string y)
+                { }
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            class C
+            {
+                /// <summary>
+                /// See <see cref="M(string, int)"/> and <see cref="M"/>
+                /// </summary>
+                void M(string y, int x)
+                { }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParametersInMethodThatImplementsInterfaceMethodOnlyThroughADerivedType1()
+    {
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            interface I
+            {
+                $$void M(int x, string y);
+            }
+
+            class C
+            {
+                public void M(int x, string y)
+                {
+                }
+            }
+
+            class D : C, I
+            {
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            interface I
+            {
+                void M(string y, int x);
+            }
+
+            class C
+            {
+                public void M(string y, int x)
+                {
+                }
+            }
+
+            class D : C, I
+            {
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParametersInMethodThatImplementsInterfaceMethodOnlyThroughADerivedType2()
+    {
+        var permutation = new[] { 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            interface I
+            {
+                void M(int x, string y);
+            }
+
+            class C
+            {
+                $$public void M(int x, string y)
+                {
+                }
+            }
+
+            class D : C, I
+            {
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            interface I
+            {
+                void M(string y, int x);
+            }
+
+            class C
+            {
+                public void M(string y, int x)
+                {
+                }
+            }
+
+            class D : C, I
+            {
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_Record()
+    {
+        var permutation = new[] { 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            /// <param name="A"></param>
+            /// <param name="B"></param>
+            /// <param name="C"></param>
+            record $$R(int A, int B, int C)
+            {
+                public static R Instance = new(0, 1, 2);
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            /// <param name="C"></param>
+            /// <param name="B"></param>
+            /// <param name="A"></param>
+            record R(int C, int B, int A)
+            {
+                public static R Instance = new(2, 1, 0);
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_PrimaryConstructor_Class()
+    {
+        var permutation = new[] { 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            /// <param name="A"></param>
+            /// <param name="B"></param>
+            /// <param name="C"></param>
+            class $$R(int A, int B, int C)
+            {
+                public static R Instance = new(0, 1, 2);
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            /// <param name="C"></param>
+            /// <param name="B"></param>
+            /// <param name="A"></param>
+            class R(int C, int B, int A)
+            {
+                public static R Instance = new(2, 1, 0);
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReorderParamTagsInDocComments_PrimaryConstructor_Struct()
+    {
+        var permutation = new[] { 2, 1, 0 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            /// <param name="A"></param>
+            /// <param name="B"></param>
+            /// <param name="C"></param>
+            struct $$R(int A, int B, int C)
+            {
+                public static R Instance = new(0, 1, 2);
+            }
+            """, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: """
+            /// <param name="C"></param>
+            /// <param name="B"></param>
+            /// <param name="A"></param>
+            struct R(int C, int B, int A)
+            {
+                public static R Instance = new(2, 1, 0);
+            }
+            """);
     }
 }

@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
@@ -912,6 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return bound == null ? null : bound.DefinedSymbol.GetPublicSymbol();
         }
 
+#nullable enable
         public override AwaitExpressionInfo GetAwaitExpressionInfo(AwaitExpressionSyntax node)
         {
             if (node.Kind() != SyntaxKind.AwaitExpression)
@@ -920,18 +922,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var bound = GetLowerBoundNode(node);
-            BoundAwaitableInfo awaitableInfo = (((bound as BoundExpressionStatement)?.Expression ?? bound) as BoundAwaitExpression)?.AwaitableInfo;
+            BoundAwaitableInfo? awaitableInfo = (((bound as BoundExpressionStatement)?.Expression ?? bound) as BoundAwaitExpression)?.AwaitableInfo;
+            return GetAwaitExpressionInfo(awaitableInfo);
+        }
+
+        public override AwaitExpressionInfo GetAwaitExpressionInfo(LocalDeclarationStatementSyntax node)
+        {
+            if (node.UsingKeyword.IsKind(SyntaxKind.None) || node.AwaitKeyword.IsKind(SyntaxKind.None))
+            {
+                throw new ArgumentException(CSharpResources.NodeIsNotAwaitUsingDeclaration, nameof(node));
+            }
+
+            var bound = GetLowerBoundNode(node);
+            var awaitableInfo = (bound as BoundUsingLocalDeclarations)?.AwaitOpt;
+            return GetAwaitExpressionInfo(awaitableInfo);
+        }
+
+        public override AwaitExpressionInfo GetAwaitExpressionInfo(UsingStatementSyntax node)
+        {
+            if (node.AwaitKeyword.IsKind(SyntaxKind.None))
+            {
+                throw new ArgumentException(CSharpResources.NodeIsNotAwaitUsingStatement, nameof(node));
+            }
+
+            var bound = GetLowerBoundNode(node);
+            var awaitableInfo = (bound as BoundUsingStatement)?.AwaitOpt;
+            return GetAwaitExpressionInfo(awaitableInfo);
+        }
+
+        private static AwaitExpressionInfo GetAwaitExpressionInfo(BoundAwaitableInfo? awaitableInfo)
+        {
             if (awaitableInfo == null)
             {
                 return default(AwaitExpressionInfo);
             }
 
             return new AwaitExpressionInfo(
-                getAwaiter: (IMethodSymbol)awaitableInfo.GetAwaiter?.ExpressionSymbol.GetPublicSymbol(),
+                getAwaiter: (IMethodSymbol?)awaitableInfo.GetAwaiter?.ExpressionSymbol.GetPublicSymbol(),
                 isCompleted: awaitableInfo.IsCompleted.GetPublicSymbol(),
                 getResult: awaitableInfo.GetResult.GetPublicSymbol(),
+                runtimeAwaitMethod: awaitableInfo.RuntimeAsyncAwaitCall?.Method.GetPublicSymbol(),
                 isDynamic: awaitableInfo.IsDynamic);
         }
+#nullable disable
 
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)
         {
@@ -965,12 +998,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return default(ForEachStatementInfo);
             }
 
+            var moveNextAwaitableInfo = GetAwaitExpressionInfo(enumeratorInfoOpt.MoveNextAwaitableInfo);
+
             // NOTE: we're going to list GetEnumerator, etc for array and string
             // collections, even though we know that's not how the implementation
             // actually enumerates them.
             MethodSymbol disposeMethod = null;
+            AwaitExpressionInfo disposeAwaitableInfo = default;
             if (enumeratorInfoOpt.NeedsDisposal)
             {
+                disposeAwaitableInfo = GetAwaitExpressionInfo(enumeratorInfoOpt.DisposeAwaitableInfo);
                 if (enumeratorInfoOpt.PatternDisposeInfo is { Method: var method })
                 {
                     disposeMethod = method;
@@ -987,8 +1024,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 enumeratorInfoOpt.IsAsync,
                 enumeratorInfoOpt.GetEnumeratorInfo.Method.GetPublicSymbol(),
                 enumeratorInfoOpt.MoveNextInfo.Method.GetPublicSymbol(),
+                moveNextAwaitableInfo,
                 currentProperty: ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol).GetPublicSymbol(),
                 disposeMethod.GetPublicSymbol(),
+                disposeAwaitableInfo,
                 enumeratorInfoOpt.ElementTypeWithAnnotations.GetPublicSymbol(),
                 BoundNode.GetConversion(boundForEach.ElementConversion, boundForEach.ElementPlaceholder),
                 BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder));
@@ -2415,9 +2454,8 @@ foundParent:;
                 return null;
             }
 
-            public override BoundStatement BindStatement(StatementSyntax node, BindingDiagnosticBag diagnostics)
+            private BoundStatement TryGetBoundStatementFromMap(StatementSyntax node)
             {
-                // Check the bound node cache to see if the statement was already bound.
                 if (node.SyntaxTree == _semanticModel.SyntaxTree)
                 {
                     BoundStatement synthesizedStatement = _semanticModel.GuardedGetSynthesizedStatementFromMap(node);
@@ -2427,15 +2465,23 @@ foundParent:;
                         return synthesizedStatement;
                     }
 
-                    BoundNode boundNode = TryGetBoundNodeFromMap(node);
-
-                    if (boundNode != null)
-                    {
-                        return (BoundStatement)boundNode;
-                    }
+                    return (BoundStatement)TryGetBoundNodeFromMap(node);
                 }
 
-                BoundStatement statement = base.BindStatement(node, diagnostics);
+                return null;
+            }
+
+            public override BoundStatement BindStatement(StatementSyntax node, BindingDiagnosticBag diagnostics)
+            {
+                // Check the bound node cache to see if the statement was already bound.
+                BoundStatement statement = TryGetBoundStatementFromMap(node);
+
+                if (statement != null)
+                {
+                    return statement;
+                }
+
+                statement = base.BindStatement(node, diagnostics);
 
                 // Synthesized statements are not added to the _guardedNodeMap, we cache them explicitly here in  
                 // _lazyGuardedSynthesizedStatementsMap
@@ -2514,6 +2560,20 @@ foundParent:;
                 block = base.BindExpressionBodyAsBlock(node, diagnostics);
 
                 return block;
+            }
+
+            protected override bool TryGetBoundElseIfStatement(IfStatementSyntax node, out BoundStatement alternative)
+            {
+                alternative = TryGetBoundStatementFromMap(node);
+
+                if (alternative is not null)
+                {
+                    Debug.Assert(alternative is BoundIfStatement);
+                    alternative = WrapWithVariablesIfAny(node, alternative);
+                    return true;
+                }
+
+                return base.TryGetBoundElseIfStatement(node, out alternative);
             }
         }
 

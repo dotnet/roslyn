@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var pathMap = (pathMapFrom, pathMapTo) switch
             {
                 (null, null) => ImmutableArray<KeyValuePair<string, string>>.Empty,
-                (string, string) => ImmutableArray.Create(KeyValuePairUtil.Create(pathMapFrom, pathMapTo)),
+                (string, string) => ImmutableArray.Create(KeyValuePair.Create(pathMapFrom, pathMapTo)),
                 _ => throw new InvalidOperationException(),
             };
             var emitOptions = EmitOptions.WithPdbFilePath(filePath);
@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var pathMap = (pathMapFrom, pathMapTo) switch
             {
                 (null, null) => ImmutableArray<KeyValuePair<string, string>>.Empty,
-                (string, string) => ImmutableArray.Create(KeyValuePairUtil.Create(pathMapFrom, pathMapTo)),
+                (string, string) => ImmutableArray.Create(KeyValuePair.Create(pathMapFrom, pathMapTo)),
                 _ => throw new InvalidOperationException(),
             };
 
@@ -803,7 +803,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var array = GetGeneratorValues(
                 CreateCompilation(Array.Empty<SyntaxTree>()),
                 new Generator(),
-                new Generator2());
+                new Generator2(),
+                new Generator3().AsSourceGenerator());
 
             var assembly = typeof(Generator).Assembly;
             var expected = @$"
@@ -815,6 +816,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   }},
   {{
     ""fullName"": ""{typeof(Generator2).FullName}"",
+    ""assemblyName"": ""{assembly.FullName}"",
+    ""mvid"": ""{DeterministicKeyBuilder.GetGuidValue(assembly.ManifestModule.ModuleVersionId)}""
+  }},
+  {{
+    ""fullName"": ""{typeof(Generator3).FullName}"",
     ""assemblyName"": ""{assembly.FullName}"",
     ""mvid"": ""{DeterministicKeyBuilder.GetGuidValue(assembly.ManifestModule.ModuleVersionId)}""
   }}

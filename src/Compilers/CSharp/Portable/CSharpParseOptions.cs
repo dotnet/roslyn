@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharpParseOptions Default { get; } = new CSharpParseOptions();
 
         private ImmutableDictionary<string, string> _features;
-        private ImmutableArray<ImmutableArray<string>> _interceptorsPreviewNamespaces;
+        private ImmutableArray<ImmutableArray<string>> _interceptorsNamespaces;
 
         /// <summary>
         /// Gets the effective language version, which the compiler uses to select the
@@ -162,9 +162,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new CSharpParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>>? features)
         {
-            ImmutableDictionary<string, string> dictionary =
-                features?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)
-                ?? ImmutableDictionary<string, string>.Empty;
+            if (Features == features)
+            {
+                return this;
+            }
+
+            if (features is not ImmutableDictionary<string, string> dictionary || dictionary.KeyComparer != StringComparer.OrdinalIgnoreCase)
+            {
+                dictionary = (features ?? []).ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+            }
 
             return new CSharpParseOptions(this) { _features = dictionary };
         }
@@ -177,21 +183,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal ImmutableArray<ImmutableArray<string>> InterceptorsPreviewNamespaces
+        internal ImmutableArray<ImmutableArray<string>> InterceptorsNamespaces
         {
             get
             {
-                if (!_interceptorsPreviewNamespaces.IsDefault)
+                if (!_interceptorsNamespaces.IsDefault)
                 {
-                    return _interceptorsPreviewNamespaces;
+                    return _interceptorsNamespaces;
                 }
 
                 // e.g. [["System", "Threading"], ["System", "Collections"]]
-                ImmutableArray<ImmutableArray<string>> previewNamespaces = Features.TryGetValue("InterceptorsPreviewNamespaces", out var namespaces) && namespaces.Length > 0
+                ImmutableArray<ImmutableArray<string>> previewNamespaces = Features.TryGetValue("InterceptorsNamespaces", out var namespaces) && namespaces.Length > 0
                     ? makeNamespaces(namespaces)
                     : ImmutableArray<ImmutableArray<string>>.Empty;
 
-                ImmutableInterlocked.InterlockedInitialize(ref _interceptorsPreviewNamespaces, previewNamespaces);
+                ImmutableInterlocked.InterlockedInitialize(ref _interceptorsNamespaces, previewNamespaces);
                 return previewNamespaces;
 
                 static ImmutableArray<ImmutableArray<string>> makeNamespaces(string namespaces)
@@ -229,6 +235,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        /// <summary>
+        /// Used for parsing .cs file-based programs.
+        /// </summary>
+        /// <remarks>
+        /// In this mode, ignored directives <c>#:</c> are allowed.
+        /// </remarks>
+        internal bool FileBasedProgram => Features.ContainsKey("FileBasedProgram");
 
         internal override void ValidateOptions(ArrayBuilder<Diagnostic> builder)
         {

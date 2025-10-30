@@ -86,7 +86,7 @@ internal static partial class SymbolUsageAnalysis
         /// </summary>
         public SymbolUsageResult ToResult()
             => new(SymbolsWriteBuilder.ToImmutableDictionary(),
-                                     SymbolsReadBuilder.ToImmutableHashSet());
+                                     [.. SymbolsReadBuilder]);
 
         public BasicBlockAnalysisData AnalyzeLocalFunctionInvocation(IMethodSymbol localFunction, CancellationToken cancellationToken)
         {

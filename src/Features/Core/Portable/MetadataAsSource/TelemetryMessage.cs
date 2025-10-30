@@ -4,13 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal class TelemetryMessage : IDisposable
+internal sealed class TelemetryMessage : IDisposable
 {
     private string? _pdbSource;
     private string? _sourceFileSource;
@@ -22,7 +21,7 @@ internal class TelemetryMessage : IDisposable
 
     public TelemetryMessage(CancellationToken cancellationToken)
     {
-        var logMessage = KeyValueLogMessage.Create(LogType.UserAction, SetLogProperties);
+        var logMessage = KeyValueLogMessage.Create(LogType.UserAction, static (m, @this) => @this.SetLogProperties(m), this);
         _logBlock = Logger.LogBlock(FunctionId.NavigateToExternalSources, logMessage, cancellationToken);
     }
 

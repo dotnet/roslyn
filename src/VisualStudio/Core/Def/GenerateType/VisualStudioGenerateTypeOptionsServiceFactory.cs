@@ -7,19 +7,17 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
-using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType;
 
 [ExportWorkspaceServiceFactory(typeof(IGenerateTypeOptionsService), ServiceLayer.Host), Shared]
-internal class VisualStudioGenerateTypeOptionsServiceFactory : IWorkspaceServiceFactory
+internal sealed class VisualStudioGenerateTypeOptionsServiceFactory : IWorkspaceServiceFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -30,7 +28,7 @@ internal class VisualStudioGenerateTypeOptionsServiceFactory : IWorkspaceService
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new VisualStudioGenerateTypeOptionsService();
 
-    private class VisualStudioGenerateTypeOptionsService : IGenerateTypeOptionsService
+    private sealed class VisualStudioGenerateTypeOptionsService : IGenerateTypeOptionsService
     {
         private bool _isNewFile = false;
         private string _accessSelectString = "";

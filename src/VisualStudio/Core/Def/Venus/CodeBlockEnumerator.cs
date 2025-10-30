@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -15,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 /// An implementation of IVsEnumCodeBlocks used in the implementation of
 /// IVsContainedCode.EnumOriginalCodeBlocks for each language's Venus interop layer.
 /// </summary>
-internal class CodeBlockEnumerator : IVsEnumCodeBlocks
+internal sealed class CodeBlockEnumerator : IVsEnumCodeBlocks
 {
     private readonly IList<TextSpanAndCookie> _codeBlocks;
     private int _currentElement;

@@ -1162,29 +1162,41 @@ ref @scoped F4() { }";
         {
             string source = "(ref scoped scoped R r) => { }";
             UsingExpression(source, TestOptions.Regular11,
-                // (1,1): error CS1073: Unexpected token 'scoped'
+                // (1,20): error CS1003: Syntax error, ',' expected
                 // (ref scoped scoped R r) => { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(ref scoped ").WithArguments("scoped").WithLocation(1, 1),
-                // (1,2): error CS1525: Invalid expression term 'ref'
-                // (ref scoped scoped R r) => { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(1, 2),
-                // (1,13): error CS1026: ) expected
-                // (ref scoped scoped R r) => { }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "scoped").WithLocation(1, 13)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(1, 20));
 
-            N(SyntaxKind.ParenthesizedExpression);
+            N(SyntaxKind.ParenthesizedLambdaExpression);
             {
-                N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.RefExpression);
+                N(SyntaxKind.ParameterList);
                 {
-                    N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
                         N(SyntaxKind.IdentifierToken, "scoped");
                     }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "R");
+                        }
+                        N(SyntaxKind.IdentifierToken, "r");
+                    }
+                    N(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
             EOF();
         }

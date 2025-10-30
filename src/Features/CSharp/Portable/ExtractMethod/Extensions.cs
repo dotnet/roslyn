@@ -7,9 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -18,17 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
 internal static class Extensions
 {
-    [return: NotNullIfNotNull(nameof(node))]
-    public static ExpressionSyntax? GetUnparenthesizedExpression(this ExpressionSyntax? node)
-    {
-        if (node is not ParenthesizedExpressionSyntax parenthesizedExpression)
-        {
-            return node;
-        }
-
-        return GetUnparenthesizedExpression(parenthesizedExpression.Expression);
-    }
-
     public static StatementSyntax? GetStatementUnderContainer(this SyntaxNode node)
     {
         Contract.ThrowIfNull(node);

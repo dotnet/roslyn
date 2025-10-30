@@ -1804,7 +1804,7 @@ static class Extensions
 }
 ";
             var expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'await forea ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'await forea ... }')
   Locals: Local_1: var value
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: var value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
@@ -2570,11 +2570,7 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'e')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'e')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (Boxing)
-                      Operand: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'e')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'e')
                   Arguments(0)
 
             Next (StructuredExceptionHandling) Block[null]
@@ -3124,7 +3120,7 @@ Block[B4] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + SpanSource, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + TestSources.Span, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -3213,7 +3209,7 @@ Block[B4] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + SpanSource, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + TestSources.Span, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -3302,7 +3298,7 @@ Block[B4] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + SpanSource, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + TestSources.Span, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -3391,7 +3387,7 @@ Block[B4] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + SpanSource, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + TestSources.Span, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -5182,7 +5178,7 @@ Block[B0] - Entry
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new Program()')
                   Expression:
-                    IInvocationOperation ( System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new Program()')
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new Program()')
                       Instance Receiver:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
                       Arguments(0)
@@ -5314,7 +5310,7 @@ Block[B0] - Entry
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new Program()')
                   Expression:
-                    IInvocationOperation ( System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new Program()')
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new Program()')
                       Instance Receiver:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
                       Arguments(0)
@@ -5571,7 +5567,7 @@ Block[B0] - Entry
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'null ?? new Program()')
                   Expression:
-                    IInvocationOperation ( System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'null ?? new Program()')
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'null ?? new Program()')
                       Instance Receiver:
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'null ?? new Program()')
                       Arguments(0)
@@ -5742,7 +5738,7 @@ Block[B0] - Entry
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'pets')
                   Expression:
-                    IInvocationOperation ( System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'pets')
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'pets')
                       Instance Receiver:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
                       Arguments(0)
@@ -5841,7 +5837,7 @@ Block[B4] - Exit
 
             var expectedOperationTree = @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
+  IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
     Locals: Local_1: System.String value
     LoopControlVariable:
       IVariableDeclaratorOperation (Symbol: System.String value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'string')
@@ -5870,7 +5866,6 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
         public void AsyncForeach_StructEnumerator()
         {
             var compilation = CreateCompilation(@"
-#pragma warning disable CS1998 // async method lacks awaits
 using System.Threading.Tasks;
 class C
 {
@@ -5994,7 +5989,6 @@ Block[B5] - Exit
         public void AsyncForeach_StructEnumerator_ExplicitAsyncDisposeInterface()
         {
             var compilation = CreateCompilation(@"
-#pragma warning disable CS1998 // async method lacks awaits
 using System.Threading.Tasks;
 class C
 {
@@ -6220,11 +6214,7 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new C()')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'new C()')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (Boxing)
-                      Operand: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
                   Arguments(0)
             Next (StructuredExceptionHandling) Block[null]
     }

@@ -5,11 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis;
 [DataContract, StructLayout(LayoutKind.Explicit, Size = HashSize)]
 internal readonly partial record struct Checksum(
     [field: FieldOffset(0)][property: DataMember(Order = 0)] long Data1,
-    [field: FieldOffset(8)][property: DataMember(Order = 1)] long Data2)
+    [field: FieldOffset(8)][property: DataMember(Order = 1)] long Data2) : IComparable<Checksum>
 {
     /// <summary>
     /// The intended size of the <see cref="Checksum"/> structure. 
@@ -60,7 +60,7 @@ internal readonly partial record struct Checksum(
 
     public string ToBase64String()
     {
-#if NETCOREAPP
+#if NET
         Span<byte> bytes = stackalloc byte[HashSize];
         this.WriteTo(bytes);
         return Convert.ToBase64String(bytes);
@@ -89,6 +89,13 @@ internal readonly partial record struct Checksum(
         Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(span), this);
     }
 
+    public void WriteTo(PipeWriter pipeWriter)
+    {
+        var span = pipeWriter.GetSpan(HashSize);
+        this.WriteTo(span);
+        pipeWriter.Advance(HashSize);
+    }
+
     public static Checksum ReadFrom(ObjectReader reader)
         => new(reader.ReadInt64(), reader.ReadInt64());
 
@@ -97,9 +104,6 @@ internal readonly partial record struct Checksum(
 
     public static Func<IEnumerable<Checksum>, string> GetChecksumsLogInfo { get; }
         = checksums => string.Join("|", checksums.Select(c => c.ToString()));
-
-    public static Func<ProjectStateChecksums, string> GetProjectChecksumsLogInfo { get; }
-        = checksums => checksums.Checksum.ToString();
 
     // Explicitly implement this method as default jit for records on netfx doesn't properly devirtualize the
     // standard calls to EqualityComparer<long>.Default.Equals
@@ -111,6 +115,12 @@ internal readonly partial record struct Checksum(
     {
         // The checksum is already a hash. Just read a 4-byte value to get a well-distributed hash code.
         return (int)Data1;
+    }
+
+    public int CompareTo(Checksum other)
+    {
+        var result = Data1.CompareTo(other.Data1);
+        return result != 0 ? result : Data2.CompareTo(other.Data2);
     }
 }
 

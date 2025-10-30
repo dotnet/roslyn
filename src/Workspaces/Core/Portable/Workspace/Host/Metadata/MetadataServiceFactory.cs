@@ -20,11 +20,11 @@ internal sealed class MetadataServiceFactory : IWorkspaceServiceFactory
     }
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new Service(workspaceServices.GetService<IDocumentationProviderService>());
+        => new DefaultMetadataService(workspaceServices.GetService<IDocumentationProviderService>());
 
-    private sealed class Service(IDocumentationProviderService documentationService) : IMetadataService
+    private sealed class DefaultMetadataService(IDocumentationProviderService documentationService) : IMetadataService
     {
-        private readonly MetadataReferenceCache _metadataCache = new MetadataReferenceCache((path, properties) =>
+        private readonly MetadataReferenceCache _metadataCache = new((path, properties) =>
                 MetadataReference.CreateFromFile(path, properties, documentationService.GetDocumentationProvider(path)));
 
         public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)

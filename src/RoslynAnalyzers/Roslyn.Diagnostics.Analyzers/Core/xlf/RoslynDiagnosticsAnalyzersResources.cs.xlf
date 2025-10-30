@@ -1,0 +1,497 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="cs" original="../RoslynDiagnosticsAnalyzersResources.resx">
+    <body>
+      <trans-unit id="AddSharedAttribute">
+        <source>Add 'Shared' attribute</source>
+        <target state="translated">Přidat atribut Shared</target>
+        <note>{Locked="Shared"}</note>
+      </trans-unit>
+      <trans-unit id="ApplyTraitToContainingType">
+        <source>Apply trait to containing type</source>
+        <target state="translated">Použít vlastnost pro obsahující typ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
+        <source>Remove the 'Opt' suffix</source>
+        <target state="translated">Odeberte příponu Opt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
+        <target state="translated">Nepoužívejte příponu Opt v kódu s povolenou hodnotou null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
+        <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
+        <target state="translated">Nepoužívejte příponu Opt v kódu s povolenou hodnotou null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
+        <source>Avoid the 'Opt' suffix</source>
+        <target state="translated">Nepoužívejte příponu Opt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateTestAccessorDescription">
+        <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
+        <target state="translated">Toto je refaktoring, který zjednodušuje proces vytváření testovacích přístupových objektů pomocí vzoru TestAccessor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateTestAccessorMessage">
+        <source>Create test accessor</source>
+        <target state="translated">Vytvořit testovací přístupový objekt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateTestAccessorTitle">
+        <source>Create test accessor</source>
+        <target state="translated">Vytvořit testovací přístupový objekt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
+        <source>Defaultable types should have defaultable fields.</source>
+        <target state="translated">Typy, které se dají nastavit jako výchozí, by měly mít pole, která se tak dají nastavit taky.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
+        <source>Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</source>
+        <target state="translated">Typ {0}, který se dá nastavit jako výchozí, má pole nebo automatickou vlastnost {1}, které se jako výchozí nastavit nedají.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsTitle">
+        <source>Defaultable types should have defaultable fields</source>
+        <target state="translated">Typy, které se dají nastavit jako výchozí, by měly mít pole, která se tak dají nastavit taky</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCallGetTestAccessorDescription">
+        <source>'GetTestAccessor()' is a helper method reserved for testing. Production code must not call this member.</source>
+        <target state="translated">GetTestAccessor() je pomocná metoda vyhrazená pro testování. Produkční kód tento člen nesmí volat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCallGetTestAccessorMessage">
+        <source>Do not call 'GetTestAccessor()' from production code</source>
+        <target state="translated">Nevolejte GetTestAccessor() z produkčního kódu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCallGetTestAccessorTitle">
+        <source>Do not call 'GetTestAccessor()'</source>
+        <target state="translated">Nevolat GetTestAccessor()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCapturePrimaryConstructorParametersDescription">
+        <source>Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</source>
+        <target state="translated">Parametry primárního konstruktoru by se neměly implicitně zachytávat. Ručně je přiřaďte k polím na začátku typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCapturePrimaryConstructorParametersMessage">
+        <source>Primary constructor parameter '{0}' should not be implicitly captured</source>
+        <target state="translated">Parametr primárního konstruktoru {0} by se neměl implicitně zachytávat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCapturePrimaryConstructorParametersTitle">
+        <source>Do not capture primary constructor parameters</source>
+        <target state="translated">Nezachytávejte parametry primárního konstruktoru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueAvoidNullableWrapperDescription">
+        <source>Avoid nullable wrapper.</source>
+        <target state="translated">Nepoužívejte obálky s možnou hodnotou null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueAvoidNullableWrapperMessage">
+        <source>Do not wrap non-copyable type '{0}' in '{1}' operation</source>
+        <target state="translated">Neobalujte nekopírovatelný typ {0} do operace {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueDescription">
+        <source>Do not copy value.</source>
+        <target state="translated">Nekopírujte hodnotu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueMessage">
+        <source>Do not copy value</source>
+        <target state="translated">Nekopírujte hodnotu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceDescription">
+        <source>Cannot assign a value from a reference to a non-copyable type.</source>
+        <target state="translated">Hodnota z odkazu se nedá přiřadit typu, který se nedá kopírovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceMessage">
+        <source>Cannot assign a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">Hodnota z odkazu se nedá přiřadit typu {0}, který se nedá kopírovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyDescription">
+        <source>Auto-properties always copy values, so they cannot be declared with non-copyable types.</source>
+        <target state="translated">Automatické vlastnosti vždy kopírují hodnoty, proto se nedají deklarovat s nekopírovatelnými typy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyMessage">
+        <source>Auto-property '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="translated">Automatická vlastnost {1} nemůže mít nekopírovatelný typ {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoBoxingDescription">
+        <source>Do not box non-copyable value types.</source>
+        <target state="translated">Nebalte nekopírovatelné typy hodnot.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoBoxingMessage">
+        <source>Do not box non-copyable type '{0}'</source>
+        <target state="translated">Nebalte nekopírovatelný typ hodnoty {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeDescription">
+        <source>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</source>
+        <target state="translated">Pole s nekopírovatelným typem nemůže být členem kopírovatelného typu. Obsahující typ se dá nastavit jako nekopírovatelný nebo se dá převést na odkazový typ, nebo se pole může odebrat nebo převést na kopírovatelný typ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeMessage">
+        <source>Copyable field '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="translated">Kopírovatelné pole {1} nemůže mít nekopírovatelný typ {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
+        <source>Cannot return a value from a reference to a non-copyable type.</source>
+        <target state="translated">Hodnota z odkazu se nedá vrátit typu, který se nedá kopírovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceMessage">
+        <source>Cannot return a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">Hodnota z odkazu se nedá vrátit typu {0}, který se nedá kopírovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoUnboxingDescription">
+        <source>Do not unbox non-copyable value types.</source>
+        <target state="translated">Nerozbalujte nekopírovatelné typy hodnot.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoUnboxingMessage">
+        <source>Do not unbox non-copyable type '{0}'</source>
+        <target state="translated">Nerozbalujte nekopírovatelný typ hodnoty {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueTitle">
+        <source>Do not copy value</source>
+        <target state="translated">Nekopírovat hodnotu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueUnsupportedUseDescription">
+        <source>Unsupported use of non-copyable type.</source>
+        <target state="translated">Nepodporované použití nekopírovatelného typu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueUnsupportedUseMessage">
+        <source>Unsupported use of non-copyable type '{0}' in '{1}' operation</source>
+        <target state="translated">Nepodporované použití nekopírovatelného typu {0} v operaci {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertCodeFix">
+        <source>Use 'RoslynDebug.Assert'.</source>
+        <target state="new">Use 'RoslynDebug.Assert'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertDescription">
+        <source>'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</source>
+        <target state="new">'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertMessage">
+        <source>Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</source>
+        <target state="new">Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertTitle">
+        <source>Do not use interpolated strings with 'Debug.Assert'</source>
+        <target state="new">Do not use interpolated strings with 'Debug.Assert'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
+        <source>Explicitly define the importing constructor</source>
+        <target state="translated">Explicitně definujte importující konstruktor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_MissingAttribute">
+        <source>Add 'ImportingConstructor' attribute</source>
+        <target state="translated">Přidejte atribut ImportingConstructor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor">
+        <source>Make constructor public</source>
+        <target state="translated">Nastavit konstruktor jako veřejný</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
+        <source>Exported parts should be marked with 'ImportingConstructorAttribute'.</source>
+        <target state="translated">Exportované cesty by se měly označit atributem ImportingConstructorAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
+        <source>'{0}' is MEF-exported and should have a single, public importing constructor of the correct form</source>
+        <target state="translated">{0} se exportovala pomocí MEF a měla by mít jeden veřejný importující konstruktor ve správném tvaru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
+        <source>Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'</source>
+        <target state="translated">Exportované části by měly mít veřejný konstruktor označený atributem ImportingConstructorAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposeMemberForTestingDescription">
+        <source>Expose member for testing.</source>
+        <target state="translated">Zpřístupnit člen pro testování</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposeMemberForTestingMessage">
+        <source>Expose member for testing</source>
+        <target state="translated">Zpřístupnit člen pro testování</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposeMemberForTestingTitle">
+        <source>Expose member for testing</source>
+        <target state="translated">Zpřístupnit člen pro testování</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FixNumberedComments">
+        <source>Fix numbered comments</source>
+        <target state="translated">Opravit očíslované komentáře</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
+        <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
+        <target state="translated">Nastavte ObsoleteAttribute.Error na true.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
+        <source>Use correct 'ObsoleteAttribute' message.</source>
+        <target state="translated">Použijte správnou zprávu ObsoleteAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
+        <source>Add 'ObsoleteAttribute'</source>
+        <target state="translated">Přidejte ObsoleteAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
+        <source>Configure 'ObsoleteAttribute' for importing constructor.</source>
+        <target state="translated">Nakonfigurujte ObsoleteAttribute pro importující konstruktor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
+        <source>Set 'ObsoleteAttribute.Error' to 'true'</source>
+        <target state="translated">Nastavte ObsoleteAttribute.Error na true.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'.</source>
+        <target state="translated">Importující konstruktor by se měl označit atributem ObsoleteAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
+        <target state="translated">Importující konstruktor by se měl označit atributem ObsoleteAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
+        <source>Importing constructor should be marked with 'ObsoleteAttribute'</source>
+        <target state="translated">Importující konstruktor by se měl označit atributem ObsoleteAttribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="translated">Umístit příkaz na následující řádek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
+        <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
+        <target state="translated">Když se používá syntaxe typeof(T).FullName, není vlastnost Type.FullName nikdy null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralCodeFix">
+        <source>Use 'null' instead of 'default'</source>
+        <target state="translated">Místo default použijte null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralDescription">
+        <source>Use 'null' instead of 'default' for nullable types.</source>
+        <target state="translated">Pro typy s možnou hodnotou null místo default použijte null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralMessage">
+        <source>Use 'null' instead of 'default' for nullable types</source>
+        <target state="translated">Pro typy s možnou hodnotou null místo default použijte null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralTitle">
+        <source>Prefer null literal</source>
+        <target state="translated">Upřednostňovat literál null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RelaxTestNamingSuppressorJustification">
+        <source>Asynchronous test methods do not require the 'Async' suffix</source>
+        <target state="translated">Asynchronní testovací metody nevyžadují příponu Async.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run iterations">
+        <source>Run iterations</source>
+        <target state="translated">Spustit iterace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefDescription">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="translated">Instance TemporaryArray&lt;T&gt;.AsRef() musí být proměnná using.</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefMessage">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">Instance TemporaryArray&lt;T&gt;.AsRef() musí být proměnná using.</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefTitle">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">Instance TemporaryArray&lt;T&gt;.AsRef() musí být proměnná using</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
+        <source>Apply 'PartNotDiscoverableAttribute'</source>
+        <target state="translated">Použijte PartNotDiscoverableAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
+        <source>Test exports should not be discoverable.</source>
+        <target state="translated">Testovací exportování by se neměla dát zjistit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
+        <source>'{0}' is exported for test purposes and should be marked with 'PartNotDiscoverableAttribute'</source>
+        <target state="translated">{0} se exportovalo pro účely testování a mělo by se označit atributem PartNotDiscoverableAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
+        <source>Test exports should not be discoverable</source>
+        <target state="translated">Testovací exportování by se neměla dát zjistit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
+        <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
+        <target state="translated">Použít SpecializedCollections.EmptyEnumerable()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsEmptyEnumerableDescription">
+        <source>#N/A</source>
+        <target state="translated">Není k dispozici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsEmptyEnumerableMessage">
+        <source>Use 'SpecializedCollections.EmptyEnumerable()'</source>
+        <target state="translated">Použijte SpecializedCollections.EmptyEnumerable().</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsSingletonEnumerableTitle">
+        <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
+        <target state="translated">Použít SpecializedCollections.SingletonEnumerable()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsSingletonEnumerableDescription">
+        <source>#N/A</source>
+        <target state="translated">Není k dispozici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseSpecializedCollectionsSingletonEnumerableMessage">
+        <source>Use 'SpecializedCollections.SingletonEnumerable()'</source>
+        <target state="translated">Použijte SpecializedCollections.SingletonEnumerable().</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
+        <source>Invoke the correct property to ensure correct use site diagnostics</source>
+        <target state="translated">Zavolat správnou vlastnost, aby se zajistilo správné použití diagnostiky webu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
+        <source>#N/A</source>
+        <target state="translated">Není k dispozici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
+        <source>Invoke the correct property to ensure correct use site diagnostics</source>
+        <target state="translated">Vyvoláním správné vlastnosti zajistěte správné použití diagnostiky webu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
+        <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
+        <target state="translated">K vytvoření CodeAction nepoužívat obecnou metodu CodeAction.Create</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionDescription">
+        <source>#N/A</source>
+        <target state="translated">Není k dispozici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionMessage">
+        <source>Do not use generic 'CodeAction.Create' to create 'CodeAction'</source>
+        <target state="translated">K vytvoření CodeAction nepoužívejte obecnou metodu CodeAction.Create.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
+        <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
+        <target state="translated">Při implementaci IEquatable přepsat Object.Equals(object)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
+        <source>#N/A</source>
+        <target state="translated">Není k dispozici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
+        <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
+        <target state="translated">Při implementaci IEquatable přepište Object.Equals(object).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
+        <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
+        <target state="translated">Pro zdrojové symboly musí být vygenerována událost SymbolDeclaredEvent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription">
+        <source>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.</source>
+        <target state="translated">Vyžaduje se, aby fronta událostí kompilace vygenerovala symbolem deklarované události pro všechny deklarované zdrojové symboly. Každý typ zdrojového symbolu nebo jeden z jeho základních typů proto musí vygenerovat symbolem deklarovanou událost.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsMessage">
+        <source>'SymbolDeclaredEvent' must be generated for source symbols</source>
+        <target state="translated">Pro zdrojové symboly musí být vygenerována událost SymbolDeclaredEvent.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFTitle">
+        <source>Do not mix attributes from different versions of MEF</source>
+        <target state="translated">Nekombinujte atributy z různých verzí rozhraní MEF.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFDescription">
+        <source>Do not mix attributes from different versions of MEF.</source>
+        <target state="translated">Nekombinujte atributy z různých verzí rozhraní MEF.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotMixAttributesFromDifferentVersionsOfMEFMessage">
+        <source>Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'</source>
+        <target state="translated">Atribut {0} pochází z jiné verze rozhraní MEF než atribut exportu u {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle">
+        <source>Parts exported with MEFv2 must be marked with 'SharedAttribute'</source>
+        <target state="translated">Části exportované pomocí rozhraní MEFv2 musí být označené atributem SharedAttribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedDescription">
+        <source>Part exported with MEFv2 must be marked with the 'SharedAttribute'.</source>
+        <target state="translated">Část exportovaná pomocí rozhraní MEFv2 musí být označená atributem SharedAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
+        <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
+        <target state="translated">Část {0} je exportovaná pomocí rozhraní MEFv2, musí být proto označená atributem SharedAttribute.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

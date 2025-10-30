@@ -105,7 +105,7 @@ class Program {
         Console.WriteLine($""""""Jenny don\'t change your number { /*trash*/ }."""""");
     }
 }";
-        CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
             // (5,75): error CS1733: Expected expression
             //         Console.WriteLine($"""Jenny don\'t change your number { /*trash*/ }.""");
             Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(5, 75));
@@ -123,7 +123,7 @@ class Program {
     }
 }";
         // too many diagnostics perhaps, but it starts the right way.
-        CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
             // (5,70): error CS8997: Unterminated raw string literal
             //         Console.WriteLine($"""Jenny don\'t change your number { """);
             Diagnostic(ErrorCode.ERR_UnterminatedRawString, @"
@@ -154,7 +154,7 @@ class Program {
     }
 }";
         // too many diagnostics perhaps, but it starts the right way.
-        CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
             // (6,5): error CS8997: Unterminated raw string literal
             //     }
             Diagnostic(ErrorCode.ERR_UnterminatedRawString, "}").WithLocation(6, 5),
@@ -181,7 +181,7 @@ class Program {
     }
 }";
         // too many diagnostics perhaps, but it starts the right way.
-        CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
             // (5,63): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
             //         Console.WriteLine($"""Jenny don\'t change your number { 8675309 /* """);
             Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, "{").WithLocation(5, 63),
@@ -408,7 +408,7 @@ class Program
         Console.WriteLine( $""""""{"""""" );
     }
 }";
-        CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
             // (6,39): error CS8997: Unterminated raw string literal
             //         Console.WriteLine( $"""{""" );
             Diagnostic(ErrorCode.ERR_UnterminatedRawString, @"
@@ -437,7 +437,7 @@ class Program
     {
         var x = $"""""";";
         // The precise error messages are not important, but this must be an error.
-        CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,21): error CS8997: Unterminated raw string literal
                 //         var x = $""";
                 Diagnostic(ErrorCode.ERR_UnterminatedRawString, ";").WithLocation(5, 21),
@@ -464,7 +464,7 @@ class Program
         Console.WriteLine( $""""""{3:}"""""" );
     }
 }";
-        CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
             // (6,34): error CS8089: Empty format specifier.
             //         Console.WriteLine( $"""{3:}""" );
             Diagnostic(ErrorCode.ERR_EmptyFormatSpecifier, ":").WithLocation(6, 34));
@@ -482,7 +482,7 @@ class Program
         Console.WriteLine( $""""""{3:d }"""""" );
     }
 }";
-        CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
             // (6,34): error CS8088: A format specifier may not contain trailing whitespace.
             //         Console.WriteLine( $"""{3:d }""" );
             Diagnostic(ErrorCode.ERR_TrailingWhitespaceInFormatSpecifier, ":d ").WithLocation(6, 34));
@@ -501,7 +501,7 @@ class Program
 }"""""" );
     }
 }";
-        CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
             // (6,34): error CS8088: A format specifier may not contain trailing whitespace.
             //         Console.WriteLine( $"""{3:d
             Diagnostic(ErrorCode.ERR_TrailingWhitespaceInFormatSpecifier, @":d
@@ -520,7 +520,7 @@ class Program
         Console.WriteLine( $""""""{ }"""""" );
     }
 }";
-        CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,34): error CS1733: Expected expression
                 //         Console.WriteLine( $"""{ }""" );
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 34));
@@ -538,7 +538,7 @@ class Program
         Console.WriteLine( $""""""{ }"""""" );
     }
 }";
-        CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,34): error CS1733: Expected expression
                 //         Console.WriteLine( $"""{ }""" );
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 34));
@@ -629,7 +629,7 @@ class Program
         var s2 = $"""""" \u007D"""""";
     }
 }";
-        CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
     }
 
     [Fact, WorkItem(1119878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119878")]
@@ -660,7 +660,7 @@ class Program
         var t = $""""""{1,(int)1E10}"""""";
     }
 }";
-        CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
             // (5,24): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
             //         var s = $"""{1,1E10}""";
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1E10").WithArguments("double", "int").WithLocation(5, 24),

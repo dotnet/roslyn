@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 
 internal sealed partial class SettingsEditorPane
 {
-    private partial class SearchHandler : IVsWindowSearch
+    private sealed partial class SearchHandler : IVsWindowSearch
     {
         private readonly IThreadingContext _threadingContext;
         private readonly int _controlMinWidth;

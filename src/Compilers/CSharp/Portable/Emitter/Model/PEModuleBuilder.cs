@@ -15,11 +15,13 @@ using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private EmbeddableAttributes GetNeedsGeneratedAttributesInternal()
         {
-            return (EmbeddableAttributes)_needsGeneratedAttributes | Compilation.GetNeedsGeneratedAttributes();
+            return (EmbeddableAttributes)_needsGeneratedAttributes | Compilation.GetNeedsGeneratedAttributes(freezeState: this is not PEDeltaAssemblyBuilder);
         }
 
         private void SetNeedsGeneratedAttributes(EmbeddableAttributes attributes)
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             ThreadSafeFlagOperations.Set(ref _needsGeneratedAttributes, (int)attributes);
         }
 
-        internal PEModuleBuilder(
+        protected PEModuleBuilder(
             SourceModuleSymbol sourceModule,
             EmitOptions emitOptions,
             OutputKind outputKind,
@@ -111,12 +113,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get { return _metadataName; }
         }
-
-        internal sealed override Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor)
+#nullable enable
+        internal sealed override Cci.ICustomAttribute? SynthesizeAttribute(WellKnownMember attributeConstructor)
         {
             return Compilation.TrySynthesizeAttribute(attributeConstructor);
         }
-
+#nullable disable
         public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly)
         {
             return SourceModule.ContainingSourceAssembly
@@ -301,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         private static void GetDocumentsForMethodsAndNestedTypes(PooledHashSet<Cci.DebugSourceDocument> documentList, ArrayBuilder<Cci.ITypeDefinition> typesToProcess, EmitContext context)
         {
-            // Temporarily disable assert to unblock getting net8.0 teststing re-nabled on Unix. Will 
+            // Temporarily disable assert to unblock getting net8.0 testing re-enabled on Unix. Will 
             // remove this shortly.
             // https://github.com/dotnet/roslyn/issues/71571
             // Debug.Assert(!context.MetadataOnly);
@@ -382,7 +384,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                 switch (member.Kind)
                                 {
                                     case SymbolKind.NamedType:
-                                        namespacesAndTypesToProcess.Push((NamespaceOrTypeSymbol)member);
+                                        if (!((NamedTypeSymbol)member).IsExtension)
+                                        {
+                                            // Since this method is used only for WinMD native PDB generation, and 
+                                            // since in metadata extension blocks have different representation
+                                            // and none of their members have user code in them, skip the blocks.
+                                            namespacesAndTypesToProcess.Push((NamespaceOrTypeSymbol)member);
+                                        }
                                         break;
 
                                     case SymbolKind.Method:
@@ -505,16 +513,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal virtual MethodInstrumentation GetMethodBodyInstrumentations(MethodSymbol method)
             => new MethodInstrumentation { Kinds = EmitOptions.InstrumentationKinds };
 
-        internal virtual ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
-        {
-            return ImmutableArray<AnonymousTypeKey>.Empty;
-        }
-
-        internal virtual ImmutableArray<SynthesizedDelegateKey> GetPreviousAnonymousDelegates()
-        {
-            return ImmutableArray<SynthesizedDelegateKey>.Empty;
-        }
-
         internal virtual int GetNextAnonymousTypeIndex()
         {
             return 0;
@@ -597,27 +595,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 index = -1;
             }
 
-            foreach (var member in symbol.GetMembers())
+            bool haveExtensions = false;
+
+            foreach (var member in (symbol.IsNamespace ? symbol.GetMembers() : symbol.GetTypeMembers().Cast<NamedTypeSymbol, Symbol>()))
             {
                 var namespaceOrType = member as NamespaceOrTypeSymbol;
                 if ((object)namespaceOrType != null)
                 {
-                    GetExportedTypes(namespaceOrType, index, builder);
+                    Debug.Assert(namespaceOrType is PENamespaceSymbol or PENamedTypeSymbol);
+
+                    if (namespaceOrType is NamedTypeSymbol { IsExtension: true })
+                    {
+                        haveExtensions = true;
+                    }
+                    else
+                    {
+                        GetExportedTypes(namespaceOrType, index, builder);
+                    }
                 }
+            }
+
+            if (haveExtensions)
+            {
+                var groupingTypes = ArrayBuilder<PENamedTypeSymbol>.GetInstance();
+                GetNestedExtensionGroupingTypes((PENamedTypeSymbol)symbol, groupingTypes);
+                Debug.Assert(!groupingTypes.IsEmpty);
+
+                foreach (var groupingType in groupingTypes)
+                {
+                    GetExportedTypes(groupingType, index, builder);
+                }
+
+                groupingTypes.Free();
             }
         }
 
-        public sealed override ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics)
+        private static ArrayBuilder<PENamedTypeSymbol> GetNestedExtensionGroupingTypes(PENamedTypeSymbol symbol, ArrayBuilder<PENamedTypeSymbol> groupingTypes)
+        {
+            var seenGroupingTypes = PooledHashSet<PENamedTypeSymbol>.GetInstance();
+
+            foreach (var type in symbol.GetTypeMembers(""))
+            {
+                if (!type.IsExtension)
+                {
+                    continue;
+                }
+
+                var groupingType = ((PENamedTypeSymbol)type).ExtensionGroupingType;
+                if (seenGroupingTypes.Add(groupingType))
+                {
+                    groupingTypes.Add(groupingType);
+                }
+            }
+
+            seenGroupingTypes.Free();
+            groupingTypes.Sort((x, y) => x.MetadataToken.CompareTo(y.MetadataToken));
+            return groupingTypes;
+        }
+
+        public sealed override ImmutableArray<Cci.ExportedType> GetExportedTypes(EmitContext context)
         {
             Debug.Assert(HaveDeterminedTopLevelTypes);
 
             if (_lazyExportedTypes.IsDefault)
             {
-                _lazyExportedTypes = CalculateExportedTypes();
+                var initialized = ImmutableInterlocked.InterlockedInitialize(ref _lazyExportedTypes, CalculateExportedTypes(context));
 
-                if (_lazyExportedTypes.Length > 0)
+                if (initialized && _lazyExportedTypes.Length > 0)
                 {
-                    ReportExportedTypeNameCollisions(_lazyExportedTypes, diagnostics);
+                    ReportExportedTypeNameCollisions(_lazyExportedTypes, context.Diagnostics);
                 }
             }
 
@@ -628,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// Builds an array of public type symbols defined in netmodules included in the compilation
         /// and type forwarders defined in this compilation or any included netmodule (in this order).
         /// </summary>
-        private ImmutableArray<Cci.ExportedType> CalculateExportedTypes()
+        private ImmutableArray<Cci.ExportedType> CalculateExportedTypes(EmitContext context)
         {
             SourceAssemblySymbol sourceAssembly = SourceModule.ContainingSourceAssembly;
             var builder = ArrayBuilder<Cci.ExportedType>.GetInstance();
@@ -643,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             Debug.Assert(OutputKind.IsNetModule() == sourceAssembly.DeclaringCompilation.Options.OutputKind.IsNetModule());
-            GetForwardedTypes(sourceAssembly, builder);
+            GetForwardedTypes(sourceAssembly, builder, context);
 
             return builder.ToImmutableAndFree();
         }
@@ -652,14 +698,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>
         /// Returns a set of top-level forwarded types
         /// </summary>
-        internal static HashSet<NamedTypeSymbol> GetForwardedTypes(SourceAssemblySymbol sourceAssembly, ArrayBuilder<Cci.ExportedType>? builder)
+        internal static HashSet<NamedTypeSymbol> GetForwardedTypes(SourceAssemblySymbol sourceAssembly, ArrayBuilder<Cci.ExportedType>? builder, EmitContext? context)
         {
             var seenTopLevelForwardedTypes = new HashSet<NamedTypeSymbol>();
-            GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetSourceDecodedWellKnownAttributeData(), builder);
+            GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetSourceDecodedWellKnownAttributeData(), builder, context);
 
             if (!sourceAssembly.DeclaringCompilation.Options.OutputKind.IsNetModule())
             {
-                GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetNetModuleDecodedWellKnownAttributeData(), builder);
+                GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetNetModuleDecodedWellKnownAttributeData(), builder, context);
             }
 
             return seenTopLevelForwardedTypes;
@@ -673,14 +719,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             foreach (var exportedType in exportedTypes)
             {
-                var type = (NamedTypeSymbol)exportedType.Type.GetInternalSymbol();
+                Debug.Assert(exportedType.Type.AsGenericTypeInstanceReference is null);
+                Debug.Assert(exportedType.Type.AsSpecializedNestedTypeReference is null);
 
-                Debug.Assert(type.IsDefinition);
-
-                if (!type.IsTopLevelType())
+                if (exportedType.Type.AsNestedTypeReference is not null)
                 {
                     continue;
                 }
+
+                // Other types are expected to be top-level types backed by regular C# type symbols.
+                var type = (NamedTypeSymbol)exportedType.Type.GetInternalSymbol();
+
+                Debug.Assert(type.IsDefinition);
+                Debug.Assert(type.IsTopLevelType());
 
                 // exported types are not emitted in EnC deltas (hence generation 0):
                 string fullEmittedName = MetadataHelpers.BuildQualifiedName(
@@ -736,8 +787,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private static void GetForwardedTypes(
             HashSet<NamedTypeSymbol> seenTopLevelTypes,
             CommonAssemblyWellKnownAttributeData<NamedTypeSymbol> wellKnownAttributeData,
-            ArrayBuilder<Cci.ExportedType>? builder)
+            ArrayBuilder<Cci.ExportedType>? builder,
+            EmitContext? contextOpt)
         {
+            Debug.Assert(builder is null || contextOpt is not null);
+
             if (wellKnownAttributeData?.ForwardedTypes?.Count > 0)
             {
                 // (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
@@ -762,6 +816,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     if (builder is object)
                     {
+                        Debug.Assert(contextOpt is not null);
+                        var context = contextOpt.GetValueOrDefault();
+
                         // Return all nested types.
                         // Note the order: depth first, children in reverse order (to match dev10, not a requirement).
                         Debug.Assert(stack.Count == 0);
@@ -769,33 +826,126 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                         while (stack.Count > 0)
                         {
-                            var (type, parentIndex) = stack.Pop();
-
-                            // In general, we don't want private types to appear in the ExportedTypes table.
-                            // BREAK: dev11 emits these types.  The problem was discovered in dev10, but failed
-                            // to meet the bar Bug: Dev10/258038 and was left as-is.
-                            if (type.DeclaredAccessibility == Accessibility.Private)
-                            {
-                                // NOTE: this will also exclude nested types of type
-                                continue;
-                            }
-
-                            // NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
-
-                            int index = builder.Count;
-                            builder.Add(new Cci.ExportedType(type.GetCciAdapter(), parentIndex, isForwarder: true));
-
-                            // Iterate backwards so they get popped in forward order.
-                            ImmutableArray<NamedTypeSymbol> nested = type.GetTypeMembers(); // Ordered.
-                            for (int i = nested.Length - 1; i >= 0; i--)
-                            {
-                                stack.Push((nested[i], index));
-                            }
+                            processTopItemFromStack(stack, context, builder);
                         }
                     }
                 }
 
                 stack.Free();
+            }
+
+            static void processTopItemFromStack(ArrayBuilder<(NamedTypeSymbol type, int parentIndex)> stack, EmitContext context, ArrayBuilder<Cci.ExportedType> builder)
+            {
+                var (type, parentIndex) = stack.Pop();
+
+                Debug.Assert(type is { ContainingModule: SourceModuleSymbol } or PENamedTypeSymbol or RetargetingNamedTypeSymbol);
+
+                // In general, we don't want private types to appear in the ExportedTypes table.
+                // BREAK: dev11 emits these types.  The problem was discovered in dev10, but failed
+                // to meet the bar Bug: Dev10/258038 and was left as-is.
+                if (type.DeclaredAccessibility == Accessibility.Private)
+                {
+                    // NOTE: this will also exclude nested types of type
+                    return;
+                }
+
+                // NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
+
+                int index = builder.Count;
+                builder.Add(new Cci.ExportedType(type.GetCciAdapter(), parentIndex, isForwarder: true));
+
+                ImmutableArray<NamedTypeSymbol> nested = type.GetTypeMembers(); // Ordered.
+
+                if (nested.Any(n => n.IsExtension))
+                {
+                    switch (type)
+                    {
+                        case PENamedTypeSymbol peType:
+                            {
+                                var groupingTypes = ArrayBuilder<PENamedTypeSymbol>.GetInstance();
+                                GetNestedExtensionGroupingTypes(peType, groupingTypes);
+                                Debug.Assert(!groupingTypes.IsEmpty);
+
+                                // Iterate backwards so they get popped in forward order.
+                                for (int i = groupingTypes.Count - 1; i >= 0; i--)
+                                {
+                                    stack.Push((groupingTypes[i], index));
+                                }
+
+                                groupingTypes.Free();
+
+                                pushNestedTypes(stack, index, nested);
+                            }
+                            break;
+
+                        case SourceMemberContainerTypeSymbol sourceType:
+                            {
+                                pushAndProcessNestedTypes(stack, context, index, nested, builder);
+
+                                foreach (var groupingType in sourceType.GetExtensionGroupingInfo().GetGroupingTypes())
+                                {
+                                    int groupingIndex = builder.Count;
+                                    builder.Add(new Cci.ExportedType(groupingType, index, isForwarder: true));
+
+                                    foreach (var markerType in groupingType.GetNestedTypes(context))
+                                    {
+                                        builder.Add(new Cci.ExportedType(markerType, groupingIndex, isForwarder: true));
+                                    }
+                                }
+                            }
+                            break;
+
+                        case RetargetingNamedTypeSymbol retargetingType:
+                            {
+                                pushAndProcessNestedTypes(stack, context, index, nested, builder);
+
+                                foreach ((Cci.INestedTypeReference GroupingType, ImmutableArray<Cci.INestedTypeReference> MarkerTypes) item in retargetingType.GetExtensionGroupingAndMarkerTypesForTypeForwarding(context))
+                                {
+                                    int groupingIndex = builder.Count;
+                                    builder.Add(new Cci.ExportedType(item.GroupingType, index, isForwarder: true));
+
+                                    foreach (var markerType in item.MarkerTypes)
+                                    {
+                                        builder.Add(new Cci.ExportedType(markerType, groupingIndex, isForwarder: true));
+                                    }
+                                }
+                            }
+                            break;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(type);
+                    }
+                }
+                else
+                {
+                    pushNestedTypes(stack, index, nested);
+                }
+            }
+
+            static void pushNestedTypes(ArrayBuilder<(NamedTypeSymbol type, int parentIndex)> stack, int index, ImmutableArray<NamedTypeSymbol> nested)
+            {
+                // Iterate backwards so they get popped in forward order.
+                for (int i = nested.Length - 1; i >= 0; i--)
+                {
+                    if (nested[i].IsExtension)
+                    {
+                        continue; // Extension blocks are handled separately
+                    }
+
+                    stack.Push((nested[i], index));
+                }
+            }
+
+            static void pushAndProcessNestedTypes(ArrayBuilder<(NamedTypeSymbol type, int parentIndex)> stack, EmitContext context, int index, ImmutableArray<NamedTypeSymbol> nested, ArrayBuilder<Cci.ExportedType> builder)
+            {
+                int currentStackSize = stack.Count;
+
+                pushNestedTypes(stack, index, nested);
+
+                while (stack.Count > currentStackSize)
+                {
+                    processTopItemFromStack(stack, context, builder);
+                }
             }
         }
 #nullable disable
@@ -1522,6 +1672,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeParamCollectionAttribute();
         }
 
+        internal SynthesizedAttributeData SynthesizeExtensionMarkerAttribute(Symbol symbol, string markerName)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeExtensionMarkerAttribute(markerName);
+        }
+
         internal SynthesizedAttributeData SynthesizeIsUnmanagedAttribute(Symbol symbol)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
@@ -1740,6 +1901,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor);
         }
 
+        protected virtual SynthesizedAttributeData TrySynthesizeExtensionMarkerAttribute(string markerName)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
+                [new TypedConstant(Compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, markerName)]);
+        }
+
+        internal virtual SynthesizedEmbeddedAttributeSymbol TryGetSynthesizedIsUnmanagedAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return null;
+        }
+
         protected virtual SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
@@ -1918,13 +2092,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                       diagnostics);
         }
 
-        internal NamedTypeSymbol EnsureInlineArrayTypeExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, int arrayLength, DiagnosticBag diagnostics)
+        internal NamedTypeSymbol EnsureInlineArrayTypeExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, int arrayLength, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(Compilation.Assembly.RuntimeSupportsInlineArrayTypes);
             Debug.Assert(arrayLength > 0);
+            Debug.Assert(diagnostics.DiagnosticBag is not null);
+
+            if (arrayLength is >= 2 and <= 16)
+            {
+                // In .NET 10 and up, the runtime provides InlineArrayN<T> types for N from 2 to 16.
+                var arrayWellKnownType = WellKnownType.System_Runtime_CompilerServices_InlineArray2 + (arrayLength - 2);
+                Debug.Assert(arrayWellKnownType is >= WellKnownType.System_Runtime_CompilerServices_InlineArray2 and <= WellKnownType.System_Runtime_CompilerServices_InlineArray16);
+                if (Binder.TryGetOptionalWellKnownType(Compilation, arrayWellKnownType, diagnostics, syntaxNode.Location, out var existingType))
+                {
+                    return existingType;
+                }
+            }
 
             string typeName = GeneratedNames.MakeSynthesizedInlineArrayName(arrayLength, CurrentGenerationOrdinal);
-            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics).PrivateImplementationDetails;
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics.DiagnosticBag).PrivateImplementationDetails;
             var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
 
             if (typeAdapter is null)
@@ -2089,6 +2275,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal ImmutableArray<Cci.UsedNamespaceOrType> GetOrAddTranslatedImports(ImportChain chain, ImmutableArray<Cci.UsedNamespaceOrType> imports)
         {
             return _translatedImportsMap.GetOrAdd(chain, imports);
+        }
+
+        public override void AddSynthesizedDefinition(NamedTypeSymbol container, Cci.INestedTypeDefinition nestedType)
+        {
+            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true } || nestedType.GetInternalSymbol() is FixedFieldImplementationType);
+            base.AddSynthesizedDefinition(container, nestedType);
+        }
+
+        public override void AddSynthesizedDefinition(NamedTypeSymbol container, Cci.IFieldDefinition field)
+        {
+            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true });
+            base.AddSynthesizedDefinition(container, field);
+        }
+
+        public override void AddSynthesizedDefinition(NamedTypeSymbol container, Cci.IMethodDefinition method)
+        {
+            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true });
+            base.AddSynthesizedDefinition(container, method);
+        }
+
+        public override void AddSynthesizedDefinition(NamedTypeSymbol container, Cci.IPropertyDefinition property)
+        {
+            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true });
+            base.AddSynthesizedDefinition(container, property);
         }
     }
 }

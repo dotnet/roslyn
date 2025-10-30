@@ -6,23 +6,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.VisualStudio.IntegrationTests;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests
+namespace Roslyn.VisualStudio.NewIntegrationTests;
+
+public abstract class AbstractInteractiveWindowTest : AbstractIntegrationTest
 {
-    public abstract class AbstractInteractiveWindowTest : AbstractIntegrationTest
+    public override async Task InitializeAsync()
     {
-        public override async Task InitializeAsync()
-        {
-            await base.InitializeAsync();
+        await base.InitializeAsync();
 
-            await ClearInteractiveWindowAsync(HangMitigatingCancellationToken);
-        }
+        await ClearInteractiveWindowAsync(HangMitigatingCancellationToken);
+    }
 
-        protected async Task ClearInteractiveWindowAsync(CancellationToken cancellationToken)
-        {
-            await TestServices.InteractiveWindow.InitializeAsync(cancellationToken);
-            await TestServices.InteractiveWindow.ClearScreenAsync(cancellationToken);
-            await TestServices.InteractiveWindow.ShowWindowAsync(cancellationToken);
-            await TestServices.InteractiveWindow.ResetAsync(cancellationToken);
-        }
+    protected async Task ClearInteractiveWindowAsync(CancellationToken cancellationToken)
+    {
+        await TestServices.InteractiveWindow.InitializeAsync(cancellationToken);
+        await TestServices.InteractiveWindow.ClearScreenAsync(cancellationToken);
+        await TestServices.InteractiveWindow.ShowWindowAsync(cancellationToken);
+        await TestServices.InteractiveWindow.ResetAsync(cancellationToken);
     }
 }

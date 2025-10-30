@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -33,8 +31,7 @@ internal abstract class AbstractUseNamedArgumentsCodeRefactoringProvider : CodeR
 
             // We allow empty nodes here to find VB implicit arguments.
             var potentialArguments = await document.GetRelevantNodesAsync<TBaseArgumentSyntax>(textSpan, allowEmptyNodes: true, cancellationToken).ConfigureAwait(false);
-            var argument = potentialArguments.FirstOrDefault(n => n.Parent is TArgumentListSyntax) as TSimpleArgumentSyntax;
-            if (argument == null)
+            if (potentialArguments.FirstOrDefault(n => n.Parent is TArgumentListSyntax) is not TSimpleArgumentSyntax argument)
             {
                 return;
             }

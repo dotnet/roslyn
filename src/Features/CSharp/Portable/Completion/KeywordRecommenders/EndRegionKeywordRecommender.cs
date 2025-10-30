@@ -7,13 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class EndRegionKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class EndRegionKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.EndRegionKeyword, isValidInPreprocessorContext: true, shouldFormatOnCommit: true)
 {
-    public EndRegionKeywordRecommender()
-        : base(SyntaxKind.EndRegionKeyword, isValidInPreprocessorContext: true, shouldFormatOnCommit: true)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         => context.IsPreProcessorKeywordContext;
 }

@@ -14,57 +14,56 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting;
+
+public sealed class FormattingTreeEditTests : CSharpFormattingTestBase
 {
-    public class FormattingTreeEditTests : CSharpFormattingTestBase
+    private static Document GetDocument(string code)
     {
-        private static Document GetDocument(string code)
-        {
-            var ws = new AdhocWorkspace();
-            var project = ws.AddProject("project", LanguageNames.CSharp);
-            return project.AddDocument("code", SourceText.From(code));
-        }
+        var ws = new AdhocWorkspace();
+        var project = ws.AddProject("project", LanguageNames.CSharp);
+        return project.AddDocument("code", SourceText.From(code));
+    }
 
-        [Fact]
-        public async Task SpaceAfterAttribute()
-        {
-            var code = @"
-public class C
-{
-    void M(int? p) { }
-}
-";
-            var document = GetDocument(code);
-            var g = SyntaxGenerator.GetGenerator(document);
-            var root = await document.GetSyntaxRootAsync();
-            var attr = g.Attribute("MyAttr");
-            var options = CSharpSyntaxFormattingOptions.Default;
+    [Fact]
+    public async Task SpaceAfterAttribute()
+    {
+        var code = """
+            public class C
+            {
+                void M(int? p) { }
+            }
+            """;
+        var document = GetDocument(code);
+        var g = SyntaxGenerator.GetGenerator(document);
+        var root = await document.GetSyntaxRootAsync();
+        var attr = g.Attribute("MyAttr");
+        var options = CSharpSyntaxFormattingOptions.Default;
 
-            var param = root.DescendantNodes().OfType<ParameterSyntax>().First();
-            var root1 = root.ReplaceNode(param, g.AddAttributes(param, g.Attribute("MyAttr")));
+        var param = root.DescendantNodes().OfType<ParameterSyntax>().First();
+        var root1 = root.ReplaceNode(param, g.AddAttributes(param, g.Attribute("MyAttr")));
 
-            var result1 = Formatter.Format(root1, document.Project.Solution.Services, options, CancellationToken.None);
+        var result1 = Formatter.Format(root1, document.Project.Solution.Services, options, CancellationToken.None);
 
-            Assert.Equal(@"
-public class C
-{
-    void M([MyAttr] int? p) { }
-}
-", result1.ToFullString());
+        Assert.Equal("""
+            public class C
+            {
+                void M([MyAttr] int? p) { }
+            }
+            """, result1.ToFullString());
 
-            // verify change doesn't affect how attributes appear before other kinds of declarations
-            var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+        // verify change doesn't affect how attributes appear before other kinds of declarations
+        var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
 
-            var root2 = root.ReplaceNode(method, g.AddAttributes(method, g.Attribute("MyAttr")));
-            var result2 = Formatter.Format(root2, document.Project.Solution.Services, options, CancellationToken.None);
+        var root2 = root.ReplaceNode(method, g.AddAttributes(method, g.Attribute("MyAttr")));
+        var result2 = Formatter.Format(root2, document.Project.Solution.Services, options, CancellationToken.None);
 
-            Assert.Equal(@"
-public class C
-{
-    [MyAttr]
-    void M(int? p) { }
-}
-", result2.ToFullString());
-        }
+        Assert.Equal("""
+            public class C
+            {
+                [MyAttr]
+                void M(int? p) { }
+            }
+            """, result2.ToFullString());
     }
 }

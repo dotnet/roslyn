@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 
 namespace Microsoft.CodeAnalysis.Editor;
@@ -132,12 +129,6 @@ internal static class PredefinedCommandHandlerNames
     /// Command handler name for Rename.
     /// </summary>
     public const string Rename = "Rename Command Handler";
-
-    /// <summary>
-    /// Command handler for detecting user save commands, and using that to issue a request to run source generators
-    /// (when in <see cref="SourceGeneratorExecutionPreference.Balanced"/> mode).
-    /// </summary>
-    public const string SourceGeneratorSave = "Source Generator Save Command Handler";
 
     /// <summary>
     /// Command handler name for Rename Tracking cancellation.

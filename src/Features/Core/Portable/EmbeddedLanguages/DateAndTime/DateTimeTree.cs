@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime;
 /// <summary>
 /// No actual tree for DateAndTime. But we use this to fit into the common pattern of embedded languages.
 /// </summary>
-internal class DateTimeTree
+internal sealed class DateTimeTree
 {
     public static readonly DateTimeTree Instance = new();
 

@@ -3,13 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.CompilerServices
-Imports CompilationCreationTestHelpers
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
@@ -26,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                     {TestReferences.SymbolsTests.MissingTypes.MDMissingType,
                                      TestReferences.SymbolsTests.MissingTypes.MDMissingTypeLib,
-                                     TestMetadata.Net40.mscorlib})
+                                     Net40.References.mscorlib})
 
             TestMissingTypeReferencesHelper2(assemblies)
         End Sub

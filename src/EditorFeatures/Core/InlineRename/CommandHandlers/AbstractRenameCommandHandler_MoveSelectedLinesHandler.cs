@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
@@ -14,17 +15,21 @@ internal abstract partial class AbstractRenameCommandHandler :
         => CommandState.Unspecified;
 
     public bool ExecuteCommand(MoveSelectedLinesUpCommandArgs args, CommandExecutionContext context)
-    {
-        CommitIfActive(args);
-        return false;
-    }
+        => HandleMoveSelectLinesUpOrDownCommand();
 
     public CommandState GetCommandState(MoveSelectedLinesDownCommandArgs args)
         => CommandState.Unspecified;
 
     public bool ExecuteCommand(MoveSelectedLinesDownCommandArgs args, CommandExecutionContext context)
+        => HandleMoveSelectLinesUpOrDownCommand();
+
+    private bool HandleMoveSelectLinesUpOrDownCommand()
     {
-        CommitIfActive(args);
+        // When rename commit is in progress, swallow the command so it won't change the workspace
+        if (IsRenameCommitInProgress())
+            return true;
+
+        CancelRenameSession();
         return false;
     }
 }

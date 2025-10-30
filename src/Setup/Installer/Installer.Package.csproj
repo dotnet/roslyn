@@ -24,7 +24,7 @@
           DependsOnTargets="_CalculateInputsOutputs;ResolveProjectReferences"
           Inputs="$(MSBuildAllProjects);$(_DeploymentVsixPath)"
           Outputs="$(_InstallerFilePath)"
-          Condition="'$(DotNetBuildFromSource)' != 'true' and '$(MSBuildRuntimeType)' != 'Core'">
+          Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(MSBuildRuntimeType)' != 'Core'">
     <ItemGroup>
       <_Files Include="$(MSBuildProjectDirectory)\tools\*.*" TargetDir="tools"/>
       <_Files Include="$(MSBuildProjectDirectory)\scripts\*.*" TargetDir=""/>

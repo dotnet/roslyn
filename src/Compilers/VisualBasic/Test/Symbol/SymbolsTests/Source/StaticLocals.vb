@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Basic.Reference.Assemblies
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -583,7 +584,7 @@ End Class
 
             Dim compilation = CreateEmptyCompilationWithReferences(
                 compilationDef,
-                {MsvbRef, TestMetadata.Net20.mscorlib},
+                {MsvbRef, Net20.References.mscorlib},
                 TestOptions.DebugExe.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
             Dim verifier = CompileAndVerify(compilation)

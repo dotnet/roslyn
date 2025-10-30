@@ -7,14 +7,16 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.AutomaticCompletion;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,20 +29,16 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 
-/// <summary>
-/// csharp automatic line ender command handler
-/// </summary>
 [Export(typeof(ICommandHandler))]
 [ContentType(ContentTypeNames.CSharpContentType)]
 [Name(PredefinedCommandHandlerNames.AutomaticLineEnder)]
 [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class AutomaticLineEnderCommandHandler(
+internal sealed partial class AutomaticLineEnderCommandHandler(
     ITextUndoHistoryRegistry undoRegistry,
     IEditorOperationsFactoryService editorOperations,
     EditorOptionsService editorOptionsService) : AbstractAutomaticLineEnderCommandHandler(undoRegistry, editorOperations, editorOptionsService)
@@ -98,37 +96,29 @@ internal partial class AutomaticLineEnderCommandHandler(
         var endToken = root.FindToken(position);
         var span = GetFormattedTextSpan(root, endToken);
         if (span == null)
-        {
-            return SpecializedCollections.EmptyList<TextChange>();
-        }
+            return [];
 
         var formatter = document.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
         return formatter.GetFormattingResult(
             root,
-            SpecializedCollections.SingletonCollection(CommonFormattingHelpers.GetFormattingSpan(root, span.Value)),
+            [CommonFormattingHelpers.GetFormattingSpan(root, span.Value)],
             options,
-            rules: null,
+            rules: default,
             cancellationToken).GetTextChanges(cancellationToken);
     }
 
     private static TextSpan? GetFormattedTextSpan(SyntaxNode root, SyntaxToken endToken)
     {
         if (endToken.IsMissing)
-        {
             return null;
-        }
 
         var ranges = FormattingRangeHelper.FindAppropriateRange(endToken, useDefaultRange: false);
         if (ranges == null)
-        {
             return null;
-        }
 
         var startToken = ranges.Value.Item1;
         if (startToken.IsMissing || startToken.Kind() == SyntaxKind.None)
-        {
             return null;
-        }
 
         return CommonFormattingHelpers.GetFormattingSpan(root, TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End));
     }
@@ -315,27 +305,28 @@ internal partial class AutomaticLineEnderCommandHandler(
         SyntaxNode selectedNode,
         bool addBrace,
         int caretPosition,
+        StructuredAnalyzerConfigOptions fallbackOptions,
         CancellationToken cancellationToken)
     {
-        var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.LanguageServices, explicitFormat: false);
+        var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, fallbackOptions, document.LanguageServices, explicitFormat: false);
 
         // Add braces for the selected node
         if (addBrace)
         {
             // For these syntax node, braces pair could be easily added by modify the syntax tree
             if (selectedNode is BaseTypeDeclarationSyntax
-                or BaseMethodDeclarationSyntax
-                or LocalFunctionStatementSyntax
-                or AccessorDeclarationSyntax
-                or ObjectCreationExpressionSyntax
-                or WhileStatementSyntax
-                or ForEachStatementSyntax
-                or ForStatementSyntax
-                or LockStatementSyntax
-                or UsingStatementSyntax
-                or DoStatementSyntax
-                or IfStatementSyntax
-                or ElseClauseSyntax)
+                    or BaseMethodDeclarationSyntax
+                    or LocalFunctionStatementSyntax
+                    or AccessorDeclarationSyntax
+                    or ObjectCreationExpressionSyntax
+                    or WhileStatementSyntax
+                    or CommonForEachStatementSyntax
+                    or ForStatementSyntax
+                    or LockStatementSyntax
+                    or UsingStatementSyntax
+                    or DoStatementSyntax
+                    or IfStatementSyntax
+                    or ElseClauseSyntax)
             {
                 // Add the braces and get the next caretPosition
                 var (newRoot, nextCaretPosition) = AddBraceToSelectedNode(document.SolutionServices, document.Root, selectedNode, formattingOptions, cancellationToken);

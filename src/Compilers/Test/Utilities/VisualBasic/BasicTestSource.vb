@@ -2,10 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Xml.Linq
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
-Imports System.IO
 
 Public Structure BasicTestSource
 
@@ -43,12 +41,17 @@ Public Structure BasicTestSource
 
         Dim source = TryCast(Value, String)
         If source IsNot Nothing Then
-            Return New SyntaxTree() {VisualBasicSyntaxTree.ParseText(SourceText.From(source, encoding:=Nothing, SourceHashAlgorithms.Default), parseOptions)}
+            Return New SyntaxTree() _
+            {
+                VisualBasicSyntaxTree.ParseText(
+                    SourceText.From(source, encoding:=Nothing, SourceHashAlgorithms.Default),
+                    If(parseOptions, TestOptions.RegularLatest))
+            }
         End If
 
         Dim sources = TryCast(Value, String())
         If sources IsNot Nothing Then
-            Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(SourceText.From(s, encoding:=Nothing, SourceHashAlgorithms.Default), parseOptions)).ToArray()
+            Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(SourceText.From(s, encoding:=Nothing, SourceHashAlgorithms.Default), If(parseOptions, TestOptions.RegularLatest))).ToArray()
         End If
 
         Dim tree = TryCast(Value, SyntaxTree)

@@ -402,7 +402,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [InlineData(".NETCoreApp", "6.0", "10.0")]
         [InlineData(".NETCoreApp", "7.0", "11.0")]
         [InlineData(".NETCoreApp", "8.0", "12.0")]
-        [InlineData(".NETCoreApp", "9.0", "")]
+        [InlineData(".NETCoreApp", "9.0", "13.0")]
+        [InlineData(".NETCoreApp", "10.0", "14.0")]
+        [InlineData(".NETCoreApp", "11.0", "14.0")] // update cap when 15.0 is released
 
         [InlineData(".NETStandard", "1.0", "7.3")]
         [InlineData(".NETStandard", "1.5", "7.3")]
@@ -436,7 +438,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             // This will fail whenever the current language version is updated.
             // Ensure you update the target files to select the correct CSharp version for the newest target framework
             // and add to the theory data above to cover it, before changing this version to make the test pass again.
-            Assert.Equal(CSharp.LanguageVersion.CSharp12, CSharp.LanguageVersionFacts.CurrentVersion);
+            Assert.Equal(CSharp.LanguageVersion.CSharp14, CSharp.LanguageVersionFacts.CurrentVersion);
         }
 
         [Fact]

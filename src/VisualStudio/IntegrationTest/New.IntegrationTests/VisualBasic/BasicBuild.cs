@@ -11,43 +11,41 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
+namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic;
+
+public class BasicBuild : AbstractIntegrationTest
 {
-    public class BasicBuild : AbstractIntegrationTest
+    public BasicBuild() : base()
     {
-        public BasicBuild() : base()
-        {
-        }
+    }
 
-        public override async Task InitializeAsync()
-        {
-            await base.InitializeAsync().ConfigureAwait(true);
-            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(BasicBuild), HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
-        }
+    public override async Task InitializeAsync()
+    {
+        await base.InitializeAsync().ConfigureAwait(true);
+        await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(BasicBuild), HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
+    }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.Build)]
-        public async Task BuildProject()
-        {
-            var editorText = @"Module Module1
+    [IdeFact, Trait(Traits.Feature, Traits.Features.Build)]
+    public async Task BuildProject()
+    {
+        await TestServices.Editor.SetTextAsync("""
+            Module Module1
 
-    Sub Main()
-        Console.WriteLine(""Hello, World!"")
-    End Sub
+                Sub Main()
+                    Console.WriteLine("Hello, World!")
+                End Sub
 
-End Module";
+            End Module
+            """, HangMitigatingCancellationToken);
 
-            await TestServices.Editor.SetTextAsync(editorText, HangMitigatingCancellationToken);
+        var succeed = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
+        Assert.True(succeed);
 
-            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
-            Assert.Equal("========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+        await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
-            await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
-
-            var errors = await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken);
-            AssertEx.EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
-        }
+        var errors = await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
     }
 }

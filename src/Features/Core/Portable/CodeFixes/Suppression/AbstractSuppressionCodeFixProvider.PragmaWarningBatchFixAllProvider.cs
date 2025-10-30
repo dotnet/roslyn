@@ -4,14 +4,13 @@
 
 #nullable disable
 
-using System.Collections.Concurrent;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
 
@@ -26,7 +25,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
 
         protected override async Task AddDocumentFixesAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
+            Action<(Diagnostic diagnostic, CodeAction action)> onItemFound,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
             var pragmaActionsBuilder = ArrayBuilder<IPragmaBasedCodeAction>.GetInstance();
@@ -36,7 +35,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             {
                 var span = diagnostic.Location.SourceSpan;
                 var pragmaSuppressions = await _suppressionFixProvider.GetPragmaSuppressionsAsync(
-                    document, span, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+                    document, span, [diagnostic], cancellationToken).ConfigureAwait(false);
                 var pragmaSuppression = pragmaSuppressions.SingleOrDefault();
                 if (pragmaSuppression != null)
                 {
@@ -59,7 +58,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                     pragmaDiagnosticsBuilder.ToImmutableAndFree(),
                     fixAllState, cancellationToken);
 
-                fixes.Add((diagnostic: null, pragmaBatchFix));
+                onItemFound((diagnostic: null, pragmaBatchFix));
             }
         }
     }

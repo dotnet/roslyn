@@ -4,18 +4,17 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions
-{
-    /// <summary>
-    /// XamlDefinition with symbol.
-    /// </summary>
-    internal sealed class XamlSymbolDefinition : XamlDefinition
-    {
-        public ISymbol Symbol { get; }
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions;
 
-        public XamlSymbolDefinition(ISymbol symbol)
-        {
-            Symbol = symbol;
-        }
+/// <summary>
+/// XamlDefinition with symbol.
+/// </summary>
+internal sealed class XamlSymbolDefinition : XamlDefinition
+{
+    public ISymbol Symbol { get; }
+
+    public XamlSymbolDefinition(ISymbol symbol)
+    {
+        Symbol = symbol;
     }
 }

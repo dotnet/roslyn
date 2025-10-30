@@ -9,8 +9,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -74,33 +77,72 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames(".ctor");
+                        g.VerifyTypeDefNames("HotReloadException");
 
-                        g.VerifyTypeRefNames("Object", "MissingMethodException");
-                        g.VerifyMemberRefNames(".ctor");
+                        g.VerifyMethodDefs(
+                            (".ctor", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName),
+                            (".ctor", MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName));
+
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action`1");
+                        g.VerifyMemberRefNames(".ctor", ".ctor", "Invoke");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(2, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            .ctor
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000005
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000003
+                              IL_000c:  throw
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000006
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000007
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
                     })
                 .Verify();
         }
@@ -135,30 +177,51 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     },
                     validator: g =>
                     {
+                        g.VerifyTypeDefNames("HotReloadException");
+
                         // The default constructor is added and the deleted constructor is updated to throw:
-                        g.VerifyMethodDefNames(".ctor", ".ctor");
-                        g.VerifyTypeRefNames("Object", "MissingMethodException");
+                        g.VerifyMethodDefNames(".ctor", ".ctor", ".ctor");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action`1");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
                         });
 
                         g.VerifyIL("""
+                            .ctor
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000005
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000003
+                              IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -166,6 +229,27 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                               IL_0001:  call       0x0A000006
                               IL_0006:  nop
                               IL_0007:  ret
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000007
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000008
+                              IL_001f:  nop
+                              IL_0020:  ret
                             }
                             """);
                     })
@@ -291,7 +375,7 @@ class A : System.Attribute
             var source0 = @"public class C { public static void F() { System.Console.WriteLine(1); } }";
             var source1 = @"public class C { public static void F() { System.Console.WriteLine(2); } }";
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(source0, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
@@ -818,17 +902,13 @@ class Bad : Bad
                     validator: g =>
                     {
                         g.VerifyCustomAttributes(
-                        [
-                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
-                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
-                            new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)),
-
-                            // F:
-                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(1, TableIndex.MethodDef))
-                        ]);
+                            "[System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor] <assembly>",
+                            "[System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor] <assembly>",
+                            "[System.Diagnostics.DebuggableAttribute..ctor] <assembly>",
+                            "[A1..ctor] C.F");
                     })
-
                 .AddGeneration(
+                    // 1
                     source: common + """
                     class C
                     {
@@ -851,14 +931,10 @@ class Bad : Bad
                             Handle(4, TableIndex.CustomAttribute),
                         ]);
 
-                        g.VerifyCustomAttributes(
-                        [
-                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef))
-                        ]);
+                        g.VerifyCustomAttributes("[A2..ctor] C.F");
                     })
-
-                // Add attribute to method, and to class
                 .AddGeneration(
+                    // 2: Add attribute to method, and to class
                     source: common + """
                     [A5]
                     class C
@@ -896,14 +972,12 @@ class Bad : Bad
                         ]);
 
                         g.VerifyCustomAttributes(
-                        [
-                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),
-                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
-                            new CustomAttributeRow(Handle(8, TableIndex.TypeDef), Handle(5, TableIndex.MethodDef)),
-                        ]);
+                            "[A3..ctor] C.F",
+                            "[A4..ctor] C.F",
+                            "[A5..ctor] C");
                     })
-                // Add attribute before existing attributes
                 .AddGeneration(
+                    // 3: Add attribute before existing attributes
                     source: common + """
                     [A5]
                     class C
@@ -932,11 +1006,9 @@ class Bad : Bad
                         ]);
 
                         g.VerifyCustomAttributes(
-                        [
-                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)),
-                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),
-                            new CustomAttributeRow(Handle(7, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
-                        ]);
+                            "[A6..ctor] C.F",
+                            "[A3..ctor] C.F",
+                            "[A4..ctor] C.F");
                     })
                 .Verify();
         }
@@ -1039,9 +1111,9 @@ class Bad : Bad
                         g.VerifyCustomAttributes(
                         [
                             new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),
-                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
                             new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)),
                             new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
                             new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),
                         ]);
                     })
@@ -1424,12 +1496,12 @@ class Bad : Bad
 
                         g.VerifyCustomAttributes(
                         [
-                            new CustomAttributeRow(Handle(9, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)), // F [A1] -> [A2]
                             new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // F [A2] delete
-                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),// G [A3] -> [A4]
-                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),// H [A6] -> [A7]
                             new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // H [A5] delete
+                            new CustomAttributeRow(Handle(9, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)), // F [A1] -> [A2]
+                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),// G [A3] -> [A4]
                             new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),// G [A3] add with RowId 9
+                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),// H [A6] -> [A7]
                         ]);
                     })
                 .AddGeneration(
@@ -1475,9 +1547,9 @@ class Bad : Bad
                         g.VerifyCustomAttributes(
                         [
                             new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A4] delete
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A3] delete
                             new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)), // H [A5]
                             new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)), // H [A6]
-                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A3] delete
                             new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)), // H [A7] add with RowId 10
                             new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(8, TableIndex.MethodDef)), // H [A8] add with RowId 11
                         ]);
@@ -1650,8 +1722,8 @@ class Bad : Bad
 
                         g.VerifyCustomAttributes(
                         [
-                            new CustomAttributeRow(Handle(6, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)), // F: [A1] -> [A3]
                             new CustomAttributeRow(Handle(5, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)), // G: [A2] -> [A4]
+                            new CustomAttributeRow(Handle(6, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)), // F: [A1] -> [A3]
                         ]);
                     })
                 .Verify();
@@ -2125,13 +2197,9 @@ class C
             CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0", ".ctor", "Invoke", "<F>b__0_1#1");
 
             diff1.VerifySynthesizedMembers(
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "Microsoft: {CodeAnalysis}",
-                "System.Runtime: {CompilerServices}",
+                "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                "System.Runtime.CompilerServices.IsUnmanagedAttribute",
                 "C<T>: {<>c__0}",
-                "<global namespace>: {Microsoft, System}",
-                "System: {Runtime}",
-                "System.Runtime.CompilerServices: {IsUnmanagedAttribute}",
                 "C<T>.<>c__0<U>: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
 
             var diff2 = compilation2.EmitDifference(
@@ -2148,13 +2216,9 @@ class C
             CheckNames(readers, reader2.GetMethodDefNames(), "F", "<F>b__0_0", "<F>b__0_1#1");
 
             diff2.VerifySynthesizedMembers(
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "System: {Runtime}",
-                "<global namespace>: {Microsoft, System}",
+                "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                "System.Runtime.CompilerServices.IsUnmanagedAttribute",
                 "C<T>: {<>c__0}",
-                "System.Runtime.CompilerServices: {IsUnmanagedAttribute}",
-                "System.Runtime: {CompilerServices}",
-                "Microsoft: {CodeAnalysis}",
                 "C<T>.<>c__0<U>: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
         }
 
@@ -2214,6 +2278,256 @@ class C
         }
 
         [Fact]
+        public void Lambda_SynthesizedDelegate()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var f = <N:1>(ref int a) => a</N:1>;
+                            }</N:0>
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "class C: {<>c}",
+                            "class C.<>c: {<>9__0_0, <F>b__0_0}"
+                        ]);
+
+                        g.VerifySynthesizedTypes(
+                            "<>F{00000001}<T1, TResult>");
+                    })
+                .AddGeneration(
+                    // 1
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var g = <N:2>(out byte a) => a = 1</N:2>;
+                                var f = <N:1>(ref int a) => a</N:1>;
+                            }</N:0>
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                               "class C: {<>c}",
+                               "class C.<>c: {<>9__0_0#1, <>9__0_0, <F>b__0_0#1, <F>b__0_0}" // new and reused lambdas
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>F{00000001}<T1, TResult>",
+                                "<>F{00000002}<T1, TResult>"); // new synthesized delegate is created
+
+                            g.VerifyTypeDefNames("<>F{00000002}`2");
+                            g.VerifyMethodDefNames("F", "<F>b__0_0", ".ctor", "Invoke", "<F>b__0_0#1");
+                        })
+                .AddGeneration(
+                    // 2
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var f = <N:1>(ref bool a, ref bool b) => a</N:1>;
+                            }</N:0>
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true, rudeEdits: _ => new RuntimeRudeEdit("Parameter changed", 0x123)),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "System.Runtime.CompilerServices.HotReloadException",
+                                "class C: {<>c}",
+                                "class C.<>c: {<>9__0_0#2, <F>b__0_0#2, <>9__0_0#1, <>9__0_0, <F>b__0_0#1, <F>b__0_0}"
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>F{00000001}<T1, TResult>",
+                                "<>F{00000002}<T1, TResult>",
+                                "<>F{00000009}<T1, T2, TResult>"); // new synthesized delegate is created
+
+                            g.VerifyTypeDefNames("<>F{00000009}`3", "HotReloadException");
+                            g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_0#1", ".ctor", "Invoke", ".ctor", "<F>b__0_0#2");
+                        })
+                .AddGeneration(
+                    // 3
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var f = <N:1>(ref bool a, ref bool b) => a</N:1>;
+                                var g = <N:2>(ref bool a, ref bool b, bool c) => a</N:2>;
+                            }</N:0>
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "System.Runtime.CompilerServices.HotReloadException",
+                                "class C: {<>c}",
+                                "class C.<>c: {<>9__0_0#2, <>9__0_1#3, <F>b__0_0#2, <F>b__0_1#3, <>9__0_0#1, <>9__0_0, <F>b__0_0#1, <F>b__0_0}"
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>F{00000001}<T1, TResult>",
+                                "<>F{00000002}<T1, TResult>",
+                                "<>F{00000009}<T1, T2, TResult>",
+                                "<>F{00000009}<T1, T2, T3, TResult>"); // new synthesized delegate is created
+
+                            g.VerifyTypeDefNames("<>F{00000009}`4");
+                            g.VerifyMethodDefNames("F", "<F>b__0_0#2", ".ctor", "Invoke", "<F>b__0_1#3");
+                        })
+                .Verify();
+        }
+
+        [Fact]
+        public void Lambda_SynthesizedDelegate_WithIndexedName()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var f = <N:1>(int a = 1) => a</N:1>;
+                            }</N:0>
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "class C: {<>c}",
+                            "class C.<>c: {<>9__0_0, <F>b__0_0}"
+                        ]);
+
+                        g.VerifySynthesizedTypes(
+                            "<>f__AnonymousDelegate0<T1, TResult>");
+                    })
+                .AddGeneration(
+                    // 1
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var g = <N:2>(int a = 1) => a + 1</N:2>;
+                                var f = <N:1>(int a = 2) => a</N:1>;
+                            }</N:0>
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "class C: {<>c}",
+                                "class C.<>c: {<>9__0_0#1, <>9__0_0, <F>b__0_0#1, <F>b__0_0}" // new lambda is created
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>f__AnonymousDelegate0<T1, TResult>",
+                                "<>f__AnonymousDelegate1<T1, TResult>"); // new synthesized delegate is created
+
+                            g.VerifyTypeDefNames("<>f__AnonymousDelegate1`2");
+                            g.VerifyMethodDefNames("F", "<F>b__0_0", ".ctor", "Invoke", "<F>b__0_0#1");
+                        })
+                .AddGeneration(
+                    // 2
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var f = <N:1>(int a = 3) => a</N:1>;
+                            }</N:0>
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true, rudeEdits: _ => new RuntimeRudeEdit("Parameter changed", 0x123)),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "System.Runtime.CompilerServices.HotReloadException",
+                                "class C: {<>c}",
+                                "class C.<>c: {<>9__0_0#2, <F>b__0_0#2, <>9__0_0#1, <>9__0_0, <F>b__0_0#1, <F>b__0_0}"
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>f__AnonymousDelegate0<T1, TResult>",
+                                "<>f__AnonymousDelegate1<T1, TResult>",
+                                "<>f__AnonymousDelegate2<T1, TResult>"); // new synthesized delegate is created
+
+                            g.VerifyTypeDefNames("<>f__AnonymousDelegate2`2", "HotReloadException");
+                            g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_0#1", ".ctor", "Invoke", ".ctor", "<F>b__0_0#2");
+                        })
+                .AddGeneration(
+                    // 3
+                    source: """
+                        class C
+                        {
+                            void F()
+                            <N:0>{
+                                var f = <N:1>(int a = 3) => a</N:1>;
+                                var g = <N:2>(int a = 1, int b = 2) => a</N:2>;
+                            }</N:0>
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "System.Runtime.CompilerServices.HotReloadException",
+                                "class C: {<>c}",
+                                "class C.<>c: {<>9__0_0#2, <>9__0_1#3, <F>b__0_0#2, <F>b__0_1#3, <>9__0_0#1, <>9__0_0, <F>b__0_0#1, <F>b__0_0}"
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>f__AnonymousDelegate0<T1, TResult>",
+                                "<>f__AnonymousDelegate1<T1, TResult>",
+                                "<>f__AnonymousDelegate2<T1, TResult>",
+                                "<>f__AnonymousDelegate3<T1, T2, TResult>"); // new synthesized delegate is created
+
+                            g.VerifyTypeDefNames("<>f__AnonymousDelegate3`3");
+                            g.VerifyMethodDefNames("F", "<F>b__0_0#2", ".ctor", "Invoke", "<F>b__0_1#3");
+                        })
+                .Verify();
+        }
+
+        [Fact]
         public void Lambda_Delete()
         {
             using var _ = new EditAndContinueTest()
@@ -2253,27 +2567,45 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c}",
                             "C.<>c: {<>9__0_1, <F>b__0_1}");
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1");
-                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Action", "MissingMethodException", "Console");
-                        g.VerifyMemberRefNames(".ctor", ".ctor", ".ctor", "WriteLine");
+
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1", ".ctor");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action`1", "Action", "Console");
+                        g.VerifyMemberRefNames(".ctor", ".ctor", "WriteLine", ".ctor", "Invoke");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(5, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(4, TableIndex.Field),
+                            Handle(5, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(5, TableIndex.MethodDef),
-                            Handle(6, TableIndex.MethodDef)
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(7, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
                         });
 
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       30 (0x1e)
                               .maxstack  8
@@ -2286,20 +2618,44 @@ class C
                               IL_0018:  stsfld     0x04000003
                               IL_001d:  ret
                             }
+                            <F>b__0_0
                             {
-                              // Code size       11 (0xb)
+                              // Code size       12 (0xc)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A00000A
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.m1
+                              IL_0006:  newobj     0x06000007
+                              IL_000b:  throw
                             }
+                            <F>b__0_1
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
                               IL_0000:  ldc.i4.2
-                              IL_0001:  call       0x0A00000B
+                              IL_0001:  call       0x0A00000A
                               IL_0006:  nop
                               IL_0007:  ret
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A00000B
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000004
+                              IL_000f:  ldsfld     0x04000005
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A00000C
+                              IL_001f:  nop
+                              IL_0020:  ret
                             }
                             """);
                     })
@@ -2506,56 +2862,52 @@ class C
         [Fact]
         public void PartialMethod()
         {
-            var source =
-@"partial class C
-{
-    static partial void M1();
-    static partial void M2();
-    static partial void M3();
-    static partial void M1() { }
-    static partial void M2() { }
-}";
-            var compilation0 = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll)
+               .AddBaseline(
+                   source: """
+                   partial class C
+                   {
+                       static partial void M1();
+                       static partial void M2();
+                       static partial void M3();
+                       static partial void M1() { }
+                       static partial void M2() { }
+                   }
+                   """,
+                   validator: v =>
+                   {
+                       v.VerifyMethodDefNames("M1", "M2", ".ctor");
+                   })
+                .AddGeneration(
+                    source: """
+                    partial class C
+                    {
+                        static partial void M1();
+                        static partial void M2();
+                        static partial void M3();
+                        static partial void M1() { }
+                        static partial void M2() { }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.M2").PartialImplementationPart),
+                    ],
+                    validator: v =>
+                    {
+                        v.VerifyMethodDefNames("M2");
 
-            var bytes0 = compilation0.EmitToArray();
-            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
-            var reader0 = md0.MetadataReader;
+                        v.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        ]);
 
-            CheckNames(reader0, reader0.GetMethodDefNames(), "M1", "M2", ".ctor");
-
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
-
-            var generation0 = CreateInitialBaseline(compilation0,
-                md0,
-                EmptyLocalsProvider);
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
-
-            var methods = diff1.TestData.GetMethodsByName();
-            Assert.Equal(1, methods.Count);
-            Assert.True(methods.ContainsKey("C.M2()"));
-
-            using var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
-            var readers = new[] { reader0, reader1 };
-
-            EncValidation.VerifyModuleMvid(1, reader0, reader1);
-
-            CheckNames(readers, reader1.GetMethodDefNames(), "M2");
-
-            CheckEncLog(reader1,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
-
-            CheckEncMap(reader1,
-                Handle(6, TableIndex.TypeRef),
-                Handle(2, TableIndex.MethodDef),
-                Handle(2, TableIndex.AssemblyRef));
+                        v.VerifyEncMapDefinitions(
+                        [
+                            Handle(2, TableIndex.MethodDef)
+                        ]);
+                    })
+                .Verify();
         }
 
         [WorkItem(60804, "https://github.com/dotnet/roslyn/issues/60804")]
@@ -2602,44 +2954,70 @@ partial class C
                     },
                     validator: g =>
                     {
-                        g.VerifyMethodDefNames("M", "<M>b__0", ".ctor", "<M>b__0#1");
+                        g.VerifyMethodDefNames("M", "<M>b__0", ".ctor", ".ctor", "<M>b__0#1");
 
                         g.VerifyIL("""
-                                                         {
+                            M
+                            {
                               // Code size       28 (0x1c)
                               .maxstack  2
-                              IL_0000:  newobj     0x06000005
+                              IL_0000:  newobj     0x06000006
                               IL_0005:  stloc.0
                               IL_0006:  nop
                               IL_0007:  ldloc.0
                               IL_0008:  ldc.i4.5
-                              IL_0009:  stfld      0x04000002
+                              IL_0009:  stfld      0x04000004
                               IL_000e:  ldloc.0
-                              IL_000f:  ldftn      0x06000006
+                              IL_000f:  ldftn      0x06000007
                               IL_0015:  newobj     0x0A000008
                               IL_001a:  stloc.1
                               IL_001b:  ret
                             }
+                            <M>b__0
                             {
-                              // Code size       11 (0xb)
+                              // Code size       12 (0xc)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000009
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.m1
+                              IL_0006:  newobj     0x06000005
+                              IL_000b:  throw
                             }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000009
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000002
+                              IL_000f:  ldsfld     0x04000003
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A00000A
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            .ctor
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
                               IL_0000:  ldarg.0
-                              IL_0001:  call       0x0A00000A
+                              IL_0001:  call       0x0A00000B
                               IL_0006:  nop
                               IL_0007:  ret
                             }
+                            <M>b__0#1
                             {
                               // Code size        9 (0x9)
                               .maxstack  8
                               IL_0000:  ldarg.0
-                              IL_0001:  ldfld      0x04000002
+                              IL_0001:  ldfld      0x04000004
                               IL_0006:  ldc.i4.4
                               IL_0007:  add
                               IL_0008:  ret
@@ -2647,6 +3025,100 @@ partial class C
                             """);
                     })
 
+                .Verify();
+        }
+
+        [Fact]
+        public void PartialProperty()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll)
+               .AddBaseline(
+                   source: """
+                   partial class C
+                   {
+                       partial int P { get; }
+                       partial int P => 1;
+                   }
+                   """,
+                   validator: v =>
+                   {
+                       v.VerifyMethodDefNames("get_P", ".ctor");
+                   })
+                .AddGeneration(
+                    source: """
+                    partial class C
+                    {
+                        [System.Obsolete]partial int P { get; }
+                        partial int P => 1;
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart),
+                    ],
+                    validator: v =>
+                    {
+                        v.VerifyMethodDefNames();
+
+                        v.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        ]);
+
+                        v.VerifyEncMapDefinitions(
+                        [
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(2, TableIndex.MethodSemantics)
+                        ]);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void PartialProperty_Accessor()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll)
+               .AddBaseline(
+                   source: """
+                   partial class C
+                   {
+                       partial int P { get; }
+                       partial int P => 1;
+                   }
+                   """,
+                   validator: v =>
+                   {
+                       v.VerifyMethodDefNames("get_P", ".ctor");
+                   })
+                .AddGeneration(
+                    source: """
+                    partial class C
+                    {
+                        partial int P { get; }
+                        partial int P => 2;
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart),
+                    ],
+                    validator: v =>
+                    {
+                        v.VerifyMethodDefNames("get_P");
+
+                        v.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        ]);
+
+                        v.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.MethodDef)
+                        ]);
+                    })
                 .Verify();
         }
 
@@ -3026,12 +3498,12 @@ delegate void D([A]int x);
 
                         g.VerifyCustomAttributes(
                         [
+                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(5, TableIndex.MethodDef)), // X
+                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(2, TableIndex.MethodDef)),    // E.A
+                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(4, TableIndex.MethodDef)),    // _x
                             new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(1, TableIndex.MethodDef)), // E
                             new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(3, TableIndex.MethodDef)), // C
                             new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(6, TableIndex.MethodDef)), // D
-                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(2, TableIndex.MethodDef)),    // E.A
-                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(4, TableIndex.MethodDef)),    // _x
-                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(5, TableIndex.MethodDef))  // X
                         ]);
 
                         g.VerifyEncLogDefinitions(
@@ -3107,12 +3579,12 @@ delegate void D([A]int x);
 
                         g.VerifyCustomAttributes(
                         [
+                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(11, TableIndex.MethodDef)),// X
+                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(8, TableIndex.MethodDef)),    // E.A
+                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(10, TableIndex.MethodDef)),   // _x
                             new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(7, TableIndex.MethodDef)), // E
                             new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(9, TableIndex.MethodDef)), // C
                             new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(12, TableIndex.MethodDef)),// D
-                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(8, TableIndex.MethodDef)),    // E.A
-                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(10, TableIndex.MethodDef)),   // _x
-                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(11, TableIndex.MethodDef)) // X
                         ]);
 
                         g.VerifyEncLogDefinitions(new[]
@@ -3349,10 +3821,8 @@ namespace N
                     SemanticEdit.Create(SemanticEditKind.Insert, null, g1)));
 
             diff1.VerifySynthesizedMembers(
-                "<global namespace>: {Microsoft}",
-                "Microsoft: {CodeAnalysis}",
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "System.Runtime.CompilerServices: {IsReadOnlyAttribute}");
+                 "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                "System.Runtime.CompilerServices.IsReadOnlyAttribute");
 
             diff1.VerifyIL("N.C.Main", @"
 {
@@ -3441,10 +3911,10 @@ namespace N
 
             // synthesized member for nullable annotations added:
             diff2.VerifySynthesizedMembers(
-                "<global namespace>: {Microsoft}",
-                "Microsoft: {CodeAnalysis}",
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "System.Runtime.CompilerServices: {IsReadOnlyAttribute, NullableAttribute, NullableContextAttribute}");
+                "System.Runtime.CompilerServices.IsReadOnlyAttribute",
+                "System.Runtime.CompilerServices.NullableAttribute",
+                "System.Runtime.CompilerServices.NullableContextAttribute",
+                "Microsoft.CodeAnalysis.EmbeddedAttribute");
 
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
@@ -3536,10 +4006,10 @@ namespace N
 
             // no change in synthesized members:
             diff3.VerifySynthesizedMembers(
-                "<global namespace>: {Microsoft}",
-                "Microsoft: {CodeAnalysis}",
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "System.Runtime.CompilerServices: {IsReadOnlyAttribute, NullableAttribute, NullableContextAttribute}");
+                "System.Runtime.CompilerServices.IsReadOnlyAttribute",
+                "System.Runtime.CompilerServices.NullableAttribute",
+                "System.Runtime.CompilerServices.NullableContextAttribute",
+                "Microsoft.CodeAnalysis.EmbeddedAttribute");
 
             // Verify delta metadata contains expected rows.
             using var md3 = diff3.GetMetadata();
@@ -3814,7 +4284,7 @@ class C
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
-                    source: $$"""
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             public string P { get; set; }
@@ -3822,12 +4292,13 @@ class C
                         """,
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<Module>", "C");
-                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                        g.VerifyTypeDefNames("<Module>", "C", "MetadataUpdateDeletedAttribute");
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor", ".ctor");
                     })
 
                 .AddGeneration(
-                    source: """
+                    // 1
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                         }
@@ -3839,35 +4310,88 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("get_P", "set_P");
+                        g.VerifyTypeDefNames("HotReloadException");
 
-                        // Set the property name to "_deleted"
-                        // TODO: https://github.com/dotnet/roslyn/issues/69834
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                        g.VerifyPropertyDefNames("P");
+
+                        g.VerifyCustomAttributes(
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.get_P",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.P",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.set_P",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] System.Runtime.CompilerServices.HotReloadException");
+
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
 
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(3, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(9, TableIndex.CustomAttribute),
+                            Handle(10, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig),
+                            Handle(1, TableIndex.Property)
                         });
 
                         g.VerifyIL("""
+                            get_P, set_P
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000007
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000005
+                              IL_000c:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A00000A
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000002
+                              IL_000f:  ldsfld     0x04000003
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A00000B
+                              IL_001f:  nop
+                              IL_0020:  ret
                             }
                             """);
                     })
                 .AddGeneration(
-                    source: """
+                    // 2
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             public string P { get; set; }
@@ -3888,9 +4412,11 @@ class C
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(1, TableIndex.MethodDef),
@@ -3898,12 +4424,18 @@ class C
                             Handle(1, TableIndex.Param),
                             Handle(1, TableIndex.CustomAttribute),
                             Handle(7, TableIndex.CustomAttribute),
+                            Handle(10, TableIndex.CustomAttribute),
                             Handle(1, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
-                            Handle(4, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics)
                         });
 
-                        var expectedIL = """
+                        g.VerifyCustomAttributes(
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.get_P",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.set_P");
+
+                        g.VerifyIL("""
+                            get_P
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -3911,6 +4443,7 @@ class C
                               IL_0001:  ldfld      0x04000001
                               IL_0006:  ret
                             }
+                            set_P
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -3919,10 +4452,7 @@ class C
                               IL_0002:  stfld      0x04000001
                               IL_0007:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .Verify();
         }
@@ -3941,114 +4471,158 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
                         g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                         class C
                         {
                         }
                         """,
-                    edits: new[]
-                    {
+                    edits:
+                    [
                         Edit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, c => c.GetMember("C.P"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("get_P", "set_P");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyFieldDefNames("Code", "Created");
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                        g.VerifyPropertyDefNames("P");
 
-                        // Set the property name to "_deleted"
-                        // TODO: https://github.com/dotnet/roslyn/issues/69834
-                        g.VerifyEncLogDefinitions(new[]
-                        {
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        });
-                        g.VerifyEncMapDefinitions(new[]
-                        {
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
-                        });
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig),
+                            Handle(1, TableIndex.Property)
+                        ]);
 
                         g.VerifyIL("""
+                            get_P, set_P
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000009
-                              IL_0005:  newobj     0x0A000005
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000006
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000007
+                              IL_001f:  nop
+                              IL_0020:  ret
                             }
                             """);
                     })
                 .AddGeneration(
+                    // 2
                     source: """
                         class C
                         {
                             public string P { get; set; }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames("<P>k__BackingField");
                         g.VerifyMethodDefNames("get_P", "set_P");
                         g.VerifyMemberRefNames(".ctor", ".ctor");
-                        g.VerifyEncLogDefinitions(new[]
-                        {
+                        g.VerifyEncLogDefinitions(
+                        [
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                        });
-                        g.VerifyEncMapDefinitions(new[]
-                        {
-                            Handle(1, TableIndex.Field),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(3, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
-                            Handle(4, TableIndex.CustomAttribute),
                             Handle(5, TableIndex.CustomAttribute),
                             Handle(6, TableIndex.CustomAttribute),
                             Handle(7, TableIndex.CustomAttribute),
+                            Handle(8, TableIndex.CustomAttribute),
                             Handle(1, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
                             Handle(4, TableIndex.MethodSemantics)
-                        });
+                        ]);
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            get_P
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
                               IL_0000:  ldarg.0
-                              IL_0001:  ldfld      0x04000001
+                              IL_0001:  ldfld      0x04000003
                               IL_0006:  ret
                             }
+                            set_P
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
                               IL_0000:  ldarg.0
                               IL_0001:  ldarg.1
-                              IL_0002:  stfld      0x04000001
+                              IL_0002:  stfld      0x04000003
                               IL_0007:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .Verify();
         }
@@ -4083,29 +4657,69 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("get_P", "set_P");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                        g.VerifyPropertyDefNames("P");
 
-                        // Set the property name to "_deleted"
-                        // TODO: https://github.com/dotnet/roslyn/issues/69834
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig),
+                            Handle(1, TableIndex.Property)
                         });
 
                         g.VerifyIL("""
+                            get_P, set_P
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000009
-                              IL_0005:  newobj     0x0A000005
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000006
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000007
+                              IL_001f:  nop
+                              IL_0020:  ret
                             }
                             """);
                     })
@@ -4129,7 +4743,7 @@ class C
                         g.VerifyMemberRefNames();
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
@@ -4142,13 +4756,14 @@ class C
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
-                            Handle(2, TableIndex.StandAloneSig),
+                            Handle(3, TableIndex.StandAloneSig),
                             Handle(1, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
                             Handle(4, TableIndex.MethodSemantics),
                         });
 
                         g.VerifyIL("""
+                            get_P
                             {
                               // Code size       11 (0xb)
                               .maxstack  1
@@ -4159,6 +4774,7 @@ class C
                               IL_0009:  ldloc.0
                               IL_000a:  ret
                             }
+                            set_P
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
@@ -4200,25 +4816,65 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("set_P");
-                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("set_P", ".ctor");
+                        g.VerifyMemberRefNames(/* Exception */ ".ctor", /* CompilerGeneratedAttribute */ ".ctor", "Invoke");
+
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(2, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig)
                         });
 
                         g.VerifyIL("""
+                            set_P
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000009
-                              IL_0005:  newobj     0x0A000005
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000006
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000007
+                              IL_001f:  nop
+                              IL_0020:  ret
                             }
                             """);
                     })
@@ -4241,7 +4897,7 @@ class C
                         g.VerifyMethodDefNames("get_P", "set_P");
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
@@ -4254,13 +4910,14 @@ class C
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
-                            Handle(2, TableIndex.StandAloneSig),
+                            Handle(3, TableIndex.StandAloneSig),
                             Handle(1, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
                             Handle(4, TableIndex.MethodSemantics),
                         });
 
                         g.VerifyIL("""
+                            get_P
                             {
                               // Code size       11 (0xb)
                               .maxstack  1
@@ -4271,6 +4928,7 @@ class C
                               IL_0009:  ldloc.0
                               IL_000a:  ret
                             }
+                            set_P
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
@@ -4283,11 +4941,269 @@ class C
         }
 
         [Fact]
-        public void Property_ChangeReturnType()
+        public void Property_ChangeToAutoProp()
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
                     source: $$"""
+                        class C
+                        {
+                            public string P { get { return "1"; } set { } }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            public string P { get; set; }
+                        }
+                        """,
+                    edits: [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames("<P>k__BackingField");
+                        g.VerifyMethodDefNames("get_P", "set_P");
+                        g.VerifyMemberRefNames(".ctor", ".ctor");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(3, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics)
+                        ]);
+
+                        var expectedIL = """
+                            get_P
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      0x04000001
+                              IL_0006:  ret
+                            }
+                            set_P
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  stfld      0x04000001
+                              IL_0007:  ret
+                            }
+                            """;
+
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Property_ChangeToAutoProp_FieldAccess()
+        {
+            using var _ = new EditAndContinueTest(parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute())
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            public string P { get { return "1"; } set { } }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            public string P { get; set => field = value; }
+                        }
+                        """,
+                    edits: [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames("<P>k__BackingField");
+                        g.VerifyMethodDefNames("get_P", "set_P");
+                        g.VerifyMemberRefNames(".ctor", ".ctor");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(3, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics)
+                        ]);
+
+                        var expectedIL = """
+                            get_P
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      0x04000001
+                              IL_0006:  ret
+                            }
+                            set_P
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  stfld      0x04000001
+                              IL_0007:  ret
+                            }
+                            """;
+
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Property_AutoProp_AddFieldAccess()
+        {
+            using var _ = new EditAndContinueTest(parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute())
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            public string P { get; set; }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames("<P>k__BackingField");
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            public string P { get; set => field = value; }
+                        }
+                        """,
+                    edits: [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("get_P", "set_P");
+                        g.VerifyMemberRefNames(".ctor", ".ctor");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(3, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics)
+                        ]);
+
+                        var expectedIL = """
+                            get_P
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      0x04000001
+                              IL_0006:  ret
+                            }
+                            set_P
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  stfld      0x04000001
+                              IL_0007:  ret
+                            }
+                            """;
+
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Property_ChangeReturnType()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             string P { get; set; }
@@ -4295,11 +5211,12 @@ class C
                         """,
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<Module>", "C");
-                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                        g.VerifyTypeDefNames("<Module>", "C", "MetadataUpdateDeletedAttribute");
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor", ".ctor");
                     })
                 .AddGeneration(
-                    source: $$"""
+                    // 1
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             int P { get; set; }
@@ -4316,56 +5233,84 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P", ".ctor");
                         g.VerifyDeletedMembers("C: {P, get_P, set_P}");
+                        g.VerifyPropertyDefNames("P", "P");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                             Row(2, TableIndex.Property, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(4, TableIndex.TypeDef),
                             Handle(2, TableIndex.Field),
+                            Handle(3, TableIndex.Field),
+                            Handle(4, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
-                            Handle(4, TableIndex.MethodDef),
                             Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(7, TableIndex.MethodDef),
                             Handle(2, TableIndex.Param),
-                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
                             Handle(9, TableIndex.CustomAttribute),
                             Handle(10, TableIndex.CustomAttribute),
                             Handle(11, TableIndex.CustomAttribute),
+                            Handle(12, TableIndex.CustomAttribute),
+                            Handle(13, TableIndex.CustomAttribute),
+                            Handle(14, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig),
+                            Handle(1, TableIndex.Property),
                             Handle(2, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
                             Handle(4, TableIndex.MethodSemantics)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            get_P, set_P
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000009
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000007
+                              IL_000c:  throw
                             }
+                            get_P
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -4373,6 +5318,7 @@ class C
                               IL_0001:  ldfld      0x04000002
                               IL_0006:  ret
                             }
+                            set_P
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -4381,13 +5327,32 @@ class C
                               IL_0002:  stfld      0x04000002
                               IL_0007:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A00000B
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000003
+                              IL_000f:  ldsfld     0x04000004
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A00000C
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
                     })
                 .AddGeneration(
-                    source: $$"""
+                    // 2
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             string P { get; set; }
@@ -4411,12 +5376,17 @@ class C
                         {
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                         });
@@ -4424,17 +5394,23 @@ class C
                         {
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
-                            Handle(4, TableIndex.MethodDef),
                             Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
                             Handle(1, TableIndex.CustomAttribute),
                             Handle(7, TableIndex.CustomAttribute),
+                            Handle(12, TableIndex.CustomAttribute),
+                            Handle(13, TableIndex.CustomAttribute),
+                            Handle(14, TableIndex.CustomAttribute),
+                            Handle(15, TableIndex.CustomAttribute),
                             Handle(1, TableIndex.Property),
+                            Handle(2, TableIndex.Property),
                             Handle(5, TableIndex.MethodSemantics),
                             Handle(6, TableIndex.MethodSemantics),
                         });
 
                         g.VerifyIL("""
+                            get_P
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -4442,6 +5418,7 @@ class C
                               IL_0001:  ldfld      0x04000001
                               IL_0006:  ret
                             }
+                            set_P
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -4450,12 +5427,14 @@ class C
                               IL_0002:  stfld      0x04000001
                               IL_0007:  ret
                             }
+                            get_P, set_P
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000151
-                              IL_0005:  newobj     0x0A00000C
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000007
+                              IL_000c:  throw
                             }
                             """);
                     })
@@ -4467,7 +5446,7 @@ class C
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
-                    source: """
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             string P { get; set; }
@@ -4475,11 +5454,12 @@ class C
                         """,
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<Module>", "C");
-                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                        g.VerifyTypeDefNames("<Module>", "C", "MetadataUpdateDeletedAttribute");
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor", ".ctor");
                     })
                 .AddGeneration(
-                    source: """
+                    // 1
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             string Q { get; set; }
@@ -4495,56 +5475,93 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("get_P", "set_P", "get_Q", "set_Q");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("get_P", "set_P", "get_Q", "set_Q", ".ctor");
+                        g.VerifyPropertyDefNames("P", "Q");
                         g.VerifyDeletedMembers("C: {get_P, set_P, P}");
+
+                        g.VerifyCustomAttributes(
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.get_P",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.P",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.set_P",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.<Q>k__BackingField",
+                            "[System.Diagnostics.DebuggerBrowsableAttribute..ctor] C.<Q>k__BackingField",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] System.Runtime.CompilerServices.HotReloadException",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.get_Q",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.set_Q");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                             Row(2, TableIndex.Property, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(4, TableIndex.TypeDef),
                             Handle(2, TableIndex.Field),
+                            Handle(3, TableIndex.Field),
+                            Handle(4, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
-                            Handle(4, TableIndex.MethodDef),
                             Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(7, TableIndex.MethodDef),
                             Handle(2, TableIndex.Param),
-                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
                             Handle(9, TableIndex.CustomAttribute),
                             Handle(10, TableIndex.CustomAttribute),
                             Handle(11, TableIndex.CustomAttribute),
+                            Handle(12, TableIndex.CustomAttribute),
+                            Handle(13, TableIndex.CustomAttribute),
+                            Handle(14, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig),
+                            Handle(1, TableIndex.Property),
                             Handle(2, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
-                            Handle(4, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics)
                         });
 
                         g.VerifyIL("""
+                            get_P, set_P
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000009
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000007
+                              IL_000c:  throw
                             }
+                            get_Q
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -4552,6 +5569,7 @@ class C
                               IL_0001:  ldfld      0x04000002
                               IL_0006:  ret
                             }
+                            set_Q
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -4560,10 +5578,32 @@ class C
                               IL_0002:  stfld      0x04000002
                               IL_0007:  ret
                             }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A00000B
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000003
+                              IL_000f:  ldsfld     0x04000004
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A00000C
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
                             """);
                     })
                 .AddGeneration(
-                    source: $$"""
+                    // 2
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             string P { get; set; }
@@ -4583,16 +5623,28 @@ class C
                         g.VerifyMethodDefNames("get_P", "set_P", "get_Q", "set_Q");
                         g.VerifyDeletedMembers("C: {get_Q, set_Q, Q}");
 
+                        g.VerifyCustomAttributes(
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.get_P",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.set_P",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.Q",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.get_Q",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.set_Q");
+
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                         });
@@ -4600,17 +5652,23 @@ class C
                         {
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
-                            Handle(4, TableIndex.MethodDef),
                             Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
                             Handle(1, TableIndex.CustomAttribute),
                             Handle(7, TableIndex.CustomAttribute),
+                            Handle(12, TableIndex.CustomAttribute),
+                            Handle(13, TableIndex.CustomAttribute),
+                            Handle(14, TableIndex.CustomAttribute),
+                            Handle(15, TableIndex.CustomAttribute),
                             Handle(1, TableIndex.Property),
+                            Handle(2, TableIndex.Property),
                             Handle(5, TableIndex.MethodSemantics),
                             Handle(6, TableIndex.MethodSemantics)
                         });
 
                         g.VerifyIL("""
+                            get_P
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -4618,6 +5676,7 @@ class C
                               IL_0001:  ldfld      0x04000001
                               IL_0006:  ret
                             }
+                            set_P
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -4626,12 +5685,14 @@ class C
                               IL_0002:  stfld      0x04000001
                               IL_0007:  ret
                             }
+                            get_Q, set_Q
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000151
-                              IL_0005:  newobj     0x0A00000C
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000007
+                              IL_000c:  throw
                             }
                             """);
                     })
@@ -4643,7 +5704,7 @@ class C
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
-                    source: $$"""
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             public int this[int x] { get { return 1; } set { } }
@@ -4651,12 +5712,13 @@ class C
                         """,
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<Module>", "C");
-                        g.VerifyMethodDefNames("get_Item", "set_Item", ".ctor");
+                        g.VerifyTypeDefNames("<Module>", "C", "MetadataUpdateDeletedAttribute");
+                        g.VerifyMethodDefNames("get_Item", "set_Item", ".ctor", ".ctor");
                     })
 
                 .AddGeneration(
-                    source: """
+                    // 1
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                         }
@@ -4668,30 +5730,81 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("get_Item", "set_Item");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("get_Item", "set_Item", ".ctor");
                         g.VerifyDeletedMembers("C: {get_Item, set_Item, this[]}");
 
-                        // Set the property name to "_deleted"
-                        // TODO: https://github.com/dotnet/roslyn/issues/69834
+                        g.VerifyCustomAttributes(
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.get_Item",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.Item",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.set_Item",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] System.Runtime.CompilerServices.HotReloadException");
+
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(9, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig),
+                            Handle(1, TableIndex.Property)
                         });
 
                         g.VerifyIL("""
+                            get_Item, set_Item
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000006
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000005
+                              IL_000c:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000009
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A00000A
+                              IL_001f:  nop
+                              IL_0020:  ret
                             }
                             """);
                     })
@@ -4715,6 +5828,7 @@ class C
                         g.VerifyMethodDefNames("get_Item", ".ctor");
                     })
                 .AddGeneration(
+                    // 1
                     source: $$"""
                         class C
                         {
@@ -4729,40 +5843,60 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("get_Item", "get_Item");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("get_Item", "get_Item", ".ctor");
                         g.VerifyDeletedMembers("C: {this[], get_Item}");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                             Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
                             Handle(2, TableIndex.Param),
+                            Handle(5, TableIndex.CustomAttribute),
                             Handle(2, TableIndex.StandAloneSig),
+                            Handle(3, TableIndex.StandAloneSig),
+                            Handle(1, TableIndex.Property),
                             Handle(2, TableIndex.Property),
-                            Handle(2, TableIndex.MethodSemantics),
+                            Handle(2, TableIndex.MethodSemantics)
                         });
 
                         g.VerifyIL("""
+                            get_Item
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000007
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
                             }
+                            get_Item
                             {
                               // Code size        7 (0x7)
                               .maxstack  1
@@ -4773,9 +5907,31 @@ class C
                               IL_0005:  ldloc.0
                               IL_0006:  ret
                             }
+                            .ctor
+                             {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000008
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000009
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
                             """);
                     })
                 .AddGeneration(
+                    // 2
                     source: $$"""
                         class C
                         {
@@ -4796,24 +5952,28 @@ class C
 
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(1, TableIndex.MethodDef),
                             Handle(3, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
-                            Handle(3, TableIndex.StandAloneSig),
+                            Handle(4, TableIndex.StandAloneSig),
                             Handle(1, TableIndex.Property),
+                            Handle(2, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
                         });
 
                         g.VerifyIL("""
+                            get_Item
                             {
                               // Code size        7 (0x7)
                               .maxstack  1
@@ -4824,15 +5984,20 @@ class C
                               IL_0005:  ldloc.0
                               IL_0006:  ret
                             }
+                            get_Item
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000151
-                              IL_0005:  newobj     0x0A000009
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
                             }
                             """);
-                    }).AddGeneration("""
+                    })
+                .AddGeneration(
+                    // 3
+                    source: """
                         class C
                         {
                             int this[int x] { get { return 2; } }
@@ -4853,22 +6018,24 @@ class C
                         // existing property and getter are updated:
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(3, TableIndex.MethodDef),
                             Handle(2, TableIndex.Param),
-                            Handle(4, TableIndex.StandAloneSig),
+                            Handle(5, TableIndex.StandAloneSig),
                             Handle(2, TableIndex.Property),
                             Handle(4, TableIndex.MethodSemantics)
                         });
 
                         g.VerifyIL("""
+                            get_Item
                             {
                               // Code size        7 (0x7)
                               .maxstack  1
@@ -4937,12 +6104,14 @@ class C
                         });
 
                         g.VerifyIL("""
+                            get_Item
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
                               IL_0000:  ldc.i4.1
                               IL_0001:  ret
                             }
+                            set_Item
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
@@ -5098,6 +6267,118 @@ class C
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
+                    source: MetadataUpdateDeletedAttributeSource + """
+                        class C
+                        {
+                            public event System.EventHandler E;
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "MetadataUpdateDeletedAttribute");
+                        g.VerifyMethodDefNames("add_E", "remove_E", ".ctor", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: MetadataUpdateDeletedAttributeSource + """
+                        class C
+                        {
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.E"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.add_E"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, c => c.GetMember("C.remove_E"), newSymbolProvider: c => c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("add_E", "remove_E", ".ctor");
+                        g.VerifyTypeRefNames("Object", "EventHandler", "CompilerGeneratedAttribute", "Exception", "Action`1");
+                        g.VerifyEventDefNames("E");
+
+                        g.VerifyCustomAttributes(
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.add_E",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.E",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.remove_E",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] System.Runtime.CompilerServices.HotReloadException");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(3, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(9, TableIndex.CustomAttribute),
+                            Handle(10, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig),
+                            Handle(1, TableIndex.Event)
+                        });
+
+                        g.VerifyIL("""
+                            add_E, remove_E
+                            {
+                              // Code size       13 (0xd)
+                              .maxstack  8
+                              IL_0000:  ldstr      0x70000005
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000005
+                              IL_000c:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A00000D
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000002
+                              IL_000f:  ldsfld     0x04000003
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A00000E
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Event_Delete_NoDeletedAttribute()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
                     source: $$"""
                         class C
                         {
@@ -5108,6 +6389,15 @@ class C
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
                         g.VerifyMethodDefNames("add_E", "remove_E", ".ctor");
+
+                        g.VerifyCustomAttributes(
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.add_E",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.E",
+                            "[System.Diagnostics.DebuggerBrowsableAttribute..ctor] C.E",
+                            "[System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor] <assembly>",
+                            "[System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor] <assembly>",
+                            "[System.Diagnostics.DebuggableAttribute..ctor] <assembly>",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.remove_E");
                     })
 
                 .AddGeneration(
@@ -5123,30 +6413,81 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("add_E", "remove_E");
-                        g.VerifyTypeRefNames("Object", "EventHandler", "MissingMethodException");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("add_E", "remove_E", ".ctor");
+                        g.VerifyTypeRefNames("Object", "EventHandler", "CompilerGeneratedAttribute", "Exception", "Action`1");
 
-                        // Set the property name to "_deleted"
-                        // TODO: https://github.com/dotnet/roslyn/issues/69834
+                        g.VerifyCustomAttributes(
+                            [
+                                "<nil>",
+                                "<nil>",
+                                "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] System.Runtime.CompilerServices.HotReloadException"
+                            ],
+                            includeNil: true);
+
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(3, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig),
+                            Handle(1, TableIndex.Event)
                         });
 
                         g.VerifyIL("""
+                            add_E, remove_E
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A00000A
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A00000B
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000002
+                              IL_000f:  ldsfld     0x04000003
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A00000C
+                              IL_001f:  nop
+                              IL_0020:  ret
                             }
                             """);
                     })
@@ -5158,7 +6499,7 @@ class C
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
-                    source: $$"""
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             public event System.EventHandler E;
@@ -5166,12 +6507,13 @@ class C
                         """,
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<Module>", "C");
-                        g.VerifyMethodDefNames("add_E", "remove_E", ".ctor");
+                        g.VerifyTypeDefNames("<Module>", "C", "MetadataUpdateDeletedAttribute");
+                        g.VerifyMethodDefNames("add_E", "remove_E", ".ctor", ".ctor");
                     })
 
                 .AddGeneration(
-                    source: """
+                    // 1
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             public event System.EventHandler F;
@@ -5187,59 +6529,98 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("add_E", "remove_E", "add_F", "remove_F");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("add_E", "remove_E", "add_F", "remove_F", ".ctor");
+                        g.VerifyEventDefNames("E", "F");
+
+                        g.VerifyCustomAttributes(
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.add_E",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.E",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.remove_E",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.F",
+                            "[System.Diagnostics.DebuggerBrowsableAttribute..ctor] C.F",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] System.Runtime.CompilerServices.HotReloadException",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.add_F",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.remove_F");
+
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Event, EditAndContinueOperation.Default),
                             Row(1, TableIndex.EventMap, EditAndContinueOperation.AddEvent),
                             Row(2, TableIndex.Event, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                            Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                             Row(4, TableIndex.Param, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(4, TableIndex.TypeDef),
                             Handle(2, TableIndex.Field),
+                            Handle(3, TableIndex.Field),
+                            Handle(4, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
-                            Handle(4, TableIndex.MethodDef),
                             Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(7, TableIndex.MethodDef),
                             Handle(3, TableIndex.Param),
                             Handle(4, TableIndex.Param),
-                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
                             Handle(9, TableIndex.CustomAttribute),
                             Handle(10, TableIndex.CustomAttribute),
                             Handle(11, TableIndex.CustomAttribute),
+                            Handle(12, TableIndex.CustomAttribute),
+                            Handle(13, TableIndex.CustomAttribute),
+                            Handle(14, TableIndex.CustomAttribute),
                             Handle(2, TableIndex.StandAloneSig),
+                            Handle(3, TableIndex.StandAloneSig),
+                            Handle(1, TableIndex.Event),
                             Handle(2, TableIndex.Event),
                             Handle(3, TableIndex.MethodSemantics),
-                            Handle(4, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics)
                         });
 
                         g.VerifyIL("""
+                            add_E, remove_E
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A00000C
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000007
+                              IL_000c:  throw
                             }
+                            add_F
                             {
                               // Code size       41 (0x29)
                               .maxstack  3
@@ -5250,8 +6631,8 @@ class C
                               IL_0008:  stloc.1
                               IL_0009:  ldloc.1
                               IL_000a:  ldarg.1
-                              IL_000b:  call       0x0A00000D
-                              IL_0010:  castclass  0x0100000D
+                              IL_000b:  call       0x0A00000E
+                              IL_0010:  castclass  0x01000010
                               IL_0015:  stloc.2
                               IL_0016:  ldarg.0
                               IL_0017:  ldflda     0x04000002
@@ -5264,6 +6645,7 @@ class C
                               IL_0026:  bne.un.s   IL_0007
                               IL_0028:  ret
                             }
+                            remove_F
                             {
                               // Code size       41 (0x29)
                               .maxstack  3
@@ -5274,8 +6656,8 @@ class C
                               IL_0008:  stloc.1
                               IL_0009:  ldloc.1
                               IL_000a:  ldarg.1
-                              IL_000b:  call       0x0A00000F
-                              IL_0010:  castclass  0x0100000D
+                              IL_000b:  call       0x0A000010
+                              IL_0010:  castclass  0x01000010
                               IL_0015:  stloc.2
                               IL_0016:  ldarg.0
                               IL_0017:  ldflda     0x04000002
@@ -5287,12 +6669,34 @@ class C
                               IL_0025:  ldloc.1
                               IL_0026:  bne.un.s   IL_0007
                               IL_0028:  ret
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000011
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000003
+                              IL_000f:  ldsfld     0x04000004
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000012
+                              IL_001f:  nop
+                              IL_0020:  ret
                             }
                             """);
                     })
 
                 .AddGeneration(
-                    source: """
+                    // 2
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             public event System.EventHandler E;
@@ -5310,38 +6714,59 @@ class C
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("add_E", "remove_E", "add_F", "remove_F");
+                        g.VerifyEventDefNames("E", "F");
+
+                        g.VerifyCustomAttributes(
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.add_E",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C.remove_E",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.F",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.add_F",
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C.remove_F");
+
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Event, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
-                            Handle(4, TableIndex.MethodDef),
                             Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
                             Handle(2, TableIndex.Param),
                             Handle(1, TableIndex.CustomAttribute),
                             Handle(7, TableIndex.CustomAttribute),
-                            Handle(3, TableIndex.StandAloneSig),
+                            Handle(12, TableIndex.CustomAttribute),
+                            Handle(13, TableIndex.CustomAttribute),
+                            Handle(14, TableIndex.CustomAttribute),
+                            Handle(15, TableIndex.CustomAttribute),
+                            Handle(4, TableIndex.StandAloneSig),
                             Handle(1, TableIndex.Event),
+                            Handle(2, TableIndex.Event),
                             Handle(5, TableIndex.MethodSemantics),
-                            Handle(6, TableIndex.MethodSemantics),
+                            Handle(6, TableIndex.MethodSemantics)
                         });
 
                         g.VerifyIL("""
+                            add_E
                             {
                               // Code size       41 (0x29)
                               .maxstack  3
@@ -5352,8 +6777,8 @@ class C
                               IL_0008:  stloc.1
                               IL_0009:  ldloc.1
                               IL_000a:  ldarg.1
-                              IL_000b:  call       0x0A000012
-                              IL_0010:  castclass  0x01000015
+                              IL_000b:  call       0x0A000015
+                              IL_0010:  castclass  0x01000019
                               IL_0015:  stloc.2
                               IL_0016:  ldarg.0
                               IL_0017:  ldflda     0x04000001
@@ -5366,6 +6791,7 @@ class C
                               IL_0026:  bne.un.s   IL_0007
                               IL_0028:  ret
                             }
+                            remove_E
                             {
                               // Code size       41 (0x29)
                               .maxstack  3
@@ -5376,8 +6802,8 @@ class C
                               IL_0008:  stloc.1
                               IL_0009:  ldloc.1
                               IL_000a:  ldarg.1
-                              IL_000b:  call       0x0A000014
-                              IL_0010:  castclass  0x01000015
+                              IL_000b:  call       0x0A000017
+                              IL_0010:  castclass  0x01000019
                               IL_0015:  stloc.2
                               IL_0016:  ldarg.0
                               IL_0017:  ldflda     0x04000001
@@ -5390,12 +6816,14 @@ class C
                               IL_0026:  bne.un.s   IL_0007
                               IL_0028:  ret
                             }
+                            add_F, remove_F
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000151
-                              IL_0005:  newobj     0x0A000015
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000007
+                              IL_000c:  throw
                             }
                             """);
                     })
@@ -5698,7 +7126,7 @@ class C
                     Assert.Equal(generation, parentGeneration);
                     Assert.Equal(newTypeDefHandle, parentHandle);
 
-                    // attribute contructor should match
+                    // attribute constructor should match
                     var ctorHandle = aggregator.GetGenerationHandle(attribute.Constructor, out var ctorGeneration);
                     Assert.Equal(0, ctorGeneration);
                     Assert.Equal(attributeCtorDefHandle, ctorHandle);
@@ -6966,14 +8394,14 @@ delegate void D();
 
             CheckAttributes(reader1,
                 new CustomAttributeRow(Handle(1, TableIndex.GenericParam), Handle(1, TableIndex.MethodDef)),
+                new CustomAttributeRow(Handle(2, TableIndex.Property), Handle(2, TableIndex.MethodDef)),
+                new CustomAttributeRow(Handle(2, TableIndex.Event), Handle(1, TableIndex.MethodDef)),
                 new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(1, TableIndex.MethodDef)),
                 new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(11, TableIndex.MemberRef)),
                 new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(12, TableIndex.MemberRef)),
                 new CustomAttributeRow(Handle(12, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)),
                 new CustomAttributeRow(Handle(14, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(15, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(2, TableIndex.Event), Handle(1, TableIndex.MethodDef)),
-                new CustomAttributeRow(Handle(2, TableIndex.Property), Handle(2, TableIndex.MethodDef)));
+                new CustomAttributeRow(Handle(15, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)));
         }
 
         /// <summary>
@@ -9143,94 +10571,162 @@ class C
         /// <summary>
         /// Reuse existing anonymous types.
         /// </summary>
-        [WorkItem(825903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825903")]
         [Fact]
+        [WorkItem(825903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825903")]
         public void AnonymousTypes()
         {
-            var source0 =
-@"namespace N
-{
-    class A
-    {
-        static object F = new { A = 1, B = 2 };
-    }
-}
-namespace M
-{
-    class B
-    {
-        static void M()
-        {
-            var x = new { B = 3, A = 4 };
-            var y = x.A;
-            var z = new { };
-        }
-    }
-}";
-            var source1 =
-@"namespace N
-{
-    class A
-    {
-        static object F = new { A = 1, B = 2 };
-    }
-}
-namespace M
-{
-    class B
-    {
-        static void M()
-        {
-            var x = new { B = 3, A = 4 };
-            var y = new { A = x.A };
-            var z = new { };
-        }
-    }
-}";
-            var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source1);
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            void F()
+                            {
+                                var f = new { a = 1, b = 2 };
+                            }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "class <>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}"
+                        ]);
 
-            var m0 = compilation0.GetMember<MethodSymbol>("M.B.M");
-            var m1 = compilation1.GetMember<MethodSymbol>("M.B.M");
+                        g.VerifySynthesizedTypes(
+                            "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>");
 
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
+                        g.VerifyIL("C.F", """
+                            {
+                                // Code size       10 (0xa)
+                                .maxstack  2
+                                .locals init (<>f__AnonymousType0<int, int> V_0) //f
+                                IL_0000:  nop
+                                IL_0001:  ldc.i4.1
+                                IL_0002:  ldc.i4.2
+                                IL_0003:  newobj     "<>f__AnonymousType0<int, int>..ctor(int, int)"
+                                IL_0008:  stloc.0
+                                IL_0009:  ret
+                            }
+                            """);
+                    })
+                .AddGeneration(
+                    // 1
+                    source: """
+                        class C
+                        {
+                            void F()
+                            {
+                                var g = new { x = 1 };
+                                var f = new { a = 1, b = 2 };
+                            }
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "class <>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}",
+                                "class <>f__AnonymousType1<<x>j__TPar>: {Equals, GetHashCode, ToString}"
+                            ]);
 
-            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
-            var generation0 = CreateInitialBaseline(compilation0, md0, testData0.GetMethodData("M.B.M").EncDebugInfoProvider());
+                            g.VerifySynthesizedTypes(
+                                "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>",
+                                "<>f__AnonymousType1<<x>j__TPar>");
 
-            var reader0 = md0.MetadataReader;
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousType0`2", "<>f__AnonymousType1`2", "<>f__AnonymousType2", "B", "A");
+                            g.VerifyTypeDefNames("<>f__AnonymousType1`1");
+                            g.VerifyMethodDefNames("F", "get_x", ".ctor", "Equals", "GetHashCode", "ToString");
 
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetEquivalentNodesMap(m1, m0))));
+                            g.VerifyIL("C.F", """
+                                {
+                                  // Code size       17 (0x11)
+                                  .maxstack  2
+                                  .locals init (<>f__AnonymousType0<int, int> V_0, //f
+                                                <>f__AnonymousType1<int> V_1) //g
+                                  IL_0000:  nop
+                                  IL_0001:  ldc.i4.1
+                                  IL_0002:  newobj     "<>f__AnonymousType1<int>..ctor(int)"
+                                  IL_0007:  stloc.1
+                                  IL_0008:  ldc.i4.1
+                                  IL_0009:  ldc.i4.2
+                                  IL_000a:  newobj     "<>f__AnonymousType0<int, int>..ctor(int, int)"
+                                  IL_000f:  stloc.0
+                                  IL_0010:  ret
+                                }
+                                """);
+                        })
+                .AddGeneration(
+                    // 2
+                    source: """
+                        class C
+                        {
+                            void F()
+                            {
+                                var f = new { a = 1, b = 2, c = 3 };
+                            }
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "class <>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}",
+                                "class <>f__AnonymousType1<<x>j__TPar>: {Equals, GetHashCode, ToString}",
+                                "class <>f__AnonymousType2<<a>j__TPar, <b>j__TPar, <c>j__TPar>: {Equals, GetHashCode, ToString}",
+                            ]);
 
-            using var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
-            CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>f__AnonymousType3`1"); // one additional type
+                            g.VerifySynthesizedTypes(
+                                "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>",
+                                "<>f__AnonymousType1<<x>j__TPar>",
+                                "<>f__AnonymousType2<<a>j__TPar, <b>j__TPar, <c>j__TPar>");
 
-            diff1.VerifyIL("M.B.M", @"
-{
-  // Code size       28 (0x1c)
-  .maxstack  2
-  .locals init (<>f__AnonymousType1<int, int> V_0, //x
-                [int] V_1,
-                <>f__AnonymousType2 V_2, //z
-                <>f__AnonymousType3<int> V_3) //y
-  IL_0000:  nop
-  IL_0001:  ldc.i4.3
-  IL_0002:  ldc.i4.4
-  IL_0003:  newobj     ""<>f__AnonymousType1<int, int>..ctor(int, int)""
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  callvirt   ""int <>f__AnonymousType1<int, int>.A.get""
-  IL_000f:  newobj     ""<>f__AnonymousType3<int>..ctor(int)""
-  IL_0014:  stloc.3
-  IL_0015:  newobj     ""<>f__AnonymousType2..ctor()""
-  IL_001a:  stloc.2
-  IL_001b:  ret
-}");
+                            g.VerifyTypeDefNames("<>f__AnonymousType2`3");
+                            g.VerifyMethodDefNames("F", "get_a", "get_b", "get_c", ".ctor", "Equals", "GetHashCode", "ToString");
+                        })
+                .AddGeneration(
+                    // 3
+                    source: """
+                        class C
+                        {
+                            void F()
+                            {
+                                var f = new { a = 1, b = 2, c = 3 };
+                                var g = new { x = 1, y = 2 };
+                            }
+                        }
+                        """,
+                        edits:
+                        [
+                            Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                        ],
+                        validator: g =>
+                        {
+                            g.VerifySynthesizedMembers(displayTypeKind: true,
+                            [
+                                "class <>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}",
+                                "class <>f__AnonymousType1<<x>j__TPar>: {Equals, GetHashCode, ToString}",
+                                "class <>f__AnonymousType2<<a>j__TPar, <b>j__TPar, <c>j__TPar>: {Equals, GetHashCode, ToString}",
+                                "class <>f__AnonymousType3<<x>j__TPar, <y>j__TPar>: {Equals, GetHashCode, ToString}",
+                            ]);
+
+                            g.VerifySynthesizedTypes(
+                                "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>",
+                                "<>f__AnonymousType1<<x>j__TPar>",
+                                "<>f__AnonymousType2<<a>j__TPar, <b>j__TPar, <c>j__TPar>",
+                                "<>f__AnonymousType3<<x>j__TPar, <y>j__TPar>");
+
+                            g.VerifyTypeDefNames("<>f__AnonymousType3`2");
+                            g.VerifyMethodDefNames("F", "get_x", "get_y", ".ctor", "Equals", "GetHashCode", "ToString");
+                        })
+                .Verify();
         }
 
         /// <summary>
@@ -9875,7 +11371,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation0.WithSource(source2.Tree);
 
@@ -9998,7 +11494,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation0.WithSource(source2.Tree);
 
@@ -10099,118 +11595,116 @@ class C
         [Fact]
         public void AnonymousTypes_Query1()
         {
-            var source0 = MarkedSource(@"
-using System.Linq;
+            using var _ = new EditAndContinueTest(references: [CSharpRef])
+                .AddBaseline(
+                    source: """
+                    using System.Linq;
 
-class C
-{
-    static void F(string[] args)
-    {
-        args = new[] { ""a"", ""bB"", ""Cc"", ""DD"" };
-        var <N:4>result =
-            from a in args
-            <N:0>let x = a.Reverse()</N:0>
-            <N:1>let y = x.Reverse()</N:1>
-            <N:2>where x.SequenceEqual(y)</N:2>
-            <N:3>select new { Value = a, Length = a.Length }</N:3></N:4>;
+                    class C
+                    {
+                        static void F(string[] args)
+                        {
+                            args = new[] { "a", "bB", "Cc", "DD" };
+                            var <N:4>result =
+                                from a in args
+                                <N:0>let x = a.Reverse()</N:0>
+                                <N:1>let y = x.Reverse()</N:1>
+                                <N:2>where x.SequenceEqual(y)</N:2>
+                                <N:3>select new { Value = a, Length = a.Length }</N:3></N:4>;
 
-        var <N:8>newArgs =
-            from a in result
-            <N:5>let value = a.Value</N:5>
-            <N:6>let length = a.Length</N:6>
-            <N:7>where value.Length == length</N:7>
-            select value</N:8>;
+                            var <N:8>newArgs =
+                                from a in result
+                                <N:5>let value = a.Value</N:5>
+                                <N:6>let length = a.Length</N:6>
+                                <N:7>where value.Length == length</N:7>
+                                select value</N:8>;
 
-        args = args.Concat(newArgs).ToArray();
-        System.Diagnostics.Debugger.Break();
-        result.ToString();
-    }
-}
-");
-            var source1 = MarkedSource(@"
-using System.Linq;
+                            args = args.Concat(newArgs).ToArray();
+                            System.Diagnostics.Debugger.Break();
+                            result.ToString();
+                        }
+                    }
+                    """,
+                    validator: v =>
+                    {
+                        v.VerifyLocalSignature("C.F", """
+                        .locals init (System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> V_0, //result
+                                      System.Collections.Generic.IEnumerable<string> V_1) //newArgs
+                        """);
+                    })
+                .AddGeneration(
+                    // 1
+                    source: """
+                    using System.Linq;
 
-class C
-{
-    static void F(string[] args)
-    {
-        args = new[] { ""a"", ""bB"", ""Cc"", ""DD"" };
-        var list = false ? null : new { Head = (dynamic)null, Tail = (dynamic)null };
-        for (int i = 0; i < 10; i++)
-        {
-            var <N:4>result =
-                from a in args
-                <N:0>let x = a.Reverse()</N:0>
-                <N:1>let y = x.Reverse()</N:1>
-                <N:2>where x.SequenceEqual(y)</N:2>
-                orderby a.Length ascending, a descending
-                <N:3>select new { Value = a, Length = x.Count() }</N:3></N:4>;
+                    class C
+                    {
+                        static void F(string[] args)
+                        {
+                            args = new[] { "a", "bB", "Cc", "DD" };
+                            var list = false ? null : new { Head = (dynamic)null, Tail = (dynamic)null };
+                            for (int i = 0; i < 10; i++)
+                            {
+                                var <N:4>result =
+                                    from a in args
+                                    <N:0>let x = a.Reverse()</N:0>
+                                    <N:1>let y = x.Reverse()</N:1>
+                                    <N:2>where x.SequenceEqual(y)</N:2>
+                                    orderby a.Length ascending, a descending
+                                    <N:3>select new { Value = a, Length = x.Count() }</N:3></N:4>;
 
-            var linked = result.Aggregate(
-                false ? new { Head = (string)null, Tail = (dynamic)null } : null,
-                (total, curr) => new { Head = curr.Value, Tail = (dynamic)total });
+                                var linked = result.Aggregate(
+                                    false ? new { Head = (string)null, Tail = (dynamic)null } : null,
+                                    (total, curr) => new { Head = curr.Value, Tail = (dynamic)total });
 
-            var str = linked?.Tail?.Head;
+                                var str = linked?.Tail?.Head;
 
-            var <N:8>newArgs =
-                from a in result
-                <N:5>let value = a.Value</N:5>
-                <N:6>let length = a.Length</N:6>
-                <N:7>where value.Length == length</N:7>
-                select value + value</N:8>;
+                                var <N:8>newArgs =
+                                    from a in result
+                                    <N:5>let value = a.Value</N:5>
+                                    <N:6>let length = a.Length</N:6>
+                                    <N:7>where value.Length == length</N:7>
+                                    select value + value</N:8>;
+                    
+                                args = args.Concat(newArgs).ToArray();
+                                list = new { Head = (dynamic)i, Tail = (dynamic)list };
+                                System.Diagnostics.Debugger.Break();
+                            }
+                            System.Diagnostics.Debugger.Break();
+                        }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)
+                    ],
+                    validator: v =>
+                    {
+                        v.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
+                            "C.<>o__0#1: {<>p__0}",
+                            "C: {<>c, <>o__0#1}",
+                            "C.<>c: {<>9__0_0, <>9__0_1, <>9__0_2, <>9__0_3#1, <>9__0_4#1, <>9__0_3, <>9__0_6#1, <>9__0_4, <>9__0_5, <>9__0_6, <>9__0_10#1, <F>b__0_0, <F>b__0_1, <F>b__0_2, <F>b__0_3#1, <F>b__0_4#1, <F>b__0_3, <F>b__0_6#1, <F>b__0_4, <F>b__0_5, <F>b__0_6, <F>b__0_10#1}",
+                            "<>f__AnonymousType4<<<>h__TransparentIdentifier0>j__TPar, <length>j__TPar>: {Equals, GetHashCode, ToString}",
+                            "<>f__AnonymousType2<<Value>j__TPar, <Length>j__TPar>: {Equals, GetHashCode, ToString}",
+                            "<>f__AnonymousType5<<Head>j__TPar, <Tail>j__TPar>: {Equals, GetHashCode, ToString}",
+                            "<>f__AnonymousType3<<a>j__TPar, <value>j__TPar>: {Equals, GetHashCode, ToString}",
+                            "<>f__AnonymousType0<<a>j__TPar, <x>j__TPar>: {Equals, GetHashCode, ToString}",
+                            "<>f__AnonymousType1<<<>h__TransparentIdentifier0>j__TPar, <y>j__TPar>: {Equals, GetHashCode, ToString}");
 
-            args = args.Concat(newArgs).ToArray();
-            list = new { Head = (dynamic)i, Tail = (dynamic)list };
-            System.Diagnostics.Debugger.Break();
-        }
-        System.Diagnostics.Debugger.Break();
-    }
-}
-");
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-
-            var v0 = CompileAndVerify(compilation0);
-            v0.VerifyDiagnostics();
-            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
-
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-
-            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-
-            v0.VerifyLocalSignature("C.F", @"
-.locals init (System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> V_0, //result
-              System.Collections.Generic.IEnumerable<string> V_1) //newArgs
-");
-
-            var diff1 = compilation1.EmitDifference(
-                 generation0,
-                 ImmutableArray.Create(
-                     SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
-
-            diff1.VerifySynthesizedMembers(
-                "C.<>o__0#1: {<>p__0}",
-                "C: {<>c, <>o__0#1}",
-                "C.<>c: {<>9__0_0, <>9__0_1, <>9__0_2, <>9__0_3#1, <>9__0_4#1, <>9__0_3, <>9__0_6#1, <>9__0_4, <>9__0_5, <>9__0_6, <>9__0_10#1, <F>b__0_0, <F>b__0_1, <F>b__0_2, <F>b__0_3#1, <F>b__0_4#1, <F>b__0_3, <F>b__0_6#1, <F>b__0_4, <F>b__0_5, <F>b__0_6, <F>b__0_10#1}",
-                "<>f__AnonymousType4<<<>h__TransparentIdentifier0>j__TPar, <length>j__TPar>: {Equals, GetHashCode, ToString}",
-                "<>f__AnonymousType2<<Value>j__TPar, <Length>j__TPar>: {Equals, GetHashCode, ToString}",
-                "<>f__AnonymousType5<<Head>j__TPar, <Tail>j__TPar>: {Equals, GetHashCode, ToString}",
-                "<>f__AnonymousType3<<a>j__TPar, <value>j__TPar>: {Equals, GetHashCode, ToString}",
-                "<>f__AnonymousType0<<a>j__TPar, <x>j__TPar>: {Equals, GetHashCode, ToString}",
-                "<>f__AnonymousType1<<<>h__TransparentIdentifier0>j__TPar, <y>j__TPar>: {Equals, GetHashCode, ToString}");
-
-            diff1.VerifyLocalSignature("C.F", @"
-  .locals init (System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> V_0, //result
-                System.Collections.Generic.IEnumerable<string> V_1, //newArgs
-                <>f__AnonymousType5<dynamic, dynamic> V_2, //list
-                int V_3, //i
-                <>f__AnonymousType5<string, dynamic> V_4, //linked
-                object V_5, //str
-                <>f__AnonymousType5<string, dynamic> V_6,
-                object V_7,
-                bool V_8)
-");
+                        v.VerifyLocalSignature("C.F", """
+                        .locals init (System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> V_0, //result
+                                      System.Collections.Generic.IEnumerable<string> V_1, //newArgs
+                                      <>f__AnonymousType5<dynamic, dynamic> V_2, //list
+                                      int V_3, //i
+                                      <>f__AnonymousType5<string, dynamic> V_4, //linked
+                                      object V_5, //str
+                                      <>f__AnonymousType5<string, dynamic> V_6,
+                                      object V_7,
+                                      bool V_8)
+                        """);
+                    })
+                .Verify();
         }
 
         [Fact]
@@ -10232,7 +11726,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -10908,7 +12402,7 @@ class C
             var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
 
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
@@ -11503,30 +12997,67 @@ public interface IB
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("op_LogicalNot");
-                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor");
-                        g.VerifyEncLogDefinitions(new[]
-                        {
-                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        });
-                        g.VerifyEncMapDefinitions(new[]
-                        {
-                            Handle(1, TableIndex.MethodDef),
-                        });
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("op_LogicalNot", ".ctor");
+                        g.VerifyMemberRefNames(/* Exception */ ".ctor", /* CompilerGeneratedAttribute */ ".ctor", "Invoke");
 
-                        var expectedIL = """
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
+                        ]);
+
+                        g.VerifyIL("""
+                            op_LogicalNot
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000005
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000003
+                              IL_000c:  throw
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000006
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000007
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
                     })
                 .Verify();
         }
@@ -11759,8 +13290,9 @@ class C
                     badStream,
                     ilStream,
                     pdbStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
@@ -11774,8 +13306,9 @@ class C
                     mdStream,
                     badStream,
                     pdbStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
@@ -11789,8 +13322,9 @@ class C
                     mdStream,
                     ilStream,
                     badStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
@@ -11844,8 +13378,9 @@ class C
                     mdStream,
                     ilStream,
                     badStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
@@ -12225,52 +13760,35 @@ public class C
             }
         }
 
+        [Theory]
+        [InlineData(typeof(IOException))]
+        [InlineData(typeof(BadImageFormatException))]
+        [InlineData(typeof(InvalidDataException))]
         [WorkItem(187868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/187868")]
-        [Fact]
-        public void PdbReadingErrors()
+        public void SymReaderErrors(Type exceptionType)
         {
-            var source0 = MarkedSource(@"
-using System;
-
-class C
-{
-	static void F() 
-    {
-        <N:0>Console.WriteLine(1);</N:0>
-    }
-}");
-
-            var source1 = MarkedSource(@"
-using System;
-
-class C
-{
-	static void F() 
-    {
-        <N:0>Console.WriteLine(2);</N:0>
-    }
-}");
-            var compilation0 = CreateCompilation(source0.Tree, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
-            var compilation1 = compilation0.WithSource(source1.Tree);
-
-            var v0 = CompileAndVerify(compilation0);
-            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
-
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-
-            var generation0 = CreateInitialBaseline(compilation0, md0, methodHandle =>
-            {
-                throw new InvalidDataException("Bad PDB!");
-            });
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
-
-            diff1.EmitResult.Diagnostics.Verify(
-                // (6,14): error CS7038: Failed to emit module 'Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null''.
-                Diagnostic(ErrorCode.ERR_InvalidDebugInfo, "F").WithArguments("C.F()", "100663297", "PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 14));
+            using var _ = new EditAndContinueTest(assemblyName: "test")
+                .AddBaseline(
+                    """
+                    class C { void F() { int x = 1; } }
+                    """,
+                    debugInformationProvider: _ => throw (Exception)Activator.CreateInstance(exceptionType, ["bug!"]))
+                .AddGeneration(
+                    // 1
+                    """
+                    class C { void F() { int x = 2; } }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)
+                    ],
+                    expectedErrors:
+                    [
+                        // (1,16): error CS7103: Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null': bug!
+                        // class C { void F() { int x = 2; } }
+                        Diagnostic(ErrorCode.ERR_InvalidDebugInfo, "F").WithArguments("C.F()", "100663297", "test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "bug!").WithLocation(1, 16)
+                    ])
+                .Verify();
         }
 
         [Fact]
@@ -12311,7 +13829,7 @@ class C
                 throw new ArgumentOutOfRangeException();
             });
 
-            // the compiler should't swallow any exceptions but InvalidDataException
+            // the compiler should't swallow any exceptions but InvalidDataException, IOException and BadImageFormatException
             Assert.Throws<ArgumentOutOfRangeException>(() =>
                 compilation1.EmitDifference(
                     generation0,
@@ -15062,10 +16580,9 @@ namespace N
                     SemanticEdit.Create(SemanticEditKind.Update, printMembers0, printMembers1)));
 
             diff1.VerifySynthesizedMembers(
-                "<global namespace>: {Microsoft}",
-                "Microsoft: {CodeAnalysis}",
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}");
+                "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                "System.Runtime.CompilerServices.NullableAttribute",
+                "System.Runtime.CompilerServices.NullableContextAttribute");
 
             // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
@@ -15144,10 +16661,9 @@ namespace N
                     SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
 
             diff1.VerifySynthesizedMembers(
-                "<global namespace>: {Microsoft}",
-                "Microsoft: {CodeAnalysis}",
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}");
+                "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                "System.Runtime.CompilerServices.NullableAttribute",
+                "System.Runtime.CompilerServices.NullableContextAttribute");
         }
 
         [Fact]
@@ -15188,16 +16704,23 @@ namespace N
                     validator: g =>
                     {
                         g.VerifyMethodDefNames(
-                            ".ctor", // inserted primary ctor
                             ".ctor", // updated parameterless ctor
+                            ".ctor", // inserted primary ctor
                             "get_P",
                             "set_P",
-                            "Deconstruct");
+                            "Deconstruct",
+                            ".ctor"); // Exception
 
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(5, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -15207,6 +16730,8 @@ namespace N
                             Row(18, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                             Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                             Row(16, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
@@ -15220,6 +16745,7 @@ namespace N
                             Row(32, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(33, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(34, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(35, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
                         });
@@ -15314,6 +16840,7 @@ namespace N
                         });
 
                         g.VerifyIL("""
+                        .ctor
                         {
                           // Code size       29 (0x1d)
                           .maxstack  8
@@ -15331,6 +16858,7 @@ namespace N
                           IL_001b:  nop
                           IL_001c:  ret
                         }
+                        get_Q
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -15338,6 +16866,7 @@ namespace N
                           IL_0001:  ldfld      0x04000005
                           IL_0006:  ret
                         }
+                        set_Q
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -15346,6 +16875,7 @@ namespace N
                           IL_0002:  stfld      0x04000005
                           IL_0007:  ret
                         }
+                        Deconstruct
                         {
                           // Code size       25 (0x19)
                           .maxstack  8
@@ -15432,6 +16962,7 @@ namespace N
                         });
 
                         g.VerifyIL("""
+                        get_Q
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -15439,6 +16970,7 @@ namespace N
                           IL_0001:  ldfld      0x04000004
                           IL_0006:  ret
                         }
+                        set_Q
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -15604,20 +17136,474 @@ class C
 }");
         }
 
+        [Fact]
+        public void Method_Delete_SynthesizedHotReloadException_MissingExceptionType()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Minimal, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            void F() {}
+                        }
+                        """)
+                .AddGeneration(
+                    // 1
+                    source: """
+                        class C
+                        {
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F"), newSymbolProvider: c => c.GetMember("C")),
+                    ],
+                    expectedErrors:
+                    [
+                        // error CS7043: Cannot emit update; constructor 'System.Exception..ctor(string)' is missing.
+                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments("constructor", "System.Exception..ctor(string)").WithLocation(1, 1)
+                    ])
+                .Verify();
+        }
+
         [Theory]
-        [InlineData("void M1() { }")]
-        [InlineData("void M1(string s) { }")]
-        [InlineData("void M1(C c) { }")]
+        [InlineData("")]
+        [InlineData("public delegate void Action(System.Exception arg);")]
+        [InlineData("public delegate void Action<S,T>(T arg);")]
+        [InlineData("public delegate int Action<T>(T arg);")]
+        [InlineData("public delegate void Action<T>(int arg);")]
+        [InlineData("public delegate void Action<T>(in T arg);")]
+        [InlineData("public delegate void Action<T>(ref T arg);")]
+        [InlineData("public delegate void Action<T>(out T arg);")]
+        [InlineData("public delegate void Action<T>(T arg, int x);")]
+        public void Method_Delete_SynthesizedHotReloadException_MissingOrBadActionType(string actionDef)
+        {
+            var libs = $$"""
+                namespace System
+                {
+                    public class Exception(string message);
+                    {{actionDef}}
+                }
+                namespace System.Runtime.InteropServices
+                {
+                    public class InAttribute;
+                }
+                """;
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Minimal, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            void F() {}
+                        }
+                        """ + libs)
+                .AddGeneration(
+                    // 1
+                    source: """
+                        class C
+                        {
+                        }
+                        """ + libs,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F"), newSymbolProvider: c => c.GetMember("C")),
+                    ],
+                    expectedErrors:
+                    [
+                        // error CS7043: Cannot emit update; method 'void System.Action<T>.Invoke(T arg)' is missing.
+                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments("method", "void System.Action<T>.Invoke(T arg)").WithLocation(1, 1)
+                    ])
+                .Verify();
+        }
+
+        [Fact]
+        public void Method_Delete_SynthesizedHotReloadException_MissingCompilerGeneratedAttribute()
+        {
+            var libs = """
+                namespace System
+                {
+                    public class Exception
+                    {
+                        public Exception(string message) {}
+                    }
+
+                    public delegate void Action<T>(T arg);
+                }
+                """;
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Minimal, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: libs + """
+                        class C
+                        {
+                            void F() {}
+                        }
+                        """)
+                .AddGeneration(
+                    // 1
+                    source: libs + """
+                        class C
+                        {
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F"), newSymbolProvider: c => c.GetMember("C")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers("System.Runtime.CompilerServices.HotReloadException");
+                        g.VerifyTypeDefNames("HotReloadException");
+
+                        // Note TypeRef CompilerGeneratedAttribute not present:
+                        g.VerifyTypeRefNames("Object");
+
+                        g.VerifyIL("""
+                            F
+                            {
+                              // Code size       13 (0xd)
+                              .maxstack  8
+                              IL_0000:  ldstr      0x70000005
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000008
+                              IL_000c:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x06000003
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000002
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Method_Delete_PredefinedHotReloadException()
+        {
+            var exceptionSource = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public class HotReloadException : Exception
+                    {
+                        public HotReloadException(string message, int code) : base(message) {}
+                    }
+                }
+                """;
+
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: exceptionSource + """
+                        class C
+                        {
+                            void F1() {}
+                            void F2() {}
+                        }
+                        """)
+                .AddGeneration(
+                    // 1
+                    source: exceptionSource + """
+                        class C
+                        {
+                            void F2() {}
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F1"), newSymbolProvider: c => c.GetMember("C")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers();
+                        g.VerifyTypeDefNames();
+                        g.VerifyTypeRefNames("Object");
+
+                        g.VerifyIL("""
+                            F1
+                            {
+                              // Code size       13 (0xd)
+                              .maxstack  8
+                              IL_0000:  ldstr      0x70000005
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
+                            }
+                            """);
+                    })
+                .AddGeneration(
+                    // 2
+                    source: exceptionSource + """
+                        class C
+                        {
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F2"), newSymbolProvider: c => c.GetMember("C")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers();
+                        g.VerifyTypeDefNames();
+                        g.VerifyTypeRefNames("Object");
+
+                        g.VerifyIL("""
+                            F2
+                            {
+                              // Code size       13 (0xd)
+                              .maxstack  8
+                              IL_0000:  ldstr      0x70000151
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
+                            }
+                            """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Method_Delete_PredefinedHotReloadException_Inserted()
+        {
+            var exceptionSource = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public class HotReloadException : Exception
+                    {
+                        public HotReloadException(string message, int code) : base(message) {}
+                    }
+                }
+                """;
+
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            void F1() {}
+                            void F2() {}
+                        }
+                        """)
+                .AddGeneration(
+                    // 1
+                    source: exceptionSource + """
+                        class C
+                        {
+                            void F2() {}
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("System.Runtime.CompilerServices.HotReloadException")),
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F1"), newSymbolProvider: c => c.GetMember("C")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers();
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyTypeRefNames("Exception", "Object");
+
+                        g.VerifyIL("""
+                            F1
+                            {
+                              // Code size       13 (0xd)
+                              .maxstack  8
+                              IL_0000:  ldstr      0x70000005
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       10 (0xa)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000005
+                              IL_0007:  nop
+                              IL_0008:  nop
+                              IL_0009:  ret
+                            }
+                            """);
+                    })
+                .AddGeneration(
+                    // 2
+                    source: exceptionSource + """
+                        class C
+                        {
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F2"), newSymbolProvider: c => c.GetMember("C")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers();
+                        g.VerifyTypeDefNames();
+                        g.VerifyTypeRefNames("Object");
+
+                        g.VerifyIL("""
+                            F2
+                            {
+                              // Code size       13 (0xd)
+                              .maxstack  8
+                              IL_0000:  ldstr      0x70000151
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
+                            }
+                            """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Method_Delete_PredefinedHotReloadException_BadConstructor()
+        {
+            var exceptionSource = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public class HotReloadException : Exception
+                    {
+                        public HotReloadException(string message) : base(message) {}
+                    }
+                }
+                """;
+
+            using var _ = new EditAndContinueTest(assemblyName: "TestAssembly")
+                .AddBaseline(
+                    source: exceptionSource + """
+                        class C
+                        {
+                            void F1() {}
+                            void F2() {}
+                        }
+                        """)
+                .AddGeneration(
+                    // 1
+                    source: exceptionSource + """
+                        class C
+                        {
+                            void F2() {}
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F1"), newSymbolProvider: c => c.GetMember("C")),
+                    ],
+                    expectedErrors:
+                    [
+                        // error CS7038: Failed to emit module 'TestAssembly': 'System.Runtime.CompilerServices.HotReloadException' type does not have the expected constructor
+                        Diagnostic(ErrorCode.ERR_ModuleEmitFailure)
+                            .WithArguments("TestAssembly", string.Format(CodeAnalysisResources.Type0DoesNotHaveExpectedConstructor, "System.Runtime.CompilerServices.HotReloadException"))
+                    ])
+                .Verify();
+        }
+
+        [Fact]
+        public void Method_Delete_PredefinedHotReloadException_DataSectionLiterals()
+        {
+            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+
+            var exceptionSource = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public class HotReloadException : Exception
+                    {
+                        public HotReloadException(string message, int code) : base(message) {}
+                    }
+                }
+                """;
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.FailsPEVerify, parseOptions: parseOptions)
+                .AddBaseline(
+                    source: exceptionSource + """
+                        class C
+                        {
+                            void F1() {}
+                            void F2() {}
+                        }
+                        """)
+                .AddGeneration(
+                    // 1
+                    source: exceptionSource + """
+                        class C
+                        {
+                            void F2() {}
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F1"), newSymbolProvider: c => c.GetMember("C")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers();
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=163", "<S>A70F5C822D3106BF474269B4991AB592");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "ValueType", "Encoding");
+
+                        g.VerifyIL("""
+                        F1
+                        {
+                            // Code size       13 (0xd)
+                            .maxstack  8
+                            IL_0000:  ldsfld     0x04000002
+                            IL_0005:  ldc.i4.s   -2
+                            IL_0007:  newobj     0x06000004
+                            IL_000c:  throw
+                        }
+                        BytesToString
+                        {
+                            // Code size       13 (0xd)
+                            .maxstack  8
+                            IL_0000:  call       0x0A000008
+                            IL_0005:  ldarg.0
+                            IL_0006:  ldarg.1
+                            IL_0007:  callvirt   0x0A000009
+                            IL_000c:  ret
+                        }
+                        .cctor
+                        {
+                            // Code size       21 (0x15)
+                            .maxstack  8
+                            IL_0000:  ldsflda    0x04000001
+                            IL_0005:  ldc.i4     0xa3
+                            IL_000a:  call       0x06000005
+                            IL_000f:  stsfld     0x04000002
+                            IL_0014:  ret
+                        }
+                        """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Theory]
+        [InlineData("int M1(C c) { return 0; }")]
         [InlineData("C M1(C c) { return default; }")]
-        [InlineData("void M1(N n) { }")]
         [InlineData("C M1() { return default; }")]
         [InlineData("N M1() { return default; }")]
-        [InlineData("int M1(C c) { return 0; }")]
-        [InlineData("void M1<T>(T t) { }")]
-        [InlineData("void M1<T>(T t) where T : C { }")]
         [InlineData("T M1<T>() { return default; }")]
         [InlineData("T M1<T>() where T : C { return default; }")]
-        public void Method_Delete(string methodDef)
+        public void Method_Delete_ReturnValue(string methodDef)
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
@@ -15637,7 +17623,7 @@ class C
                         g.VerifyMethodDefNames("M1", ".ctor", ".ctor");
                     })
 
-                .AddGeneration(
+                .AddGeneration(// 1
                     source: """
                         class C
                         {
@@ -15652,30 +17638,174 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M1");
-                        g.VerifyMemberRefNames(/* MissingMethodException */ ".ctor");
-                        g.VerifyEncLogDefinitions(new[]
-                        {
-                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
-                        });
-                        g.VerifyEncMapDefinitions(new[]
-                        {
-                            Handle(1, TableIndex.MethodDef),
-                        });
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("M1", ".ctor");
+                        g.VerifyMemberRefNames(".ctor", ".ctor", "Invoke");
 
-                        var expectedIL = """
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig)
+                        ]);
+
+                        g.VerifyIL("""
+                            M1
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000005
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
                             }
-                            """;
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000006
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000007
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
+                    })
+                .Verify();
+        }
 
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+        [Theory]
+        [InlineData("void M1() { }")]
+        [InlineData("void M1(string s) { }")]
+        [InlineData("void M1(C c) { }")]
+        [InlineData("void M1(N n) { }")]
+        [InlineData("void M1<T>(T t) { }")]
+        [InlineData("void M1<T>(T t) where T : C { }")]
+        public void Method_Delete_Void(string methodDef)
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            {{methodDef}}
+                        }
+
+                        class N
+                        {
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "N");
+                        g.VerifyMethodDefNames("M1", ".ctor", ".ctor");
+                    })
+
+                .AddGeneration(// 1
+                    source: """
+                        class C
+                        {
+                        }
+
+                        class N
+                        {
+                        }
+                        """,
+                    edits: new[] {
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("M1", ".ctor");
+                        g.VerifyMemberRefNames(".ctor", ".ctor", "Invoke");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
+                        ]);
+
+                        g.VerifyIL("""
+                            M1
+                            {
+                              // Code size       13 (0xd)
+                              .maxstack  8
+                              IL_0000:  ldstr      0x70000005
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000006
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000007
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
                     })
                 .Verify();
         }
@@ -15699,6 +17829,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                         class C
                         {
@@ -15723,20 +17854,19 @@ class C
                             Handle(3, TableIndex.MethodDef),
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M2
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
                               IL_0000:  nop
                               IL_0001:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
 
                 .AddGeneration(
+                    // 2
                     source: """
                         class C
                         {
@@ -15748,29 +17878,65 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M2");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("M2", ".ctor");
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M2
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000009
-                              IL_0005:  newobj     0x0A000005
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000006
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000007
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
                     })
                 .Verify();
         }
@@ -15804,29 +17970,64 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M1");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("M1", ".ctor");
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M1
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000005
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000003
+                              IL_000c:  throw
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000006
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000007
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
                     })
 
                 .AddGeneration(
@@ -15852,20 +18053,18 @@ class C
                             Handle(1, TableIndex.MethodDef),
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M1
                             {
                               // Code size        9 (0x9)
                               .maxstack  8
                               IL_0000:  nop
                               IL_0001:  ldc.i4.1
-                              IL_0002:  call       0x0A000006
+                              IL_0002:  call       0x0A000008
                               IL_0007:  nop
                               IL_0008:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .Verify();
         }
@@ -15875,7 +18074,7 @@ class C
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
-                    source: $$"""
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class A : System.Attribute { }
                         class B : System.Attribute { }
 
@@ -15888,13 +18087,13 @@ class C
                         """,
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<Module>", "A", "B", "C");
-                        g.VerifyMethodDefNames(".ctor", ".ctor", "M1", ".ctor");
-                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", ".ctor");
+                        g.VerifyTypeDefNames("<Module>", "A", "B", "C", "MetadataUpdateDeletedAttribute");
+                        g.VerifyMethodDefNames(".ctor", ".ctor", "M1", ".ctor", ".ctor");
+                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", ".ctor", ".ctor");
                     })
-
                 .AddGeneration(
-                    source: """
+                    // 1
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class A : System.Attribute { }
                         class B : System.Attribute { }
                         
@@ -15907,36 +18106,77 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M1");
-                        g.VerifyEncLogDefinitions(new[]
-                        {
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("M1", ".ctor");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        });
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        ]);
 
-                        g.VerifyEncMapDefinitions(new[]
-                        {
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(6, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(3, TableIndex.MethodDef),
-                        });
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
+                        ]);
 
-                        g.VerifyCustomAttributes();
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(3, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(6, TableIndex.TypeDef), Handle(7, TableIndex.MemberRef))
+                        ]);
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M1
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000006
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000006
+                              IL_000c:  throw
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000008
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000009
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
                     })
-
                 .AddGeneration(
-                    source: """
+                    // 2
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class A : System.Attribute { }
                         class B : System.Attribute { }
                         
@@ -15980,17 +18220,15 @@ class C
                             new CustomAttributeRow(Handle(3, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef))
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M1
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
                               IL_0000:  nop
                               IL_0001:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .Verify();
         }
@@ -16000,7 +18238,7 @@ class C
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
-                    source: $$"""
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             void Goo() { }
@@ -16008,13 +18246,14 @@ class C
                         """,
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<Module>", "C");
-                        g.VerifyMethodDefNames("Goo", ".ctor");
-                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
+                        g.VerifyTypeDefNames("<Module>", "C", "MetadataUpdateDeletedAttribute");
+                        g.VerifyMethodDefNames("Goo", ".ctor", ".ctor");
+                        g.VerifyMemberRefNames(/*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", ".ctor", ".ctor");
                     })
 
                 .AddGeneration(
-                    source: """
+                    // 1
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             void Goo() { }
@@ -16028,22 +18267,25 @@ class C
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("M1");
+
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
-                            Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
                             Handle(1, TableIndex.StandAloneSig)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M1
                             {
                               // Code size        7 (0x7)
                               .maxstack  1
@@ -16054,14 +18296,12 @@ class C
                               IL_0005:  ldloc.0
                               IL_0006:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
 
                 .AddGeneration(
-                    source: """
+                    // 2
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             void Goo() { }
@@ -16072,34 +18312,74 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M1");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("M1", ".ctor");
+
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
-                            Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M1
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000009
-                              IL_0005:  newobj     0x0A000005
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000005
+                              IL_000c:  throw
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000008
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000009
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
 
                     })
 
                 .AddGeneration(
-                    source: """
+                    // 3
+                    source: MetadataUpdateDeletedAttributeSource + """
                         class C
                         {
                             void Goo() { }
@@ -16113,26 +18393,31 @@ class C
                     {
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("M1");
+
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(1, TableIndex.Param, EditAndContinueOperation.Default)
-                        });
-                        g.VerifyEncMapDefinitions(new[]
-                        {
-                            Handle(3, TableIndex.MethodDef),
-                            Handle(1, TableIndex.Param),
-                            Handle(2, TableIndex.StandAloneSig)
+                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
 
-                        var expectedIL = """
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(3, TableIndex.StandAloneSig)
+                        });
+
+                        g.VerifyIL("""
+                            M1
                             {
                               // Code size       14 (0xe)
                               .maxstack  1
                               IL_0000:  nop
                               IL_0001:  ldc.i4.1
-                              IL_0002:  call       0x0A000006
+                              IL_0002:  call       0x0A00000A
                               IL_0007:  nop
                               IL_0008:  ldnull
                               IL_0009:  stloc.0
@@ -16140,10 +18425,7 @@ class C
                               IL_000c:  ldloc.0
                               IL_000d:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .Verify();
         }
@@ -16168,6 +18450,7 @@ class C
                             "C.<>c: {<>9__0_0, <F>b__0_0}");
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                         using System;
                         
@@ -16181,42 +18464,84 @@ class C
                     ],
                     validator: g =>
                     {
-                        g.VerifySynthesizedMembers();
+                        g.VerifySynthesizedMembers("System.Runtime.CompilerServices.HotReloadException");
 
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("F", "<F>b__0_0");
-                        g.VerifyTypeRefNames("Object", "MissingMethodException");
-                        g.VerifyMemberRefNames(".ctor");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("F", "<F>b__0_0", ".ctor");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action`1");
+                        g.VerifyMemberRefNames(".ctor", ".ctor", "Invoke");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(3, TableIndex.Field),
+                            Handle(4, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
-                            Handle(5, TableIndex.MethodDef)
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
                         });
 
                         g.VerifyIL("""
+                            F
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000008
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000006
+                              IL_000c:  throw
                             }
+                            <F>b__0_0
                             {
-                              // Code size       11 (0xb)
+                              // Code size       12 (0xc)
                               .maxstack  8
                               IL_0000:  ldstr      0x7000014E
-                              IL_0005:  newobj     0x0A000008
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.m1
+                              IL_0006:  newobj     0x06000006
+                              IL_000b:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000009
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000003
+                              IL_000f:  ldsfld     0x04000004
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A00000A
+                              IL_001f:  nop
+                              IL_0020:  ret
                             }
                             """);
                     })
                 .AddGeneration(
+                    // 2
                     source: """
                         using System;
                         
@@ -16232,8 +18557,10 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c}",
                             "C.<>c: {<>9__0#2_0#2, <F>b__0#2_0#2}");
+
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("F", ".ctor", "<F>b__0#2_0#2");
                         g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Action", "Console");
@@ -16241,52 +18568,57 @@ class C
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
-                            Handle(3, TableIndex.Field),
+                            Handle(5, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(4, TableIndex.MethodDef),
-                            Handle(6, TableIndex.MethodDef)
+                            Handle(7, TableIndex.MethodDef)
                         });
 
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       30 (0x1e)
                               .maxstack  8
                               IL_0000:  nop
-                              IL_0001:  ldsfld     0x04000003
+                              IL_0001:  ldsfld     0x04000005
                               IL_0006:  brtrue.s   IL_001d
                               IL_0008:  ldsfld     0x04000001
-                              IL_000d:  ldftn      0x06000006
-                              IL_0013:  newobj     0x0A00000A
-                              IL_0018:  stsfld     0x04000003
+                              IL_000d:  ldftn      0x06000007
+                              IL_0013:  newobj     0x0A00000C
+                              IL_0018:  stsfld     0x04000005
                               IL_001d:  ret
                             }
+                            .ctor
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
                               IL_0000:  ldarg.0
-                              IL_0001:  call       0x0A00000B
+                              IL_0001:  call       0x0A00000D
                               IL_0006:  nop
                               IL_0007:  ret
                             }
+                            <F>b__0#2_0#2
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
                               IL_0000:  ldc.i4.2
-                              IL_0001:  call       0x0A00000C
+                              IL_0001:  call       0x0A00000E
                               IL_0006:  nop
                               IL_0007:  ret
                             }
                             """);
                     })
                 .AddGeneration(
+                    // 3
                     source: """
                         using System;
                         
@@ -16302,39 +18634,45 @@ class C
                     {
                         // unchanged from previous generation:
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c}",
                             "C.<>c: {<>9__0#2_0#2, <F>b__0#2_0#2}");
 
                         g.VerifyTypeDefNames();
                         g.VerifyMethodDefNames("F", "<F>b__0#2_0#2");
-                        g.VerifyTypeRefNames("Object", "MissingMethodException");
-                        g.VerifyMemberRefNames(".ctor");
+                        g.VerifyTypeRefNames("Object");
+                        g.VerifyMemberRefNames();
 
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(1, TableIndex.MethodDef),
-                            Handle(6, TableIndex.MethodDef)
+                            Handle(7, TableIndex.MethodDef)
                         });
 
                         g.VerifyIL("""
+                            F
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000299
-                              IL_0005:  newobj     0x0A00000D
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000006
+                              IL_000c:  throw
                             }
+                            <F>b__0#2_0#2
                             {
-                              // Code size       11 (0xb)
+                              // Code size       12 (0xc)
                               .maxstack  8
                               IL_0000:  ldstr      0x700003E2
-                              IL_0005:  newobj     0x0A00000D
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.m1
+                              IL_0006:  newobj     0x06000006
+                              IL_000b:  throw
                             }
                             """);
                     })
@@ -16358,7 +18696,7 @@ class C
                         g.VerifySynthesizedMembers();
                     })
                 .AddGeneration(
-                    // Add method with a lambda
+                    // 1: Add method with a lambda
                     source: """
                         using System;
                         
@@ -16382,7 +18720,7 @@ class C
                     }
                 )
                 .AddGeneration(
-                    // Delete the method
+                    // 2: Delete the method
                     source: """
                         using System;
                         
@@ -16397,39 +18735,81 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c}",
                             "C.<>c: {<>9__0#1_0#1, <F>b__0#1_0#1}");
 
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("F", "<F>b__0#1_0#1");
-                        g.VerifyTypeRefNames("Object", "MissingMethodException");
-                        g.VerifyMemberRefNames(".ctor");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("F", "<F>b__0#1_0#1", ".ctor");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action`1");
+                        g.VerifyMemberRefNames(".ctor", ".ctor", "Invoke");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(3, TableIndex.Field),
+                            Handle(4, TableIndex.Field),
                             Handle(2, TableIndex.MethodDef),
-                            Handle(5, TableIndex.MethodDef)
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
                         });
 
                         g.VerifyIL("""
+                            F
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000009
-                              IL_0005:  newobj     0x0A000009
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000006
+                              IL_000c:  throw
                             }
+                            <F>b__0#1_0#1
                             {
-                              // Code size       11 (0xb)
+                              // Code size       12 (0xc)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000152
-                              IL_0005:  newobj     0x0A000009
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.m1
+                              IL_0006:  newobj     0x06000006
+                              IL_000b:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A00000A
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000003
+                              IL_000f:  ldsfld     0x04000004
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A00000B
+                              IL_001f:  nop
+                              IL_0020:  ret
                             }
                             """);
                     })
@@ -16446,12 +18826,9 @@ class C
 
             var synthesized = new[]
             {
-                "<global namespace>: {Microsoft, System, System}",
-                "System: {Runtime, Runtime}",
-                "Microsoft: {CodeAnalysis}",
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "System.Runtime: {CompilerServices, CompilerServices}",
-                "System.Runtime.CompilerServices: {IsReadOnlyAttribute, RequiresLocationAttribute}",
+                "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                "System.Runtime.CompilerServices.IsReadOnlyAttribute",
+                "System.Runtime.CompilerServices.RequiresLocationAttribute",
             };
 
             using var _ = new EditAndContinueTest(verification: Verification.Skipped)
@@ -16476,6 +18853,7 @@ class C
                         ]);
                     })
                 .AddGeneration(
+                    // 1
                     source: common + """
                         class C<T>
                         {
@@ -16501,6 +18879,7 @@ class C
                         ]);
                     })
                 .AddGeneration(
+                    // 2
                     source: common + """
                         class C<T>
                         {
@@ -16519,11 +18898,15 @@ class C
                     ],
                     validator: g =>
                     {
-                        g.VerifySynthesizedMembers([.. synthesized,
+                        g.VerifySynthesizedMembers(
+                        [
+                            .. synthesized,
                             "C<T>: {<>c__0}",
-                            "C<T>.<>c__0<S>: {<>9__0_0, <>9__0_1#1, <>9__0_2#2, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#2}"]);
+                            "C<T>.<>c__0<S>: {<>9__0_0, <>9__0_1#1, <>9__0_2#2, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#2}"
+                        ]);
                     })
                 .AddGeneration(
+                    // 3
                     source: common + """
                         class C<T>
                         {
@@ -16538,53 +18921,94 @@ class C
                         g.VerifySynthesizedMembers(
                         [
                             .. synthesized,
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C<T>: {<>c__0}",
                             "C<T>.<>c__0<S>: {<>9__0_0, <>9__0_1#1, <>9__0_2#2, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#2}"
                         ]);
 
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1#1", "<F>b__0_2#2");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1#1", "<F>b__0_2#2", ".ctor");
 
                         // Note: InAttribute is a custom modifier included in the signature
-                        g.VerifyTypeRefNames("Object", "InAttribute", "MissingMethodException");
+                        g.VerifyTypeRefNames("Object", "InAttribute", "CompilerGeneratedAttribute", "Exception", "Action`1");
 
-                        g.VerifyMemberRefNames(".ctor");
+                        g.VerifyMemberRefNames(".ctor", ".ctor", "Invoke");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(5, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(6, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
 
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(8, TableIndex.TypeDef),
+                            Handle(5, TableIndex.Field),
+                            Handle(6, TableIndex.Field),
                             Handle(5, TableIndex.MethodDef),
                             Handle(9, TableIndex.MethodDef),
                             Handle(10, TableIndex.MethodDef),
-                            Handle(11, TableIndex.MethodDef)
+                            Handle(11, TableIndex.MethodDef),
+                            Handle(12, TableIndex.MethodDef),
+                            Handle(15, TableIndex.CustomAttribute),
+                            Handle(4, TableIndex.StandAloneSig)
                         });
 
                         g.VerifyIL("""
+                            F
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x7000000D
-                              IL_0005:  newobj     0x0A000023
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x0600000C
+                              IL_000c:  throw
                             }
+                            <F>b__0_0, <F>b__0_1#1, <F>b__0_2#2
                             {
-                              // Code size       11 (0xb)
+                              // Code size       12 (0xc)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000156
-                              IL_0005:  newobj     0x0A000023
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.m1
+                              IL_0006:  newobj     0x0600000C
+                              IL_000b:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000024
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000005
+                              IL_000f:  ldsfld     0x04000006
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000025
+                              IL_001f:  nop
+                              IL_0020:  ret
                             }
                             """);
                     })
                 .AddGeneration(
-                    // Add deleted method back with another lambda
+                    // 4: Add deleted method back with another lambda
                     source: common + """
                         class C<T>
                         {
@@ -16603,6 +19027,7 @@ class C
                         g.VerifySynthesizedMembers(
                         [
                             .. synthesized,
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C<T>: {<>c__0#4, <>c__0}",
                             "C<T>.<>c__0#4<S>: {<>9__0#4_0#4, <F>b__0#4_0#4}",
                             "C<T>.<>c__0<S>: {<>9__0_0, <>9__0_1#1, <>9__0_2#2, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#2}"
@@ -16614,45 +19039,49 @@ class C
                         g.VerifyMemberRefNames(".ctor", "<>9__0#4_0#4", "<>9", "<F>b__0#4_0#4", ".ctor", ".ctor", "<>9", ".ctor", "WriteLine");
 
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       30 (0x1e)
                               .maxstack  8
                               IL_0000:  nop
-                              IL_0001:  ldsfld     0x0A000025
+                              IL_0001:  ldsfld     0x0A000027
                               IL_0006:  brtrue.s   IL_001d
-                              IL_0008:  ldsfld     0x0A000026
-                              IL_000d:  ldftn      0x0A000027
-                              IL_0013:  newobj     0x0A000028
-                              IL_0018:  stsfld     0x0A000025
+                              IL_0008:  ldsfld     0x0A000028
+                              IL_000d:  ldftn      0x0A000029
+                              IL_0013:  newobj     0x0A00002A
+                              IL_0018:  stsfld     0x0A000027
                               IL_001d:  ret
                             }
+                            .cctor
                             {
                               // Code size       11 (0xb)
                               .maxstack  8
-                              IL_0000:  newobj     0x0A000029
-                              IL_0005:  stsfld     0x0A00002A
+                              IL_0000:  newobj     0x0A00002B
+                              IL_0005:  stsfld     0x0A00002C
                               IL_000a:  ret
                             }
+                            .ctor
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
                               IL_0000:  ldarg.0
-                              IL_0001:  call       0x0A00002B
+                              IL_0001:  call       0x0A00002D
                               IL_0006:  nop
                               IL_0007:  ret
                             }
+                            <F>b__0#4_0#4
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
                               IL_0000:  ldc.i4.4
-                              IL_0001:  call       0x0A00002C
+                              IL_0001:  call       0x0A00002E
                               IL_0006:  nop
                               IL_0007:  ret
                             }
                             """);
                     })
                 .AddGeneration(
-                    // Delete the method again.
+                    // 5: Delete the method again.
                     source: common + """
                         class C<T>
                         {
@@ -16667,6 +19096,7 @@ class C
                         g.VerifySynthesizedMembers(
                         [
                             .. synthesized,
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C<T>: {<>c__0#4, <>c__0}",
                             "C<T>.<>c__0#4<S>: {<>9__0#4_0#4, <F>b__0#4_0#4}",
                             "C<T>.<>c__0<S>: {<>9__0_0, <>9__0_1#1, <>9__0_2#2, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#2}"
@@ -16677,35 +19107,39 @@ class C
                         // Only lambdas that were not deleted before are updated:
                         g.VerifyMethodDefNames("F", "<F>b__0#4_0#4");
 
-                        g.VerifyTypeRefNames("Object", "MissingMethodException");
-                        g.VerifyMemberRefNames(".ctor");
+                        g.VerifyTypeRefNames("Object");
+                        g.VerifyMemberRefNames();
 
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default)
                         });
 
                         g.VerifyEncMapDefinitions(new[]
                         {
-                            Handle(12, TableIndex.MethodDef),
-                            Handle(15, TableIndex.MethodDef),
+                            Handle(13, TableIndex.MethodDef),
+                            Handle(16, TableIndex.MethodDef)
                         });
 
                         g.VerifyIL("""
+                            F
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x700002A1
-                              IL_0005:  newobj     0x0A00002D
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x0600000C
+                              IL_000c:  throw
                             }
+                            <F>b__0#4_0#4
                             {
-                              // Code size       11 (0xb)
+                              // Code size       12 (0xc)
                               .maxstack  8
                               IL_0000:  ldstr      0x700003EA
-                              IL_0005:  newobj     0x0A00002D
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.m1
+                              IL_0006:  newobj     0x0600000C
+                              IL_000b:  throw
                             }
                             """);
                     })
@@ -16718,16 +19152,13 @@ class C
             var common = """
                 using System;
                 class A : Attribute { }
-                """;
+                """ + MetadataUpdateDeletedAttributeSource;
 
             var synthesized = new[]
             {
-                "<global namespace>: {Microsoft, System, System}",
-                "System: {Runtime, Runtime}",
-                "Microsoft: {CodeAnalysis}",
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "System.Runtime: {CompilerServices, CompilerServices}",
-                "System.Runtime.CompilerServices: {IsReadOnlyAttribute, RequiresLocationAttribute}",
+                "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                "System.Runtime.CompilerServices.IsReadOnlyAttribute",
+                "System.Runtime.CompilerServices.RequiresLocationAttribute",
             };
 
             using var _ = new EditAndContinueTest(verification: Verification.Skipped)
@@ -16751,6 +19182,7 @@ class C
                         ]);
                     })
                 .AddGeneration(
+                    // 1
                     source: common + """
                         class C<T>
                         {
@@ -16774,8 +19206,18 @@ class C
                             .. synthesized,
                             "C<T>: {<F>g__L|0_0, <F>g__M|0_1#1}"
                         ]);
+
+                        g.VerifyCustomAttributes(
+                            "[A..ctor] T",
+                            "[System.Runtime.CompilerServices.RequiresLocationAttribute..ctor] b",
+                            "[System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor] <nil>",
+                            "[A..ctor] a",
+                            "[System.Runtime.CompilerServices.RequiresLocationAttribute..ctor] b",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C`1.<F>g__L|0_0",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C`1.<F>g__M|0_1#1");
                     })
                 .AddGeneration(
+                    // 2
                     source: common + """
                         class C<T>
                         {
@@ -16790,48 +19232,99 @@ class C
                         g.VerifySynthesizedMembers(
                         [
                             .. synthesized,
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C<T>: {<F>g__L|0_0, <F>g__M|0_1#1}"
                         ]);
 
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("F", "<F>g__L|0_0", "<F>g__M|0_1#1");
-                        g.VerifyTypeRefNames("Object", "MissingMethodException");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("F", "<F>g__L|0_0", "<F>g__M|0_1#1", ".ctor");
+                        g.VerifyTypeRefNames("Object", "InAttribute", "CompilerGeneratedAttribute", "Exception", "Action`1");
 
-                        g.VerifyMemberRefNames(".ctor");
+                        g.VerifyMemberRefNames(".ctor", ".ctor", "Invoke");
+
+                        g.VerifyCustomAttributes(
+                            "[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C`1.F",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] System.Runtime.CompilerServices.HotReloadException");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
 
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(8, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(5, TableIndex.MethodDef),
                             Handle(7, TableIndex.MethodDef),
-                            Handle(8, TableIndex.MethodDef),
+                            Handle(9, TableIndex.MethodDef),
+                            Handle(10, TableIndex.MethodDef),
+                            Handle(15, TableIndex.CustomAttribute),
+                            Handle(17, TableIndex.CustomAttribute),
+                            Handle(19, TableIndex.CustomAttribute),
+                            Handle(20, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
                         });
 
                         g.VerifyIL("""
+                            F
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000009
-                              IL_0005:  newobj     0x0A00000C
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x0600000A
+                              IL_000c:  throw
                             }
+                            <F>g__L|0_0, <F>g__M|0_1#1
                             {
-                              // Code size       11 (0xb)
+                              // Code size       12 (0xc)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000152
-                              IL_0005:  newobj     0x0A00000C
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.m1
+                              IL_0006:  newobj     0x0600000A
+                              IL_000b:  throw
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A00000E
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A00000F
+                              IL_001f:  nop
+                              IL_0020:  ret
                             }
                             """);
                     })
                 .AddGeneration(
-                    // Add deleted method back with another local function and lambda
+                    // 3: Add deleted method back with another local function and lambda
                     source: common + """
                         class C<T>
                         {
@@ -16856,47 +19349,59 @@ class C
                         g.VerifySynthesizedMembers(
                         [
                             .. synthesized,
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C<T>: {<F>g__N|0#3_1#3, <>c__DisplayClass0#3_0#3, <F>g__L|0_0, <F>g__M|0_1#1}",
                             "C<T>.<>c__DisplayClass0#3_0#3: {x, <F>g__O|0#3, <F>b__2#3}"
                         ]);
 
                         g.VerifyTypeDefNames("<>c__DisplayClass0#3_0#3");
                         g.VerifyMethodDefNames("F", "<F>g__N|0#3_1#3", ".ctor", "<F>g__O|0#3", "<F>b__2#3");
-                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "InAttribute");
                         g.VerifyMemberRefNames(".ctor", ".ctor", "x", "<F>g__O|0#3", ".ctor", "<F>g__N|0#3_1#3");
 
+                        g.VerifyCustomAttributes(
+                            "[System.Runtime.CompilerServices.RequiresLocationAttribute..ctor] b",
+                            "[System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor] <nil>",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C`1.<>c__DisplayClass0#3_0#3",
+                            "[System.Runtime.CompilerServices.RequiresLocationAttribute..ctor] b",
+                            "[System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor] C`1.<F>g__N|0#3_1#3");
+
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       29 (0x1d)
                               .maxstack  2
-                              IL_0000:  newobj     0x0A00000E
+                              IL_0000:  newobj     0x0A000011
                               IL_0005:  stloc.0
                               IL_0006:  ldloc.0
                               IL_0007:  ldarg.1
-                              IL_0008:  stfld      0x0A00000F
+                              IL_0008:  stfld      0x0A000012
                               IL_000d:  nop
                               IL_000e:  nop
                               IL_000f:  ldloc.0
                               IL_0010:  ldloc.0
-                              IL_0011:  ldflda     0x0A00000F
-                              IL_0016:  callvirt   0x0A000010
+                              IL_0011:  ldflda     0x0A000012
+                              IL_0016:  callvirt   0x0A000013
                               IL_001b:  pop
                               IL_001c:  ret
                             }
+                            <F>g__N|0#3_1#3
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
                               IL_0000:  ldarg.0
                               IL_0001:  ret
                             }
+                            .ctor
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
                               IL_0000:  ldarg.0
-                              IL_0001:  call       0x0A000011
+                              IL_0001:  call       0x0A000014
                               IL_0006:  nop
                               IL_0007:  ret
                             }
+                            <F>g__O|0#3
                             {
                               // Code size        9 (0x9)
                               .maxstack  1
@@ -16909,18 +19414,19 @@ class C
                               IL_0007:  ldloc.0
                               IL_0008:  ret
                             }
+                            <F>b__2#3
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
                               IL_0000:  ldarg.0
-                              IL_0001:  ldfld      0x0A00000F
-                              IL_0006:  call       0x0A000012
+                              IL_0001:  ldfld      0x0A000012
+                              IL_0006:  call       0x0A000015
                               IL_000b:  ret
                             }
                             """);
                     })
                 .AddGeneration(
-                    // Delete the method again.
+                    // 4: Delete the method again.
                     source: common + """
                         class C<T>
                         {
@@ -16935,6 +19441,7 @@ class C
                         g.VerifySynthesizedMembers(
                         [
                             .. synthesized,
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C<T>: {<F>g__N|0#3_1#3, <>c__DisplayClass0#3_0#3, <F>g__L|0_0, <F>g__M|0_1#1}",
                             "C<T>.<>c__DisplayClass0#3_0#3: {x, <F>g__O|0#3, <F>b__2#3}"
                         ]);
@@ -16944,31 +19451,39 @@ class C
                         // Only lambdas that were not deleted before are updated:
                         g.VerifyMethodDefNames("F", "<F>g__N|0#3_1#3", "<F>g__O|0#3", "<F>b__2#3");
 
-                        g.VerifyTypeRefNames("Object", "MissingMethodException");
-                        g.VerifyMemberRefNames(".ctor");
+                        g.VerifyTypeRefNames("Object", "InAttribute");
+                        g.VerifyMemberRefNames();
+
+                        g.VerifyCustomAttributes("[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C`1.F");
 
                         g.VerifyEncLogDefinitions(
                         [
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(22, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         ]);
 
                         g.VerifyIL("""
+                            F
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x7000029D
-                              IL_0005:  newobj     0x0A000013
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x0600000A
+                              IL_000c:  throw
                             }
+                            <F>g__N|0#3_1#3, <F>g__O|0#3, <F>b__2#3
                             {
-                              // Code size       11 (0xb)
+                              // Code size       12 (0xc)
                               .maxstack  8
                               IL_0000:  ldstr      0x700003E6
-                              IL_0005:  newobj     0x0A000013
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.m1
+                              IL_0006:  newobj     0x0600000A
+                              IL_000b:  throw
                             }
                             """);
                     })
@@ -16995,6 +19510,7 @@ class C
 
             for (int i = 0; i < 10; i++)
             {
+#pragma warning disable format // https://github.com/dotnet/roslyn/issues/38588
                 test.AddGeneration(
                     source: @$"
 class C
@@ -17005,12 +19521,19 @@ class C
                         Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M2")),
                     },
-                    validator: g =>
-                    {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M1", "M2");
-                        g.VerifyDeletedMembers("C: {M1}");
-                    })
+                    validator: (i == 0)
+                        ? g =>
+                        {
+                            g.VerifyTypeDefNames("HotReloadException");
+                            g.VerifyMethodDefNames("M1", "M2", ".ctor");
+                            g.VerifyDeletedMembers("C: {M1}");
+                        }
+                        : g =>
+                        {
+                            g.VerifyTypeDefNames();
+                            g.VerifyMethodDefNames("M1", "M2");
+                            g.VerifyDeletedMembers("C: {M1}");
+                        })
                 .AddGeneration(
                     source: @$"
 class C
@@ -17027,6 +19550,7 @@ class C
                         g.VerifyMethodDefNames("M1", "M2");
                         g.VerifyDeletedMembers("C: {M2}");
                     });
+#pragma warning restore format
             }
 
             test.Verify();
@@ -17037,7 +19561,7 @@ class C
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
-                    source: $$"""
+                    source: """
                         class C
                         {
                             void M(int someInt) { someInt.ToString(); }
@@ -17049,7 +19573,8 @@ class C
                         g.VerifyMethodDefNames("M", ".ctor");
                     })
                 .AddGeneration(
-                    source: $$"""
+                    // 1
+                    source: """
                         class C
                         {
                             void M(bool someBool) { someBool.ToString(); }
@@ -17061,33 +19586,51 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M", "M");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("M", "M", ".ctor");
                         g.VerifyDeletedMembers("C: {M}");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                            Row(2, TableIndex.Param, EditAndContinueOperation.Default)
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(3, TableIndex.MethodDef),
-                            Handle(2, TableIndex.Param)
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(2, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000006
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
                             }
+                            M
                             {
                               // Code size       10 (0xa)
                               .maxstack  8
@@ -17097,13 +19640,32 @@ class C
                               IL_0008:  pop
                               IL_0009:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000008
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000009
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
                     })
                 .AddGeneration(
-                    source: $$"""
+                    // 2
+                    source: """
                         class C
                         {
                             void M(int someInt) { someInt.ToString(); }
@@ -17123,31 +19685,35 @@ class C
                         {
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(1, TableIndex.MethodDef),
                             Handle(3, TableIndex.MethodDef),
-                            Handle(1, TableIndex.Param),
+                            Handle(1, TableIndex.Param)
                         });
 
                         g.VerifyIL("""
+                            M
                             {
                               // Code size       10 (0xa)
                               .maxstack  8
                               IL_0000:  nop
                               IL_0001:  ldarga.s   V_1
-                              IL_0003:  call       0x0A000008
+                              IL_0003:  call       0x0A00000A
                               IL_0008:  pop
                               IL_0009:  ret
                             }
+                            M
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000151
-                              IL_0005:  newobj     0x0A000009
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
                             }
                             """);
                     })
@@ -17171,6 +19737,7 @@ class C
                         g.VerifyMethodDefNames("M", ".ctor");
                     })
                 .AddGeneration(
+                    // 1
                     source: $$"""
                         class C
                         {
@@ -17183,35 +19750,54 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M", "M");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("M", "M", ".ctor");
                         g.VerifyDeletedMembers("C: {M}");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
                             Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                            Row(2, TableIndex.Param, EditAndContinueOperation.Default)
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
                             Handle(2, TableIndex.Param),
-                            Handle(2, TableIndex.StandAloneSig)
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig),
+                            Handle(3, TableIndex.StandAloneSig)
                         });
 
                         g.VerifyIL("""
+                            M
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000006
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
                             }
+                            M
                             {
                               // Code size        7 (0x7)
                               .maxstack  1
@@ -17222,9 +19808,31 @@ class C
                               IL_0005:  ldloc.0
                               IL_0006:  ret
                             }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000007
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000008
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
                             """);
                     })
                 .AddGeneration(
+                    // 2
                     source: $$"""
                         class C
                         {
@@ -17243,37 +19851,41 @@ class C
 
                         g.VerifyEncLogDefinitions(new[]
                         {
-                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
                             Handle(1, TableIndex.MethodDef),
                             Handle(3, TableIndex.MethodDef),
                             Handle(1, TableIndex.Param),
-                            Handle(3, TableIndex.StandAloneSig)
+                            Handle(4, TableIndex.StandAloneSig)
                         });
 
                         g.VerifyIL("""
+                            M
                             {
                               // Code size       13 (0xd)
                               .maxstack  1
                               IL_0000:  nop
                               IL_0001:  ldarga.s   V_1
-                              IL_0003:  call       0x0A000007
+                              IL_0003:  call       0x0A000009
                               IL_0008:  stloc.0
                               IL_0009:  br.s       IL_000b
                               IL_000b:  ldloc.0
                               IL_000c:  ret
                             }
+                            M
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000151
-                              IL_0005:  newobj     0x0A000008
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
                             }
                             """);
                     })
@@ -17297,6 +19909,7 @@ class C
                         g.VerifyMethodDefNames("M", ".ctor");
                     })
                 .AddGeneration(
+                    // 1
                     source: $$"""
                         class C
                         {
@@ -17309,36 +19922,55 @@ class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames();
-                        g.VerifyMethodDefNames("M", "M");
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("M", "M", ".ctor");
                         g.VerifyDeletedMembers("C: {M}");
 
                         g.VerifyEncLogDefinitions(new[]
                         {
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                            Row(3, TableIndex.Param, EditAndContinueOperation.Default)
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
                         });
+
                         g.VerifyEncMapDefinitions(new[]
                         {
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
                             Handle(2, TableIndex.Param),
-                            Handle(3, TableIndex.Param)
+                            Handle(3, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
                         });
 
                         g.VerifyIL("""
+                            M
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
-                              IL_0005:  newobj     0x0A000006
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
                             }
+                            M
                             {
                               // Code size       10 (0xa)
                               .maxstack  8
@@ -17348,9 +19980,31 @@ class C
                               IL_0008:  pop
                               IL_0009:  ret
                             }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A000008
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ldsfld     0x04000002
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A000009
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
                             """);
                     })
                 .AddGeneration(
+                    // 2
                     source: $$"""
                         class C
                         {
@@ -17381,21 +20035,24 @@ class C
                         });
 
                         g.VerifyIL("""
+                            M
                             {
                               // Code size       10 (0xa)
                               .maxstack  8
                               IL_0000:  nop
                               IL_0001:  ldarga.s   V_1
-                              IL_0003:  call       0x0A000008
+                              IL_0003:  call       0x0A00000A
                               IL_0008:  pop
                               IL_0009:  ret
                             }
+                            M
                             {
-                              // Code size       11 (0xb)
+                              // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000151
-                              IL_0005:  newobj     0x0A000009
-                              IL_000a:  throw
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
                             }
                             """);
                     })
@@ -17809,7 +20466,7 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        public void PrivateImplDetails_DataFields_Arrays()
+        public void PrivateImplDetails_DataFields_Arrays_FieldRvaNotSupported()
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
@@ -17913,7 +20570,95 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        public void PrivateImplDetails_DataFields_StackAlloc()
+        public void PrivateImplDetails_DataFields_Arrays_FieldRvaSupported()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            byte[] b = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10");
+                        g.VerifyFieldDefNames("b", "1F825AA2F0020EF7CF91DFA30DA4668D791C5D4824FC8E41354B89EC05795AB3");
+                        g.VerifyMethodDefNames(".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            byte[] b = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetParameterlessConstructor("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=11");
+                        g.VerifyFieldDefNames("78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD");
+                        g.VerifyMethodDefNames(".ctor");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(6, TableIndex.TypeDef),
+                            Handle(3, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.ClassLayout),
+                            Handle(2, TableIndex.FieldRva),
+                            Handle(2, TableIndex.NestedClass)
+                        });
+
+                        g.VerifyIL("C..ctor", """
+                        {
+                          // Code size       32 (0x20)
+                          .maxstack  4
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldc.i4.s   11
+                          IL_0003:  newarr     "byte"
+                          IL_0008:  dup
+                          IL_0009:  ldtoken    "<PrivateImplementationDetails>#1.__StaticArrayInitTypeSize=11 <PrivateImplementationDetails>#1.78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD"
+                          IL_000e:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+                          IL_0013:  stfld      "byte[] C.b"
+                          IL_0018:  ldarg.0
+                          IL_0019:  call       "object..ctor()"
+                          IL_001e:  nop
+                          IL_001f:  ret
+                        }
+                        """);
+
+                        // trailing zeros for alignment:
+                        g.VerifyEncFieldRvaData("""
+                            78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD: 00-01-02-03-04-05-06-07-08-09-0A-00-00
+                            """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataFields_StackAlloc_FieldRvaNotSupported()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
                 .AddBaseline(
@@ -18022,7 +20767,98 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        public void PrivateImplDetails_DataFields_Utf8()
+        public void PrivateImplDetails_DataFields_StackAlloc_FieldRvaSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            void F() { System.ReadOnlySpan<byte> b = stackalloc byte[] { 0, 1, 2, 3, 4, 5, 6 }; }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=7");
+                        g.VerifyFieldDefNames("57355AC3303C148F11AEF7CB179456B9232CDE33A818DFDA2C2FCB9325749A6B");
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            void F() { System.ReadOnlySpan<byte> b = stackalloc byte[] { 0, 1, 2, 3, 4, 5, 6, 7 }; }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1");
+                        g.VerifyFieldDefNames("8A851FF82EE7048AD09EC3847F1DDF44944104D2CBD17EF4E3DB22C6785A0D45");
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig),
+                            Handle(2, TableIndex.FieldRva)
+                        });
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size       32 (0x20)
+                          .maxstack  4
+                          .locals init (System.ReadOnlySpan<byte> V_0, //b
+                                        System.Span<byte> V_1)
+                          IL_0000:  nop
+                          IL_0001:  ldc.i4.8
+                          IL_0002:  conv.u
+                          IL_0003:  localloc
+                          IL_0005:  dup
+                          IL_0006:  ldsflda    "long <PrivateImplementationDetails>#1.8A851FF82EE7048AD09EC3847F1DDF44944104D2CBD17EF4E3DB22C6785A0D45"
+                          IL_000b:  ldc.i4.8
+                          IL_000c:  unaligned. 1
+                          IL_000f:  cpblk
+                          IL_0011:  ldc.i4.8
+                          IL_0012:  newobj     "System.Span<byte>..ctor(void*, int)"
+                          IL_0017:  stloc.1
+                          IL_0018:  ldloc.1
+                          IL_0019:  call       "System.ReadOnlySpan<byte> System.Span<byte>.op_Implicit(System.Span<byte>)"
+                          IL_001e:  stloc.0
+                          IL_001f:  ret
+                        }
+                        """);
+
+                        // trailing zeros for alignment:
+                        g.VerifyEncFieldRvaData("""
+                            8A851FF82EE7048AD09EC3847F1DDF44944104D2CBD17EF4E3DB22C6785A0D45: 00-01-02-03-04-05-06-07
+                            """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataFields_Utf8_FieldRvaNotSupported()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
                 .AddBaseline(
@@ -18123,6 +20959,493 @@ file class C
                         }
                         """);
                     })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataFields_Utf8_FieldRvaSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            System.ReadOnlySpan<byte> F() => "0123456789"u8;
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=11");
+                        g.VerifyFieldDefNames("BEB0DBD1C6FAC1140DD817514F2FBDF501E246BF16C8E877E71187E9EB008189");
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            System.ReadOnlySpan<byte> F() => "0123456789X"u8;
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=12");
+                        g.VerifyFieldDefNames("AFB1C33C5229BFF7EF739BA44DA795A2B68A49E06001C07C5B026CAA6C6322BB");
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(6, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.ClassLayout),
+                            Handle(2, TableIndex.FieldRva),
+                            Handle(2, TableIndex.NestedClass)
+                        });
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  2
+                          IL_0000:  ldsflda    "<PrivateImplementationDetails>#1.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>#1.AFB1C33C5229BFF7EF739BA44DA795A2B68A49E06001C07C5B026CAA6C6322BB"
+                          IL_0005:  ldc.i4.s   11
+                          IL_0007:  newobj     "System.ReadOnlySpan<byte>..ctor(void*, int)"
+                          IL_000c:  ret
+                        }
+                        """);
+
+                        // trailing zeros for alignment:
+                        g.VerifyEncFieldRvaData($"""
+                            AFB1C33C5229BFF7EF739BA44DA795A2B68A49E06001C07C5B026CAA6C6322BB: {BitConverter.ToString(Encoding.UTF8.GetBytes("0123456789X"))}-00-00-00-00-00-00-00
+                            """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaSupported()
+        {
+            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10", "<S>E353667619EC664B49655FC9692165FB");
+                        g.VerifyFieldDefNames("84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882", "s");
+                        g.VerifyMethodDefNames("F", ".ctor", "BytesToString", ".cctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789X";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=11", "<S>6D2201523542AEFFB91657B2AEBDC84B");
+                        g.VerifyFieldDefNames("ACE59E7D984CCEB2D860A056A3386344236CE5C42C978E26ECE3F35956DAC3AD", "s");
+                        g.VerifyMethodDefNames("F", "BytesToString", ".cctor");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(6, TableIndex.TypeDef),
+                            Handle(7, TableIndex.TypeDef),
+                            Handle(8, TableIndex.TypeDef),
+                            Handle(3, TableIndex.Field),
+                            Handle(4, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(3, TableIndex.Param),
+                            Handle(4, TableIndex.Param),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.ClassLayout),
+                            Handle(2, TableIndex.FieldRva),
+                            Handle(3, TableIndex.NestedClass),
+                            Handle(4, TableIndex.NestedClass)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldsfld     "string <PrivateImplementationDetails>#1.<S>6D2201523542AEFFB91657B2AEBDC84B.s"
+                          IL_0005:  ret
+                        }
+                        """);
+
+                        // trailing zeros for alignment:
+                        g.VerifyEncFieldRvaData($"""
+                            ACE59E7D984CCEB2D860A056A3386344236CE5C42C978E26ECE3F35956DAC3AD: {BitConverter.ToString(Encoding.UTF8.GetBytes("0123456789X"))}-00
+                            """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaNotSupported()
+        {
+            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10", "<S>E353667619EC664B49655FC9692165FB");
+                        g.VerifyFieldDefNames("84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882", "s");
+                        g.VerifyMethodDefNames("F", ".ctor", "BytesToString", ".cctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789X";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.MethodDef)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldstr      "0123456789X"
+                          IL_0005:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataSectionStringLiterals_HeapOverflow_FieldRvaSupported()
+        {
+            // The longest string that can fit in the #US heap. The next string would overflow the heap.
+            var baseString = new string('x', (1 << 23) - 3);
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            string F() => "{{baseString}}";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=10", "<S>E353667619EC664B49655FC9692165FB");
+                        g.VerifyFieldDefNames("84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882", "s");
+                        g.VerifyMethodDefNames("F", "BytesToString", ".cctor");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.ClassLayout),
+                            Handle(1, TableIndex.FieldRva),
+                            Handle(1, TableIndex.NestedClass),
+                            Handle(2, TableIndex.NestedClass)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldsfld     "string <PrivateImplementationDetails>#1.<S>E353667619EC664B49655FC9692165FB.s"
+                          IL_0005:  ret
+                        }
+                        """);
+
+                        // trailing zeros for alignment:
+                        g.VerifyEncFieldRvaData($"""
+                            84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882: {BitConverter.ToString(Encoding.UTF8.GetBytes("0123456789"))}-00-00
+                            """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        public void PrivateImplDetails_DataSectionStringLiterals_StringReuse_FieldRvaSupported()
+        {
+            // Literals are currently only reused within generation.
+
+            var baseString = new string('x', (1 << 23) - 100);
+            var newString1 = new string('1', 40);
+            var newString2 = new string('2', 80);
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            void G(string a, string b, string c) {}
+                        
+                            void F() => G("{{baseString}}", "{{newString1}}", "");
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("G", "F", ".ctor");
+                    })
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void G(string a, string b, string c) {}
+
+                            void F() => G("{{newString2}}", "{{newString2}}", "{{newString1}}");
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=40", "<S>62CF64E173E5BF9EF5312BB6D57CC26C");
+                        g.VerifyFieldDefNames("468D019EA81224AECA7EE270B11959D8A187F6F0B6A3FEBFF1C34DC1D66C8D85", "s");
+                        g.VerifyMethodDefNames("F", "BytesToString", ".cctor");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(5, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(4, TableIndex.Param),
+                            Handle(5, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.ClassLayout),
+                            Handle(1, TableIndex.FieldRva),
+                            Handle(1, TableIndex.NestedClass),
+                            Handle(2, TableIndex.NestedClass)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size       23 (0x17)
+                          .maxstack  4
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldstr      "22222222222222222222222222222222222222222222222222222222222222222222222222222222"
+                          IL_0006:  ldstr      "22222222222222222222222222222222222222222222222222222222222222222222222222222222"
+                          IL_000b:  ldsfld     "string <PrivateImplementationDetails>#1.<S>62CF64E173E5BF9EF5312BB6D57CC26C.s"
+                          IL_0010:  call       "void C.G(string, string, string)"
+                          IL_0015:  nop
+                          IL_0016:  ret
+                        }
+                        """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        public void PrivateImplDetails_DataSectionStringLiterals_HeapOverflow_FieldRvaNotSupported()
+        {
+            // The max number of bytes that can fit into #US the heap is 2^29 - 1,
+            // but each string also needs to have an offset < 0x1000000 (2^24) to be addressable by a token.
+            // If the string is larger than that the next string can't be emitted.
+            var baseString = new string('x', 1 << 23);
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            string F() => "{{baseString}}";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "new string that doesn't fit";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    expectedErrors:
+                    [
+                        // (3,19): error CS9307: Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.
+                        //     string F() => "new string that doesn't fit";
+                        Diagnostic(ErrorCode.ERR_TooManyUserStrings_RestartRequired, @"""new string that doesn't fit""").WithLocation(3, 19)
+                    ])
                 .Verify();
         }
 

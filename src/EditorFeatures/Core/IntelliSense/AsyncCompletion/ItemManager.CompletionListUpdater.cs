@@ -11,8 +11,10 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -158,7 +160,7 @@ internal partial class ItemManager
                 // take into consideration for things like CompletionTrigger, MatchPriority, MRU, etc. 
                 var initialSelection = InitialTriggerReason == CompletionTriggerReason.Backspace || InitialTriggerReason == CompletionTriggerReason.Deletion
                     ? HandleDeletionTrigger(itemsToBeIncluded, cancellationToken)
-                    : HandleNormalFiltering(itemsToBeIncluded, cancellationToken);
+                    : await HandleNormalFilteringAsync(itemsToBeIncluded, cancellationToken).ConfigureAwait(false);
 
                 if (!initialSelection.HasValue)
                     return null;
@@ -198,7 +200,7 @@ internal partial class ItemManager
             (CompletionList<CompletionItemWithHighlight>, ImmutableArray<CompletionFilterWithState>) GetHighlightedListAndUpdatedFilters(
                 IAsyncCompletionSession session, IReadOnlyList<MatchResult> itemsToBeIncluded, ThreadLocal<PatternMatchHelper> patternMatcherHelper, CancellationToken cancellationToken)
             {
-                var highLightedList = GetHighlightedList(session, patternMatcherHelper.Value!, itemsToBeIncluded, cancellationToken);
+                var highLightedList = GetHighlightedList(session, patternMatcherHelper.Value, itemsToBeIncluded, cancellationToken);
                 var updatedFilters = GetUpdatedFilters(itemsToBeIncluded, cancellationToken);
                 return (highLightedList, updatedFilters);
             }
@@ -276,7 +278,7 @@ internal partial class ItemManager
                 // currentIndex is used to track the index of the VS CompletionItem in the initial sorted list to maintain a map from Roslyn item to VS item.
                 // It's also used to sort the items by pattern matching results while preserving the original alphabetical order for items with
                 // same pattern match score since `List<T>.Sort` isn't stable.
-                if (threadLocalPatternMatchHelper.Value!.TryCreateMatchResult(itemData.RoslynItem, roslynInitialTriggerKind, roslynFilterReason,
+                if (threadLocalPatternMatchHelper.Value.TryCreateMatchResult(itemData.RoslynItem, roslynInitialTriggerKind, roslynFilterReason,
                     _recentItemsManager.GetRecentItemIndex(itemData.RoslynItem), _highlightMatchingPortions, index, out var matchResult))
                 {
                     lock (_gate)
@@ -338,7 +340,7 @@ internal partial class ItemManager
                 => i - _snapshotData.Defaults.Length;
         }
 
-        private ItemSelection? HandleNormalFiltering(IReadOnlyList<MatchResult> matchResults, CancellationToken cancellationToken)
+        private async Task<ItemSelection?> HandleNormalFilteringAsync(IReadOnlyList<MatchResult> matchResults, CancellationToken cancellationToken)
         {
             Debug.Assert(matchResults.Count > 0);
             var filteredMatchResultsBuilder = s_listOfMatchResultPool.Allocate();
@@ -427,7 +429,7 @@ internal partial class ItemManager
                     return null;
                 }
 
-                var isHardSelection = IsHardSelection(bestOrFirstMatchResult.CompletionItem, bestOrFirstMatchResult.ShouldBeConsideredMatchingFilterText);
+                var isHardSelection = await IsHardSelectionAsync(bestOrFirstMatchResult, cancellationToken).ConfigureAwait(false);
                 var updateSelectionHint = isHardSelection ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected;
 
                 return new(selectedItemIndex, updateSelectionHint, uniqueItem);
@@ -648,7 +650,7 @@ internal partial class ItemManager
             // model (and all the previously filtered items), but switch over to soft
             // selection.
             return new FilteredCompletionModel(
-                items: ImmutableArray<CompletionItemWithHighlight>.Empty, selectedItemIndex,
+                items: [], selectedItemIndex,
                 filters: _snapshotData.SelectedFilters, selectionHint: UpdateSelectionHint.SoftSelected, centerSelection: true, uniqueItem: null);
         }
 
@@ -754,14 +756,14 @@ internal partial class ItemManager
             return false;
         }
 
-        private bool IsHardSelection(
-            RoslynCompletionItem item,
-            bool matchedFilterText)
+        private async Task<bool> IsHardSelectionAsync(MatchResult selectedItem, CancellationToken cancellationToken)
         {
             if (_hasSuggestedItemOptions)
             {
                 return false;
             }
+
+            var item = selectedItem.CompletionItem;
 
             // We don't have a builder and we have a best match.  Normally this will be hard
             // selected, except for a few cases.  Specifically, if no filter text has been
@@ -779,7 +781,7 @@ internal partial class ItemManager
             // It's possible the user is just typing language punctuation and selecting
             // anything in the list will interfere.  We only allow this if the filter text
             // exactly matches something in the list already. 
-            if (_filterText.Length > 0 && IsAllPunctuation(_filterText) && _filterText != item.DisplayText)
+            if (_filterText.Length > 0 && CompletionService.IsAllPunctuation(_filterText) && _filterText != item.DisplayText)
             {
                 return false;
             }
@@ -809,26 +811,23 @@ internal partial class ItemManager
 
             // If the user moved the caret left after they started typing, the 'best' match may not match at all
             // against the full text span that this item would be replacing.
-            if (!matchedFilterText)
+            if (!selectedItem.ShouldBeConsideredMatchingFilterText)
             {
                 return false;
             }
 
-            // There was either filter text, or this was a preselect match.  In either case, we
-            // can hard select this.
-            return true;
-        }
-
-        private static bool IsAllPunctuation(string filterText)
-        {
-            foreach (var ch in filterText)
+            // When trying to type something like `public TBuilder GetBuilder<TBuilder>()`, right after `public TBuilder$` is typed
+            // We don't want an item like `TypeBuilder` to be hard-selected. Otherwise, typing `space` would automatically change `TBuilder` to `TypeBuilder`,
+            if (_completionService is not null &&
+                MatchesTypeParameterPattern(_filterText) &&
+                selectedItem.PatternMatch.HasValue &&
+                selectedItem.PatternMatch.Value.Kind > PatternMatchKind.Prefix)
             {
-                if (!char.IsPunctuation(ch))
-                {
-                    return false;
-                }
+                return !await _completionService.IsSpeculativeTypeParameterContextAsync(_document!, item.Span.Start, cancellationToken).ConfigureAwait(false);
             }
 
+            // There was either filter text, or this was a preselect match.  In either case, we
+            // can hard select this.
             return true;
         }
 
@@ -842,6 +841,16 @@ internal partial class ItemManager
             return char.IsLetter(c)
                 || char.IsNumber(c)
                 || c == '_';
+        }
+
+        private static bool MatchesTypeParameterPattern(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return false;
+
+            // This is just a very simple heuristic to catch common cases where user is typing a type parameter name in .NET
+            // Pattern: starts with 'T', and optionally followed by an uppercase letter
+            return text == "T" || text.Length >= 2 && text[0] == 'T' && char.IsUpper(text[1]);
         }
 
         private ItemSelection UpdateSelectionBasedOnSuggestedDefaults(IReadOnlyList<MatchResult> items, ItemSelection itemSelection, CancellationToken cancellationToken)

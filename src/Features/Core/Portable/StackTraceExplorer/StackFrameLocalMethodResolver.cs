@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer;
 
-internal class StackFrameLocalMethodResolver : AbstractStackTraceSymbolResolver
+internal sealed class StackFrameLocalMethodResolver : AbstractStackTraceSymbolResolver
 {
     public override async Task<IMethodSymbol?> TryGetBestMatchAsync(
         Project project,
@@ -35,10 +35,10 @@ internal class StackFrameLocalMethodResolver : AbstractStackTraceSymbolResolver
 
         var containingMethodName = localMethodNameNode.EncapsulatingMethod.Identifier.ToString();
         var semanticFacts = project.GetRequiredLanguageService<ISemanticFactsService>();
-        var candidateFunctions = type.GetMembers()
+        var candidateFunctions = type
+            .GetMembers()
             .Where(member => member.Name == containingMethodName)
-            .SelectMany(member => semanticFacts.GetLocalFunctionSymbols(compilation, member, cancellationToken))
-            .ToImmutableArray();
+            .SelectMany(member => semanticFacts.GetLocalFunctionSymbols(compilation, member, cancellationToken));
 
         return TryGetBestMatch(candidateFunctions, methodTypeArguments, methodArguments);
     }

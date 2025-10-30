@@ -322,6 +322,9 @@
   <data name="Remove_unnecessary_suppression" xml:space="preserve">
     <value>Remove unnecessary suppression</value>
   </data>
+  <data name="Suppression_is_unnecessary" xml:space="preserve">
+    <value>Suppression is unnecessary</value>
+  </data>
   <data name="Remove_redundant_equality" xml:space="preserve">
     <value>Remove redundant equality</value>
   </data>
@@ -396,5 +399,23 @@
   </data>
   <data name="Simplify_check" xml:space="preserve">
     <value>Simplify check</value>
+  </data>
+  <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
+    <value>Base classes contain inaccessible unimplemented members</value>
+  </data>
+  <data name="Implement_abstract_class" xml:space="preserve">
+    <value>Implement abstract class</value>
+  </data>
+  <data name="Implement_through_0" xml:space="preserve">
+    <value>Implement through '{0}'</value>
+  </data>
+  <data name="Accessibility_modifiers_unnecessary" xml:space="preserve">
+    <value>Accessibility modifiers unnecessary</value>
+  </data>
+  <data name="Remove_unnecessary_unsafe_modifier" xml:space="preserve">
+    <value>Remove unnecessary 'unsafe' modifier</value>
+  </data>
+  <data name="unsafe_modifier_is_unnecessary" xml:space="preserve">
+    <value>'unsafe' modifier is unnecessary</value>
   </data>
 </root>

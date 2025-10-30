@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -56,7 +57,7 @@ BC31007: Unable to load module file 'Goo.dll': PE image doesn't contain managed 
     <WorkItem(545062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545062")>
     <Fact>
     Public Sub DuplicateReferences()
-        Dim mscorlibMetadata = AssemblyMetadata.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib)
+        Dim mscorlibMetadata = AssemblyMetadata.CreateFromImage(Net461.Resources.mscorlib)
 
         Dim mscorlib1 = mscorlibMetadata.GetReference(filePath:="lib1.dll")
         Dim mscorlib2 = mscorlibMetadata.GetReference(filePath:="lib1.dll")

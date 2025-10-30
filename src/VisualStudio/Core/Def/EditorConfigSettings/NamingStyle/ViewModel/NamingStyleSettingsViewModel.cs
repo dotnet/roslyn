@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
 
-internal partial class NamingStyleSettingsViewModel : SettingsViewModelBase<
+internal sealed partial class NamingStyleSettingsViewModel : SettingsViewModelBase<
         NamingStyleSetting,
         NamingStyleSettingsViewModel.SettingsSnapshotFactory,
         NamingStyleSettingsViewModel.SettingsEntriesSnapshot>
@@ -38,11 +38,10 @@ internal partial class NamingStyleSettingsViewModel : SettingsViewModelBase<
         };
 
     protected override string[] GetFixedColumns()
-        => new[]
-        {
+        => [
             ColumnDefinitions.NamingStyle.Type,
             ColumnDefinitions.NamingStyle.Style,
             ColumnDefinitions.NamingStyle.Severity,
             ColumnDefinitions.NamingStyle.Location
-        };
+        ];
 }

@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
-using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -266,14 +268,12 @@ namespace Microsoft.CodeAnalysis
                 case SpecialType.System_Int64:
                     return 63;
                 default:
-                    throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(specialType);
+                    throw ExceptionUtilities.UnexpectedValue(specialType);
             }
         }
 
         public static SpecialType FromRuntimeTypeOfLiteralValue(object value)
         {
-            RoslynDebug.Assert(value != null);
-
             // Perf: Note that JIT optimizes each expression val.GetType() == typeof(T) to a single register comparison.
             // Also the checks are sorted by commonality of the checked types.
 
@@ -364,5 +364,30 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static bool CanOptimizeBehavior(this SpecialType specialType)
             => specialType is >= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute;
+
+        /// <summary>
+        /// Convert a boxed primitive (generally of the backing type of an enum) into a ulong.
+        /// </summary>
+        internal static ulong ConvertUnderlyingValueToUInt64(this SpecialType enumUnderlyingType, object value)
+        {
+            Debug.Assert(value.GetType().IsPrimitive);
+
+            unchecked
+            {
+                return enumUnderlyingType switch
+                {
+                    SpecialType.System_SByte => (ulong)(sbyte)value,
+                    SpecialType.System_Int16 => (ulong)(short)value,
+                    SpecialType.System_Int32 => (ulong)(int)value,
+                    SpecialType.System_Int64 => (ulong)(long)value,
+                    SpecialType.System_Byte => (byte)value,
+                    SpecialType.System_UInt16 => (ushort)value,
+                    SpecialType.System_UInt32 => (uint)value,
+                    SpecialType.System_UInt64 => (ulong)value,
+                    _ => throw ExceptionUtilities.UnexpectedValue(enumUnderlyingType),
+                };
+            }
+        }
+
     }
 }

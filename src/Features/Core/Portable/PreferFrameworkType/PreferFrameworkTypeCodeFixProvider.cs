@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -17,14 +16,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.PreferFrameworkType;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.PreferFrameworkType), Shared]
-internal class PreferFrameworkTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class PreferFrameworkTypeCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public PreferFrameworkTypeCodeFixProvider()
-    {
-    }
-
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId];
 
@@ -33,12 +28,7 @@ internal class PreferFrameworkTypeCodeFixProvider : SyntaxEditorBasedCodeFixProv
         var diagnostic = context.Diagnostics[0];
         if (diagnostic.Properties.ContainsKey(PreferFrameworkTypeConstants.PreferFrameworkType))
         {
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    FeaturesResources.Use_framework_type,
-                    GetDocumentUpdater(context),
-                    nameof(FeaturesResources.Use_framework_type)),
-                context.Diagnostics);
+            RegisterCodeFix(context, FeaturesResources.Use_framework_type, nameof(FeaturesResources.Use_framework_type));
         }
 
         return Task.CompletedTask;
@@ -46,7 +36,7 @@ internal class PreferFrameworkTypeCodeFixProvider : SyntaxEditorBasedCodeFixProv
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var generator = editor.Generator;
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

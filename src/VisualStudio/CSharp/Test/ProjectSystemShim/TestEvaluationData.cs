@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
-using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim;
 
@@ -40,7 +38,7 @@ internal sealed class TestEvaluationData : EvaluationData
     public override ImmutableArray<string> GetItemValues(string name)
         => name switch
         {
-            "IntermediateAssembly" => ImmutableArray.Create(OutputAssembly),
+            "IntermediateAssembly" => [OutputAssembly],
             _ => throw ExceptionUtilities.UnexpectedValue(name)
         };
 }

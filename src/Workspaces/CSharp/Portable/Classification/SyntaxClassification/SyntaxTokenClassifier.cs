@@ -11,14 +11,13 @@ using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
 
-internal class SyntaxTokenClassifier : AbstractSyntaxClassifier
+internal sealed class SyntaxTokenClassifier : AbstractSyntaxClassifier
 {
     public override ImmutableArray<int> SyntaxTokenKinds { get; } = [(int)SyntaxKind.LessThanToken];
 

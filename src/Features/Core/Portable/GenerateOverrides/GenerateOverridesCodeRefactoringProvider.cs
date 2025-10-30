@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides;
     Name = PredefinedCodeRefactoringProviderNames.GenerateOverrides), Shared]
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
 [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-internal partial class GenerateOverridesCodeRefactoringProvider(IPickMembersService? pickMembersService) : CodeRefactoringProvider
+internal sealed partial class GenerateOverridesCodeRefactoringProvider(IPickMembersService? pickMembersService) : CodeRefactoringProvider
 {
     private readonly IPickMembersService? _pickMembersService_forTestingPurposes = pickMembersService;
 
@@ -55,7 +54,7 @@ internal partial class GenerateOverridesCodeRefactoringProvider(IPickMembersServ
 
         context.RegisterRefactoring(
             new GenerateOverridesWithDialogCodeAction(
-                this, document, textSpan, containingType, overridableMembers, context.Options),
+                this, document, textSpan, containingType, overridableMembers),
             typeDeclaration.Span);
     }
 }

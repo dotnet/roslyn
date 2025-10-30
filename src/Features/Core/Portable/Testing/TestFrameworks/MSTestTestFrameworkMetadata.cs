@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Features.Testing;
 
 [Export(typeof(ITestFrameworkMetadata)), Shared]
-internal class MSTestTestFrameworkMetadata : ITestFrameworkMetadata
+internal sealed class MSTestTestFrameworkMetadata : ITestFrameworkMetadata
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

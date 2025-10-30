@@ -2,25 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.ReplaceConditionalWithStatements;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceConditionalWithStatements;
 
 using VerifyCS = CSharpCodeRefactoringVerifier<CSharpReplaceConditionalWithStatementsCodeRefactoringProvider>;
 
-public class ReplaceConditionalWithStatementsTests
+[UseExportProvider]
+public sealed class ReplaceConditionalWithStatementsTests
 {
     [Fact]
-    public async Task TestAssignment_ObjectType()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestAssignment_ObjectType()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -48,12 +45,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignment_ObjectType_OnAssigment()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestAssignment_ObjectType_OnAssigment()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -81,12 +76,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignment_SameType()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestAssignment_SameType()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -114,12 +107,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignment_RefConditional()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestAssignment_RefConditional()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             #nullable enable
 
@@ -151,12 +142,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignment_Discard()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestAssignment_Discard()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -182,12 +171,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAssignment_GlobalStatement()
-    {
-        await new VerifyCS.Test
+    public Task TestAssignment_GlobalStatement()
+        => new VerifyCS.Test
         {
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
@@ -211,12 +198,10 @@ public class ReplaceConditionalWithStatementsTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestAssignment_GlobalStatement_OnAssignment()
-    {
-        await new VerifyCS.Test
+    public Task TestAssignment_GlobalStatement_OnAssignment()
+        => new VerifyCS.Test
         {
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
@@ -240,7 +225,6 @@ public class ReplaceConditionalWithStatementsTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestRefLocalDeclaration1()
@@ -278,9 +262,8 @@ public class ReplaceConditionalWithStatementsTests
     }
 
     [Fact]
-    public async Task TestCompoundAssignment()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestCompoundAssignment()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -308,12 +291,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithExpression()
-    {
-        await new VerifyCS.Test
+    public Task TestWithExpression()
+        => new VerifyCS.Test
         {
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
             TestCode =
@@ -358,12 +339,10 @@ public class ReplaceConditionalWithStatementsTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestLocalDeclarationStatement1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestLocalDeclarationStatement1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -390,12 +369,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalDeclarationStatement1_OnDeclaration()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestLocalDeclarationStatement1_OnDeclaration()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -422,12 +399,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalDeclarationStatement_WithVar()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestLocalDeclarationStatement_WithVar()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -454,12 +429,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalDeclarationStatement_ThrowExpression()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestLocalDeclarationStatement_ThrowExpression()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -492,12 +465,10 @@ public class ReplaceConditionalWithStatementsTests
                 int N(int v) => v;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLocalDeclarationStatement_TopLevel1()
-    {
-        await new VerifyCS.Test
+    public Task TestLocalDeclarationStatement_TopLevel1()
+        => new VerifyCS.Test
         {
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
@@ -521,12 +492,10 @@ public class ReplaceConditionalWithStatementsTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestLocalDeclarationStatement_TopLevel_OnDeclaration1()
-    {
-        await new VerifyCS.Test
+    public Task TestLocalDeclarationStatement_TopLevel_OnDeclaration1()
+        => new VerifyCS.Test
         {
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
@@ -550,12 +519,10 @@ public class ReplaceConditionalWithStatementsTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestLocalDeclarationStatement_TopLevel_WithVar1()
-    {
-        await new VerifyCS.Test
+    public Task TestLocalDeclarationStatement_TopLevel_WithVar1()
+        => new VerifyCS.Test
         {
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
@@ -579,12 +546,10 @@ public class ReplaceConditionalWithStatementsTests
             }
             """
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReturnStatement_ObjectReturn()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestReturnStatement_ObjectReturn()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -610,12 +575,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReturnStatement_ObjectReturn_OnReturn()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestReturnStatement_ObjectReturn_OnReturn()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -641,12 +604,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReturnStatement_AcualTypeReturn()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestReturnStatement_AcualTypeReturn()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             class C
             {
@@ -672,12 +633,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExpressionStatement_SimpleInvocationArgument()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestExpressionStatement_SimpleInvocationArgument()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -705,12 +664,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExpressionStatement_NestedInvocationArgument_Outer()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestExpressionStatement_NestedInvocationArgument_Outer()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -738,12 +695,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExpressionStatement_NestedInvocationArgument_Inner1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestExpressionStatement_NestedInvocationArgument_Inner1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -771,12 +726,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExpressionStatement_NestedInvocationArgument_Inner22()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestExpressionStatement_NestedInvocationArgument_Inner22()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -804,12 +757,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExpressionStatement_InvocationWithInference1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestExpressionStatement_InvocationWithInference1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -841,12 +792,10 @@ public class ReplaceConditionalWithStatementsTests
                 void F<T>(T value) => Console.WriteLine(typeof(T));
             }
             """);
-    }
 
     [Fact(Skip = "Causes assert in compiler layer")]
-    public async Task TestExpressionStatement_InvocationWithSimpleObjectCreation()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestExpressionStatement_InvocationWithSimpleObjectCreation()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -879,12 +828,10 @@ public class ReplaceConditionalWithStatementsTests
                 void F(object value) => Console.WriteLine(value.GetType());
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExpressionStatement_SimpleInvocationArgument_OnStatement()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestExpressionStatement_SimpleInvocationArgument_OnStatement()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -912,12 +859,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExpressionStatement_SecondInvocationArgument()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestExpressionStatement_SecondInvocationArgument()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -945,12 +890,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExpressionStatement_NestedInvocationArgument()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestExpressionStatement_NestedInvocationArgument()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -980,12 +923,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAwaitExpression1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestAwaitExpression1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1015,12 +956,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAwaitExpression_OnAwait()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestAwaitExpression_OnAwait()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1050,12 +989,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestThrowStatement1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestThrowStatement1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -1083,12 +1020,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestThrowStatement_OnThrow1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestThrowStatement_OnThrow1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -1116,12 +1051,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDeepThrowOnOneSide()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestDeepThrowOnOneSide()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -1153,12 +1086,10 @@ public class ReplaceConditionalWithStatementsTests
                 int N(int v) => v;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDeepThrowOnOneSide_LocalDeclaration()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestDeepThrowOnOneSide_LocalDeclaration()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             class C
@@ -1191,12 +1122,10 @@ public class ReplaceConditionalWithStatementsTests
                 int N(int v) => v;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestYieldReturn1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestYieldReturn1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1226,12 +1155,10 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestYieldReturn_OnYield1()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestYieldReturn_OnYield1()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1261,5 +1188,4 @@ public class ReplaceConditionalWithStatementsTests
                 }
             }
             """);
-    }
 }

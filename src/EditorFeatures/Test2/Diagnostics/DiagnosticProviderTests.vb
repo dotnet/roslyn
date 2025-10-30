@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -261,19 +262,21 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Next
 
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
-                Dim actualDiagnostics = diagnosticProvider.GetDiagnosticsAsync(
-                    workspace.CurrentSolution, projectId:=Nothing, documentId:=Nothing,
-                    includeSuppressedDiagnostics:=False,
-                    includeNonLocalDocumentDiagnostics:=True,
-                    CancellationToken.None).Result
+                Dim actualDiagnostics = New List(Of DiagnosticData)
+
+                For Each project In workspace.CurrentSolution.Projects
+                    actualDiagnostics.AddRange(diagnosticProvider.GetDiagnosticsForIdsAsync(
+                        project, documentIds:=Nothing, diagnosticIds:=Nothing, AnalyzerFilter.All,
+                        includeLocalDocumentDiagnostics:=True, CancellationToken.None).Result)
+                Next
 
                 If diagnostics Is Nothing Then
-                    Assert.Equal(0, actualDiagnostics.Length)
+                    Assert.Empty(actualDiagnostics)
                 Else
                     Dim expectedDiagnostics = GetExpectedDiagnostics(workspace, diagnostics)
 
                     If ordered Then
-                        AssertEx.Equal(expectedDiagnostics, actualDiagnostics, New Comparer())
+                        AssertEx.SequenceEqual(expectedDiagnostics, actualDiagnostics, New Comparer())
                     Else
                         AssertEx.SetEqual(expectedDiagnostics, actualDiagnostics, New Comparer())
                     End If
@@ -281,14 +284,14 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        Private Shared Function GetDiagnosticProvider(workspace As EditorTestWorkspace) As DiagnosticAnalyzerService
+        Private Shared Function GetDiagnosticProvider(workspace As EditorTestWorkspace) As IDiagnosticAnalyzerService
             Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap().Add(
                 NoCompilationConstants.LanguageName, ImmutableArray.Create(Of DiagnosticAnalyzer)(New NoCompilationDocumentDiagnosticAnalyzer()))
 
             Dim analyzerReference = New TestAnalyzerReferenceByLanguage(compilerAnalyzersMap)
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-            Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
+            Dim analyzerService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
 
             Return analyzerService
         End Function
@@ -329,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
         Private Shared Function GetDocumentId(workspace As EditorTestWorkspace, document As String) As DocumentId
             Return (From doc In workspace.Documents
-                    Where doc.FilePath.Equals(document)
+                    Where Path.GetFileName(doc.FilePath).Equals(document)
                     Select doc.Id).Single()
         End Function
 

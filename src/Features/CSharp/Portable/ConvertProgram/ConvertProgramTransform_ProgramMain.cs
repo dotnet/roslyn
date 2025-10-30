@@ -18,6 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static partial class ConvertProgramTransform
@@ -75,7 +76,7 @@ internal static partial class ConvertProgramTransform
         var programType = mainMethod.ContainingType;
 
         // Respect user settings on if they want explicit or implicit accessibility modifiers.
-        var useDeclaredAccessibity = accessibilityModifiersRequired is AccessibilityModifiersRequired.ForNonInterfaceMembers or AccessibilityModifiersRequired.Always;
+        var useDeclaredAccessibility = accessibilityModifiersRequired is AccessibilityModifiersRequired.ForNonInterfaceMembers or AccessibilityModifiersRequired.Always;
 
         var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
@@ -88,21 +89,21 @@ internal static partial class ConvertProgramTransform
             GenerateProgramMainStatements(root, out var leadingTrivia));
         method = method.WithReturnType(method.ReturnType.WithAdditionalAnnotations(Simplifier.AddImportsAnnotation));
         method = (MethodDeclarationSyntax)generator.WithAccessibility(
-            method, useDeclaredAccessibity ? mainMethod.DeclaredAccessibility : Accessibility.NotApplicable);
+            method, useDeclaredAccessibility ? mainMethod.DeclaredAccessibility : Accessibility.NotApplicable);
 
         // Workaround for simplification not being ready when we generate a new file.  Substitute System.String[]
         // with string[].
         if (method.ParameterList.Parameters is [{ Type: ArrayTypeSyntax arrayType }])
-            method = method.ReplaceNode(arrayType.ElementType, PredefinedType(Token(SyntaxKind.StringKeyword)));
+            method = method.ReplaceNode(arrayType.ElementType, PredefinedType(StringKeyword));
 
         if (oldClassDeclaration is null)
         {
             // If we dodn't have any suitable class declaration in the same file then generate it
             return FixupComments((ClassDeclarationSyntax)generator.ClassDeclaration(
                 WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
-                accessibility: useDeclaredAccessibity ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
+                accessibility: useDeclaredAccessibility ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: hasExistingPart ? DeclarationModifiers.Partial : DeclarationModifiers.None,
-                members: new[] { method }).WithLeadingTrivia(leadingTrivia));
+                members: [method]).WithLeadingTrivia(leadingTrivia));
         }
         else
         {
@@ -145,7 +146,7 @@ internal static partial class ConvertProgramTransform
             }
         }
 
-        return statements.ToImmutable();
+        return statements.ToImmutableAndClear();
     }
 
     private static TSyntaxNode FixupComments<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode

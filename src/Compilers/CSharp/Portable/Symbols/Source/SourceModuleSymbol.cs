@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -244,6 +245,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 ValidateLinkedAssemblies(diagnostics, cancellationToken);
                             }
 
+                            // If "data section string literals" are enabled, check the necessary APIs are available so used assemblies are tracked correctly.
+                            if (this.DeclaringCompilation.DataSectionStringLiteralThreshold != null)
+                            {
+                                diagnostics ??= BindingDiagnosticBag.GetInstance();
+                                _ = Binder.GetWellKnownTypeMember(this.DeclaringCompilation, WellKnownMember.System_Text_Encoding__get_UTF8, diagnostics, NoLocation.Singleton);
+                                _ = Binder.GetWellKnownTypeMember(this.DeclaringCompilation, WellKnownMember.System_Text_Encoding__GetString, diagnostics, NoLocation.Singleton);
+                            }
+
                             if (_state.NotePartComplete(CompletionPart.StartValidatingReferencedAssemblies))
                             {
                                 if (diagnostics != null)
@@ -343,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var toVisit = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
 
                 // Search the namespaces which were indicated to contain interceptors.
-                ImmutableArray<ImmutableArray<string>> interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsPreviewNamespaces;
+                ImmutableArray<ImmutableArray<string>> interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsNamespaces;
                 foreach (ImmutableArray<string> namespaceParts in interceptorsNamespaces)
                 {
                     if (namespaceParts is ["global"])
@@ -569,7 +578,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.NullableContextAttribute | ReservedAttributes.NullablePublicOnlyAttribute | ReservedAttributes.RefSafetyRulesAttribute))
+                ReservedAttributes.NullableContextAttribute
+                | ReservedAttributes.NullablePublicOnlyAttribute
+                | ReservedAttributes.RefSafetyRulesAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute))
@@ -621,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

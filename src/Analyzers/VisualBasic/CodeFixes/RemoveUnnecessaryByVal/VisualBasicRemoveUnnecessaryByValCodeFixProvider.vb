@@ -4,9 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
@@ -34,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
             Return Task.CompletedTask
         End Function
 
-        Protected Overrides Async Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, fallbackOptions As CodeActionOptionsProvider, cancellationToken As CancellationToken) As Task
+        Protected Overrides Async Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             For Each diagnostic In diagnostics
                 Dim node = DirectCast(root.FindNode(diagnostic.AdditionalLocations(0).SourceSpan), ParameterSyntax)

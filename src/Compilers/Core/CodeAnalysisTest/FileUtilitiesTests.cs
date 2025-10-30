@@ -305,6 +305,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [InlineData("/a/../b/../c/file.cs", "/c/file.cs")]
         [InlineData("/../../c/file.cs", "/c/file.cs")]
         [InlineData("/a/../b/./././../c/file.cs", "/c/file.cs")]
+        [InlineData("/tmp/../.config/../.roslyn/**/*.cs", "/.roslyn/**/*.cs")]
         // not absolute paths
         [InlineData("a/b/c", "a/b/c")]
         [InlineData("./a/b/c", "./a/b/c")]

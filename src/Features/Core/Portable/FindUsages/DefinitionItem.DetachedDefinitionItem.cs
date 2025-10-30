@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.FindUsages.DefinitionItem;
@@ -23,7 +24,7 @@ internal sealed class DetachedDefinitionItem(
     ImmutableArray<DocumentIdSpan> sourceSpans,
     ImmutableArray<AssemblyLocation> metadataLocations,
     ImmutableDictionary<string, string> properties,
-    ImmutableDictionary<string, string> displayableProperties,
+    ImmutableArray<(string key, string value)> displayableProperties,
     bool displayIfNoReferences) : IEquatable<DetachedDefinitionItem>
 {
     [DataMember(Order = 0)]
@@ -39,7 +40,7 @@ internal sealed class DetachedDefinitionItem(
     [DataMember(Order = 5)]
     public readonly ImmutableDictionary<string, string> Properties = properties;
     [DataMember(Order = 6)]
-    public readonly ImmutableDictionary<string, string> DisplayableProperties = displayableProperties;
+    public readonly ImmutableArray<(string key, string value)> DisplayableProperties = displayableProperties;
     [DataMember(Order = 7)]
     public readonly bool DisplayIfNoReferences = displayIfNoReferences;
 

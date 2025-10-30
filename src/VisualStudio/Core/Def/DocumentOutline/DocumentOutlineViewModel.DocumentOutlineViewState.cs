@@ -40,13 +40,13 @@ internal sealed partial class DocumentOutlineViewModel
         /// Interval-tree view over <see cref="ViewModelItems"/> so that we can quickly determine which of them
         /// intersect with a particular position in the document.
         /// </summary>
-        public readonly IntervalTree<DocumentSymbolDataViewModel> ViewModelItemsTree;
+        public readonly ImmutableIntervalTree<DocumentSymbolDataViewModel> ViewModelItemsTree;
 
         public DocumentOutlineViewState(
             ITextSnapshot textSnapshot,
             string searchText,
             ImmutableArray<DocumentSymbolDataViewModel> viewModelItems,
-            IntervalTree<DocumentSymbolDataViewModel> viewModelItemsTree)
+            ImmutableIntervalTree<DocumentSymbolDataViewModel> viewModelItemsTree)
         {
             TextSnapshot = textSnapshot;
             SearchText = searchText;

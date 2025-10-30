@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
@@ -30,20 +28,20 @@ internal interface ITaggerEventSource
     void Disconnect();
 
     /// <summary>
-    /// Pauses this event source and prevents it from firing the <see cref="Changed"/> event. Can be called many
-    /// times (but subsequence calls have no impact if already paused).  Must be called on the UI thread.
+    /// Pauses this event source and prevents it from firing the <see cref="Changed"/> event. Can be called many times
+    /// (but subsequent calls have no impact if already paused).  Must be called on the UI thread.
     /// </summary>
     void Pause();
 
     /// <summary>
     /// Resumes this event source and allows firing the <see cref="Changed"/> event. Can be called many times (but
-    /// subsequence calls have no impact if already resumed).  Must be called on the UI thread.
+    /// subsequent calls have no impact if already resumed).  Must be called on the UI thread.
     /// </summary>
     void Resume();
 
     /// <summary>
     /// An event has happened on the thing the tagger is attached to.  The tagger should
-    /// recompute tags.
+    /// recompute tags. May be raised on any thread.
     /// </summary>
     event EventHandler<TaggerEventArgs> Changed;
 }

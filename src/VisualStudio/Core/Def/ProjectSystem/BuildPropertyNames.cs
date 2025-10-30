@@ -22,6 +22,7 @@ internal static class BuildPropertyNames
     public const string RunAnalyzersDuringLiveAnalysis = nameof(RunAnalyzersDuringLiveAnalysis);
     public const string TemporaryDependencyNodeTargetIdentifier = nameof(TemporaryDependencyNodeTargetIdentifier);
     public const string TargetRefPath = nameof(TargetRefPath);
+    public const string CompilerGeneratedFilesOutputPath = nameof(CompilerGeneratedFilesOutputPath);
 
     // Properties requested at project creation time.
 

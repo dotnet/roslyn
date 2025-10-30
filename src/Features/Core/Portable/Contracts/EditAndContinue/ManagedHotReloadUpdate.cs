@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.Serialization;
 using System;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 internal readonly struct ManagedHotReloadUpdate(
     Guid module,
     string moduleName,
+    ProjectId projectId,
     ImmutableArray<byte> ilDelta,
     ImmutableArray<byte> metadataDelta,
     ImmutableArray<byte> pdbDelta,
@@ -27,6 +28,9 @@ internal readonly struct ManagedHotReloadUpdate(
 
     [DataMember(Name = "moduleName")]
     public string ModuleName { get; } = moduleName;
+
+    [DataMember(Name = "projectId")]
+    public ProjectId ProjectId { get; } = projectId;
 
     [DataMember(Name = "ilDelta")]
     public ImmutableArray<byte> ILDelta { get; } = ilDelta;

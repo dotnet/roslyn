@@ -10,43 +10,41 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
-internal partial class CSharpReplacePropertyWithMethodsService :
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CSharpReplacePropertyWithMethodsService() :
     AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax, PropertyDeclarationSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpReplacePropertyWithMethodsService()
-    {
-    }
-
     public override async Task<ImmutableArray<SyntaxNode>> GetReplacementMembersAsync(
         Document document,
         IPropertySymbol property,
         SyntaxNode propertyDeclarationNode,
-        IFieldSymbol propertyBackingField,
+        IFieldSymbol? propertyBackingField,
         string desiredGetMethodName,
         string desiredSetMethodName,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         if (propertyDeclarationNode is not PropertyDeclarationSyntax propertyDeclaration)
             return [];
 
-        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var languageVersion = syntaxTree.Options.LanguageVersion();
 
@@ -69,7 +67,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         string desiredSetMethodName,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var result);
+        using var result = TemporaryArray<SyntaxNode>.Empty;
 
         if (propertyBackingField != null)
         {
@@ -90,14 +88,16 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         var setMethod = property.SetMethod;
         if (setMethod != null)
         {
+            // Only copy leading trivia to the setter if we didn't already copy it to the getter.
             result.Add(GetSetMethod(
                 languageVersion,
                 generator, propertyDeclaration, propertyBackingField,
                 setMethod, desiredSetMethodName, expressionBodyPreference,
+                copyLeadingTrivia: getMethod is null,
                 cancellationToken));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static SyntaxNode GetSetMethod(
@@ -108,13 +108,13 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         IMethodSymbol setMethod,
         string desiredSetMethodName,
         ExpressionBodyPreference expressionBodyPreference,
+        bool copyLeadingTrivia,
         CancellationToken cancellationToken)
     {
         var methodDeclaration = GetSetMethodWorker();
 
-        // The analyzer doesn't report diagnostics when the trivia contains preprocessor directives, so it's safe
-        // to copy the complete leading trivia to both generated methods.
-        methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToParamRewriter.Instance);
+        if (copyLeadingTrivia)
+            methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToParamRewriter.Instance);
 
         return UseExpressionOrBlockBodyIfDesired(
             languageVersion, methodDeclaration, expressionBodyPreference,
@@ -129,7 +129,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
             if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
                 && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
             {
-                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+                methodDeclaration = methodDeclaration.AddModifiers(UnsafeKeyword);
             }
 
             methodDeclaration = methodDeclaration.WithAttributeLists(setAccessorDeclaration.AttributeLists);
@@ -147,7 +147,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
             }
             else if (propertyBackingField != null)
             {
-                return methodDeclaration.WithBody(SyntaxFactory.Block(
+                return methodDeclaration.WithBody(Block(
                     (StatementSyntax)generator.ExpressionStatement(
                         generator.AssignmentStatement(
                             GetFieldReference(generator, propertyBackingField),
@@ -184,7 +184,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
             if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
                 && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
             {
-                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+                methodDeclaration = methodDeclaration.AddModifiers(UnsafeKeyword);
             }
 
             if (propertyDeclaration.ExpressionBody != null)
@@ -214,7 +214,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
                 {
                     var fieldReference = GetFieldReference(generator, propertyBackingField);
                     return methodDeclaration.WithBody(
-                        SyntaxFactory.Block(
+                        Block(
                             (StatementSyntax)generator.ReturnStatement(fieldReference)));
                 }
             }
@@ -234,13 +234,9 @@ internal partial class CSharpReplacePropertyWithMethodsService :
 
     private static SyntaxTrivia ConvertTrivia(SyntaxTrivia trivia, CSharpSyntaxRewriter rewriter)
     {
-        if (trivia.Kind() is SyntaxKind.MultiLineDocumentationCommentTrivia or
-            SyntaxKind.SingleLineDocumentationCommentTrivia)
-        {
-            return ConvertDocumentationComment(trivia, rewriter);
-        }
-
-        return trivia;
+        return trivia.Kind() is SyntaxKind.MultiLineDocumentationCommentTrivia or SyntaxKind.SingleLineDocumentationCommentTrivia
+            ? ConvertDocumentationComment(trivia, rewriter)
+            : trivia;
     }
 
     private static SyntaxTrivia ConvertDocumentationComment(SyntaxTrivia trivia, CSharpSyntaxRewriter rewriter)
@@ -248,10 +244,10 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         var structure = trivia.GetStructure();
         var rewritten = rewriter.Visit(structure);
         Contract.ThrowIfNull(rewritten);
-        return SyntaxFactory.Trivia((StructuredTriviaSyntax)rewritten);
+        return Trivia((StructuredTriviaSyntax)rewritten);
     }
 
-    private static SyntaxNode UseExpressionOrBlockBodyIfDesired(
+    private static MethodDeclarationSyntax UseExpressionOrBlockBodyIfDesired(
         LanguageVersion languageVersion,
         MethodDeclarationSyntax methodDeclaration,
         ExpressionBodyPreference expressionBodyPreference,
@@ -306,17 +302,17 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         CrefParameterListSyntax parameterList;
         if (parameterType is TypeSyntax typeSyntax)
         {
-            var parameter = SyntaxFactory.CrefParameter(typeSyntax);
-            parameterList = SyntaxFactory.CrefParameterList([parameter]);
+            var parameter = CrefParameter(typeSyntax);
+            parameterList = CrefParameterList([parameter]);
         }
         else
         {
-            parameterList = SyntaxFactory.CrefParameterList();
+            parameterList = CrefParameterList();
         }
 
         // XmlCrefAttribute replaces <T> with {T}, which is required for C# documentation comments
-        var crefAttribute = SyntaxFactory.XmlCrefAttribute(
-            SyntaxFactory.NameMemberCref(SyntaxFactory.IdentifierName(identifierToken), parameterList));
+        var crefAttribute = XmlCrefAttribute(
+            NameMemberCref(IdentifierName(identifierToken), parameterList));
         return (NameMemberCrefSyntax)crefAttribute.Cref;
     }
 
@@ -345,6 +341,6 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         if (operatorKind is SyntaxKind.None)
             return parent;
 
-        return SyntaxFactory.BinaryExpression(operatorKind, readExpression, parent.Right.Parenthesize());
+        return BinaryExpression(operatorKind, readExpression, parent.Right.Parenthesize());
     }
 }

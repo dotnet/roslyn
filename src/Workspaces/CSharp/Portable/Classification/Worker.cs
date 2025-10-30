@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
@@ -48,21 +49,19 @@ internal readonly ref partial struct Worker
         worker.ClassifyNode(node);
     }
 
-    private void AddClassification(TextSpan span, string type)
+    private readonly void AddClassification(TextSpan span, string type)
     {
         if (ShouldAddSpan(span))
-        {
             _result.Add(new ClassifiedSpan(type, span));
-        }
     }
 
-    private bool ShouldAddSpan(TextSpan span)
+    private readonly bool ShouldAddSpan(TextSpan span)
         => span.Length > 0 && _textSpan.OverlapsWith(span);
 
-    private void AddClassification(SyntaxTrivia trivia, string type)
+    private readonly void AddClassification(SyntaxTrivia trivia, string type)
         => AddClassification(trivia.Span, type);
 
-    private void AddClassification(SyntaxToken token, string type)
+    private readonly void AddClassification(SyntaxToken token, string type)
         => AddClassification(token.Span, type);
 
     private void ClassifyNodeOrToken(SyntaxNodeOrToken nodeOrToken)
@@ -80,10 +79,39 @@ internal readonly ref partial struct Worker
 
     private void ClassifyNode(SyntaxNode node)
     {
-        foreach (var token in node.DescendantTokens(span: _textSpan, descendIntoTrivia: false))
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+        stack.Push(node);
+
+        var textSpanStart = _textSpan.Start;
+        var textSpanEnd = _textSpan.End;
+
+        while (stack.TryPop(out var current))
         {
             _cancellationToken.ThrowIfCancellationRequested();
-            ClassifyToken(token);
+
+            // It's ok that we're not pushing in reverse.  The caller (TotalClassificationTaggerProvider) will be
+            // sorting the results before doing anything with them.
+            foreach (var child in current.ChildNodesAndTokens())
+            {
+                if (child.AsNode(out var childNode))
+                {
+                    var childSpan = childNode.FullSpan;
+
+                    // If we haven't reached the start of the span we care about, then we can skip this node, going to
+                    // the next.  Once we go past that span, we can stop immediately.  Otherwise, we must be
+                    // intersecting the span, and we should recurse into this child.
+                    if (childSpan.End < textSpanStart)
+                        continue;
+                    else if (childSpan.Start > textSpanEnd)
+                        break;
+                    else
+                        stack.Push(childNode);
+                }
+                else
+                {
+                    ClassifyToken(child.AsToken());
+                }
+            }
         }
     }
 
@@ -219,6 +247,7 @@ internal readonly ref partial struct Worker
             case SyntaxKind.PragmaChecksumDirectiveTrivia:
             case SyntaxKind.ReferenceDirectiveTrivia:
             case SyntaxKind.LoadDirectiveTrivia:
+            case SyntaxKind.IgnoredDirectiveTrivia:
             case SyntaxKind.NullableDirectiveTrivia:
             case SyntaxKind.BadDirectiveTrivia:
                 ClassifyPreprocessorDirective((DirectiveTriviaSyntax)trivia.GetStructure()!);

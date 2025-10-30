@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
@@ -27,9 +26,9 @@ internal abstract class AbstractMainMethodSnippetProvider<TMethodDeclarationSynt
         var generator = SyntaxGenerator.GetGenerator(document);
         var method = generator.MethodDeclaration(
             name: WellKnownMemberNames.EntryPointMethodName,
-            parameters: SpecializedCollections.SingletonEnumerable(generator.ParameterDeclaration(
+            parameters: [generator.ParameterDeclaration(
                 name: "args",
-                type: generator.ArrayTypeExpression(generator.TypeExpression(SpecialType.System_String)))),
+                type: generator.ArrayTypeExpression(generator.TypeExpression(SpecialType.System_String)))],
             returnType: GenerateReturnType(generator),
             modifiers: DeclarationModifiers.Static,
             statements: GenerateInnerStatements(generator));

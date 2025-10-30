@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -633,6 +634,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool HasNotNullConstraint { get; }
 
         public abstract bool HasValueTypeConstraint { get; }
+
+        public abstract bool AllowsRefLikeType { get; }
 
         public abstract bool IsValueTypeFromConstraintTypes { get; }
 

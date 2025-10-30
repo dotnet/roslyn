@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return (index == length - 1) ? ";" : "";
         }
 
-        public const string InstrumentationHelperSource = @"
+        public static readonly string InstrumentationHelperSource = @"
 namespace Microsoft.CodeAnalysis.Runtime
 {
     public static class Instrumentation
@@ -216,8 +216,7 @@ namespace Microsoft.CodeAnalysis.Runtime
             return (index == length - 1) ? "" : ".";
         }
 
-        public static readonly XElement InstrumentationHelperSource = new XElement("file", new XAttribute("name", "c.vb"), InstrumentationHelperSourceStr);
-        public const string InstrumentationHelperSourceStr = @"
+        public static readonly string InstrumentationHelperSourceStr = @"
 Namespace Microsoft.CodeAnalysis.Runtime
 
     Public Class Instrumentation
@@ -271,6 +270,7 @@ Namespace Microsoft.CodeAnalysis.Runtime
     End Class
 End Namespace
 ";
+        public static readonly XElement InstrumentationHelperSource = new XElement("file", new XAttribute("name", "c.vb"), InstrumentationHelperSourceStr);
     }
 
     public abstract class BaseInstrumentationChecker
@@ -335,7 +335,7 @@ End Namespace
                 var actualSnippets = GetActualSnippets(method, reader, sourceLines);
                 var expectedSnippets = _spanExpectations[method].SnippetExpectations;
 
-                AssertEx.Equal(expectedSnippets, actualSnippets, new SnippetComparer(), $"Validation of method {method} failed.");
+                AssertEx.SequenceEqual(expectedSnippets, actualSnippets, new SnippetComparer(), $"Validation of method {method} failed.");
             }
         }
 

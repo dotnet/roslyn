@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,12 +23,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
-internal partial class InlineRenameSession
+internal sealed partial class InlineRenameSession
 {
     /// <summary>
     /// Manages state for open text buffers.
     /// </summary>
-    internal class OpenTextBufferManager
+    internal sealed class OpenTextBufferManager
     {
         private static readonly object s_propagateSpansEditTag = new();
         private static readonly object s_calculateMergedSpansEditTag = new();
@@ -164,8 +163,8 @@ internal partial class InlineRenameSession
         internal IEnumerable<RenameTrackingSpan> GetRenameTrackingSpans()
             => _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Concat(_conflictResolutionRenameTrackingSpans);
 
-        internal IEnumerable<SnapshotSpan> GetEditableSpansForSnapshot(ITextSnapshot snapshot)
-            => _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Select(r => r.TrackingSpan.GetSpan(snapshot));
+        internal ImmutableArray<SnapshotSpan> GetEditableSpansForSnapshot(ITextSnapshot snapshot)
+            => _referenceSpanToLinkedRenameSpanMap.Values.SelectAsArray(r => r.Type != RenameSpanKind.None, r => r.TrackingSpan.GetSpan(snapshot));
 
         internal void SetReferenceSpans(IEnumerable<TextSpan> spans)
         {
@@ -186,7 +185,7 @@ internal partial class InlineRenameSession
                 foreach (var span in spans)
                 {
                     var document = _baseDocuments.First();
-                    var renameableSpan = _session._renameInfo.GetReferenceEditSpan(
+                    var renameableSpan = _session.RenameInfo.GetReferenceEditSpan(
                         new InlineRenameLocation(document, span), GetTriggerText(document, span), CancellationToken.None);
                     var trackingSpan = new RenameTrackingSpan(
                             _subjectBuffer.CurrentSnapshot.CreateTrackingSpan(renameableSpan.ToSpan(), SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Forward),
@@ -232,7 +231,7 @@ internal partial class InlineRenameSession
                 var spansTouchedInEdit = new NormalizedSpanCollection(args.Changes.Select(c => c.NewSpan));
 
                 var intersectionSpans = NormalizedSpanCollection.Intersection(trackingSpansAfterEdit, spansTouchedInEdit);
-                if (intersectionSpans.Count == 0)
+                if (intersectionSpans is not ([var firstSpan, ..] and [.., var lastSpan]))
                 {
                     // In Razor we sometimes get formatting changes during inline rename that
                     // do not intersect with any of our spans. Ideally this shouldn't happen at
@@ -244,7 +243,7 @@ internal partial class InlineRenameSession
                 // spans, but they should still all map to a single tracked rename span (e.g.
                 // renaming "two" to "one two three" may be interpreted as two distinct
                 // additions of "one" and "three").
-                var boundingIntersectionSpan = Span.FromBounds(intersectionSpans.First().Start, intersectionSpans.Last().End);
+                var boundingIntersectionSpan = Span.FromBounds(firstSpan.Start, lastSpan.End);
                 var trackingSpansTouched = GetEditableSpansForSnapshot(args.After).Where(ss => ss.IntersectsWith(boundingIntersectionSpan));
                 Debug.Assert(trackingSpansTouched.Count() == 1);
 
@@ -282,7 +281,7 @@ internal partial class InlineRenameSession
             _session.UndoManager.ApplyCurrentState(
                 _subjectBuffer,
                 s_propagateSpansEditTag,
-                _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Select(r => r.TrackingSpan));
+                _referenceSpanToLinkedRenameSpanMap.Values.SelectAsArray(r => r.Type != RenameSpanKind.None, r => r.TrackingSpan));
 
             if (updateSelection && _activeSpan.HasValue && this.ActiveTextView != null)
             {
@@ -313,7 +312,7 @@ internal partial class InlineRenameSession
             }
         }
 
-        internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, LinkedFileMergeSessionResult mergeResult, IEnumerable<Document> documents, CancellationToken cancellationToken)
+        internal async Task ApplyConflictResolutionEditsAsync(IInlineRenameReplacementInfo conflictResolution, LinkedFileMergeSessionResult mergeResult, IEnumerable<Document> documents, CancellationToken cancellationToken)
         {
             _session._threadingContext.ThrowIfNotOnUIThread();
 
@@ -331,7 +330,8 @@ internal partial class InlineRenameSession
                 var newDocument = mergeResult.MergedSolution.GetDocument(documents.First().Id);
                 var originalDocument = _baseDocuments.Single(d => d.Id == newDocument.Id);
 
-                var changes = GetTextChangesFromTextDifferencingServiceAsync(originalDocument, newDocument, cancellationToken).WaitAndGetResult(cancellationToken);
+                var changes = await GetTextChangesFromTextDifferencingServiceAsync(
+                    originalDocument, newDocument, cancellationToken).ConfigureAwait(true);
 
                 // TODO: why does the following line stop responding when uncommented?
                 // newDocument.GetTextChangesAsync(this.baseDocuments.Single(d => d.Id == newDocument.Id), cancellationToken).WaitAndGetResult(cancellationToken).Reverse();
@@ -354,8 +354,7 @@ internal partial class InlineRenameSession
                 _conflictResolutionRenameTrackingSpans.Clear();
 
                 var documentReplacements = documents
-                    .Select(document => (document, conflictResolution.GetReplacements(document.Id).Where(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None).ToImmutableArray()))
-                    .ToImmutableArray();
+                    .SelectAsArray(document => (document, conflictResolution.GetReplacements(document.Id).WhereAsArray(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None)));
 
                 var firstDocumentReplacements = documentReplacements.FirstOrDefault(d => !d.Item2.IsEmpty);
                 var bufferContainsLinkedDocuments = documentReplacements.Length > 1 && firstDocumentReplacements.document != null;
@@ -437,24 +436,24 @@ internal partial class InlineRenameSession
 
                 foreach (var document in documents)
                 {
-                    var relevantReplacements = conflictResolution.GetReplacements(document.Id).Where(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None);
+                    var relevantReplacements = conflictResolution
+                        .GetReplacements(document.Id)
+                        .WhereAsArray(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None);
                     if (!relevantReplacements.Any())
-                    {
                         continue;
-                    }
 
                     var mergedReplacements = linkedDocumentsMightConflict
-                        ? GetMergedReplacementInfos(
+                        ? await GetMergedReplacementInfosAsync(
                             relevantReplacements,
                             conflictResolution.NewSolution.GetDocument(document.Id),
                             mergeResult.MergedSolution.GetDocument(document.Id),
-                            cancellationToken)
+                            cancellationToken).ConfigureAwait(true)
                         : relevantReplacements;
 
                     // Show merge conflicts comments as unresolvable conflicts, and do not
                     // show any other rename-related spans that overlap a merge conflict comment.
                     mergeResult.MergeConflictCommentSpans.TryGetValue(document.Id, out var mergeConflictComments);
-                    mergeConflictComments ??= [];
+                    mergeConflictComments = mergeConflictComments.NullToEmpty();
 
                     foreach (var conflict in mergeConflictComments)
                     {
@@ -471,7 +470,7 @@ internal partial class InlineRenameSession
 
                         if (_referenceSpanToLinkedRenameSpanMap.ContainsKey(replacement.OriginalSpan) && kind != RenameSpanKind.Complexified)
                         {
-                            var linkedRenameSpan = _session._renameInfo.GetConflictEditSpan(
+                            var linkedRenameSpan = _session.RenameInfo.GetConflictEditSpan(
                                  new InlineRenameLocation(newDocument, replacement.NewSpan), GetTriggerText(newDocument, replacement.NewSpan),
                                  GetWithoutAttributeSuffix(_session.ReplacementText,
                                     document.GetLanguageService<LanguageService.ISyntaxFactsService>().IsCaseSensitive), cancellationToken);
@@ -579,8 +578,8 @@ internal partial class InlineRenameSession
             }
         }
 
-        private IEnumerable<InlineRenameReplacement> GetMergedReplacementInfos(
-            IEnumerable<InlineRenameReplacement> relevantReplacements,
+        private async Task<ImmutableArray<InlineRenameReplacement>> GetMergedReplacementInfosAsync(
+            ImmutableArray<InlineRenameReplacement> relevantReplacements,
             Document preMergeDocument,
             Document postMergeDocument,
             CancellationToken cancellationToken)
@@ -607,6 +606,7 @@ internal partial class InlineRenameSession
                 preMergeDocumentTextString = preMergeDocument.GetTextSynchronously(cancellationToken).ToString();
             }
 
+            var result = new FixedSizeArrayBuilder<InlineRenameReplacement>(relevantReplacements.Length);
             foreach (var replacement in relevantReplacements)
             {
                 var buffer = snapshotSpanToClone.HasValue ? _textBufferCloneService.CloneWithUnknownContentType(snapshotSpanToClone.Value) : _textBufferFactoryService.CreateTextBuffer(preMergeDocumentTextString, contentType);
@@ -614,16 +614,19 @@ internal partial class InlineRenameSession
 
                 using (var edit = _subjectBuffer.CreateEdit(EditOptions.None, null, s_calculateMergedSpansEditTag))
                 {
-                    foreach (var change in textDiffService.GetTextChangesAsync(preMergeDocument, postMergeDocument, cancellationToken).WaitAndGetResult(cancellationToken))
-                    {
+                    var textChanges = await textDiffService.GetTextChangesAsync(
+                        preMergeDocument, postMergeDocument, cancellationToken).ConfigureAwait(true);
+                    foreach (var change in textChanges)
                         buffer.Replace(change.Span.ToSpan(), change.NewText);
-                    }
 
                     edit.ApplyAndLogExceptions();
                 }
 
-                yield return new InlineRenameReplacement(replacement.Kind, replacement.OriginalSpan, trackingSpan.GetSpan(buffer.CurrentSnapshot).Span.ToTextSpan());
+                result.Add(new InlineRenameReplacement(
+                    replacement.Kind, replacement.OriginalSpan, trackingSpan.GetSpan(buffer.CurrentSnapshot).Span.ToTextSpan()));
             }
+
+            return result.MoveToImmutable();
         }
 
         private static RenameSpanKind GetRenameSpanKind(InlineRenameReplacementKind kind)

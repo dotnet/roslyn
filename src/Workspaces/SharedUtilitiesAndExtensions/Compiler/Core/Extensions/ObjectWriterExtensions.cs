@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,11 +26,11 @@ internal static class ObjectReaderExtensions
     public static ImmutableArray<T> ReadArray<T, TArg>(this ObjectReader reader, Func<ObjectReader, TArg, T> read, TArg arg)
     {
         var length = reader.ReadInt32();
-        using var _ = ArrayBuilder<T>.GetInstance(length, out var builder);
+        var builder = new FixedSizeArrayBuilder<T>(length);
 
         for (var i = 0; i < length; i++)
             builder.Add(read(reader, arg));
 
-        return builder.ToImmutableAndClear();
+        return builder.MoveToImmutable();
     }
 }

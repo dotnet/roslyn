@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord;
 /// Null iff <see cref="IsInherited"/> is true</param>
 /// <param name="Symbol">Symbol of the property</param>
 /// <param name="KeepAsOverride">Whether we should keep the original declaration present</param>
-internal record PositionalParameterInfo(
+internal sealed record PositionalParameterInfo(
     PropertyDeclarationSyntax? Declaration,
     IPropertySymbol Symbol,
     bool KeepAsOverride)
@@ -68,7 +68,7 @@ internal record PositionalParameterInfo(
                 _ => throw ExceptionUtilities.Unreachable(),
             }).WhereNotNull());
 
-        return resultBuilder.ToImmutable();
+        return resultBuilder.ToImmutableAndClear();
     }
 
     public static ImmutableArray<IPropertySymbol> GetInheritedPositionalParams(

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -174,7 +175,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
 
         // Semicolons in an empty for statement.  i.e.   for(;;)
         if (previousParentKind == SyntaxKind.ForStatement
-            && IsEmptyForStatement((ForStatementSyntax)previousToken.Parent!))
+            && IsEmptyForStatement((ForStatementSyntax)previousToken.Parent))
         {
             if (currentKind == SyntaxKind.SemicolonToken
                 && (previousKind != SyntaxKind.SemicolonToken
@@ -332,9 +333,9 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         {
             switch (_options.SpacingAroundBinaryOperator)
             {
-                case BinaryOperatorSpacingOptions.Single:
+                case BinaryOperatorSpacingOptionsInternal.Single:
                     return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-                case BinaryOperatorSpacingOptions.Remove:
+                case BinaryOperatorSpacingOptionsInternal.Remove:
                     if (currentKind == SyntaxKind.IsKeyword ||
                         currentKind == SyntaxKind.AsKeyword ||
                         currentKind == SyntaxKind.AndKeyword ||
@@ -351,7 +352,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
                     {
                         return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                     }
-                case BinaryOperatorSpacingOptions.Ignore:
+                case BinaryOperatorSpacingOptionsInternal.Ignore:
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
                 default:
                     System.Diagnostics.Debug.Assert(false, "Invalid BinaryOperatorSpacingOptions");
@@ -535,7 +536,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         // Right of Range expressions
         if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.RangeExpression)
         {
-            var rangeExpression = (RangeExpressionSyntax)previousToken.Parent!;
+            var rangeExpression = (RangeExpressionSyntax)previousToken.Parent;
             var hasRightOperand = rangeExpression.RightOperand != null;
             if (hasRightOperand)
             {
@@ -546,7 +547,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         // Left of Range expressions
         if (currentKind == SyntaxKind.DotDotToken && currentParentKind == SyntaxKind.RangeExpression)
         {
-            var rangeExpression = (RangeExpressionSyntax)currentToken.Parent!;
+            var rangeExpression = (RangeExpressionSyntax)currentToken.Parent;
             var hasLeftOperand = rangeExpression.LeftOperand != null;
             if (hasLeftOperand)
             {
@@ -557,7 +558,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         return nextOperation.Invoke(in previousToken, in currentToken);
     }
 
-    public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+    public override void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
     {
         nextOperation.Invoke();
 
@@ -565,12 +566,9 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
     }
 
     private static bool IsEmptyForStatement(ForStatementSyntax forStatement)
-        => forStatement.Initializers.Count == 0
-        && forStatement.Declaration == null
-        && forStatement.Condition == null
-        && forStatement.Incrementors.Count == 0;
+        => forStatement is { Initializers.Count: 0, Declaration: null, Condition: null, Incrementors.Count: 0 };
 
-    private void SuppressVariableDeclaration(List<SuppressOperation> list, SyntaxNode node)
+    private void SuppressVariableDeclaration(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         if (node.Kind()
                 is SyntaxKind.FieldDeclaration

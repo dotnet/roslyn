@@ -8,84 +8,89 @@ using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
+
+public class CSharpCompleteStatement : AbstractEditorTest
 {
-    public class CSharpCompleteStatement : AbstractEditorTest
+    protected override string LanguageName => LanguageNames.CSharp;
+
+    public CSharpCompleteStatement()
+        : base(nameof(CSharpCompleteStatement))
     {
-        protected override string LanguageName => LanguageNames.CSharp;
-
-        public CSharpCompleteStatement()
-            : base(nameof(CSharpCompleteStatement))
-        {
-        }
-
-        [IdeFact]
-        public async Task UndoRestoresCaretPosition1()
-        {
-            await SetUpEditorAsync(@"
-public class Test
-{
-    private object f;
-
-    public void Method()
-    {
-        f.ToString($$)
     }
-}
-", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(';', HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString();$$", assertCaretPosition: true);
-
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString($$)", assertCaretPosition: true);
-        }
-
-        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/43400")]
-        public async Task UndoRestoresCaretPosition2()
-        {
-            await SetUpEditorAsync(@"
-public class Test
-{
-    private object f;
-
-    public void Method()
+    [IdeFact]
+    public async Task UndoRestoresCaretPosition1()
     {
-        Method(condition ? whenTrue $$)
+        await SetUpEditorAsync("""
+
+            public class Test
+            {
+                private object f;
+
+                public void Method()
+                {
+                    f.ToString($$)
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
+
+        await TestServices.Input.SendAsync(';', HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString();$$", assertCaretPosition: true);
+
+        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString($$)", assertCaretPosition: true);
     }
-}
-", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(';', HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("        Method(condition ? whenTrue );$$", assertCaretPosition: true);
-
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("        Method(condition ? whenTrue $$)", assertCaretPosition: true);
-        }
-
-        [IdeFact]
-        public async Task UndoRestoresFormatBeforeRestoringCaretPosition()
-        {
-            await SetUpEditorAsync(@"
-public class Test
-{
-    private object f;
-
-    public void Method()
+    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/43400")]
+    public async Task UndoRestoresCaretPosition2()
     {
-        f.ToString($$ )
+        await SetUpEditorAsync("""
+
+            public class Test
+            {
+                private object f;
+
+                public void Method()
+                {
+                    Method(condition ? whenTrue $$)
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
+
+        await TestServices.Input.SendAsync(';', HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CurrentLineTextAsync("        Method(condition ? whenTrue );$$", assertCaretPosition: true);
+
+        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CurrentLineTextAsync("        Method(condition ? whenTrue $$)", assertCaretPosition: true);
     }
-}
-", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(';', HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString();$$", assertCaretPosition: true);
+    [IdeFact]
+    public async Task UndoRestoresFormatBeforeRestoringCaretPosition()
+    {
+        await SetUpEditorAsync("""
 
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString( );$$", assertCaretPosition: true);
+            public class Test
+            {
+                private object f;
 
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString($$ )", assertCaretPosition: true);
-        }
+                public void Method()
+                {
+                    f.ToString($$ )
+                }
+            }
+
+            """, HangMitigatingCancellationToken);
+
+        await TestServices.Input.SendAsync(';', HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString();$$", assertCaretPosition: true);
+
+        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString( );$$", assertCaretPosition: true);
+
+        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString($$ )", assertCaretPosition: true);
     }
 }

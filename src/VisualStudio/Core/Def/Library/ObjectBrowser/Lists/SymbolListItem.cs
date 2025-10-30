@@ -4,9 +4,7 @@
 
 #nullable disable
 
-using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
@@ -15,7 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 internal abstract class SymbolListItem : ObjectListItem
 {
     private readonly SymbolKey _symbolKey;
-    private readonly Accessibility _accessibility;
     private readonly string _displayText;
     private readonly string _fullNameText;
     private readonly string _searchText;
@@ -27,7 +24,7 @@ internal abstract class SymbolListItem : ObjectListItem
         : base(projectId, symbol.GetGlyph().GetStandardGlyphGroup(), symbol.GetGlyph().GetStandardGlyphItem(), isHidden)
     {
         _symbolKey = symbol.GetSymbolKey();
-        _accessibility = symbol.DeclaredAccessibility;
+        Accessibility = symbol.DeclaredAccessibility;
         _displayText = displayText;
         _fullNameText = fullNameText;
         _searchText = searchText;
@@ -36,10 +33,7 @@ internal abstract class SymbolListItem : ObjectListItem
         _supportsFindAllReferences = symbol.Kind != SymbolKind.Namespace;
     }
 
-    public Accessibility Accessibility
-    {
-        get { return _accessibility; }
-    }
+    public Accessibility Accessibility { get; }
 
     public override string DisplayText
     {

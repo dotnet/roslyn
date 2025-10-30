@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.Setup(Sub(c) c.StopModelComputation())
             Dim session = New Session(Of IController(Of Model), Model, IIntelliSensePresenterSession)(
                 controller.Object,
-                New ModelComputation(Of Model)(threadingContext, controller.Object, TaskScheduler.Default),
+                New ModelComputation(Of Model)(threadingContext, controller.Object),
                 presenter.Object)
 
             presenter.Raise(Sub(p) AddHandler p.Dismissed, Nothing, New EventArgs())
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
             Dim session = New Session(Of IController(Of Model), Model, IIntelliSensePresenterSession)(
                 controller.Object,
-                New ModelComputation(Of Model)(threadingContext, controller.Object, TaskScheduler.Default),
+                New ModelComputation(Of Model)(threadingContext, controller.Object),
                 presenter.Object)
 
             session.Stop()

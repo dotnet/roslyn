@@ -95,31 +95,40 @@ expectedOutput: @"11
 11");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       34 (0x22)
+  // Code size       43 (0x2b)
   .maxstack  2
   .locals init (int V_0, //x
                 int V_1, //y
-                pinned int& V_2)
+                int& V_2, //rx
+                pinned int& V_3)
   IL_0000:  ldc.i4.5
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.s   11
   IL_0004:  stloc.1
-  IL_0005:  ldloca.s   V_1
+  IL_0005:  ldloca.s   V_0
   IL_0007:  stloc.2
-  IL_0008:  ldloc.2
-  IL_0009:  conv.u
+  IL_0008:  ldloca.s   V_1
   IL_000a:  dup
-  IL_000b:  ldind.i4
-  IL_000c:  call       ""void System.Console.WriteLine(int)""
-  IL_0011:  dup
-  IL_0012:  ldind.i4
-  IL_0013:  call       ""void System.Console.WriteLine(int)""
-  IL_0018:  ldind.i4
-  IL_0019:  call       ""void System.Console.WriteLine(int)""
-  IL_001e:  ldc.i4.0
-  IL_001f:  conv.u
-  IL_0020:  stloc.2
-  IL_0021:  ret
+  IL_000b:  stloc.2
+  IL_000c:  stloc.3
+  IL_000d:  ldloc.3
+  IL_000e:  conv.u
+  IL_000f:  dup
+  IL_0010:  ldind.i4
+  IL_0011:  call       ""void System.Console.WriteLine(int)""
+  IL_0016:  dup
+  IL_0017:  stloc.2
+  IL_0018:  ldloc.2
+  IL_0019:  ldind.i4
+  IL_001a:  call       ""void System.Console.WriteLine(int)""
+  IL_001f:  stloc.2
+  IL_0020:  ldloc.2
+  IL_0021:  ldind.i4
+  IL_0022:  call       ""void System.Console.WriteLine(int)""
+  IL_0027:  ldc.i4.0
+  IL_0028:  conv.u
+  IL_0029:  stloc.3
+  IL_002a:  ret
 }");
         }
 
@@ -1643,8 +1652,8 @@ class C
 2");
         }
 
-        [Fact]
-        public void RefAssignArrayAccess()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Struct()
         {
             var text = @"
 class Program
@@ -1668,6 +1677,405 @@ class Program
   IL_0008:  ldelema    ""int""
   IL_000d:  stloc.0
   IL_000e:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M()", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     ""int""
+  IL_0006:  ldc.i4.0
+  IL_0007:  ldelem.i4
+  IL_0008:  pop
+  IL_0009:  ret
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Struct_Readonly()
+        {
+            var text = @"
+class Program
+{
+    static void M(int[] a)
+    {
+        ref readonly int rl = ref a[0];
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (int& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""int""
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.i4
+  IL_0003:  pop
+  IL_0004:  ret
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Class()
+        {
+            var text = @"
+class Program
+{
+    static void M(object[] a)
+    {
+        ref object rl = ref a[0];
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (object& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""object""
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""object""
+  IL_0007:  pop
+  IL_0008:  ret
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Class_Readonly()
+        {
+            var text = @"
+class Program
+{
+    static void M(object[] a)
+    {
+        ref readonly object rl = ref a[0];
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails).VerifyIL("Program.M", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  .locals init (object& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  readonly.
+  IL_0005:  ldelema    ""object""
+  IL_000a:  stloc.0
+  IL_000b:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.ref
+  IL_0003:  pop
+  IL_0004:  ret
+}");
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Generic(
+            [CombinatorialValues("", "where T : class")] string constraints)
+        {
+            var text = $$"""
+class Program
+{
+    static void M<T>(T[] a) {{constraints}}
+    {
+        ref T rl = ref a[0];
+    }
+}
+""";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (T& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""T""
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""T""
+  IL_0007:  pop
+  IL_0008:  ret
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Generic_Struct()
+        {
+            var text = """
+class Program
+{
+    static void M<T>(T[] a) where T : struct
+    {
+        ref T rl = ref a[0];
+    }
+}
+""";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (T& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""T""
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""T""
+  IL_0009:  pop
+  IL_000a:  ret
+}");
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Generic_Readonly(
+            [CombinatorialValues("", "where T : class")] string constraints)
+        {
+            var text = $$"""
+class Program
+{
+    static void M<T>(T[] a) {{constraints}}
+    {
+        ref readonly T rl = ref a[0];
+    }
+}
+""";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails).VerifyIL("Program.M<T>", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  .locals init (T& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  readonly.
+  IL_0005:  ldelema    ""T""
+  IL_000a:  stloc.0
+  IL_000b:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""T""
+  IL_0009:  pop
+  IL_000a:  ret
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Generic_Readonly_Struct()
+        {
+            var text = @"
+class Program
+{
+    static void M<T>(T[] a) where T : struct
+    {
+        ref readonly T rl = ref a[0];
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (T& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""T""
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""T""
+  IL_0009:  pop
+  IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void RefAssignArrayAccess_Discard_Struct()
+        {
+            var text = @"
+class Program
+{
+    static void M(int[] a)
+    {
+        _ = ref a[0];
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelem.i4
+  IL_0004:  pop
+  IL_0005:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.i4
+  IL_0003:  pop
+  IL_0004:  ret
+}");
+        }
+
+        [Fact]
+        public void RefAssignArrayAccess_Discard_Class()
+        {
+            var text = @"
+class Program
+{
+    static void M(object[] a)
+    {
+        _ = ref a[0];
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelem.ref
+  IL_0004:  pop
+  IL_0005:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.ref
+  IL_0003:  pop
+  IL_0004:  ret
+}");
+        }
+
+        [Theory, CombinatorialData]
+        public void RefAssignArrayAccess_Discard_Generic(
+            [CombinatorialValues("", "where T : class", "where T : struct")] string constraints)
+        {
+            var text = $$"""
+class Program
+{
+    static void M<T>(T[] a) {{constraints}}
+    {
+        _ = ref a[0];
+    }
+}
+""";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  readonly.
+  IL_0005:  ldelema    ""T""
+  IL_000a:  pop
+  IL_000b:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""T""
+  IL_0009:  pop
+  IL_000a:  ret
 }");
         }
 
@@ -1761,7 +2169,7 @@ class Program
 class Program
 {
     static int field = 0;
-    static ref int P { get { return ref field; } }
+    static ref int P { get { return ref @field; } }
 
     static void M()
     {
@@ -1789,7 +2197,7 @@ class Program
 class Program
 {
     int field = 0;
-    ref int P { get { return ref field; } }
+    ref int P { get { return ref @field; } }
 
     void M()
     {
@@ -3805,13 +4213,14 @@ unsafe
 }
 ";
 
-            verify(TestOptions.UnsafeReleaseExe, Verification.Passes, @"
+            verify(TestOptions.UnsafeReleaseExe, Verification.Fails, @"
 {
   // Code size       14 (0xe)
   .maxstack  1
+  .locals init (int& V_0) //x
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i
-  IL_0002:  pop
+  IL_0002:  stloc.0
   IL_0003:  ldstr      ""run""
   IL_0008:  call       ""void System.Console.WriteLine(string)""
   IL_000d:  ret
@@ -3876,14 +4285,17 @@ unsafe
 
             verify(TestOptions.UnsafeReleaseExe, @"
 {
-  // Code size       14 (0xe)
+  // Code size       16 (0x10)
   .maxstack  1
+  .locals init (int& V_0) //x
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i
-  IL_0002:  call       ""void* Unsafe.AsPointer<int>(ref int)""
-  IL_0007:  conv.i4
-  IL_0008:  call       ""void System.Console.WriteLine(int)""
-  IL_000d:  ret
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""void* Unsafe.AsPointer<int>(ref int)""
+  IL_0009:  conv.i4
+  IL_000a:  call       ""void System.Console.WriteLine(int)""
+  IL_000f:  ret
 }
 ");
 
@@ -3930,19 +4342,22 @@ unsafe
 }
 ";
 
-            verify(TestOptions.UnsafeReleaseExe, Verification.Passes, @"
+            verify(TestOptions.UnsafeReleaseExe, Verification.Fails, @"
 {
-  // Code size       16 (0x10)
+  // Code size       19 (0x13)
   .maxstack  1
-  .locals init (int V_0) //i1
+  .locals init (int V_0, //i1
+                int& V_1) //i2
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
-  IL_0002:  ldc.i4.0
-  IL_0003:  conv.i
-  IL_0004:  pop
-  IL_0005:  ldstr      ""run""
-  IL_000a:  call       ""void System.Console.WriteLine(string)""
-  IL_000f:  ret
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  stloc.1
+  IL_0005:  ldc.i4.0
+  IL_0006:  conv.i
+  IL_0007:  stloc.1
+  IL_0008:  ldstr      ""run""
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
 }
 ");
 
@@ -3993,13 +4408,14 @@ unsafe
 }
 ";
 
-            verify(TestOptions.UnsafeReleaseExe, Verification.Passes, @"
+            verify(TestOptions.UnsafeReleaseExe, Verification.Fails, @"
 {
   // Code size       14 (0xe)
   .maxstack  1
+  .locals init (int& V_0) //x
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i
-  IL_0002:  pop
+  IL_0002:  stloc.0
   IL_0003:  ldstr      ""run""
   IL_0008:  call       ""void System.Console.WriteLine(string)""
   IL_000d:  ret
@@ -4045,15 +4461,16 @@ unsafe
 }
 ";
 
-            verify(TestOptions.UnsafeReleaseExe, Verification.Passes, @"
+            verify(TestOptions.UnsafeReleaseExe, Verification.Fails, @"
 {
   // Code size       16 (0x10)
   .maxstack  2
+  .locals init (int& V_0) //x
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i
   IL_0002:  ldc.i4.4
   IL_0003:  add
-  IL_0004:  pop
+  IL_0004:  stloc.0
   IL_0005:  ldstr      ""run""
   IL_000a:  call       ""void System.Console.WriteLine(string)""
   IL_000f:  ret
@@ -4363,6 +4780,76 @@ class Program
   .maxstack  0
   IL_0000:  ret
 }");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79867")]
+        public void StackOverflow_01()
+        {
+            var source =
+@"
+public class Parent<T>
+{
+    Child<T>[] _children = new Child<T>[100];
+
+    public void BrokenMethod()
+    {
+        ref var itemRef = ref _children[0];
+    }
+}
+
+public record class Child<T>(Parent<Child<T>> Parent) { }
+";
+            CompileAndVerify(source + IsExternalInitTypeDefinition, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79867")]
+        public void StackOverflow_02()
+        {
+            var source =
+@"
+public struct Parent<T>
+{
+    Child<T>[] _children;
+
+    public void BrokenMethod()
+    {
+        ref var itemRef = ref _children[0];
+    }
+}
+
+public record struct Child<T>(Parent<Child<T>> Parent) { }
+";
+            CompileAndVerify(source + IsExternalInitTypeDefinition, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79867")]
+        public void StackOverflow_03()
+        {
+            var source =
+@"
+public struct Parent<T>
+{
+    Child<T> _children;
+
+    public void BrokenMethod()
+    {
+        ref var itemRef = ref _children;
+    }
+}
+
+public record struct Child<T>(Parent<Child<T>> Parent) { }
+";
+            CreateCompilation(source + IsExternalInitTypeDefinition).VerifyEmitDiagnostics(
+                // (4,14): error CS0523: Struct member 'Parent<T>._children' of type 'Child<T>' causes a cycle in the struct layout
+                //     Child<T> _children;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "_children").WithArguments("Parent<T>._children", "Child<T>").WithLocation(4, 14),
+                // (12,48): error CS0523: Struct member 'Child<T>.Parent' of type 'Parent<Child<T>>' causes a cycle in the struct layout
+                // public record struct Child<T>(Parent<Child<T>> Parent) { }
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "Parent").WithArguments("Child<T>.Parent", "Parent<Child<T>>").WithLocation(12, 48)
+                );
         }
     }
 }

@@ -5,30 +5,19 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.AddFileBanner
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
-Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.MakeFieldReadonly
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Shared.Utilities
-Imports Microsoft.CodeAnalysis.SolutionCrawler
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
-Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
-Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
-Imports Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
-Imports Microsoft.CodeAnalysis.AddFileBanner
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
@@ -214,7 +203,7 @@ End Class
         End Function
 
         <Fact>
-        Public Function VisualBasicAddAccessibilityModifiers() As Task
+        Public Function VisualBasicAddOrRemoveAccessibilityModifiers() As Task
             Dim code As String = "Class Program
     Public Shared Sub Method()
         Console.WriteLine(""Hello"")
@@ -508,8 +497,7 @@ End Class
         End Function
 
         Private Shared Async Function TestThirdPartyCodeFixer(Of TCodefix As {CodeFixProvider, New}, TAnalyzer As {DiagnosticAnalyzer, New})(expected As String, code As String, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Warning) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf.AddParts(GetType(TCodefix)))
-                Dim options = CodeActionOptions.DefaultProvider
+            Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(TCodefix)))
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim map = New Dictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)) From
                     {
@@ -539,7 +527,6 @@ End Class
                     document,
                     enabledDiagnostics,
                     CodeAnalysisProgress.None,
-                    options,
                     CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()
@@ -560,12 +547,12 @@ End Class
                                                                              code As String,
                                                                              Optional systemImportsFirst As Boolean = True,
                                                                              Optional separateImportsGroups As Boolean = False) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf)
+            Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeatures)
 
-                ' must set global options since incremental analyzer infra reads from global options
-                Dim globalOptions = workspace.GlobalOptions
-                globalOptions.SetGlobalOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic, separateImportsGroups)
-                globalOptions.SetGlobalOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, systemImportsFirst)
+                workspace.SetAnalyzerFallbackOptions(New OptionsCollection(LanguageNames.VisualBasic) From {
+                    {GenerationOptions.SeparateImportDirectiveGroups, separateImportsGroups},
+                    {GenerationOptions.PlaceSystemNamespaceFirst, systemImportsFirst}
+                })
 
                 Dim solution = workspace.CurrentSolution.WithAnalyzerReferences(
                 {
@@ -587,7 +574,6 @@ End Class
                     document,
                     enabledDiagnostics,
                     CodeAnalysisProgress.None,
-                    globalOptions.CreateProvider(),
                     CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()
@@ -672,7 +658,6 @@ End Class
             End Function
 
             Private Class ModifySolutionFixAll : Inherits FixAllProvider
-
                 Public Overrides Function GetSupportedFixAllScopes() As IEnumerable(Of FixAllScope)
                     Return {FixAllScope.Project, FixAllScope.Solution, FixAllScope.Custom}
                 End Function

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
@@ -71,6 +70,6 @@ internal static class PathMetadataUtilities
         }
 
         var parts = @namespace.Split(NamespaceSeparatorArray, options: StringSplitOptions.RemoveEmptyEntries);
-        return parts.ToImmutableArray();
+        return [.. parts];
     }
 }

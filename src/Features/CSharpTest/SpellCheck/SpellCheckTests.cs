@@ -16,682 +16,602 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+public sealed class SpellCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
-    public class SpellCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
-    {
-        public SpellCheckTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpSpellCheckCodeFixProvider());
-
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
-            => FlattenActions(actions);
-
-        [Fact]
-        public async Task TestNoSpellcheckForIfOnly2Characters()
-        {
-            var text =
-@"class Goo
-{
-    void Bar()
-    {
-        var a = new [|Fo|]
-    }
-}";
-            await TestMissingInRegularAndScriptAsync(text);
-        }
-
-        [Fact]
-        public async Task TestAfterNewExpression()
-        {
-            var text =
-@"class Goo
-{
-    void Bar()
-    {
-        void a = new [|Gooa|].ToString();
-    }
-}";
-
-            await TestExactActionSetOfferedAsync(text, [String.Format(FeaturesResources.Change_0_to_1, "Gooa", "Goo")]);
-        }
-
-        [Fact]
-        public async Task TestInLocalType()
-        {
-            var text = @"class Foo
-{
-    void Bar()
-    {
-        [|Foa|] a;
-    }
-}";
-
-            await TestExactActionSetOfferedAsync(text,
-            [
-                String.Format(FeaturesResources.Change_0_to_1, "Foa", "Foo"),
-                String.Format(FeaturesResources.Change_0_to_1, "Foa", "for")
-            ]);
-        }
-
-        [Fact]
-        public async Task TestInFunc()
-        {
-            var text = @"
-using System;
-
-class Goo
-{
-    void Bar(Func<[|Goa|]> f)
-    {
-    }
-}";
-            await TestExactActionSetOfferedAsync(text,
-                [String.Format(FeaturesResources.Change_0_to_1, "Goa", "Goo")]);
-        }
-
-        [Fact]
-        public async Task TestInExpression()
-        {
-            var text = @"class Program
-{
-    void Main(string[] args)
-    {
-        var zzz = 2;
-        var  y = 2 + [|zza|];
-    }
-}";
-            await TestExactActionSetOfferedAsync(text, [String.Format(FeaturesResources.Change_0_to_1, "zza", "zzz")]);
-        }
-
-        [Fact]
-        public async Task TestInTypeOfIsExpression()
-        {
-            var text = @"using System;
-public class Class1
-{
-    void F()
-    {
-        if (x is [|Boolea|]) {}
-    }
-}";
-            await TestExactActionSetOfferedAsync(text,
-            [
-                String.Format(FeaturesResources.Change_0_to_1, "Boolea", "Boolean"),
-                String.Format(FeaturesResources.Change_0_to_1, "Boolea", "bool")
-            ]);
-        }
-
-        [Fact]
-        public async Task TestInvokeCorrectIdentifier()
-        {
-            var text = @"class Program
-{
-    void Main(string[] args)
-    {
-        var zzz = 2;
-        var y = 2 + [|zza|];
-    }
-}";
-
-            var expected = @"class Program
-{
-    void Main(string[] args)
-    {
-        var zzz = 2;
-        var y = 2 + zzz;
-    }
-}";
-
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task TestAfterDot()
-        {
-            var text = @"class Program
-{
-    static void Main(string[] args)
-    {
-        Program.[|Mair|]
-    }
-}";
-
-            var expected = @"class Program
-{
-    static void Main(string[] args)
-    {
-        Program.Main
-    }
-}";
-
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task TestNotInaccessibleProperty()
-        {
-            var text = @"class Program
-{
-    void Main(string[] args)
-    {
-        var z = new c().[|membr|]
-    }
-}
-
-class c
-{
-    protected int member { get; }
-}";
-
-            await TestMissingInRegularAndScriptAsync(text);
-        }
-
-        [Fact]
-        public async Task TestGenericName1()
-        {
-            var text = @"class Goo<T>
-{
-    private [|Goo2|]<T> x;
-}";
-
-            var expected = @"class Goo<T>
-{
-    private Goo<T> x;
-}";
-
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task TestGenericName2()
-        {
-            var text = @"class Goo<T>
-{
-    private [|Goo2|] x;
-}";
-
-            var expected = @"class Goo<T>
-{
-    private Goo x;
-}";
-
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task TestQualifiedName1()
-        {
-            var text = @"class Program
-{
-   private object x = new [|Goo2|].Bar
-}
-
-class Goo
-{
-    class Bar
-    {
-    }
-}";
-
-            var expected = @"class Program
-{
-   private object x = new Goo.Bar
-}
-
-class Goo
-{
-    class Bar
-    {
-    }
-}";
-
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task TestQualifiedName2()
-        {
-            var text = @"class Program
-{
-    private object x = new Goo.[|Ba2|]
-}
-
-class Goo
-{
-    public class Bar
-    {
-    }
-}";
-
-            var expected = @"class Program
-{
-    private object x = new Goo.Bar
-}
-
-class Goo
-{
-    public class Bar
-    {
-    }
-}";
-
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task TestMiddleOfDottedExpression()
-        {
-            var text = @"class Program
-{
-    void Main(string[] args)
-    {
-        var z = new c().[|membr|].ToString();
-    }
-}
-
-class c
-{
-    public int member { get; }
-}";
-
-            var expected = @"class Program
-{
-    void Main(string[] args)
-    {
-        var z = new c().member.ToString();
-    }
-}
-
-class c
-{
-    public int member { get; }
-}";
-
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task TestNotForOverloadResolutionFailure()
-        {
-            var text = @"class Program
-{
-    void Main(string[] args)
+    public SpellCheckTests(ITestOutputHelper logger)
+      : base(logger)
     {
     }
 
-    void Goo()
-    {
-        [|Method|]();
-    }
+    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (null, new CSharpSpellCheckCodeFixProvider());
 
-    int Method(int argument)
-    {
-    }
-}";
+    protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        => FlattenActions(actions);
 
-            await TestMissingInRegularAndScriptAsync(text);
-        }
+    [Fact]
+    public Task TestNoSpellcheckForIfOnly2Characters()
+        => TestMissingInRegularAndScriptAsync("""
+            class Goo
+            {
+                void Bar()
+                {
+                    var a = new [|Fo|]
+                }
+            }
+            """);
 
-        [Fact]
-        public async Task TestHandlePredefinedTypeKeywordCorrectly()
-        {
-            var text = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+    [Fact]
+    public Task TestAfterNewExpression()
+        => TestExactActionSetOfferedAsync("""
+            class Goo
+            {
+                void Bar()
+                {
+                    void a = new [|Gooa|].ToString();
+                }
+            }
+            """, [String.Format(FeaturesResources.Change_0_to_1, "Gooa", "Goo")]);
 
-class Program
-{
-    void Main(string[] args)
-    {
-        [|Int3|] i;
-    }
-}";
+    [Fact]
+    public Task TestInLocalType()
+        => TestExactActionSetOfferedAsync("""
+            class Foo
+            {
+                void Bar()
+                {
+                    [|Foa|] a;
+                }
+            }
+            """,
+        [
+            String.Format(FeaturesResources.Change_0_to_1, "Foa", "Foo"),
+            String.Format(FeaturesResources.Change_0_to_1, "Foa", "for")
+        ]);
 
-            var expected = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+    [Fact]
+    public Task TestInFunc()
+        => TestExactActionSetOfferedAsync("""
+            using System;
 
-class Program
-{
-    void Main(string[] args)
-    {
-        int i;
-    }
-}";
+            class Goo
+            {
+                void Bar(Func<[|Goa|]> f)
+                {
+                }
+            }
+            """,
+            [String.Format(FeaturesResources.Change_0_to_1, "Goa", "Goo")]);
 
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+    [Fact]
+    public Task TestInExpression()
+        => TestExactActionSetOfferedAsync("""
+            class Program
+            {
+                void Main(string[] args)
+                {
+                    var zzz = 2;
+                    var  y = 2 + [|zza|];
+                }
+            }
+            """, [String.Format(FeaturesResources.Change_0_to_1, "zza", "zzz")]);
 
-        [Fact]
-        public async Task TestHandlePredefinedTypeKeywordCorrectly1()
-        {
-            var text = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+    [Fact]
+    public Task TestInTypeOfIsExpression()
+        => TestExactActionSetOfferedAsync("""
+            using System;
+            public class Class1
+            {
+                void F()
+                {
+                    if (x is [|Boolea|]) {}
+                }
+            }
+            """,
+        [
+            String.Format(FeaturesResources.Change_0_to_1, "Boolea", "Boolean"),
+            String.Format(FeaturesResources.Change_0_to_1, "Boolea", "bool")
+        ]);
 
-class Program
-{
-    void Main(string[] args)
-    {
-        [|Int3|] i;
-    }
-}";
+    [Fact]
+    public Task TestInvokeCorrectIdentifier()
+        => TestInRegularAndScriptAsync("""
+            class Program
+            {
+                void Main(string[] args)
+                {
+                    var zzz = 2;
+                    var y = 2 + [|zza|];
+                }
+            }
+            """, """
+            class Program
+            {
+                void Main(string[] args)
+                {
+                    var zzz = 2;
+                    var y = 2 + zzz;
+                }
+            }
+            """);
 
-            var expected = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
+    [Fact]
+    public Task TestAfterDot()
+        => TestInRegularAndScriptAsync("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Program.[|Mair|]
+                }
+            }
+            """, """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Program.Main
+                }
+            }
+            """);
 
-class Program
-{
-    void Main(string[] args)
-    {
-        Int32 i;
-    }
-}";
+    [Fact]
+    public Task TestNotInaccessibleProperty()
+        => TestMissingInRegularAndScriptAsync("""
+            class Program
+            {
+                void Main(string[] args)
+                {
+                    var z = new c().[|membr|]
+                }
+            }
 
-            await TestInRegularAndScriptAsync(text, expected, index: 1);
-        }
+            class c
+            {
+                protected int member { get; }
+            }
+            """);
 
-        [Fact]
-        public async Task TestOnGeneric()
-        {
-            var text = @"
-interface Enumerable<T>
-{
-}
+    [Fact]
+    public Task TestGenericName1()
+        => TestInRegularAndScriptAsync("""
+            class Goo<T>
+            {
+                private [|Goo2|]<T> x;
+            }
+            """, """
+            class Goo<T>
+            {
+                private Goo<T> x;
+            }
+            """);
 
-class C
-{
-    void Main(string[] args)
-    {
-        [|IEnumerable|]<int> x;
-    }
-}";
+    [Fact]
+    public Task TestGenericName2()
+        => TestInRegularAndScriptAsync("""
+            class Goo<T>
+            {
+                private [|Goo2|] x;
+            }
+            """, """
+            class Goo<T>
+            {
+                private Goo x;
+            }
+            """);
 
-            var expected = @"
-interface Enumerable<T>
-{
-}
+    [Fact]
+    public Task TestQualifiedName1()
+        => TestInRegularAndScriptAsync("""
+            class Program
+            {
+               private object x = new [|Goo2|].Bar
+            }
 
-class C
-{
-    void Main(string[] args)
-    {
-        Enumerable<int> x;
-    }
-}";
+            class Goo
+            {
+                class Bar
+                {
+                }
+            }
+            """, """
+            class Program
+            {
+               private object x = new Goo.Bar
+            }
 
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            class Goo
+            {
+                class Bar
+                {
+                }
+            }
+            """);
 
-        [Fact]
-        public async Task TestTestObjectConstruction()
-        {
-            await TestInRegularAndScriptAsync(
-@"class AwesomeClass
-{
-    void M()
-    {
-        var goo = new [|AwesomeClas()|];
-    }
-}",
-@"class AwesomeClass
-{
-    void M()
-    {
-        var goo = new AwesomeClass();
-    }
-}");
-        }
+    [Fact]
+    public Task TestQualifiedName2()
+        => TestInRegularAndScriptAsync("""
+            class Program
+            {
+                private object x = new Goo.[|Ba2|]
+            }
 
-        [Fact]
-        public async Task TestTestMissingName()
-        {
-            await TestMissingInRegularAndScriptAsync(
+            class Goo
+            {
+                public class Bar
+                {
+                }
+            }
+            """, """
+            class Program
+            {
+                private object x = new Goo.Bar
+            }
+
+            class Goo
+            {
+                public class Bar
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestMiddleOfDottedExpression()
+        => TestInRegularAndScriptAsync("""
+            class Program
+            {
+                void Main(string[] args)
+                {
+                    var z = new c().[|membr|].ToString();
+                }
+            }
+
+            class c
+            {
+                public int member { get; }
+            }
+            """, """
+            class Program
+            {
+                void Main(string[] args)
+                {
+                    var z = new c().member.ToString();
+                }
+            }
+
+            class c
+            {
+                public int member { get; }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotForOverloadResolutionFailure()
+        => TestMissingInRegularAndScriptAsync("""
+            class Program
+            {
+                void Main(string[] args)
+                {
+                }
+
+                void Goo()
+                {
+                    [|Method|]();
+                }
+
+                int Method(int argument)
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestHandlePredefinedTypeKeywordCorrectly()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                void Main(string[] args)
+                {
+                    [|Int3|] i;
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                void Main(string[] args)
+                {
+                    int i;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestHandlePredefinedTypeKeywordCorrectly1()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                void Main(string[] args)
+                {
+                    [|Int3|] i;
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                void Main(string[] args)
+                {
+                    Int32 i;
+                }
+            }
+            """, index: 1);
+
+    [Fact]
+    public Task TestOnGeneric()
+        => TestInRegularAndScriptAsync("""
+            interface Enumerable<T>
+            {
+            }
+
+            class C
+            {
+                void Main(string[] args)
+                {
+                    [|IEnumerable|]<int> x;
+                }
+            }
+            """, """
+            interface Enumerable<T>
+            {
+            }
+
+            class C
+            {
+                void Main(string[] args)
+                {
+                    Enumerable<int> x;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestTestObjectConstruction()
+        => TestInRegularAndScriptAsync(
+            """
+            class AwesomeClass
+            {
+                void M()
+                {
+                    var goo = new [|AwesomeClas()|];
+                }
+            }
+            """,
+            """
+            class AwesomeClass
+            {
+                void M()
+                {
+                    var goo = new AwesomeClass();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestTestMissingName()
+        => TestMissingInRegularAndScriptAsync(
 @"[assembly: Microsoft.CodeAnalysis.[||]]");
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12990")]
-        public async Task TestTrivia1()
-        {
-            var text = @"
-using System.Text;
-class C
-{
-  void M()
-  {
-    /*leading*/ [|stringbuilder|] /*trailing*/ sb = null;
-  }
-}";
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12990")]
+    public Task TestTrivia1()
+        => TestInRegularAndScriptAsync("""
+            using System.Text;
+            class C
+            {
+              void M()
+              {
+                /*leading*/ [|stringbuilder|] /*trailing*/ sb = null;
+              }
+            }
+            """, """
+            using System.Text;
+            class C
+            {
+              void M()
+              {
+                /*leading*/ StringBuilder /*trailing*/ sb = null;
+              }
+            }
+            """);
 
-            var expected = @"
-using System.Text;
-class C
-{
-  void M()
-  {
-    /*leading*/ StringBuilder /*trailing*/ sb = null;
-  }
-}";
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13345")]
+    public Task TestNotMissingOnKeywordWhichIsAlsoASnippet()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    // here 'for' is a keyword and snippet, so we should offer to spell check to it.
+                    [|foo|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    // here 'for' is a keyword and snippet, so we should offer to spell check to it.
+                    for;
+                }
+            }
+            """);
 
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18626")]
+    public Task TestForExplicitInterfaceTypeName()
+        => TestInRegularAndScriptAsync(
+            """
+            interface IProjectConfigurationsService
+            {
+                void Method();
+            }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13345")]
-        public async Task TestNotMissingOnKeywordWhichIsAlsoASnippet()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        // here 'for' is a keyword and snippet, so we should offer to spell check to it.
-        [|foo|];
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        // here 'for' is a keyword and snippet, so we should offer to spell check to it.
-        for;
-    }
-}");
-        }
+            class Program : IProjectConfigurationsService
+            {
+                void [|IProjectConfigurationService|].Method()
+                {
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18626")]
-        public async Task TestForExplicitInterfaceTypeName()
-        {
-            await TestInRegularAndScriptAsync(
-@"interface IProjectConfigurationsService
-{
-    void Method();
-}
+                }
+            }
+            """,
+            """
+            interface IProjectConfigurationsService
+            {
+                void Method();
+            }
 
-class Program : IProjectConfigurationsService
-{
-    void [|IProjectConfigurationService|].Method()
-    {
+            class Program : IProjectConfigurationsService
+            {
+                void IProjectConfigurationsService.Method()
+                {
 
-    }
-}",
-@"interface IProjectConfigurationsService
-{
-    void Method();
-}
+                }
+            }
+            """);
 
-class Program : IProjectConfigurationsService
-{
-    void IProjectConfigurationsService.Method()
-    {
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13345")]
+    public Task TestMissingOnKeywordWhichIsOnlyASnippet()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    // here 'for' is *only* a snippet, and we should not offer to spell check to it.
+                    var v = [|goo|];
+                }
+            }
+            """);
 
-    }
-}");
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15733")]
+    public Task TestMissingOnVar()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            namespace bar { }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13345")]
-        public async Task TestMissingOnKeywordWhichIsOnlyASnippet()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        // here 'for' is *only* a snippet, and we should not offer to spell check to it.
-        var v = [|goo|];
-    }
-}");
-        }
+            class C
+            {
+                void M()
+                {
+                    var y =
+                    [|var|]
+                }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15733")]
-        public async Task TestMissingOnVar()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"
-namespace bar { }
+    [Fact]
+    public Task TestUnmanagedConstraint()
+        => TestInRegularAndScriptAsync(
+            """
+            class C<T> where T : [|umanaged|]
+            {
+            }
+            """,
+            """
+            class C<T> where T : unmanaged
+            {
+            }
+            """);
 
-class C
-{
-    void M()
-    {
-        var y =
-        [|var|]
-    }
-}");
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28244")]
+    public Task TestMisspelledConstructor()
+        => TestInRegularAndScriptAsync(
+            """
+            public class SomeClass
+            {
+                public [|SomeClss|]() { }
+            }
+            """,
+            """
+            public class SomeClass
+            {
+                public SomeClass() { }
+            }
+            """);
 
-        [Fact]
-        public async Task TestUnmanagedConstraint()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C<T> where T : [|umanaged|]
-{
-}",
-@"class C<T> where T : unmanaged
-{
-}");
-        }
+    [Fact]
+    public Task TestInExplicitInterfaceImplementation1()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28244")]
-        public async Task TestMisspelledConstructor()
-        {
-            await TestInRegularAndScriptAsync(
-@"public class SomeClass
-{
-    public [|SomeClss|]() { }
-}",
-@"public class SomeClass
-{
-    public SomeClass() { }
-}");
-        }
+            class Program : IDisposable
+            {
+                void IDisposable.[|Dspose|]
+            }
+            """);
 
-        [Fact]
-        public async Task TestInExplicitInterfaceImplementation1()
-        {
-            var text = @"
-using System;
+    [Fact]
+    public Task TestInExplicitInterfaceImplementation2()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
 
-class Program : IDisposable
-{
-    void IDisposable.[|Dspose|]
-}";
+            interface IInterface
+            {
+                void Generic<K, V>();
+            }
 
-            var expected = @"
-using System;
+            class Program : IInterface
+            {
+                void IInterface.[|Generi|]
+            }
+            """);
 
-class Program : IDisposable
-{
-    void IDisposable.Dispose
-}";
+    [Fact]
+    public Task TestInExplicitInterfaceImplementation3()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
 
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            interface IInterface
+            {
+                int this[int i] { get; }
+            }
 
-        [Fact]
-        public async Task TestInExplicitInterfaceImplementation2()
-        {
-            var text = @"
-using System;
+            class Program : IInterface
+            {
+                void IInterface.[|thi|]
+            }
+            """);
 
-interface IInterface
-{
-    void Generic<K, V>();
-}
-
-class Program : IInterface
-{
-    void IInterface.[|Generi|]
-}";
-
-            var expected = @"
-using System;
-
-interface IInterface
-{
-    void Generic<K, V>();
-}
-
-class Program : IInterface
-{
-    void IInterface.Generic
-}";
-
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task TestInExplicitInterfaceImplementation3()
-        {
-            var text = @"
-using System;
-
-interface IInterface
-{
-    int this[int i] { get; }
-}
-
-class Program : IInterface
-{
-    void IInterface.[|thi|]
-}";
-
-            var expected = @"
-using System;
-
-interface IInterface
-{
-    int this[int i] { get; }
-}
-
-class Program : IInterface
-{
-    void IInterface.this
-}";
-
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1640728")]
-        public async Task TestMisspelledWordThatIsAlsoSnippetName()
-        {
-            await TestInRegularAndScriptAsync(
-@"public [|interfacce|] IWhatever
-{
-}",
-@"public interface IWhatever
-{
-}");
-        }
-    }
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1640728")]
+    public Task TestMisspelledWordThatIsAlsoSnippetName()
+        => TestInRegularAndScriptAsync(
+            """
+            public [|interfacce|] IWhatever
+            {
+            }
+            """,
+            """
+            public interface IWhatever
+            {
+            }
+            """);
 }

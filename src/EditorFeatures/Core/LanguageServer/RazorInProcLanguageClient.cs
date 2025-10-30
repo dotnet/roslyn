@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Composition;
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 [Export(typeof(ILanguageClient))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RazorInProcLanguageClient(
+internal sealed class RazorInProcLanguageClient(
     CSharpVisualBasicLspServiceProvider lspServiceProvider,
     IGlobalOptionService globalOptions,
     ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,

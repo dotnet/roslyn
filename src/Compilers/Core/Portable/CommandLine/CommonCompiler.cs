@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -158,20 +159,8 @@ namespace Microsoft.CodeAnalysis
         internal static string GetProductVersion(Type type)
         {
             string? assemblyVersion = GetInformationalVersionWithoutHash(type);
-            string? hash = GetShortCommitHash(type);
+            string? hash = type.Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
             return $"{assemblyVersion} ({hash})";
-        }
-
-        [return: NotNullIfNotNull(nameof(hash))]
-        internal static string? ExtractShortCommitHash(string? hash)
-        {
-            // leave "<developer build>" alone, but truncate SHA to 8 characters
-            if (hash != null && hash.Length >= 8 && hash[0] != '<')
-            {
-                return hash.Substring(0, 8);
-            }
-
-            return hash;
         }
 
         private static string? GetInformationalVersionWithoutHash(Type type)
@@ -181,10 +170,10 @@ namespace Microsoft.CodeAnalysis
             return type.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0];
         }
 
-        private static string? GetShortCommitHash(Type type)
+        internal static string GetAssemblyLocation(Type type)
         {
-            var hash = type.Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
-            return ExtractShortCommitHash(hash);
+            var location = type.Assembly.Location;
+            return string.IsNullOrEmpty(location) ? "<unknown>" : location;
         }
 
         /// <summary>
@@ -210,7 +199,7 @@ namespace Microsoft.CodeAnalysis
             return (path, properties) =>
             {
                 var peStream = FileSystem.OpenFileWithNormalizedException(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-                return MetadataReference.CreateFromFile(peStream, path, properties);
+                return MetadataReference.CreateFromFile(peStream, path, PEStreamOptions.PrefetchEntireImage, properties, documentation: null);
             };
         }
 
@@ -838,7 +827,11 @@ namespace Microsoft.CodeAnalysis
             driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
             generatorDiagnostics.AddRange(diagnostics);
 
-            if (!disableCache)
+            // We only cache the generator driver if it produced any generated files. While it's possible that it was expensive
+            // to calculate that nothing needed to be generated, real world usage has found that generators are generally only
+            // expensive when actually producing source. By only caching those with results, we help to keep memory usage down
+            // when it probably wouldn't improve the performance anyway.
+            if (!disableCache && driver.GetRunResult().GeneratedTrees.Any())
             {
                 this.GeneratorDriverCache?.CacheGenerator(cacheKey, driver);
             }

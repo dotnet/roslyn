@@ -149,7 +149,7 @@ End Namespace
             Dim tree1 = VisualBasicSyntaxTree.ParseText(source1, path:="file1")
             Dim tree2 = VisualBasicSyntaxTree.ParseText(source2, path:="file2")
             Dim eventQueue = New AsyncQueue(Of CompilationEvent)()
-            Dim compilation = CreateCompilationWithMscorlib45({tree1, tree2}).WithEventQueue(eventQueue)
+            Dim compilation = CreateCompilationWithMscorlib461({tree1, tree2}).WithEventQueue(eventQueue)
 
             ' Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
             Dim tree = compilation.SyntaxTrees.[Single](Function(t) t Is tree1)
@@ -204,7 +204,7 @@ End Namespace
             Dim tree1 = VisualBasicSyntaxTree.ParseText(source1, path:="file1")
             Dim tree2 = VisualBasicSyntaxTree.ParseText(source2, path:="file2")
             Dim eventQueue = New AsyncQueue(Of CompilationEvent)()
-            Dim compilation = CreateCompilationWithMscorlib45({tree1, tree2}).WithEventQueue(eventQueue)
+            Dim compilation = CreateCompilationWithMscorlib461({tree1, tree2}).WithEventQueue(eventQueue)
 
             ' Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
             Dim tree = compilation.SyntaxTrees.[Single](Function(t) t Is tree1)
@@ -244,7 +244,7 @@ BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
         <Fact>
         Public Sub CompilingCodeWithInvalidSourceCodeKindShouldProvideDiagnostics()
 #Disable Warning BC40000 ' Type or member is obsolete
-            Dim compilation = CreateCompilationWithMscorlib45(String.Empty, parseOptions:=New VisualBasicParseOptions().WithKind(SourceCodeKind.Interactive))
+            Dim compilation = CreateCompilationWithMscorlib461(String.Empty, parseOptions:=New VisualBasicParseOptions().WithKind(SourceCodeKind.Interactive))
 #Enable Warning BC40000 ' Type or member is obsolete
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
@@ -451,7 +451,7 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
 
         <Fact>
         Public Sub TestEventQueueCompletionForEmptyCompilation()
-            Dim compilation = CreateCompilationWithMscorlib45(source:=Nothing).WithEventQueue(New AsyncQueue(Of CompilationEvent)())
+            Dim compilation = CreateCompilationWithMscorlib461(source:=Nothing).WithEventQueue(New AsyncQueue(Of CompilationEvent)())
 
             ' Force complete compilation event queue
             Dim unused = compilation.GetDiagnostics()

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -16,11 +15,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
 
 internal sealed class ValueTrackingTreeViewModel : INotifyPropertyChanged
 {
-    private Brush? _highlightBrush;
     public Brush? HighlightBrush
     {
-        get => _highlightBrush;
-        set => SetProperty(ref _highlightBrush, value);
+        get;
+        set => SetProperty(ref field, value);
     }
 
     public IClassificationFormatMap ClassificationFormatMap { get; }
@@ -29,39 +27,30 @@ internal sealed class ValueTrackingTreeViewModel : INotifyPropertyChanged
     public ObservableCollection<TreeItemViewModel> Roots { get; } = [];
     public string AutomationName => ServicesVSResources.Value_Tracking;
 
-    private TreeViewItemBase? _selectedItem;
     public TreeViewItemBase? SelectedItem
     {
-        get => _selectedItem;
-        set => SetProperty(ref _selectedItem, value);
+        get;
+        set => SetProperty(ref field, value);
     }
-
-    private string _selectedItemFile = "";
     public string SelectedItemFile
     {
-        get => _selectedItemFile;
-        set => SetProperty(ref _selectedItemFile, value);
-    }
-
-    private int _selectedItemLine;
+        get;
+        set => SetProperty(ref field, value);
+    } = "";
     public int SelectedItemLine
     {
-        get => _selectedItemLine;
-        set => SetProperty(ref _selectedItemLine, value);
+        get;
+        set => SetProperty(ref field, value);
     }
-
-    private bool _isLoading;
     public bool IsLoading
     {
-        get => _isLoading;
-        private set => SetProperty(ref _isLoading, value);
+        get;
+        private set => SetProperty(ref field, value);
     }
-
-    private int _loadingCount;
     public int LoadingCount
     {
-        get => _loadingCount;
-        set => SetProperty(ref _loadingCount, value);
+        get;
+        set => SetProperty(ref field, value);
     }
 
     public bool ShowDetails => SelectedItem is TreeItemViewModel;

@@ -13,76 +13,69 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages;
+
+[Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
+public sealed class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
-    public class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+    public ValidateRegexStringTests(ITestOutputHelper logger)
+       : base(logger)
     {
-        public ValidateRegexStringTests(ITestOutputHelper logger)
-           : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider?) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpRegexDiagnosticAnalyzer(), null);
-
-        private OptionsCollection OptionOn()
-            => Option(IdeAnalyzerOptionsStorage.ReportInvalidRegexPatterns, true);
-
-        [Fact]
-        public async Task TestWarning1()
-        {
-            await TestDiagnosticInfoAsync("""
-                using System.Text.RegularExpressions;
-
-                class Program
-                {
-                    void Main()
-                    {
-                        var r = new Regex(@"[|)|]");
-                    }     
-                }
-                """,
-                globalOptions: OptionOn(),
-                diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
-                diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
-        }
-
-        [Fact]
-        public async Task TestWarning2()
-        {
-            await TestDiagnosticInfoAsync("""
-                using System.Text.RegularExpressions;
-
-                class Program
-                {
-                    void Main()
-                    {
-                        var r = new Regex("[|\u0029|]");
-                    }     
-                }
-                """,
-                globalOptions: OptionOn(),
-                diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
-                diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
-        }
-
-        [Fact]
-        public async Task TestWarningMissing1()
-        {
-            await TestDiagnosticMissingAsync("""
-                using System.Text.RegularExpressions;
-
-                class Program
-                {
-                    void Main()
-                    {
-                        var r = new Regex(@"[|\u0029|]");
-                    }     
-                }
-                """);
-        }
     }
+
+    internal override (DiagnosticAnalyzer, CodeFixProvider?) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (new CSharpRegexDiagnosticAnalyzer(), null);
+
+    private OptionsCollection OptionOn()
+        => Option(RegexOptionsStorage.ReportInvalidRegexPatterns, true);
+
+    [Fact]
+    public Task TestWarning1()
+        => TestDiagnosticInfoAsync("""
+            using System.Text.RegularExpressions;
+
+            class Program
+            {
+                void Main()
+                {
+                    var r = new Regex(@"[|)|]");
+                }     
+            }
+            """,
+            options: OptionOn(),
+            diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
+            diagnosticSeverity: DiagnosticSeverity.Warning,
+            diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
+
+    [Fact]
+    public Task TestWarning2()
+        => TestDiagnosticInfoAsync("""
+            using System.Text.RegularExpressions;
+
+            class Program
+            {
+                void Main()
+                {
+                    var r = new Regex("[|\u0029|]");
+                }     
+            }
+            """,
+            options: OptionOn(),
+            diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
+            diagnosticSeverity: DiagnosticSeverity.Warning,
+            diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
+
+    [Fact]
+    public Task TestWarningMissing1()
+        => TestDiagnosticMissingAsync("""
+            using System.Text.RegularExpressions;
+
+            class Program
+            {
+                void Main()
+                {
+                    var r = new Regex(@"[|\u0029|]");
+                }     
+            }
+            """);
 }

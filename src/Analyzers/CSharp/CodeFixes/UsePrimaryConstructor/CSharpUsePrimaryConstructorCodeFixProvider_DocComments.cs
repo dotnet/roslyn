@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 
 using static SyntaxFactory;
 
-internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvider
+internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvider
 {
     private const string s_summaryTagName = "summary";
     private const string s_remarksTagName = "remarks";

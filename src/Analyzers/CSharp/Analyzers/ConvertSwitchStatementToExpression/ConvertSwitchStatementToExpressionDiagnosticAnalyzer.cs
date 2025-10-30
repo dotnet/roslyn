@@ -5,9 +5,9 @@
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,17 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
 using Constants = ConvertSwitchStatementToExpressionConstants;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId,
+        EnforceOnBuildValues.ConvertSwitchStatementToExpression,
+        CSharpCodeStyleOptions.PreferSwitchExpression,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_switch_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public ConvertSwitchStatementToExpressionDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId,
-            EnforceOnBuildValues.ConvertSwitchStatementToExpression,
-            CSharpCodeStyleOptions.PreferSwitchExpression,
-            new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-            new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_switch_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     protected override void InitializeWorker(AnalysisContext context)
         => context.RegisterCompilationStartAction(context =>
         {
@@ -49,9 +45,11 @@ internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyz
 
         var switchStatement = context.Node;
         if (switchStatement.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
-        {
             return;
-        }
+
+        // Avoid providing code fixes for switch statements containing directives
+        if (switchStatement.ContainsDirectives)
+            return;
 
         var (nodeToGenerate, declaratorToRemoveOpt) = Analyzer.Analyze(
             (SwitchStatementSyntax)switchStatement,
@@ -64,7 +62,7 @@ internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyz
 
         var additionalLocations = ArrayBuilder<Location>.GetInstance();
         additionalLocations.Add(switchStatement.GetLocation());
-        additionalLocations.AddOptional(declaratorToRemoveOpt?.GetLocation());
+        additionalLocations.AddIfNotNull(declaratorToRemoveOpt?.GetLocation());
 
         context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
             // Report the diagnostic on the "switch" keyword.

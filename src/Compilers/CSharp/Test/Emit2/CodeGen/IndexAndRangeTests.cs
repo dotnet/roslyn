@@ -54,7 +54,7 @@ struct Buffer10
     }
 }
 """;
-            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) Length Index=9 Value=1, Index(^1) Length 2 Index=9 Value=2, Index(^1) Length 3 Index=9 Value=3,");
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.M2", """
@@ -200,12 +200,12 @@ Block[B4] - Exit
 
             comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (17,52): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (17,52): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static Buffer10 M2() { return new Buffer10() { [Id(^1)] = Id(2) }; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[Id(^1)]").WithArguments("implicit indexer initializer").WithLocation(17, 52),
-                // (18,37): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(^1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(17, 52),
+                // (18,37): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static C M3() => new C() { F = {[Id(^1)] = Id(3)} };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[Id(^1)]").WithArguments("implicit indexer initializer").WithLocation(18, 37)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(^1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(18, 37)
                 );
         }
 
@@ -230,15 +230,15 @@ struct Buffer10
     public object this[int x] => throw null;
 }
 """;
-            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
             verifier.VerifyDiagnostics();
 
             comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (5,51): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,51): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static Buffer10 M() { return new Buffer10() { [Id(^1)] = { } }; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[Id(^1)]").WithArguments("implicit indexer initializer").WithLocation(5, 51)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(^1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(5, 51)
                 );
         }
 
@@ -272,15 +272,15 @@ struct Buffer10
     public C this[int x] => new C();
 }
 """;
-            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) Id(1) Id(2)");
             verifier.VerifyDiagnostics();
 
             comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (8,51): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,51): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static Buffer10 M() { return new Buffer10() { [Id(^1)] = { Id(1), Id(2) } }; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[Id(^1)]").WithArguments("implicit indexer initializer").WithLocation(8, 51)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(^1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 51)
                 );
         }
 
@@ -1564,7 +1564,7 @@ class Buffer10
     }
 }
 """;
-            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: "ContainerLength ContainerIndex=9 Length ContainerIndex=9 Index=8 Value=42 ContainerIndex=9 Length ContainerIndex=9 Index=7 Value=43");
             verifier.VerifyDiagnostics();
 
@@ -1720,15 +1720,15 @@ Block[B6] - Exit
 
             comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (7,42): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,42): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         return new Buffer10Container() { [i1] = { [i2] = 42, [i3] = 43 } };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[i1]").WithArguments("implicit indexer initializer").WithLocation(7, 42),
-                // (7,51): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[i1]").WithArguments("implicit indexer initializer", "13.0").WithLocation(7, 42),
+                // (7,51): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         return new Buffer10Container() { [i1] = { [i2] = 42, [i3] = 43 } };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[i2]").WithArguments("implicit indexer initializer").WithLocation(7, 51),
-                // (7,62): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[i2]").WithArguments("implicit indexer initializer", "13.0").WithLocation(7, 51),
+                // (7,62): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         return new Buffer10Container() { [i1] = { [i2] = 42, [i3] = 43 } };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[i3]").WithArguments("implicit indexer initializer").WithLocation(7, 62)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[i3]").WithArguments("implicit indexer initializer", "13.0").WithLocation(7, 62)
                 );
         }
 
@@ -1756,15 +1756,15 @@ class Buffer10Container
 
 class Buffer10 { }
 """;
-            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
             verifier.VerifyDiagnostics();
 
             comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (7,42): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,42): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         return new Buffer10Container() { [Id(i1)] = { } };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[Id(i1)]").WithArguments("implicit indexer initializer").WithLocation(7, 42)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(i1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(7, 42)
                 );
         }
 
@@ -1956,24 +1956,24 @@ class Container
 
             var comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (8,40): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,40): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[^1]").WithArguments("implicit indexer initializer").WithLocation(8, 40),
-                // (8,49): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^1]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 40),
+                // (8,49): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[^2]").WithArguments("implicit indexer initializer").WithLocation(8, 49),
-                // (8,60): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^2]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 49),
+                // (8,60): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[^3]").WithArguments("implicit indexer initializer").WithLocation(8, 60),
-                // (8,73): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^3]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 60),
+                // (8,73): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[^2]").WithArguments("implicit indexer initializer").WithLocation(8, 73),
-                // (8,82): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^2]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 73),
+                // (8,82): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[^4]").WithArguments("implicit indexer initializer").WithLocation(8, 82)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^4]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 82)
                 );
 
-            comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: "42 43 44");
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.M", """ 
@@ -2194,7 +2194,7 @@ class C
     public static System.Range Id(System.Range r) { System.Console.Write($"Range({r}) "); return r; }
 }
 """;
-            var comp = CreateCompilationWithIndexAndRange(source, parseOptions: useCsharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIndexAndRange(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "Range(3..^6) Length Id(1) Slice(3, 1) Id(42) Id(2) Slice(3, 1) Id(43) Results=42,43");
             verifier.VerifyIL("C.M", """
@@ -2484,9 +2484,9 @@ Block[B6] - Exit
 
             comp = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (16,32): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (16,32): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         return new C() { F = { [Id(r)] = { [Id(1)] = Id(42), [Id(2)] = Id(43) } } };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[Id(r)]").WithArguments("implicit indexer initializer").WithLocation(16, 32)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(r)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(16, 32)
                 );
         }
 

@@ -6,27 +6,22 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MakeTypePartial;
 
-internal abstract class AbstractMakeTypePartialCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+internal abstract class AbstractMakeTypePartialCodeFixProvider()
+    : SyntaxEditorBasedCodeFixProvider(supportsFixAll: false)
 {
-    protected AbstractMakeTypePartialCodeFixProvider()
-        : base(supportsFixAll: false)
-    {
-    }
-
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CodeFixesResources.Make_type_partial, nameof(CodeFixesResources.Make_type_partial));
         return Task.CompletedTask;
     }
 
-    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var syntaxRoot = editor.OriginalRoot;
         var generator = editor.Generator;

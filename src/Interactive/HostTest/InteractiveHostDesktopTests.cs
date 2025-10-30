@@ -13,16 +13,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+    using Xunit.Abstractions;
 
     [Trait(Traits.Feature, Traits.Features.InteractiveHost)]
-    public sealed class InteractiveHostDesktopTests : AbstractInteractiveHostTests
+    public sealed class InteractiveHostDesktopTests(ITestOutputHelper testOutputHelper) : AbstractInteractiveHostTests(testOutputHelper)
     {
         internal override InteractiveHostPlatform DefaultPlatform => InteractiveHostPlatform.Desktop64;
         internal override bool UseDefaultInitializationFile => false;
@@ -938,7 +937,7 @@ public class C
             var lib = CSharpCompilation.Create(
 "Lib",
 new[] { SyntaxFactory.ParseSyntaxTree(source) },
-new[] { Net451.mscorlib, Net451.System },
+new[] { NetFramework.mscorlib, NetFramework.System },
 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var libFile = Temp.CreateFile("lib").WriteAllBytes(lib.EmitToArray());

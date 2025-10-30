@@ -5,14 +5,14 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup.Providers;
 
-internal class SimplificationCodeCleanupProvider : ICodeCleanupProvider
+internal sealed class SimplificationCodeCleanupProvider : ICodeCleanupProvider
 {
     public string Name => PredefinedCodeCleanupProviderNames.Simplification;
 

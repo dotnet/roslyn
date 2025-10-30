@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Tagging;
 using Microsoft.CodeAnalysis.Text;
@@ -23,7 +24,7 @@ using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
@@ -34,20 +35,19 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
 {
     private readonly object _uniqueKey = new();
 
+    private readonly TaggerHost _taggerHost;
+
     protected readonly IAsynchronousOperationListener AsyncListener;
-    protected readonly IThreadingContext ThreadingContext;
-    protected readonly IGlobalOptionService GlobalOptions;
-    private readonly ITextBufferVisibilityTracker? _visibilityTracker;
+    protected IThreadingContext ThreadingContext => _taggerHost.ThreadingContext;
+    protected IGlobalOptionService GlobalOptions => _taggerHost.GlobalOptions;
+
+    private ITextBufferVisibilityTracker? VisibilityTracker => _taggerHost.VisibilityTracker;
+    private TaggerMainThreadManager MainThreadManager => _taggerHost.TaggerMainThreadManager;
 
     /// <summary>
-    /// The behavior the tagger engine will have when text changes happen to the subject buffer
-    /// it is attached to.  Most taggers can simply use <see cref="TaggerTextChangeBehavior.None"/>.
-    /// However, advanced taggers that want to perform specialized behavior depending on what has
-    /// actually changed in the file can specify <see cref="TaggerTextChangeBehavior.TrackTextChanges"/>.
-    /// 
-    /// If this is specified the tagger engine will track text changes and pass them along as
-    /// <see cref="TaggerContext{TTag}.TextChangeRange"/> when calling 
-    /// <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/>.
+    /// The behavior the tagger engine will have when text changes happen to the subject buffer it is attached to.  Most
+    /// taggers can simply use <see cref="TaggerTextChangeBehavior.None"/>. However, advanced taggers that want to
+    /// perform specialized behavior depending on what has actually changed in the file can specify that here.
     /// </summary>
     protected virtual TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
 
@@ -120,8 +120,8 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     /// Subclasses should always override this.  It is only virtual for binary compat.
     /// </para>
     /// </summary>
-    protected virtual bool TagEquals(TTag tag1, TTag tag2)
-        => EqualityComparer<TTag>.Default.Equals(tag1, tag2);
+    protected virtual bool TagEquals(TTag latestTag, TTag previousTag)
+        => EqualityComparer<TTag>.Default.Equals(latestTag, previousTag);
 
     // Prevent accidental usage of object.Equals instead of TagEquals when comparing tags.
     [Obsolete("Did you mean to call TagEquals(TTag tag1, TTag tag2) instead", error: true)]
@@ -133,15 +133,11 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
 #endif
 
     protected AbstractAsynchronousTaggerProvider(
-        IThreadingContext threadingContext,
-        IGlobalOptionService globalOptions,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListener asyncListener)
+        TaggerHost taggerHost,
+        string featureName)
     {
-        ThreadingContext = threadingContext;
-        GlobalOptions = globalOptions;
-        AsyncListener = asyncListener;
-        _visibilityTracker = visibilityTracker;
+        _taggerHost = taggerHost;
+        AsyncListener = taggerHost.AsyncListenerProvider.GetListener(featureName);
 
 #if DEBUG
         StackTrace = new StackTrace().ToString();
@@ -163,7 +159,7 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     {
         if (!this.TryRetrieveTagSource(textView, subjectBuffer, out var tagSource))
         {
-            tagSource = new TagSource(textView, subjectBuffer, _visibilityTracker, this, AsyncListener);
+            tagSource = new TagSource(textView, subjectBuffer, this);
             this.StoreTagSource(textView, subjectBuffer, tagSource);
         }
 
@@ -211,18 +207,29 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
         => textView?.GetCaretPoint(subjectBuffer);
 
     /// <summary>
-    /// Called by the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> infrastructure to determine
-    /// the set of spans that it should asynchronously tag.  This will be called in response to
-    /// notifications from the <see cref="ITaggerEventSource"/> that something has changed, and
-    /// will only be called from the UI thread.  The tagger infrastructure will then determine
-    /// the <see cref="DocumentSnapshotSpan"/>s associated with these <see cref="SnapshotSpan"/>s
-    /// and will asynchronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> at some point in
-    /// the future to produce tags for these spans.
+    /// Called by the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> infrastructure to determine the set of
+    /// spans that it should asynchronously tag.  This will be called in response to notifications from the <see
+    /// cref="ITaggerEventSource"/> that something has changed, and will only be called from the UI thread.  The tagger
+    /// infrastructure will then determine the <see cref="DocumentSnapshotSpan"/>s associated with these <see
+    /// cref="SnapshotSpan"/>s and will asynchronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag},
+    /// CancellationToken)"/> at some point in the future to produce tags for these spans.
     /// </summary>
-    protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
+    /// <returns><see langword="false"/> if spans could not be added and if tagging should abort and re-run at a later
+    /// point.  Note: <see langword="false"/> is not equivalent to <see langword="true"/> along with no spans returned.
+    /// The latter means we can proceed to actual tag computation, just that since there are no applicable spans, we
+    /// should produce no tags whatsoever. The former means 'we cannot even proceed to tagging', 'we should preserve
+    /// whatever tags we current have', and 'we should rerun tagging in the future to see if we can proceed'. Examples
+    /// of where <see langword="false"/> should be used include if the <paramref name="textView"/> needs to be queried
+    /// for data, but it is in a state where it cannot respond to queries (for example, it is in the process of a
+    /// layout).  In that case, we cannot proceed, and we do not want to clear existing tags.  Instead, we want to wait
+    /// a short while till the next applicable time to tag.
+    /// </returns>
+    protected virtual bool TryAddSpansToTag(
+        ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         // For a standard tagger, the spans to tag is the span of the entire snapshot.
-        return SpecializedCollections.SingletonEnumerable(subjectBuffer.CurrentSnapshot.GetFullSpan());
+        result.Add(subjectBuffer.CurrentSnapshot.GetFullSpan());
+        return true;
     }
 
     /// <summary>

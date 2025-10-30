@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirective;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,26 +19,19 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer
-    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer()
+    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId,
+        EnforceOnBuildValues.RemoveUnnecessaryNullableDirective,
+        option: null,
+        fadingOption: null,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Nullable_directive_is_unnecessary), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId,
-               EnforceOnBuildValues.RemoveUnnecessaryNullableDirective,
-               option: null,
-               fadingOption: null,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Nullable_directive_is_unnecessary), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
-    {
-        context.RegisterCompilationStartAction(AnalyzeCompilation);
-    }
+        => context.RegisterCompilationStartAction(AnalyzeCompilation);
 
     private void AnalyzeCompilation(CompilationStartAnalysisContext context)
     {
@@ -86,14 +79,14 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer
         return simplifier.Spans;
     }
 
-    private ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, int positionOfFirstReducingNullableDirective, TextSpanIntervalTree? codeBlockIntervalTree, TextSpanIntervalTree? possibleNullableImpactIntervalTree)
+    private ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, int positionOfFirstReducingNullableDirective, TextSpanMutableIntervalTree? codeBlockIntervalTree, TextSpanMutableIntervalTree? possibleNullableImpactIntervalTree)
     {
         var root = context.SemanticModel.SyntaxTree.GetCompilationUnitRoot(context.CancellationToken);
 
         using (var simplifier = new NullableImpactingSpanWalker(context.SemanticModel, positionOfFirstReducingNullableDirective, ignoredSpans: codeBlockIntervalTree, context.CancellationToken))
         {
             simplifier.Visit(root);
-            possibleNullableImpactIntervalTree ??= new TextSpanIntervalTree();
+            possibleNullableImpactIntervalTree ??= new TextSpanMutableIntervalTree();
             foreach (var interval in simplifier.Spans)
             {
                 possibleNullableImpactIntervalTree.AddIntervalInPlace(interval);
@@ -144,7 +137,7 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer
                 SyntaxKind.ElifDirectiveTrivia or
                 SyntaxKind.ElseDirectiveTrivia)
             {
-                possibleNullableImpactIntervalTree ??= new TextSpanIntervalTree();
+                possibleNullableImpactIntervalTree ??= new TextSpanMutableIntervalTree();
                 possibleNullableImpactIntervalTree.AddIntervalInPlace(directive.Span);
             }
         }
@@ -173,16 +166,16 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer
             PositionOfFirstReducingNullableDirective = positionOfFirstReducingNullableDirective;
             if (!completed)
             {
-                IntervalTree = new TextSpanIntervalTree();
-                PossibleNullableImpactIntervalTree = new TextSpanIntervalTree();
+                IntervalTree = new TextSpanMutableIntervalTree();
+                PossibleNullableImpactIntervalTree = new TextSpanMutableIntervalTree();
             }
         }
 
         [MemberNotNullWhen(false, nameof(PositionOfFirstReducingNullableDirective), nameof(IntervalTree), nameof(PossibleNullableImpactIntervalTree))]
         public bool Completed { get; private set; }
         public int? PositionOfFirstReducingNullableDirective { get; }
-        public TextSpanIntervalTree? IntervalTree { get; }
-        public TextSpanIntervalTree? PossibleNullableImpactIntervalTree { get; }
+        public TextSpanMutableIntervalTree? IntervalTree { get; }
+        public TextSpanMutableIntervalTree? PossibleNullableImpactIntervalTree { get; }
 
         public static SyntaxTreeState Create(bool defaultCompleted, NullableContextOptions compilationOptions, SyntaxTree tree, CancellationToken cancellationToken)
         {
@@ -257,7 +250,7 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer
         }
     }
 
-    private class AnalyzerImpl(CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer analyzer)
+    private sealed class AnalyzerImpl(CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer analyzer)
     {
         private readonly CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer _analyzer = analyzer;
 

@@ -6,13 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 internal static partial class ITextViewExtensions
 {
-    private class AutoClosingViewProperty<TProperty, TTextView> where TTextView : ITextView
+    private sealed class AutoClosingViewProperty<TProperty, TTextView> where TTextView : ITextView
     {
         private readonly TTextView _textView;
         private readonly Dictionary<object, TProperty> _map = [];

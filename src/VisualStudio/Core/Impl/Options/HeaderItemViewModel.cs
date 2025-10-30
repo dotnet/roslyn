@@ -4,16 +4,9 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+internal sealed class HeaderItemViewModel
 {
-    internal class HeaderItemViewModel
-    {
-        public string Header { get; internal set; }
-    }
+    public string Header { get; internal set; }
 }

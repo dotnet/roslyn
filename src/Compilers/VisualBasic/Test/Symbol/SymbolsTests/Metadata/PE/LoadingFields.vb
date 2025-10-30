@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                              {
                                 TestResources.SymbolsTests.Fields.CSFields,
                                 TestResources.SymbolsTests.Fields.VBFields,
-                                TestMetadata.ResourcesNet40.mscorlib
+                                Net40.Resources.mscorlib
                              }, importInternals:=True)
 
             Dim module1 = assemblies(0).Modules(0)
@@ -98,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                              {
                                 TestResources.SymbolsTests.Fields.ConstantFields,
-                                TestMetadata.ResourcesNet40.mscorlib
+                                Net40.Resources.mscorlib
                              })
 
             Dim module1 = assemblies(0).Modules(0)

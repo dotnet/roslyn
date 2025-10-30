@@ -11,2429 +11,2500 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements
-{
-    [Trait(Traits.Feature, Traits.Features.CodeActionsMergeNestedIfStatements)]
-    public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeActionTest_NoEditor
-    {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
-            => new CSharpMergeNestedIfStatementsCodeRefactoringProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements;
 
-        [Theory]
-        [InlineData("[||]if (b)")]
-        [InlineData("i[||]f (b)")]
-        [InlineData("if[||] (b)")]
-        [InlineData("if [||](b)")]
-        [InlineData("if (b)[||]")]
-        [InlineData("[|if|] (b)")]
-        [InlineData("[|if (b)|]")]
-        public async Task MergedOnNestedIfSpans(string ifLine)
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
+[Trait(Traits.Feature, Traits.Features.CodeActionsMergeNestedIfStatements)]
+public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            " + ifLine + @"
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new CSharpMergeNestedIfStatementsCodeRefactoringProvider();
+
+    [Theory]
+    [InlineData("[||]if (b)")]
+    [InlineData("i[||]f (b)")]
+    [InlineData("if[||] (b)")]
+    [InlineData("if [||](b)")]
+    [InlineData("if (b)[||]")]
+    [InlineData("[|if|] (b)")]
+    [InlineData("[|if (b)|]")]
+    public Task MergedOnNestedIfSpans(string ifLine)
+        => TestInRegularAndScriptAsync(
+            """
+            class C
             {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnNestedIfExtendedHeaderSelection()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-[|            if (b)
-|]            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnNestedIfFullSelection()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-[|            if (b)
-            {
-            }
-|]        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnNestedIfFullSelectionWithElseClause()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [|if (b)
-            {
-            }
-            else
-            {
-            }|]
-        }
-        else
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-        }
-        else
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnNestedIfFullSelectionWithoutElseClause()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [|if (b)
-            {
-            }|]
-            else
-            {
-            }
-        }
-        else
-        {
-        }
-    }
-}");
-        }
-
-        [Theory]
-        [InlineData("if ([||]b)")]
-        [InlineData("[|i|]f (b)")]
-        [InlineData("[|if (|]b)")]
-        [InlineData("if [|(|]b)")]
-        [InlineData("if (b[|)|]")]
-        [InlineData("if ([|b|])")]
-        [InlineData("if [|(b)|]")]
-        public async Task NotMergedOnNestedIfSpans(string ifLine)
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            " + ifLine + @"
-            {
-            }
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnNestedIfOverreachingSelection1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [|if (b)
-            |]{
-            }
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnNestedIfOverreachingSelection2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [|if (b)
-            {|]
-            }
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnNestedIfBodySelection()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            if (b)
-            [|{
-            }|]
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnNestedIfBodyCaret1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            if (b)
-            [||]{
-            }
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnNestedIfBodyCaret2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            if (b)
-            {
-            }[||]
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnSingleIfInsideBlock()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        {
-            [||]if (b)
-            {
-            }
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnSingleIf()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        [||]if (b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithAndExpressions()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a && b)
-        {
-            [||]if (c && d)
-            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a && b && c && d)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithOrExpressionParenthesized1()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a || b)
-        {
-            [||]if (c && d)
-            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if ((a || b) && c && d)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithOrExpressionParenthesized2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a && b)
-        {
-            [||]if (c || d)
-            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a && b && (c || d))
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithBitwiseOrExpressionNotParenthesized1()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a | b)
-        {
-            [||]if (c && d)
-            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a | b && c && d)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithBitwiseOrExpressionNotParenthesized2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a && b)
-        {
-            [||]if (c | d)
-            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a && b && c | d)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithMixedExpressions1()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a || b && c)
-        {
-            [||]if (c == d)
-            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if ((a || b && c) && c == d)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithMixedExpressions2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a == b)
-        {
-            [||]if (b && c || d)
-            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b, bool c, bool d)
-    {
-        if (a == b && (b && c || d))
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithNestedIfInsideWhileLoop()
-        {
-            // Do not consider the while loop to be a simple block (as might be suggested by some language-agnostic helpers).
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            while (true)
-                [||]if (b)
+                void M(bool a, bool b)
                 {
-                }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithNestedIfInsideBlockInsideUsingStatement()
-        {
-            // Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            using (null)
-            {
-                [||]if (b)
-                {
+                    if (a)
+                    {
+            """ + ifLine + """
+                        {
+                        }
+                    }
                 }
             }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithNestedIfInsideUsingStatementInsideBlock()
-        {
-            // Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            using (null)
-                [||]if (b)
-                {
-                }
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithNestedIfInsideNestedBlockStatementInsideBlock()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
+            """,
+            """
+            class C
             {
-                [||]if (b)
+                void M(bool a, bool b)
                 {
-                    System.Console.WriteLine(a && b);
+                    if (a && b)
+                    {
+                    }
                 }
             }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-            System.Console.WriteLine(a && b);
-        }
-    }
-}");
-        }
+            """);
 
-        [Fact]
-        public async Task MergedWithNestedIfInsideNestedBlockStatementWithoutBlock()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
+    [Fact]
+    public Task MergedOnNestedIfExtendedHeaderSelection()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
             {
-                [||]if (b)
-                    System.Console.WriteLine(a && b);
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithNestedIfInsideBlockStatementInsideBlock()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-            {
-                System.Console.WriteLine(a && b);
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-            System.Console.WriteLine(a && b);
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithNestedIfInsideBlockStatementWithoutBlock()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithNestedIfWithoutBlockStatementInsideBlock()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            [||]if (b)
-            {
-                System.Console.WriteLine(a && b);
-            }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-            System.Console.WriteLine(a && b);
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithNestedIfWithoutBlockStatementWithoutBlock()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseClauseOnNestedIf()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine();
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseIfClauseOnNestedIf()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else if (a)
-                System.Console.WriteLine(a);
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseIfElseClausesOnNestedIf()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else if (a)
-                System.Console.WriteLine(a);
-            else
-                System.Console.WriteLine();
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseClauseOnOuterIf()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-        }
-        else
-            System.Console.WriteLine();
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseIfClauseOnOuterIf()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-        }
-        else if (a)
-            System.Console.WriteLine(a);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseIfElseClausesOnOuterIf()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-        }
-        else if (a)
-            System.Console.WriteLine(a);
-        else
-            System.Console.WriteLine();
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseIfElseClauses1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else if (a)
-                System.Console.WriteLine();
-        }
-        else
-            System.Console.WriteLine();
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseIfElseClauses2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine();
-        }
-        else if (a)
-            System.Console.WriteLine();
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseIfClauses1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else if (a)
-                System.Console.WriteLine();
-        }
-        else if (b)
-            System.Console.WriteLine();
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseIfClauses2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else if (a)
-                System.Console.WriteLine(a);
-        }
-        else if (a)
-            System.Console.WriteLine(b);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseIfClauses3()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else if (a)
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-        else if (a)
-        {
-            System.Console.WriteLine(b);
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseIfClauses4()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else if (a)
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-        else if (a)
-            System.Console.WriteLine(b);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseClauses1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-        else
-        {
-            System.Console.WriteLine(b);
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseClauses2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-        }
-        else
-            System.Console.WriteLine(b);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseClauses3()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-        else
-            System.Console.WriteLine(b);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseClauses4()
-        {
-            // Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-        else
-            using (null)
-                System.Console.WriteLine(a);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedIntoElseIfWithUnmatchingElseClauses1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-            System.Console.WriteLine();
-        else if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-        else
-        {
-            System.Console.WriteLine(b);
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedIntoElseIfWithUnmatchingElseClauses2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-            System.Console.WriteLine();
-        else if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-        }
-        else
-            System.Console.WriteLine(b);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedIntoElseIfWithUnmatchingElseClauses3()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-            System.Console.WriteLine();
-        else if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-        else
-            System.Console.WriteLine(b);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedIntoElseIfWithUnmatchingElseClauses4()
-        {
-            // Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-            System.Console.WriteLine();
-        else if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-        else
-            using (null)
-                System.Console.WriteLine(a);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithMatchingElseClauses1()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-        }
-        else
-            System.Console.WriteLine(a);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-        else
-            System.Console.WriteLine(a);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithMatchingElseClauses2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-        else
-        {
-            System.Console.WriteLine(a);
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-        else
-        {
-            System.Console.WriteLine(a);
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithMatchingElseIfClauses()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else if (a)
-                System.Console.WriteLine(a);
-        }
-        else if (a)
-            System.Console.WriteLine(a);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-        else if (a)
-            System.Console.WriteLine(a);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithMatchingElseIfElseClauses()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else if (a)
-                System.Console.WriteLine(a);
-            else
-                System.Console.WriteLine(a);
-        }
-        else if (a)
-            System.Console.WriteLine(a);
-        else
-            System.Console.WriteLine(a);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-        else if (a)
-            System.Console.WriteLine(a);
-        else
-            System.Console.WriteLine(a);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithMatchingElseClausesWithDifferenceInBlocks1()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-        else
-            System.Console.WriteLine(a);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-        else
-            System.Console.WriteLine(a);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithMatchingElseClausesWithDifferenceInBlocks2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-        }
-        else
-        {
-            System.Console.WriteLine(a);
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-        else
-        {
-            System.Console.WriteLine(a);
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithMatchingElseClausesWithDifferenceInBlocks3()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-        else
-        {
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-        else
-        {
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithMatchingElseIfClausesWithDifferenceInBlocks()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else if (a)
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-        else if (a)
-            System.Console.WriteLine(a);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-        else if (a)
-            System.Console.WriteLine(a);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithMatchingElseIfElseClausesWithDifferenceInBlocks()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else if (a)
-            {
-                System.Console.WriteLine(a);
-            }
-            else
-                System.Console.WriteLine();
-        }
-        else if (a)
-            System.Console.WriteLine(a);
-        else
-        {
-            System.Console.WriteLine();
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-        else if (a)
-            System.Console.WriteLine(a);
-        else
-        {
-            System.Console.WriteLine();
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedIntoElseIfWithMatchingElseClauses1()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-            System.Console.WriteLine();
-        else if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-        }
-        else
-            System.Console.WriteLine(a);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-            System.Console.WriteLine();
-        else if (a && b)
-            System.Console.WriteLine(a && b);
-        else
-            System.Console.WriteLine(a);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedIntoElseIfWithMatchingElseClauses2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-            System.Console.WriteLine();
-        else if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-            {
-                System.Console.WriteLine(a);
-            }
-        }
-        else
-        {
-            System.Console.WriteLine(a);
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-            System.Console.WriteLine();
-        else if (a && b)
-            System.Console.WriteLine(a && b);
-        else
-        {
-            System.Console.WriteLine(a);
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseClauseOnNestedIfWithoutBlock()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine();
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithUnmatchingElseClausesForNestedIfWithoutBlock()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-        else
-            System.Console.WriteLine(b);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithMatchingElseClausesForNestedIfWithoutBlock()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-        else
-            System.Console.WriteLine(a);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-        else
-            System.Console.WriteLine(a);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithSingleLineFormatting()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b) System.Console.WriteLine();
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine();
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithExtraUnmatchingStatementBelowNestedIf()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-
-            System.Console.WriteLine(b);
-        }
-        else
-            System.Console.WriteLine(a);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithExtraUnmatchingStatementBelowOuterIf()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-        }
-        else
-            System.Console.WriteLine(a);
-
-        System.Console.WriteLine(b);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-        else
-            System.Console.WriteLine(a);
-
-        System.Console.WriteLine(b);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithExtraUnmatchingStatementsIfControlFlowContinues()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-
-            System.Console.WriteLine(a);
-            System.Console.WriteLine(b);
-        }
-        else
-            System.Console.WriteLine(a);
-
-        System.Console.WriteLine(b);
-        System.Console.WriteLine(a);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithExtraUnmatchingStatementsIfControlFlowQuits()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-
-            throw new System.Exception();
-        }
-        else
-            System.Console.WriteLine(a);
-
-        return;
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithExtraPrecedingMatchingStatementsIfControlFlowQuits()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        return;
-
-        if (a)
-        {
-            return;
-
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-        }
-        else
-            System.Console.WriteLine(a);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-
-            System.Console.WriteLine(a);
-            System.Console.WriteLine(b);
-        }
-        else
-            System.Console.WriteLine(a);
-
-        System.Console.WriteLine(a);
-        System.Console.WriteLine(b);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-
-            if (a)
-                return;
-        }
-        else
-            System.Console.WriteLine(a);
-
-        if  (a)
-            return;
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues3()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (a != b)
-        {
-            if (a)
-            {
-                [||]if (b)
-                    System.Console.WriteLine(a && b);
-                else
-                    System.Console.WriteLine(a);
-
-                switch (a)
+                void M(bool a, bool b)
                 {
-                    default:
-                        break;
+                    if (a)
+                    {
+            [|            if (b)
+            |]            {
+                        }
+                    }
                 }
             }
-            else
-                System.Console.WriteLine(a);
-
-            switch (a)
+            """,
+            """
+            class C
             {
-                default:
-                    break;
-            }
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues4()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (a != b)
-        {
-            if (a)
-            {
-                [||]if (b)
-                    System.Console.WriteLine(a && b);
-                else
-                    System.Console.WriteLine(a);
-
-                while (a != b)
-                    continue;
-            }
-            else
-                System.Console.WriteLine(a);
-
-            while (a != b)
-                continue;
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedIntoElseIfWithExtraMatchingStatementsIfControlFlowContinues()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a == b)
-        {
-        }
-        else if (a || b)
-        {
-        }
-        else if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-
-            System.Console.WriteLine();
-        }
-        else
-            System.Console.WriteLine(a);
-
-        System.Console.WriteLine();
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits1()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-
-            return;
-        }
-        else
-            System.Console.WriteLine(a);
-
-        return;
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-        else
-            System.Console.WriteLine(a);
-
-        return;
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-
-            System.Console.WriteLine(a);
-            throw new System.Exception();
-        }
-        else
-            System.Console.WriteLine(a);
-
-        System.Console.WriteLine(a);
-        throw new System.Exception();
-        System.Console.WriteLine(b);
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
-        else
-            System.Console.WriteLine(a);
-
-        System.Console.WriteLine(a);
-        throw new System.Exception();
-        System.Console.WriteLine(b);
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits3()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (a != b)
-        {
-            if (a)
-            {
-                [||]if (b)
-                    System.Console.WriteLine(a && b);
-                else
-                    System.Console.WriteLine(a);
-
-                switch (a)
+                void M(bool a, bool b)
                 {
-                    default:
-                        continue;
+                    if (a && b)
+                    {
+                    }
                 }
             }
-            else
-                System.Console.WriteLine(a);
+            """);
 
-            switch (a)
+    [Fact]
+    public Task MergedOnNestedIfFullSelection()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
             {
-                default:
-                    continue;
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (a != b)
-        {
-            if (a && b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-
-            switch (a)
-            {
-                default:
-                    continue;
-            }
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits4()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (a != b)
-        {
-            System.Console.WriteLine();
-
-            if (a)
-            {
-                [||]if (b)
-                    System.Console.WriteLine(a && b);
-                else
-                    System.Console.WriteLine(a);
-
-                if (a)
-                    continue;
-                else
-                    break;
-            }
-            else
-                System.Console.WriteLine(a);
-
-            if (a)
-                continue;
-            else
-                break;
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (a != b)
-        {
-            System.Console.WriteLine();
-
-            if (a && b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-
-            if (a)
-                continue;
-            else
-                break;
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits5()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (a != b)
-        {
-            System.Console.WriteLine();
-
-            if (a)
-            {
-                [||]if (b)
-                    System.Console.WriteLine(a && b);
-                else
-                    System.Console.WriteLine(a);
-
-                switch (a)
+                void M(bool a, bool b)
                 {
-                    default:
-                        continue;
+                    if (a)
+                    {
+            [|            if (b)
+                        {
+                        }
+            |]        }
                 }
             }
-            else
-                System.Console.WriteLine(a);
-
-            switch (a)
+            """,
+            """
+            class C
             {
-                default:
-                    continue;
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                    {
+                    }
+                }
             }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        while (a != b)
-        {
-            System.Console.WriteLine();
+            """);
 
-            if (a && b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-
-            switch (a)
+    [Fact]
+    public Task MergedOnNestedIfFullSelectionWithElseClause()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
             {
-                default:
-                    continue;
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [|if (b)
+                        {
+                        }
+                        else
+                        {
+                        }|]
+                    }
+                    else
+                    {
+                    }
+                }
             }
-        }
-    }
-}");
-        }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                    {
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """);
 
-        [Fact]
-        public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits6()
-        {
-            await TestInRegularAndScriptAsync(
-@"bool a = bool.Parse("""");
-bool b = bool.Parse("""");
+    [Fact]
+    public Task NotMergedOnNestedIfFullSelectionWithoutElseClause()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [|if (b)
+                        {
+                        }|]
+                        else
+                        {
+                        }
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """);
 
-start:
-System.Console.WriteLine();
+    [Theory]
+    [InlineData("if ([||]b)")]
+    [InlineData("[|i|]f (b)")]
+    [InlineData("[|if (|]b)")]
+    [InlineData("if [|(|]b)")]
+    [InlineData("if (b[|)|]")]
+    [InlineData("if ([|b|])")]
+    [InlineData("if [|(b)|]")]
+    public Task NotMergedOnNestedIfSpans(string ifLine)
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+            """ + ifLine + """
+                        {
+                        }
+                    }
+                }
+            }
+            """);
 
-if (a)
-{
-    [||]if (b)
-        System.Console.WriteLine(a && b);
-    else
-        System.Console.WriteLine(a);
+    [Fact]
+    public Task NotMergedOnNestedIfOverreachingSelection1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [|if (b)
+                        |]{
+                        }
+                    }
+                }
+            }
+            """);
 
-    switch (a)
-    {
-        default:
-            goto start;
-    }
-}
-else
-    System.Console.WriteLine(a);
+    [Fact]
+    public Task NotMergedOnNestedIfOverreachingSelection2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [|if (b)
+                        {|]
+                        }
+                    }
+                }
+            }
+            """);
 
-switch (a)
-{
-    default:
-        goto start;
-}
-",
-@"bool a = bool.Parse("""");
-bool b = bool.Parse("""");
+    [Fact]
+    public Task NotMergedOnNestedIfBodySelection()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        if (b)
+                        [|{
+                        }|]
+                    }
+                }
+            }
+            """);
 
-start:
-System.Console.WriteLine();
+    [Fact]
+    public Task NotMergedOnNestedIfBodyCaret1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        if (b)
+                        [||]{
+                        }
+                    }
+                }
+            }
+            """);
 
-if (a && b)
-    System.Console.WriteLine(a && b);
-else
-    System.Console.WriteLine(a);
+    [Fact]
+    public Task NotMergedOnNestedIfBodyCaret2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        if (b)
+                        {
+                        }[||]
+                    }
+                }
+            }
+            """);
 
-switch (a)
-{
-    default:
-        goto start;
-}
-");
-        }
+    [Fact]
+    public Task NotMergedOnSingleIfInsideBlock()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    {
+                        [||]if (b)
+                        {
+                        }
+                    }
+                }
+            }
+            """);
 
-        [Fact]
-        public async Task MergedWithExtraMatchingStatementsIfControlFlowQuitsInSwitchSection()
-        {
-            // Switch sections are interesting in that they are blocks of statements that aren't BlockSyntax.
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        switch (a)
-        {
-            case true:
-                System.Console.WriteLine();
-
-                if (a)
+    [Fact]
+    public Task NotMergedOnSingleIf()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
                 {
                     [||]if (b)
-                        System.Console.WriteLine(a && b);
-
-                    break;
+                    {
+                    }
                 }
-
-                break;
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        switch (a)
-        {
-            case true:
-                System.Console.WriteLine();
-
-                if (a && b)
-                    System.Console.WriteLine(a && b);
-
-                break;
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedIntoElseIfWithExtraMatchingStatementsIfControlFlowQuits()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a == b)
-        {
-        }
-        else if (a || b)
-        {
-        }
-        else if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
-            else
-                System.Console.WriteLine(a);
-
-            return;
-        }
-        else
-            System.Console.WriteLine(a);
-
-        return;
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a == b)
-        {
-        }
-        else if (a || b)
-        {
-        }
-        else if (a && b)
-            System.Console.WriteLine(a && b);
-        else
-            System.Console.WriteLine(a);
-
-        return;
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithExtraMatchingStatementsInsideExtraBlockIfControlFlowQuits()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            {
-                [||]if (b)
-                    System.Console.WriteLine(a && b);
             }
+            """);
 
-            return;
-        }
-
-        return;
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedWithExtraMatchingStatementsInsideInnermostBlockIfControlFlowQuits()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
+    [Fact]
+    public Task MergedWithAndExpressions()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
             {
-                [||]if (b)
-                    System.Console.WriteLine(a && b);
-
-                return;
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a && b)
+                    {
+                        [||]if (c && d)
+                        {
+                        }
+                    }
+                }
             }
-        }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a && b && c && d)
+                    {
+                    }
+                }
+            }
+            """);
 
-        return;
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-            System.Console.WriteLine(a && b);
+    [Fact]
+    public Task MergedWithOrExpressionParenthesized1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a || b)
+                    {
+                        [||]if (c && d)
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if ((a || b) && c && d)
+                    {
+                    }
+                }
+            }
+            """);
 
-        return;
-    }
-}");
-        }
+    [Fact]
+    public Task MergedWithOrExpressionParenthesized2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a && b)
+                    {
+                        [||]if (c || d)
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a && b && (c || d))
+                    {
+                    }
+                }
+            }
+            """);
 
-        [Fact]
-        public async Task NotMergedWithExtraMatchingStatementInOuterScopeOfEmbeddedStatementIfControlFlowQuits()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        using (null)
+    [Fact]
+    public Task MergedWithBitwiseOrExpressionNotParenthesized1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a | b)
+                    {
+                        [||]if (c && d)
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a | b && c && d)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithBitwiseOrExpressionNotParenthesized2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a && b)
+                    {
+                        [||]if (c | d)
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a && b && c | d)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithMixedExpressions1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a || b && c)
+                    {
+                        [||]if (c == d)
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if ((a || b && c) && c == d)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithMixedExpressions2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a == b)
+                    {
+                        [||]if (b && c || d)
+                        {
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b, bool c, bool d)
+                {
+                    if (a == b && (b && c || d))
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithNestedIfInsideWhileLoop()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        while (true)
+                            [||]if (b)
+                            {
+                            }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithNestedIfInsideBlockInsideUsingStatement()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        using (null)
+                        {
+                            [||]if (b)
+                            {
+                            }
+                        }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithNestedIfInsideUsingStatementInsideBlock()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        using (null)
+                            [||]if (b)
+                            {
+                            }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithNestedIfInsideNestedBlockStatementInsideBlock()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        {
+                            [||]if (b)
+                            {
+                                System.Console.WriteLine(a && b);
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                    {
+                        System.Console.WriteLine(a && b);
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithNestedIfInsideNestedBlockStatementWithoutBlock()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        {
+                            [||]if (b)
+                                System.Console.WriteLine(a && b);
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithNestedIfInsideBlockStatementInsideBlock()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                        {
+                            System.Console.WriteLine(a && b);
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                    {
+                        System.Console.WriteLine(a && b);
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithNestedIfInsideBlockStatementWithoutBlock()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithNestedIfWithoutBlockStatementInsideBlock()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        [||]if (b)
+                        {
+                            System.Console.WriteLine(a && b);
+                        }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                    {
+                        System.Console.WriteLine(a && b);
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithNestedIfWithoutBlockStatementWithoutBlock()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseClauseOnNestedIf()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine();
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseIfClauseOnNestedIf()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else if (a)
+                            System.Console.WriteLine(a);
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseIfElseClausesOnNestedIf()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else if (a)
+                            System.Console.WriteLine(a);
+                        else
+                            System.Console.WriteLine();
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseClauseOnOuterIf()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                    }
+                    else
+                        System.Console.WriteLine();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseIfClauseOnOuterIf()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                    }
+                    else if (a)
+                        System.Console.WriteLine(a);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseIfElseClausesOnOuterIf()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                    }
+                    else if (a)
+                        System.Console.WriteLine(a);
+                    else
+                        System.Console.WriteLine();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseIfElseClauses1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else if (a)
+                            System.Console.WriteLine();
+                    }
+                    else
+                        System.Console.WriteLine();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseIfElseClauses2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine();
+                    }
+                    else if (a)
+                        System.Console.WriteLine();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseIfClauses1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else if (a)
+                            System.Console.WriteLine();
+                    }
+                    else if (b)
+                        System.Console.WriteLine();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseIfClauses2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else if (a)
+                            System.Console.WriteLine(a);
+                    }
+                    else if (a)
+                        System.Console.WriteLine(b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseIfClauses3()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else if (a)
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                    else if (a)
+                    {
+                        System.Console.WriteLine(b);
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseIfClauses4()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else if (a)
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                    else if (a)
+                        System.Console.WriteLine(b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseClauses1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                    else
+                    {
+                        System.Console.WriteLine(b);
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseClauses2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+                    }
+                    else
+                        System.Console.WriteLine(b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseClauses3()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                    else
+                        System.Console.WriteLine(b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseClauses4()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                    else
+                        using (null)
+                            System.Console.WriteLine(a);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedIntoElseIfWithUnmatchingElseClauses1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                        System.Console.WriteLine();
+                    else if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                    else
+                    {
+                        System.Console.WriteLine(b);
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedIntoElseIfWithUnmatchingElseClauses2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                        System.Console.WriteLine();
+                    else if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+                    }
+                    else
+                        System.Console.WriteLine(b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedIntoElseIfWithUnmatchingElseClauses3()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                        System.Console.WriteLine();
+                    else if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                    else
+                        System.Console.WriteLine(b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedIntoElseIfWithUnmatchingElseClauses4()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                        System.Console.WriteLine();
+                    else if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                    else
+                        using (null)
+                            System.Console.WriteLine(a);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithMatchingElseClauses1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+                    }
+                    else
+                        System.Console.WriteLine(a);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else
+                        System.Console.WriteLine(a);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithMatchingElseClauses2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                    else
+                    {
+                        System.Console.WriteLine(a);
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else
+                    {
+                        System.Console.WriteLine(a);
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithMatchingElseIfClauses()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else if (a)
+                            System.Console.WriteLine(a);
+                    }
+                    else if (a)
+                        System.Console.WriteLine(a);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else if (a)
+                        System.Console.WriteLine(a);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithMatchingElseIfElseClauses()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else if (a)
+                            System.Console.WriteLine(a);
+                        else
+                            System.Console.WriteLine(a);
+                    }
+                    else if (a)
+                        System.Console.WriteLine(a);
+                    else
+                        System.Console.WriteLine(a);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else if (a)
+                        System.Console.WriteLine(a);
+                    else
+                        System.Console.WriteLine(a);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithMatchingElseClausesWithDifferenceInBlocks1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                    else
+                        System.Console.WriteLine(a);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else
+                        System.Console.WriteLine(a);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithMatchingElseClausesWithDifferenceInBlocks2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+                    }
+                    else
+                    {
+                        System.Console.WriteLine(a);
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else
+                    {
+                        System.Console.WriteLine(a);
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithMatchingElseClausesWithDifferenceInBlocks3()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                    else
+                    {
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else
+                    {
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithMatchingElseIfClausesWithDifferenceInBlocks()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else if (a)
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                    else if (a)
+                        System.Console.WriteLine(a);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else if (a)
+                        System.Console.WriteLine(a);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithMatchingElseIfElseClausesWithDifferenceInBlocks()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else if (a)
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                        else
+                            System.Console.WriteLine();
+                    }
+                    else if (a)
+                        System.Console.WriteLine(a);
+                    else
+                    {
+                        System.Console.WriteLine();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else if (a)
+                        System.Console.WriteLine(a);
+                    else
+                    {
+                        System.Console.WriteLine();
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedIntoElseIfWithMatchingElseClauses1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                        System.Console.WriteLine();
+                    else if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+                    }
+                    else
+                        System.Console.WriteLine(a);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                        System.Console.WriteLine();
+                    else if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else
+                        System.Console.WriteLine(a);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedIntoElseIfWithMatchingElseClauses2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                        System.Console.WriteLine();
+                    else if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                        {
+                            System.Console.WriteLine(a);
+                        }
+                    }
+                    else
+                    {
+                        System.Console.WriteLine(a);
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                        System.Console.WriteLine();
+                    else if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else
+                    {
+                        System.Console.WriteLine(a);
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseClauseOnNestedIfWithoutBlock()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithUnmatchingElseClausesForNestedIfWithoutBlock()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+                    else
+                        System.Console.WriteLine(b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithMatchingElseClausesForNestedIfWithoutBlock()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+                    else
+                        System.Console.WriteLine(a);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else
+                        System.Console.WriteLine(a);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithSingleLineFormatting()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b) System.Console.WriteLine();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithExtraUnmatchingStatementBelowNestedIf()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+
+                        System.Console.WriteLine(b);
+                    }
+                    else
+                        System.Console.WriteLine(a);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithExtraUnmatchingStatementBelowOuterIf()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+                    }
+                    else
+                        System.Console.WriteLine(a);
+
+                    System.Console.WriteLine(b);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else
+                        System.Console.WriteLine(a);
+
+                    System.Console.WriteLine(b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithExtraUnmatchingStatementsIfControlFlowContinues()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+
+                        System.Console.WriteLine(a);
+                        System.Console.WriteLine(b);
+                    }
+                    else
+                        System.Console.WriteLine(a);
+
+                    System.Console.WriteLine(b);
+                    System.Console.WriteLine(a);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithExtraUnmatchingStatementsIfControlFlowQuits()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+
+                        throw new System.Exception();
+                    }
+                    else
+                        System.Console.WriteLine(a);
+
+                    return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithExtraPrecedingMatchingStatementsIfControlFlowQuits()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    return;
+
+                    if (a)
+                    {
+                        return;
+
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+                    }
+                    else
+                        System.Console.WriteLine(a);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+
+                        System.Console.WriteLine(a);
+                        System.Console.WriteLine(b);
+                    }
+                    else
+                        System.Console.WriteLine(a);
+
+                    System.Console.WriteLine(a);
+                    System.Console.WriteLine(b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+
+                        if (a)
+                            return;
+                    }
+                    else
+                        System.Console.WriteLine(a);
+
+                    if  (a)
+                        return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues3()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (a != b)
+                    {
+                        if (a)
+                        {
+                            [||]if (b)
+                                System.Console.WriteLine(a && b);
+                            else
+                                System.Console.WriteLine(a);
+
+                            switch (a)
+                            {
+                                default:
+                                    break;
+                            }
+                        }
+                        else
+                            System.Console.WriteLine(a);
+
+                        switch (a)
+                        {
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues4()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (a != b)
+                    {
+                        if (a)
+                        {
+                            [||]if (b)
+                                System.Console.WriteLine(a && b);
+                            else
+                                System.Console.WriteLine(a);
+
+                            while (a != b)
+                                continue;
+                        }
+                        else
+                            System.Console.WriteLine(a);
+
+                        while (a != b)
+                            continue;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedIntoElseIfWithExtraMatchingStatementsIfControlFlowContinues()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a == b)
+                    {
+                    }
+                    else if (a || b)
+                    {
+                    }
+                    else if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+
+                        System.Console.WriteLine();
+                    }
+                    else
+                        System.Console.WriteLine(a);
+
+                    System.Console.WriteLine();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuits1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+
+                        return;
+                    }
+                    else
+                        System.Console.WriteLine(a);
+
+                    return;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else
+                        System.Console.WriteLine(a);
+
+                    return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuits2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+
+                        System.Console.WriteLine(a);
+                        throw new System.Exception();
+                    }
+                    else
+                        System.Console.WriteLine(a);
+
+                    System.Console.WriteLine(a);
+                    throw new System.Exception();
+                    System.Console.WriteLine(b);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else
+                        System.Console.WriteLine(a);
+
+                    System.Console.WriteLine(a);
+                    throw new System.Exception();
+                    System.Console.WriteLine(b);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuits3()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (a != b)
+                    {
+                        if (a)
+                        {
+                            [||]if (b)
+                                System.Console.WriteLine(a && b);
+                            else
+                                System.Console.WriteLine(a);
+
+                            switch (a)
+                            {
+                                default:
+                                    continue;
+                            }
+                        }
+                        else
+                            System.Console.WriteLine(a);
+
+                        switch (a)
+                        {
+                            default:
+                                continue;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (a != b)
+                    {
+                        if (a && b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+
+                        switch (a)
+                        {
+                            default:
+                                continue;
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuits4()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (a != b)
+                    {
+                        System.Console.WriteLine();
+
+                        if (a)
+                        {
+                            [||]if (b)
+                                System.Console.WriteLine(a && b);
+                            else
+                                System.Console.WriteLine(a);
+
+                            if (a)
+                                continue;
+                            else
+                                break;
+                        }
+                        else
+                            System.Console.WriteLine(a);
+
+                        if (a)
+                            continue;
+                        else
+                            break;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (a != b)
+                    {
+                        System.Console.WriteLine();
+
+                        if (a && b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+
+                        if (a)
+                            continue;
+                        else
+                            break;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuits5()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (a != b)
+                    {
+                        System.Console.WriteLine();
+
+                        if (a)
+                        {
+                            [||]if (b)
+                                System.Console.WriteLine(a && b);
+                            else
+                                System.Console.WriteLine(a);
+
+                            switch (a)
+                            {
+                                default:
+                                    continue;
+                            }
+                        }
+                        else
+                            System.Console.WriteLine(a);
+
+                        switch (a)
+                        {
+                            default:
+                                continue;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    while (a != b)
+                    {
+                        System.Console.WriteLine();
+
+                        if (a && b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+
+                        switch (a)
+                        {
+                            default:
+                                continue;
+                        }
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuits6()
+        => TestInRegularAndScriptAsync(
+            """
+            bool a = bool.Parse("");
+            bool b = bool.Parse("");
+
+            start:
+            System.Console.WriteLine();
+
             if (a)
             {
                 [||]if (b)
                     System.Console.WriteLine(a && b);
+                else
+                    System.Console.WriteLine(a);
 
-                return;
+                switch (a)
+                {
+                    default:
+                        goto start;
+                }
             }
-
-        return;
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedIntoElseIfWithExtraMatchingStatementInOuterScopeOfEmbeddedStatementIfControlFlowQuits()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        using (null)
-            if (a || b)
+            else
                 System.Console.WriteLine(a);
-            else if (a)
+
+            switch (a)
             {
-                [||]if (b)
-                    System.Console.WriteLine(a && b);
-
-                return;
+                default:
+                    goto start;
             }
+            """,
+            """
+            bool a = bool.Parse("");
+            bool b = bool.Parse("");
 
-        return;
-    }
-}");
-        }
-    }
+            start:
+            System.Console.WriteLine();
+
+            if (a && b)
+                System.Console.WriteLine(a && b);
+            else
+                System.Console.WriteLine(a);
+
+            switch (a)
+            {
+                default:
+                    goto start;
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuitsInSwitchSection()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    switch (a)
+                    {
+                        case true:
+                            System.Console.WriteLine();
+
+                            if (a)
+                            {
+                                [||]if (b)
+                                    System.Console.WriteLine(a && b);
+
+                                break;
+                            }
+
+                            break;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    switch (a)
+                    {
+                        case true:
+                            System.Console.WriteLine();
+
+                            if (a && b)
+                                System.Console.WriteLine(a && b);
+
+                            break;
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedIntoElseIfWithExtraMatchingStatementsIfControlFlowQuits()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a == b)
+                    {
+                    }
+                    else if (a || b)
+                    {
+                    }
+                    else if (a)
+                    {
+                        [||]if (b)
+                            System.Console.WriteLine(a && b);
+                        else
+                            System.Console.WriteLine(a);
+
+                        return;
+                    }
+                    else
+                        System.Console.WriteLine(a);
+
+                    return;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a == b)
+                    {
+                    }
+                    else if (a || b)
+                    {
+                    }
+                    else if (a && b)
+                        System.Console.WriteLine(a && b);
+                    else
+                        System.Console.WriteLine(a);
+
+                    return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithExtraMatchingStatementsInsideExtraBlockIfControlFlowQuits()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        {
+                            [||]if (b)
+                                System.Console.WriteLine(a && b);
+                        }
+
+                        return;
+                    }
+
+                    return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MergedWithExtraMatchingStatementsInsideInnermostBlockIfControlFlowQuits()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                    {
+                        {
+                            [||]if (b)
+                                System.Console.WriteLine(a && b);
+
+                            return;
+                        }
+                    }
+
+                    return;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a && b)
+                        System.Console.WriteLine(a && b);
+
+                    return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedWithExtraMatchingStatementInOuterScopeOfEmbeddedStatementIfControlFlowQuits()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    using (null)
+                        if (a)
+                        {
+                            [||]if (b)
+                                System.Console.WriteLine(a && b);
+
+                            return;
+                        }
+
+                    return;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task NotMergedIntoElseIfWithExtraMatchingStatementInOuterScopeOfEmbeddedStatementIfControlFlowQuits()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    using (null)
+                        if (a || b)
+                            System.Console.WriteLine(a);
+                        else if (a)
+                        {
+                            [||]if (b)
+                                System.Console.WriteLine(a && b);
+
+                            return;
+                        }
+
+                    return;
+                }
+            }
+            """);
 }

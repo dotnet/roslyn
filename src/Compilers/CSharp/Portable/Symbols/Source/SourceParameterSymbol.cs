@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(owner is not LambdaSymbol); // therefore we don't need to deal with discard parameters
 
             var name = identifier.ValueText;
-            var location = new SourceLocation(identifier);
+            var location = new SourceLocation(name == "" ? syntax.Type : identifier);
 
             if (hasParamsModifier && parameterType.IsSZArray())
             {
@@ -79,9 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !isExtensionMethodThis &&
                 (syntax.Default == null) &&
                 (syntax.AttributeLists.Count == 0) &&
-                !owner.IsPartialMethod())
+                !owner.IsPartialMember() &&
+                scope == ScopedKind.None)
             {
-                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, scope, name, location);
+                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, location);
             }
 
             return new SourceComplexParameterSymbol(
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location)
             : base(owner, ordinal)
         {
-            Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property));
+            Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property) || owner is NamedTypeSymbol { IsExtension: true });
             _refKind = refKind;
             _scope = scope;
             _name = name;
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The declared scope. From source, this is from the <c>scope</c> keyword only.
         /// </summary>
-        internal ScopedKind DeclaredScope => _scope;
+        internal sealed override ScopedKind DeclaredScope => _scope;
 
         /// <summary>
         /// Reflects presence of `params` modifier in source
@@ -241,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return ScopedKind.ScopedRef;
                 }
-                else if (HasParamsModifier && Type.IsRefLikeType)
+                else if (HasParamsModifier && Type.IsRefLikeOrAllowsRefLikeType())
                 {
                     return ScopedKind.ScopedValue;
                 }

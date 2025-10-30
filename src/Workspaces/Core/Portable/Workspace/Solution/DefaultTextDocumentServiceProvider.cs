@@ -35,7 +35,7 @@ internal sealed class DefaultTextDocumentServiceProvider : IDocumentServiceProvi
         return null;
     }
 
-    private class DocumentOperationService : IDocumentOperationService
+    private sealed class DocumentOperationService : IDocumentOperationService
     {
         public static readonly DocumentOperationService Instance = new();
 

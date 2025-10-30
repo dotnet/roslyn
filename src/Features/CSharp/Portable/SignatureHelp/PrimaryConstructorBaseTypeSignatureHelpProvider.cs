@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -19,7 +20,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 /// such as 'record Student(int Id) : Person($$"first", "last");`.
 /// </summary>
 [ExportSignatureHelpProvider("PrimaryConstructorBaseTypeSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+internal sealed partial class PrimaryConstructorBaseTypeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -36,11 +36,9 @@ internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : Abstrac
     {
     }
 
-    public override bool IsTriggerCharacter(char ch)
-        => ch is '(' or ',';
+    public override ImmutableArray<char> TriggerCharacters => ['(', ','];
 
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == ')';
+    public override ImmutableArray<char> RetriggerCharacters => [')'];
 
     private bool TryGetBaseTypeSyntax(
         SyntaxNode root,
@@ -66,9 +64,9 @@ internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : Abstrac
     }
 
     private bool IsTriggerToken(SyntaxToken token)
-        => SignatureHelpUtilities.IsTriggerParenOrComma<PrimaryConstructorBaseTypeSyntax>(token, IsTriggerCharacter);
+        => SignatureHelpUtilities.IsTriggerParenOrComma<PrimaryConstructorBaseTypeSyntax>(token, TriggerCharacters);
 
-    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -76,8 +74,7 @@ internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : Abstrac
             return null;
 
         var baseList = baseTypeSyntax.Parent as BaseListSyntax;
-        var namedTypeSyntax = baseList?.Parent as BaseTypeDeclarationSyntax;
-        if (namedTypeSyntax is null)
+        if (baseList?.Parent is not BaseTypeDeclarationSyntax namedTypeSyntax)
             return null;
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -102,8 +99,8 @@ internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : Abstrac
         var currentConstructor = semanticModel.GetSymbolInfo(baseTypeSyntax, cancellationToken).Symbol;
         var selectedItem = TryGetSelectedIndex(accessibleConstructors, currentConstructor);
 
-        return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(c =>
-            Convert(c, baseTypeSyntax.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
+        return CreateSignatureHelpItems([.. accessibleConstructors.SelectAsArray(c =>
+            Convert(c, baseTypeSyntax.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService))],
             textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem, parameterIndexOverride: -1);
     }
 
@@ -134,7 +131,7 @@ internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : Abstrac
             GetPreambleParts(constructor, semanticModel, position),
             GetSeparatorParts(),
             GetPostambleParts(),
-            constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+            [.. constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
         return item;
 
         static IList<SymbolDisplayPart> GetPreambleParts(
@@ -151,8 +148,6 @@ internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : Abstrac
         }
 
         static IList<SymbolDisplayPart> GetPostambleParts()
-        {
-            return SpecializedCollections.SingletonList(Punctuation(SyntaxKind.CloseParenToken));
-        }
+            => [Punctuation(SyntaxKind.CloseParenToken)];
     }
 }

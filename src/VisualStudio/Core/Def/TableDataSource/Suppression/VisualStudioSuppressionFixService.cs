@@ -14,24 +14,20 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Progress;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
@@ -41,100 +37,90 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 /// </summary>
 [Export(typeof(IVisualStudioSuppressionFixService))]
 [Export(typeof(VisualStudioSuppressionFixService))]
-internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressionFixService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VisualStudioSuppressionFixService(
+    IThreadingContext threadingContext,
+    VisualStudioWorkspaceImpl workspace,
+    ICodeFixService codeFixService,
+    ICodeActionEditHandlerService editHandlerService,
+    VisualStudioDiagnosticListSuppressionStateService suppressionStateService,
+    IUIThreadOperationExecutor uiThreadOperationExecutor,
+    IVsHierarchyItemManager vsHierarchyItemManager,
+    IAsynchronousOperationListenerProvider listenerProvider) : IVisualStudioSuppressionFixService
 {
-    private readonly IThreadingContext _threadingContext;
-    private readonly VisualStudioWorkspaceImpl _workspace;
-    private readonly IAsynchronousOperationListener _listener;
-    private readonly IDiagnosticAnalyzerService _diagnosticService;
-    private readonly ExternalErrorDiagnosticUpdateSource _buildErrorDiagnosticService;
-    private readonly ICodeFixService _codeFixService;
-    private readonly IFixMultipleOccurrencesService _fixMultipleOccurencesService;
-    private readonly ICodeActionEditHandlerService _editHandlerService;
-    private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
-    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-    private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
-    private readonly IHierarchyItemToProjectIdMap _projectMap;
-    private readonly IGlobalOptionService _globalOptions;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly VisualStudioWorkspaceImpl _workspace = workspace;
+    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
+    private readonly ICodeFixService _codeFixService = codeFixService;
+    private readonly IFixMultipleOccurrencesService _fixMultipleOccurencesService = workspace.Services.GetRequiredService<IFixMultipleOccurrencesService>();
+    private readonly ICodeActionEditHandlerService _editHandlerService = editHandlerService;
+    private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService = suppressionStateService;
+    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
+    private readonly IVsHierarchyItemManager _vsHierarchyItemManager = vsHierarchyItemManager;
+    private readonly IHierarchyItemToProjectIdMap _projectMap = workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
 
     private IWpfTableControl? _tableControl;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioSuppressionFixService(
-        IThreadingContext threadingContext,
-        SVsServiceProvider serviceProvider,
-        VisualStudioWorkspaceImpl workspace,
-        IDiagnosticAnalyzerService diagnosticService,
-        ICodeFixService codeFixService,
-        ICodeActionEditHandlerService editHandlerService,
-        VisualStudioDiagnosticListSuppressionStateService suppressionStateService,
-        IUIThreadOperationExecutor uiThreadOperationExecutor,
-        IVsHierarchyItemManager vsHierarchyItemManager,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        IGlobalOptionService globalOptions)
+    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        _threadingContext = threadingContext;
-        _workspace = workspace;
-        _diagnosticService = diagnosticService;
-        _buildErrorDiagnosticService = workspace.ExternalErrorDiagnosticUpdateSource;
-        _codeFixService = codeFixService;
-        _suppressionStateService = suppressionStateService;
-        _editHandlerService = editHandlerService;
-        _uiThreadOperationExecutor = uiThreadOperationExecutor;
-        _vsHierarchyItemManager = vsHierarchyItemManager;
-        _fixMultipleOccurencesService = workspace.Services.GetRequiredService<IFixMultipleOccurrencesService>();
-        _projectMap = workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
-        _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
-        _globalOptions = globalOptions;
-    }
-
-    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
-    {
-        var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
+        var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
         _tableControl = errorList?.TableControl;
     }
 
     public bool AddSuppressions(IVsHierarchy? projectHierarchy)
     {
-        if (_tableControl == null)
+        return _threadingContext.JoinableTaskFactory.Run(async () =>
         {
-            return false;
-        }
+            if (_tableControl == null)
+                return false;
 
-        var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchy);
+            var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchy);
 
-        // Apply suppressions fix in global suppressions file for non-compiler diagnostics and
-        // in source only for compiler diagnostics.
-        var diagnosticsToFix = GetDiagnosticsToFix(shouldFixInProject, selectedEntriesOnly: false, isAddSuppression: true);
-        if (!ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: false, isAddSuppression: true, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: false))
-        {
-            return false;
-        }
+            // Apply suppressions fix in global suppressions file for non-compiler diagnostics and
+            // in source only for compiler diagnostics.
+            var diagnosticsToFix = await GetDiagnosticsToFixAsync(selectedEntriesOnly: false, isAddSuppression: true).ConfigureAwait(true);
+            if (!ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: false, isAddSuppression: true, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: false))
+                return false;
 
-        return ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: false, isAddSuppression: true, isSuppressionInSource: true, onlyCompilerDiagnostics: true, showPreviewChangesDialog: false);
+            return ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: false, isAddSuppression: true, isSuppressionInSource: true, onlyCompilerDiagnostics: true, showPreviewChangesDialog: false);
+        });
     }
 
     public bool AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource, IVsHierarchy? projectHierarchy)
     {
-        if (_tableControl == null)
+        return _threadingContext.JoinableTaskFactory.Run(async () =>
         {
-            return false;
-        }
+            if (_tableControl == null)
+                return false;
 
-        var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchy);
-        return ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: true, isSuppressionInSource: suppressInSource, onlyCompilerDiagnostics: false, showPreviewChangesDialog: true);
+            var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchy);
+            return await ApplySuppressionFixAsync(
+                shouldFixInProject,
+                selectedErrorListEntriesOnly,
+                isAddSuppression: true,
+                isSuppressionInSource: suppressInSource,
+                onlyCompilerDiagnostics: false,
+                showPreviewChangesDialog: true).ConfigureAwait(true);
+        });
     }
 
     public bool RemoveSuppressions(bool selectedErrorListEntriesOnly, IVsHierarchy? projectHierarchy)
     {
-        if (_tableControl == null)
+        return _threadingContext.JoinableTaskFactory.Run(async () =>
         {
-            return false;
-        }
+            if (_tableControl == null)
+                return false;
 
-        var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchy);
-        return ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: false, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: true);
+            var shouldFixInProject = GetShouldFixInProjectDelegate(_vsHierarchyItemManager, _projectMap, projectHierarchy);
+            return await ApplySuppressionFixAsync(
+                shouldFixInProject,
+                selectedErrorListEntriesOnly,
+                isAddSuppression: false,
+                isSuppressionInSource: false,
+                onlyCompilerDiagnostics: false,
+                showPreviewChangesDialog: true).ConfigureAwait(true);
+        });
     }
 
     private static Func<Project, bool> GetShouldFixInProjectDelegate(IVsHierarchyItemManager vsHierarchyItemManager, IHierarchyItemToProjectIdMap projectMap, IVsHierarchy? projectHierarchy)
@@ -152,94 +138,45 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
         return p => projectHierarchy == null || p.Id == projectIdToMatch;
     }
 
-    private async Task<ImmutableArray<DiagnosticData>> GetAllBuildDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
-    {
-        using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
-
-        var buildDiagnostics = _buildErrorDiagnosticService.GetBuildErrors().Where(d => d.ProjectId != null && d.Severity != DiagnosticSeverity.Hidden);
-        var solution = _workspace.CurrentSolution;
-        foreach (var diagnosticsByProject in buildDiagnostics.GroupBy(d => d.ProjectId))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (diagnosticsByProject.Key == null)
-            {
-                // Diagnostics with no projectId cannot be suppressed.
-                continue;
-            }
-
-            var project = solution.GetProject(diagnosticsByProject.Key);
-            if (project != null && shouldFixInProject(project))
-            {
-                var diagnosticsByDocument = diagnosticsByProject.GroupBy(d => d.DocumentId);
-                foreach (var group in diagnosticsByDocument)
-                {
-                    var documentId = group.Key;
-                    if (documentId == null)
-                    {
-                        // Project diagnostics, just add all of them.
-                        builder.AddRange(group);
-                        continue;
-                    }
-
-                    // For document diagnostics ensure that whatever was reported is placed at a valid location for
-                    // the state the document is currently in.
-                    var document = project.GetDocument(documentId);
-                    if (document != null)
-                    {
-                        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                        var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        foreach (var diagnostic in group)
-                        {
-                            var span = diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
-                            builder.Add(diagnostic.WithLocations(diagnostic.DataLocation.WithSpan(span, tree), additionalLocations: default));
-                        }
-                    }
-                }
-            }
-        }
-
-        return builder.ToImmutable();
-    }
-
     private static string GetFixTitle(bool isAddSuppression)
         => isAddSuppression ? ServicesVSResources.Suppress_diagnostics : ServicesVSResources.Remove_suppressions;
 
     private static string GetWaitDialogMessage(bool isAddSuppression)
         => isAddSuppression ? ServicesVSResources.Computing_suppressions_fix : ServicesVSResources.Computing_remove_suppressions_fix;
 
-    private IEnumerable<DiagnosticData>? GetDiagnosticsToFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression)
+    private async Task<ImmutableHashSet<DiagnosticData>?> GetDiagnosticsToFixAsync(
+        bool selectedEntriesOnly,
+        bool isAddSuppression)
     {
         var diagnosticsToFix = ImmutableHashSet<DiagnosticData>.Empty;
-        void computeDiagnosticsToFix(IUIThreadOperationContext context)
-        {
-            var cancellationToken = context.UserCancellationToken;
 
+        var result = await InvokeWithWaitDialogAsync(async cancellationToken =>
+        {
             // If we are fixing selected diagnostics in error list, then get the diagnostics from error list entry
             // snapshots. Otherwise, get all diagnostics from the diagnostic service.
-            var diagnosticsToFixTask = selectedEntriesOnly
-                ? _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken)
-                : GetAllBuildDiagnosticsAsync(shouldFixInProject, cancellationToken);
+            var diagnosticsToFixArray = selectedEntriesOnly
+                ? await _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken).ConfigureAwait(true)
+                : [];
 
-            diagnosticsToFix = diagnosticsToFixTask.WaitAndGetResult(cancellationToken).ToImmutableHashSet();
-        }
+            diagnosticsToFix = [.. diagnosticsToFixArray];
 
-        var title = GetFixTitle(isAddSuppression);
-        var waitDialogMessage = GetWaitDialogMessage(isAddSuppression);
-        var result = InvokeWithWaitDialog(computeDiagnosticsToFix, title, waitDialogMessage);
+        }, GetFixTitle(isAddSuppression), GetWaitDialogMessage(isAddSuppression)).ConfigureAwait(true);
 
-        // Bail out if the user cancelled.
         if (result == UIThreadOperationStatus.Canceled)
-        {
             return null;
-        }
 
         return diagnosticsToFix;
     }
 
-    private bool ApplySuppressionFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
+    private async Task<bool> ApplySuppressionFixAsync(
+        Func<Project, bool> shouldFixInProject,
+        bool selectedEntriesOnly,
+        bool isAddSuppression,
+        bool isSuppressionInSource,
+        bool onlyCompilerDiagnostics,
+        bool showPreviewChangesDialog)
     {
-        var diagnosticsToFix = GetDiagnosticsToFix(shouldFixInProject, selectedEntriesOnly, isAddSuppression);
+        var diagnosticsToFix = await GetDiagnosticsToFixAsync(selectedEntriesOnly, isAddSuppression).ConfigureAwait(true);
         return ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, selectedEntriesOnly, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog);
     }
 
@@ -321,27 +258,24 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var language = languageService.Language;
-                var options = _globalOptions.GetCodeActionOptions(languageService);
-                var optionsProvider = options.CreateProvider();
 
                 var documentDiagnosticsPerLanguage = GetDocumentDiagnosticsMappedToNewSolution(documentDiagnosticsToFixMap, newSolution, language);
                 if (!documentDiagnosticsPerLanguage.IsEmpty)
                 {
                     var suppressionFixer = GetSuppressionFixer(documentDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
-                    if (suppressionFixer != null)
+                    var suppressionFixAllProvider = suppressionFixer?.GetFixAllProvider();
+                    if (suppressionFixer != null && suppressionFixAllProvider != null)
                     {
-                        var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
-                        newSolution = _fixMultipleOccurencesService.GetFix(
+                        newSolution = await _fixMultipleOccurencesService.GetFixAsync(
                             documentDiagnosticsPerLanguage,
                             _workspace,
                             suppressionFixer,
                             suppressionFixAllProvider,
-                            optionsProvider,
                             equivalenceKey,
                             title,
                             waitDialogMessage,
                             progress,
-                            cancellationToken);
+                            cancellationToken).ConfigureAwait(false);
                         if (newSolution == null)
                         {
                             // User cancelled or fixer threw an exception, so we just bail out.
@@ -354,20 +288,19 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                 if (!projectDiagnosticsPerLanguage.IsEmpty)
                 {
                     var suppressionFixer = GetSuppressionFixer(projectDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
-                    if (suppressionFixer != null)
+                    var suppressionFixAllProvider = suppressionFixer?.GetFixAllProvider();
+                    if (suppressionFixer != null && suppressionFixAllProvider != null)
                     {
-                        var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
-                        newSolution = _fixMultipleOccurencesService.GetFix(
+                        newSolution = await _fixMultipleOccurencesService.GetFixAsync(
                              projectDiagnosticsPerLanguage,
                              _workspace,
                              suppressionFixer,
                              suppressionFixAllProvider,
-                             optionsProvider,
                              equivalenceKey,
                              title,
                              waitDialogMessage,
                              progress,
-                             cancellationToken);
+                             cancellationToken).ConfigureAwait(false);
                         if (newSolution == null)
                         {
                             return;
@@ -413,7 +346,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                     cancellationToken).ConfigureAwait(false);
 
                 // Kick off diagnostic re-analysis for affected projects so that diagnostics gets refreshed.
-                _diagnosticService.RequestDiagnosticRefresh();
+                _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>().RequestDiagnosticRefresh();
             }
         }
         catch (OperationCanceledException)
@@ -450,28 +383,22 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
         }
     }
 
-    private UIThreadOperationStatus InvokeWithWaitDialog(
-        Action<IUIThreadOperationContext> action, string waitDialogTitle, string waitDialogMessage)
+    private async Task<UIThreadOperationStatus> InvokeWithWaitDialogAsync(
+        Func<CancellationToken, Task> action, string waitDialogTitle, string waitDialogMessage)
     {
-        var cancelled = false;
-        var result = _uiThreadOperationExecutor.Execute(
-            waitDialogTitle,
-            waitDialogMessage,
-            allowCancellation: true,
-            showProgress: true,
-            action: waitContext =>
-            {
-                try
-                {
-                    action(waitContext);
-                }
-                catch (OperationCanceledException)
-                {
-                    cancelled = true;
-                }
-            });
+        using var waitContext = _uiThreadOperationExecutor.BeginExecute(waitDialogTitle, waitDialogMessage, allowCancellation: true, showProgress: true);
 
-        return cancelled ? UIThreadOperationStatus.Canceled : result;
+        var cancelled = false;
+        try
+        {
+            await action(waitContext.UserCancellationToken).ConfigureAwait(true);
+        }
+        catch (OperationCanceledException)
+        {
+            cancelled = true;
+        }
+
+        return cancelled ? UIThreadOperationStatus.Canceled : UIThreadOperationStatus.Completed;
     }
 
     private static ImmutableDictionary<Document, ImmutableArray<Diagnostic>> GetDocumentDiagnosticsMappedToNewSolution(ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentDiagnosticsToFixMap, Solution newSolution, string language)
@@ -555,14 +482,15 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                 RoslynDebug.AssertNotNull(latestDocumentDiagnosticsMap);
 
                 var uniqueDiagnosticIds = group.SelectMany(kvp => kvp.Value.Select(d => d.Id)).ToImmutableHashSet();
-                var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null,
-                    diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
+                var diagnosticService = _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                var latestProjectDiagnostics = (await diagnosticService.GetDiagnosticsForIdsAsync(
+                    project, documentIds: default, diagnosticIds: uniqueDiagnosticIds, AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, cancellationToken)
                     .ConfigureAwait(false)).Where(IsDocumentDiagnostic);
 
                 latestDocumentDiagnosticsMap.Clear();
                 foreach (var kvp in latestProjectDiagnostics.Where(d => d.DocumentId != null).GroupBy(d => d.DocumentId!))
                 {
-                    latestDocumentDiagnosticsMap.Add(kvp.Key, kvp.ToImmutableHashSet());
+                    latestDocumentDiagnosticsMap.Add(kvp.Key, [.. kvp]);
                 }
             }
 
@@ -582,7 +510,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                     if (!latestDocumentDiagnosticsMap.TryGetValue(document.Id, out var latestDocumentDiagnostics))
                     {
                         // Ignore stale diagnostics in error list.
-                        latestDocumentDiagnostics = ImmutableHashSet<DiagnosticData>.Empty;
+                        latestDocumentDiagnostics = [];
                     }
 
                     // Filter out stale diagnostics in error list.
@@ -612,24 +540,12 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
 
     private async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, CancellationToken cancellationToken)
     {
-        var builder = ImmutableDictionary.CreateBuilder<ProjectId, List<DiagnosticData>>();
+        using var _ = CodeAnalysis.PooledObjects.PooledDictionary<ProjectId, CodeAnalysis.PooledObjects.ArrayBuilder<DiagnosticData>>.GetInstance(out var builder);
         foreach (var diagnosticData in diagnosticsToFix.Where(IsProjectDiagnostic))
-        {
-            RoslynDebug.AssertNotNull(diagnosticData.ProjectId);
-
-            if (!builder.TryGetValue(diagnosticData.ProjectId, out var diagnosticsPerProject))
-            {
-                diagnosticsPerProject = [];
-                builder[diagnosticData.ProjectId] = diagnosticsPerProject;
-            }
-
-            diagnosticsPerProject.Add(diagnosticData);
-        }
+            builder.MultiAdd(diagnosticData.ProjectId, diagnosticData);
 
         if (builder.Count == 0)
-        {
             return ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty;
-        }
 
         var finalBuilder = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
         var latestDiagnosticsToFix = filterStaleDiagnostics ? new HashSet<DiagnosticData>() : null;
@@ -645,8 +561,9 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                 RoslynDebug.AssertNotNull(latestDiagnosticsToFix);
 
                 var uniqueDiagnosticIds = diagnostics.Select(d => d.Id).ToImmutableHashSet();
-                var latestDiagnosticsFromDiagnosticService = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null,
-                    diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
+                var diagnosticService = _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                var latestDiagnosticsFromDiagnosticService = (await diagnosticService.GetDiagnosticsForIdsAsync(
+                    project, documentIds: default, diagnosticIds: uniqueDiagnosticIds, AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, cancellationToken)
                     .ConfigureAwait(false));
 
                 latestDiagnosticsToFix.Clear();
@@ -670,6 +587,6 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
         return finalBuilder.ToImmutableDictionary();
 
         // Local functions
-        static bool IsProjectDiagnostic(DiagnosticData d) => d.DataLocation == null && d.ProjectId != null;
+        static bool IsProjectDiagnostic(DiagnosticData d) => d.DataLocation == null;
     }
 }

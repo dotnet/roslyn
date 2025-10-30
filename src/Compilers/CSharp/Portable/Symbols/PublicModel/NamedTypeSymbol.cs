@@ -202,6 +202,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         INamedTypeSymbol INamedTypeSymbol.NativeIntegerUnderlyingType => UnderlyingNamedTypeSymbol.NativeIntegerUnderlyingType.GetPublicSymbol();
 
+#nullable enable
+        bool INamedTypeSymbol.IsExtension
+        {
+            get
+            {
+                bool isExtension = UnderlyingNamedTypeSymbol.IsExtension;
+
+                Debug.Assert(!isExtension
+                    || (!string.IsNullOrEmpty(UnderlyingNamedTypeSymbol.ExtensionGroupingName) && !string.IsNullOrEmpty(UnderlyingNamedTypeSymbol.ExtensionMarkerName)));
+
+                return isExtension;
+            }
+        }
+
+        string? INamedTypeSymbol.ExtensionGroupingName => UnderlyingNamedTypeSymbol.ExtensionGroupingName;
+        string? INamedTypeSymbol.ExtensionMarkerName => UnderlyingNamedTypeSymbol.ExtensionMarkerName;
+
+        IParameterSymbol? INamedTypeSymbol.ExtensionParameter => UnderlyingNamedTypeSymbol.ExtensionParameter?.GetPublicSymbol();
+#nullable disable
+
         #region ISymbol Members
 
         protected sealed override void Accept(SymbolVisitor visitor)

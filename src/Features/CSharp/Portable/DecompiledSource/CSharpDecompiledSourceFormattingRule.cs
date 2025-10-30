@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 
-internal class CSharpDecompiledSourceFormattingRule : AbstractFormattingRule
+internal sealed class CSharpDecompiledSourceFormattingRule : AbstractFormattingRule
 {
     public static readonly AbstractFormattingRule Instance = new CSharpDecompiledSourceFormattingRule();
 

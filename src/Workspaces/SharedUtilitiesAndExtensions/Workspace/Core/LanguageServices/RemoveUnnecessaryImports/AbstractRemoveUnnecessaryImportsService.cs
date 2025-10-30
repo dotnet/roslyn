@@ -4,13 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 
@@ -20,10 +16,10 @@ internal abstract class AbstractRemoveUnnecessaryImportsService<T> :
 {
     protected abstract IUnnecessaryImportsProvider<T> UnnecessaryImportsProvider { get; }
 
-    public Task<Document> RemoveUnnecessaryImportsAsync(Document document, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken)
-        => RemoveUnnecessaryImportsAsync(document, predicate: null, formattingOptions, cancellationToken);
+    public Task<Document> RemoveUnnecessaryImportsAsync(Document document, CancellationToken cancellationToken)
+        => RemoveUnnecessaryImportsAsync(document, predicate: null, cancellationToken: cancellationToken);
 
-    public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool>? predicate, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken);
+    public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool>? predicate, CancellationToken cancellationToken);
 
     protected async Task<HashSet<T>> GetCommonUnnecessaryImportsOfAllContextAsync(
         Document document, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)

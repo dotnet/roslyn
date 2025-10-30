@@ -17,154 +17,147 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression;
+
+public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_NoEditor
 {
-    public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_NoEditor
+    #region "Fix selected occurrences tests"
+
+    public abstract class CSharpFixMultipleSuppressionTests : CSharpSuppressionTests
     {
-        #region "Fix selected occurrences tests"
+        protected override int CodeActionIndex => 0;
 
-        public abstract class CSharpFixMultipleSuppressionTests : CSharpSuppressionTests
+        internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
-            protected override int CodeActionIndex => 0;
+            return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
+                new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
+        }
 
-            internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+        private sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Decsciptor1 =
+                new("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+            public static readonly DiagnosticDescriptor Decsciptor2 =
+                new("InfoDiagnostic2", "InfoDiagnostic2 Title", "InfoDiagnostic2", "InfoDiagnostic2", DiagnosticSeverity.Info, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Decsciptor1, Decsciptor2];
+
+            public override void Initialize(AnalysisContext context)
+                => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
+
+            public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                    new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
+                var classDecl = (ClassDeclarationSyntax)context.Node;
+                var location = classDecl.Identifier.GetLocation();
+                context.ReportDiagnostic(Diagnostic.Create(Decsciptor1, location));
+                context.ReportDiagnostic(Diagnostic.Create(Decsciptor2, location));
             }
+        }
 
-            private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
-            {
-                public static readonly DiagnosticDescriptor Decsciptor1 =
-                    new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
-                public static readonly DiagnosticDescriptor Decsciptor2 =
-                    new DiagnosticDescriptor("InfoDiagnostic2", "InfoDiagnostic2 Title", "InfoDiagnostic2", "InfoDiagnostic2", DiagnosticSeverity.Info, isEnabledByDefault: true);
+        #region "Pragma disable tests"
 
-                public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Decsciptor1, Decsciptor2);
+        public sealed class CSharpFixMultiplePragmaWarningSuppressionTests : CSharpFixMultipleSuppressionTests
+        {
+            [Fact]
+            [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+            [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/6455")]
+            public Task TestFixMultipleInDocument()
+                => TestInRegularAndScriptAsync("""
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                            <Document>
+                    using System;
 
-                public override void Initialize(AnalysisContext context)
-                    => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
-
-                public void AnalyzeNode(SyntaxNodeAnalysisContext context)
-                {
-                    var classDecl = (ClassDeclarationSyntax)context.Node;
-                    var location = classDecl.Identifier.GetLocation();
-                    context.ReportDiagnostic(Diagnostic.Create(Decsciptor1, location));
-                    context.ReportDiagnostic(Diagnostic.Create(Decsciptor2, location));
-                }
-            }
-
-            #region "Pragma disable tests"
-
-            public class CSharpFixMultiplePragmaWarningSuppressionTests : CSharpFixMultipleSuppressionTests
-            {
-                [Fact]
-                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-                [WorkItem("https://github.com/dotnet/roslyn/issues/6455")]
-                public async Task TestFixMultipleInDocument()
-                {
-                    var input = """
-                        <Workspace>
-                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                                <Document>
-                        using System;
-
-                        {|FixAllInSelection:class Class1
+                    {|FixAllInSelection:class Class1
+                    {
+                        int Method()
                         {
-                            int Method()
-                            {
-                                int x = 0;
-                            }
+                            int x = 0;
                         }
+                    }
 
-                        class Class2
+                    class Class2
+                    {
+                    }|}
+                    class Class3 { }
+                            </Document>
+                            <Document>
+                    class Class3
+                    {
+                    }
+                            </Document>
+                        </Project>
+                        <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                            <Document>
+                    class Class1
+                    {
+                        int Method()
                         {
-                        }|}
-                        class Class3 { }
-                                </Document>
-                                <Document>
-                        class Class3
-                        {
+                            int x = 0;
                         }
-                                </Document>
-                            </Project>
-                            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
-                                <Document>
-                        class Class1
-                        {
-                            int Method()
-                            {
-                                int x = 0;
-                            }
-                        }
+                    }
 
-                        class Class2
-                        {
-                        }
-                                </Document>
-                            </Project>
-                        </Workspace>
-                        """;
+                    class Class2
+                    {
+                    }
+                            </Document>
+                        </Project>
+                    </Workspace>
+                    """, """
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                            <Document>
+                    using System;
 
-                    var expected = """
-                        <Workspace>
-                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                                <Document>
-                        using System;
-
-                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-                        #pragma warning disable InfoDiagnostic2 // InfoDiagnostic2 Title
-                        class Class1
-                        #pragma warning restore InfoDiagnostic2 // InfoDiagnostic2 Title
-                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                    #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                    #pragma warning disable InfoDiagnostic2 // InfoDiagnostic2 Title
+                    class Class1
+                    #pragma warning restore InfoDiagnostic2 // InfoDiagnostic2 Title
+                    #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                    {
+                        int Method()
                         {
-                            int Method()
-                            {
-                                int x = 0;
-                            }
+                            int x = 0;
                         }
+                    }
 
-                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-                        #pragma warning disable InfoDiagnostic2 // InfoDiagnostic2 Title
-                        class Class2
-                        #pragma warning restore InfoDiagnostic2 // InfoDiagnostic2 Title
-                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                    #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                    #pragma warning disable InfoDiagnostic2 // InfoDiagnostic2 Title
+                    class Class2
+                    #pragma warning restore InfoDiagnostic2 // InfoDiagnostic2 Title
+                    #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                    {
+                    }
+                    class Class3 { }
+                            </Document>
+                            <Document>
+                    class Class3
+                    {
+                    }
+                            </Document>
+                        </Project>
+                        <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                            <Document>
+                    class Class1
+                    {
+                        int Method()
                         {
+                            int x = 0;
                         }
-                        class Class3 { }
-                                </Document>
-                                <Document>
-                        class Class3
-                        {
-                        }
-                                </Document>
-                            </Project>
-                            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
-                                <Document>
-                        class Class1
-                        {
-                            int Method()
-                            {
-                                int x = 0;
-                            }
-                        }
+                    }
 
-                        class Class2
-                        {
-                        }
-                                </Document>
-                            </Project>
-                        </Workspace>
-                        """;
-
-                    await TestInRegularAndScriptAsync(input, expected);
-                }
-            }
-
-            #endregion
+                    class Class2
+                    {
+                    }
+                            </Document>
+                        </Project>
+                    </Workspace>
+                    """);
         }
 
         #endregion
     }
+
+    #endregion
 }

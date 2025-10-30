@@ -7,13 +7,12 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal partial class TriviaDataFactory
+internal sealed partial class TriviaDataFactory
 {
-    private class FormattedComplexTrivia : TriviaDataWithList
+    private sealed class FormattedComplexTrivia : TriviaDataWithList
     {
         private readonly CSharpTriviaFormatter _formatter;
         private readonly IList<TextChange> _textChanges;
@@ -27,7 +26,7 @@ internal partial class TriviaDataFactory
             int spaces,
             string originalString,
             CancellationToken cancellationToken)
-            : base(context.Options, LanguageNames.CSharp)
+            : base(context.Options.LineFormatting)
         {
             Contract.ThrowIfNull(context);
             Contract.ThrowIfNull(formattingRules);

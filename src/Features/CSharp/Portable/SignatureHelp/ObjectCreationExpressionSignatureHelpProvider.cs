@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,19 +19,13 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 [ExportSignatureHelpProvider("ObjectCreationExpressionSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal partial class ObjectCreationExpressionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : AbstractCSharpSignatureHelpProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ObjectCreationExpressionSignatureHelpProvider()
-    {
-    }
+    public override ImmutableArray<char> TriggerCharacters => ['(', ','];
 
-    public override bool IsTriggerCharacter(char ch)
-        => ch is '(' or ',';
-
-    public override bool IsRetriggerCharacter(char ch)
-        => ch == ')';
+    public override ImmutableArray<char> RetriggerCharacters => [')'];
 
     private async Task<BaseObjectCreationExpressionSyntax?> TryGetObjectCreationExpressionAsync(
         Document document,
@@ -55,7 +49,7 @@ internal partial class ObjectCreationExpressionSignatureHelpProvider : AbstractC
     }
 
     private bool IsTriggerToken(SyntaxToken token)
-        => SignatureHelpUtilities.IsTriggerParenOrComma<BaseObjectCreationExpressionSyntax>(token, IsTriggerCharacter);
+        => SignatureHelpUtilities.IsTriggerParenOrComma<BaseObjectCreationExpressionSyntax>(token, TriggerCharacters);
 
     private static bool IsArgumentListToken(BaseObjectCreationExpressionSyntax expression, SyntaxToken token)
     {
@@ -64,7 +58,7 @@ internal partial class ObjectCreationExpressionSignatureHelpProvider : AbstractC
             token != expression.ArgumentList.CloseParenToken;
     }
 
-    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var objectCreationExpression = await TryGetObjectCreationExpressionAsync(
@@ -80,17 +74,18 @@ internal partial class ObjectCreationExpressionSignatureHelpProvider : AbstractC
         if (within == null)
             return null;
 
-        var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
         if (type.TypeKind == TypeKind.Delegate)
             return await GetItemsWorkerForDelegateAsync(document, position, objectCreationExpression, type, cancellationToken).ConfigureAwait(false);
 
-        // get the candidate methods
+        // Get the candidate methods.  Consider the constructor's containing type to be the "through type" instance
+        // (which matches the compiler's logic in Binder.IsConstructorAccessible), to ensure that we do not see
+        // protected constructors in derived types (but continue to see them in nested types).
         var methods = type.InstanceConstructors
-            .WhereAsArray(c => c.IsAccessibleWithin(within))
+            .WhereAsArray(c => c.IsAccessibleWithin(within: within, throughType: c.ContainingType))
             .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
             .Sort(semanticModel, objectCreationExpression.SpanStart);
 
-        if (!methods.Any())
+        if (methods.IsEmpty)
             return null;
 
         // guess the best candidate if needed and determine parameter index

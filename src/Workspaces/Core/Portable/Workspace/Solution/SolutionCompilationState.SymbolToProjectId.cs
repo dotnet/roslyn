@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -10,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     internal DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
     {
@@ -172,13 +173,16 @@ internal partial class SolutionCompilationState
 
             return projectId;
         }
-        else if (symbol.IsKind(SymbolKind.TypeParameter, out ITypeParameterSymbol? typeParameter) &&
-                 typeParameter.TypeParameterKind == TypeParameterKind.Cref)
+        else if (symbol is ITypeParameterSymbol
+        {
+            TypeParameterKind: TypeParameterKind.Cref,
+            Locations: [{ SourceTree: var typeParameterSourceTree }, ..],
+        })
         {
             // Cref type parameters don't belong to any containing symbol.  But we can map them to a doc/project
             // using the declaring syntax of the type parameter itself.
-            if (GetDocumentState(typeParameter.Locations[0].SourceTree, projectId: null) is { } document)
-                return new OriginatingProjectInfo(document.Id.ProjectId, ReferencedThrough: null);
+            if (GetDocumentState(typeParameterSourceTree, projectId: null) is { } document)
+                return new OriginatingProjectInfo(document.Id.ProjectId, Compilation: null, ReferencedThrough: null);
         }
 
         return null;
@@ -187,8 +191,8 @@ internal partial class SolutionCompilationState
         {
             foreach (var (id, tracker) in _projectIdToTrackerMap)
             {
-                if (tracker.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out var referencedThrough))
-                    return new OriginatingProjectInfo(id, referencedThrough);
+                if (tracker.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out var compilation, out var referencedThrough))
+                    return new OriginatingProjectInfo(id, compilation, referencedThrough);
             }
 
             return null;

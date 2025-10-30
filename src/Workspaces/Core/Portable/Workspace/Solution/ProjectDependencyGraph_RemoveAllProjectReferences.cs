@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -12,13 +13,13 @@ public partial class ProjectDependencyGraph
 {
     internal ProjectDependencyGraph WithAllProjectReferencesRemoved(ProjectId projectId)
     {
-        Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+        Contract.ThrowIfFalse(ProjectIds.Contains(projectId));
 
         if (!_referencesMap.TryGetValue(projectId, out var referencedProjectIds))
             return this;
 
         // Removing a project reference doesn't change the set of projects
-        var projectIds = _projectIds;
+        var projectIds = ProjectIds;
 
         // Incrementally update the graph
         var referencesMap = ComputeNewReferencesMapForRemovedAllProjectReferences(_referencesMap, projectId);

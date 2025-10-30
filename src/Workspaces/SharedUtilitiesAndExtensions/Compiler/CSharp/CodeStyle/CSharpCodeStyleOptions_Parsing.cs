@@ -5,7 +5,6 @@
 using System;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle;
 
@@ -56,6 +55,7 @@ internal static partial class CSharpCodeStyleOptions
             {
                 "inside_namespace" => new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, notification),
                 "outside_namespace" => new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, notification),
+                "outside_namespace_ignoring_aliases" => new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespaceIgnoringAliases, notification),
                 _ => throw new NotSupportedException(),
             };
         }
@@ -70,6 +70,7 @@ internal static partial class CSharpCodeStyleOptions
         {
             AddImportPlacement.InsideNamespace => $"inside_namespace{notificationString}",
             AddImportPlacement.OutsideNamespace => $"outside_namespace{notificationString}",
+            AddImportPlacement.OutsideNamespaceIgnoringAliases => $"outside_namespace_ignoring_aliases{notificationString}",
             _ => throw new NotSupportedException(),
         };
     }
@@ -84,7 +85,7 @@ internal static partial class CSharpCodeStyleOptions
             {
                 "block_scoped" => new(NamespaceDeclarationPreference.BlockScoped, notification),
                 "file_scoped" => new(NamespaceDeclarationPreference.FileScoped, notification),
-                _ => throw new NotSupportedException(),
+                _ => throw new NotSupportedException(string.Format(CSharpCompilerExtensionsResources.EditorConfig_option_0_contains_unrecognized_value_1, "csharp_style_namespace_declarations", value)),
             };
         }
 

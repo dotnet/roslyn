@@ -96,7 +96,7 @@ internal abstract class AbstractValidateFormatStringDiagnosticAnalyzer<TSyntaxKi
             return;
         }
 
-        if (!context.GetIdeAnalyzerOptions().ReportInvalidPlaceholdersInStringDotFormatCalls)
+        if (!context.GetAnalyzerOptions().GetOption(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls))
         {
             return;
         }
@@ -200,7 +200,7 @@ internal abstract class AbstractValidateFormatStringDiagnosticAnalyzer<TSyntaxKi
         }
 
         Debug.Assert(syntaxFacts.IsArgument(argsArgument));
-        var expression = syntaxFacts.GetExpressionOfArgument(argsArgument)!;
+        var expression = syntaxFacts.GetExpressionOfArgument(argsArgument);
         return semanticModel.GetTypeInfo(expression).ConvertedType;
     }
 

@@ -92,6 +92,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return 0
+        End Function
+
         ''' <summary>
         ''' Gets a value indicating whether this instance is overridable.
         ''' </summary>

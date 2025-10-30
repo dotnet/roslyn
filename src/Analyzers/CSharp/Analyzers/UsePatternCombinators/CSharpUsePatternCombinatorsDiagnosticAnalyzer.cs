@@ -9,16 +9,19 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators;
 
 using static AnalyzedPattern;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer :
-    AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer() :
+    AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
+        EnforceOnBuildValues.UsePatternCombinators,
+        CSharpCodeStyleOptions.PreferPatternMatching,
+        s_safePatternTitle,
+        s_safePatternTitle)
 {
     private const string SafeKey = "safe";
 
@@ -31,15 +34,6 @@ internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer :
         EnforceOnBuildValues.UsePatternCombinators,
         hasAnyCodeStyleOption: true,
         s_unsafePatternTitle);
-
-    public CSharpUsePatternCombinatorsDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
-            EnforceOnBuildValues.UsePatternCombinators,
-            CSharpCodeStyleOptions.PreferPatternMatching,
-            s_safePatternTitle,
-            s_safePatternTitle)
-    {
-    }
 
     public static bool IsSafe(Diagnostic diagnostic)
         => diagnostic.Properties.ContainsKey(SafeKey);
@@ -130,10 +124,10 @@ internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer :
     {
         return node.WalkUpParentheses().Parent switch
         {
-            LambdaExpressionSyntax _ => true,
-            AssignmentExpressionSyntax _ => true,
-            ConditionalExpressionSyntax _ => true,
-            ExpressionSyntax _ => false,
+            LambdaExpressionSyntax => true,
+            AssignmentExpressionSyntax => true,
+            ConditionalExpressionSyntax => true,
+            ExpressionSyntax => false,
             _ => true
         };
     }
@@ -142,10 +136,10 @@ internal sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzer :
     {
         return pattern switch
         {
-            Not { Pattern: Constant _ } => true,
-            Not { Pattern: Source { PatternSyntax: ConstantPatternSyntax _ } } => true,
-            Not _ => false,
-            Binary _ => false,
+            Not { Pattern: Constant } => true,
+            Not { Pattern: Source { PatternSyntax: ConstantPatternSyntax } } => true,
+            Not => false,
+            Binary => false,
             _ => true
         };
     }

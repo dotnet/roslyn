@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,24 +12,19 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SimplifyTypeNames;
 
-internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntaxKind, TSimplifierOptions>
+internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntaxKind, TSimplifierOptions>(
+    SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind, TSimplifierOptions> analyzer)
     : SyntaxEditorBasedCodeFixProvider
     where TSyntaxKind : struct
     where TSimplifierOptions : SimplifierOptions
 {
-    private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind, TSimplifierOptions> _analyzer;
-
-    protected AbstractSimplifyTypeNamesCodeFixProvider(
-        SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind, TSimplifierOptions> analyzer)
-    {
-        _analyzer = analyzer;
-    }
+    private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind, TSimplifierOptions> _analyzer = analyzer;
 
     protected abstract string GetTitle(string diagnosticId, string nodeText);
     protected abstract SyntaxNode AddSimplificationAnnotationTo(SyntaxNode node);
@@ -81,7 +75,7 @@ internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntax
 
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var options = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var options = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var (node, diagnosticId) = GetNodeToSimplify(
             root, model, span, options, cancellationToken);
@@ -91,21 +85,16 @@ internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntax
         var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
         var title = GetTitle(diagnosticId, syntaxFacts.ConvertToSingleLine(node).ToString());
 
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                title,
-                GetDocumentUpdater(context),
-                diagnosticId),
-            context.Diagnostics);
+        RegisterCodeFix(context, title, diagnosticId);
     }
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var simplifierOptions = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var simplifierOptions = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var diagnostic in diagnostics)
         {

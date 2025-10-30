@@ -159,7 +159,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
             syntaxGenerator,
             methodParametersInfo.ParametersToGenerateFreshVariablesFor,
             methodParametersInfo.MergeInlineContentAndVariableDeclarationArgument
-                ? ImmutableArray<(IParameterSymbol, string)>.Empty
+                ? []
                 : methodParametersInfo.ParametersWithVariableDeclarationArgument,
             renameTable);
 
@@ -259,7 +259,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
                     parameterAndName.parameterSymbol.Type,
                     parameterAndName.identifierName));
 
-        return declarationsQuery.Concat(declarationsForVariableDeclarationArgumentQuery).ToImmutableArray();
+        return [.. declarationsQuery, .. declarationsForVariableDeclarationArgumentQuery];
     }
 
     private bool ContainsAwaitExpression(TExpressionSyntax inlineExpression)
@@ -267,8 +267,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
         // Check if there is await expression. It is used later if the caller should be changed to async
         var awaitExpressions = inlineExpression
             .DescendantNodesAndSelf(node => !_syntaxFacts.IsAnonymousFunctionExpression(node))
-            .Where(_syntaxFacts.IsAwaitExpression)
-            .ToImmutableArray();
+            .WhereAsArray(_syntaxFacts.IsAwaitExpression);
         return !awaitExpressions.IsEmpty;
     }
 
@@ -376,7 +375,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
         return renameTable.ToImmutableDictionary();
     }
 
-    private class LocalVariableDeclarationVisitor : OperationWalker
+    private sealed class LocalVariableDeclarationVisitor : OperationWalker
     {
         private readonly CancellationToken _cancellationToken;
         private readonly HashSet<ISymbol> _allSymbols = [];
@@ -395,7 +394,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
             var operation = semanticModel.GetOperation(methodDeclarationSyntax, cancellationToken);
             visitor.Visit(operation);
 
-            return visitor._allSymbols.ToImmutableHashSet();
+            return [.. visitor._allSymbols];
         }
 
         public override void Visit(IOperation? operation)

@@ -489,7 +489,6 @@ internal static class ConvertToRecordHelpers
     /// </summary>
     /// <param name="operation"></param>
     /// <param name="methodSymbol">the symbol of the equals method</param>
-    /// <returns></returns>
     private static ImmutableArray<IFieldSymbol> GetEqualizedFields(
         IMethodBodyOperation operation,
         IMethodSymbol methodSymbol)
@@ -533,7 +532,7 @@ internal static class ConvertToRecordHelpers
                     value, successRequirement: true, type, fields, out var _2))
             {
                 // we're done, no more statements to check
-                return fields.ToImmutable();
+                return fields.ToImmutableAndClear();
             }
             // check for the first statement as an explicit cast to a variable declaration
             // like: var otherC = other as C;
@@ -557,7 +556,7 @@ internal static class ConvertToRecordHelpers
             return [];
         }
 
-        return fields.ToImmutable();
+        return fields.ToImmutableAndClear();
     }
 
     /// <summary>

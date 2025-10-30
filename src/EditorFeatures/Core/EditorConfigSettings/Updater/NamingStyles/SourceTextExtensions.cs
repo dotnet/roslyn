@@ -38,7 +38,7 @@ internal static class SourceTextExtensions
             if (parseResult.TryGetSectionForLanguage(language, out var existingSection))
             {
                 var span = new TextSpan(existingSection.Span.End, 0);
-                EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(rules, newNamingStyleSection, GetLanguageString(language));
+                AppendNamingStylePreferencesToEditorConfig(rules, newNamingStyleSection, GetLanguageString(language));
                 return WithChanges(sourceText, span, newNamingStyleSection.ToString());
             }
             else
@@ -46,7 +46,7 @@ internal static class SourceTextExtensions
                 var span = new TextSpan(sourceText.Length, 0);
                 newNamingStyleSection.Append("\r\n");
                 newNamingStyleSection.Append(Section.GetHeaderTextForLanguage(language));
-                EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(rules, newNamingStyleSection, GetLanguageString(language));
+                AppendNamingStylePreferencesToEditorConfig(rules, newNamingStyleSection, GetLanguageString(language));
                 return WithChanges(sourceText, span, newNamingStyleSection.ToString());
             }
         }
@@ -78,6 +78,18 @@ internal static class SourceTextExtensions
         }
     }
 
+    private static void AppendNamingStylePreferencesToEditorConfig(IEnumerable<NamingRule> namingRules, StringBuilder editorconfig, string? language = null)
+    {
+        language ??= LanguageNames.CSharp;
+
+        NamingStylePreferencesEditorConfigSerializer.AppendNamingStylePreferencesToEditorConfig(
+            [.. namingRules.Select(static x => x.SymbolSpecification)],
+            [.. namingRules.Select(static x => x.NamingStyle)],
+            [.. namingRules],
+            language,
+            editorconfig);
+    }
+
     private static (IEnumerable<NamingRule> Common, IEnumerable<NamingRule> CSharp, IEnumerable<NamingRule> VisualBasic) GetPreferencesForAllLanguages(IGlobalOptionService globalOptions)
     {
         var csharpNamingStylePreferences = globalOptions.GetOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp);
@@ -95,7 +107,7 @@ internal static class SourceTextExtensions
             => csharp.Rules.NamingRules.Except(common, NamingRuleComparerIgnoreGUIDs.Instance);
     }
 
-    private class NamingRuleComparerIgnoreGUIDs : IEqualityComparer<NamingRule>
+    private sealed class NamingRuleComparerIgnoreGUIDs : IEqualityComparer<NamingRule>
     {
         private static readonly Lazy<NamingRuleComparerIgnoreGUIDs> s_lazyInstance = new(() => new NamingRuleComparerIgnoreGUIDs());
 
@@ -116,7 +128,7 @@ internal static class SourceTextExtensions
             return Hash.Combine(enforcementLevelHashCode, Hash.Combine(namingStyleHashCode, symbolSpecificationHashCode));
         }
 
-        private class NamingStyleComparerIgnoreGUIDs : IEqualityComparer<NamingStyle>
+        private sealed class NamingStyleComparerIgnoreGUIDs : IEqualityComparer<NamingStyle>
         {
             private static readonly Lazy<NamingStyleComparerIgnoreGUIDs> s_lazyInstance = new(() => new NamingStyleComparerIgnoreGUIDs());
 
@@ -141,7 +153,7 @@ internal static class SourceTextExtensions
             }
         }
 
-        private class SymbolSpecificationComparerIgnoreGUIDs : IEqualityComparer<SymbolSpecification>
+        private sealed class SymbolSpecificationComparerIgnoreGUIDs : IEqualityComparer<SymbolSpecification>
         {
             private static readonly Lazy<SymbolSpecificationComparerIgnoreGUIDs> s_lazyInstance = new(() => new SymbolSpecificationComparerIgnoreGUIDs());
 
@@ -159,7 +171,7 @@ internal static class SourceTextExtensions
                     return false;
                 }
 
-                return StringComparer.OrdinalIgnoreCase.Equals(left!.Name, right!.Name) &&
+                return StringComparer.OrdinalIgnoreCase.Equals(left.Name, right.Name) &&
                        left.RequiredModifierList.SequenceEqual(right.RequiredModifierList) &&
                        left.ApplicableAccessibilityList.SequenceEqual(right.ApplicableAccessibilityList) &&
                        left.ApplicableSymbolKindList.SequenceEqual(right.ApplicableSymbolKindList);

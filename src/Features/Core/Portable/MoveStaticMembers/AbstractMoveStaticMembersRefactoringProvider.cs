@@ -5,9 +5,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -61,7 +59,7 @@ internal abstract class AbstractMoveStaticMembersRefactoringProvider : CodeRefac
             memberNodeSymbolPairs.First().node.FullSpan.Start,
             memberNodeSymbolPairs.Last().node.FullSpan.End);
 
-        var action = new MoveStaticMembersWithDialogCodeAction(document, service, containingType, context.Options, selectedMembers);
+        var action = new MoveStaticMembersWithDialogCodeAction(document, service, containingType, selectedMembers);
 
         context.RegisterRefactoring(action, memberSpan);
     }

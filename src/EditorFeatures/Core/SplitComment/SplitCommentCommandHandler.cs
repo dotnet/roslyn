@@ -4,8 +4,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -22,7 +20,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
 
@@ -36,13 +33,11 @@ internal sealed class SplitCommentCommandHandler(
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
     EditorOptionsService editorOptionsService,
-    IIndentationManagerService indentationManager,
     IGlobalOptionService globalOptions) : ICommandHandler<ReturnKeyCommandArgs>
 {
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
-    private readonly IIndentationManagerService _indentationManager = indentationManager;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     public string DisplayName => EditorFeaturesResources.Split_comment;

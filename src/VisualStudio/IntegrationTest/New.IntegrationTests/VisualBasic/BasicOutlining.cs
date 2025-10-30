@@ -10,36 +10,36 @@ using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
+namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
+
+public class BasicOutlining : AbstractEditorTest
 {
-    public class BasicOutlining : AbstractEditorTest
+    protected override string LanguageName => LanguageNames.VisualBasic;
+
+    public BasicOutlining()
+        : base(nameof(BasicOutlining))
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
+    }
 
-        public BasicOutlining()
-            : base(nameof(BasicOutlining))
-        {
-        }
+    [IdeFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+    public async Task Outlining()
+    {
+        MarkupTestFile.GetSpans("""
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task Outlining()
-        {
-            var input = @"
-[|Imports System
-Imports System.Text|]
+            [|Imports System
+            Imports System.Text|]
 
-[|Namespace Acme
-    [|Module Module1
-        [|Sub Main()
-            
-        End Sub|]
-    End Module|]
-End Namespace|]";
-            MarkupTestFile.GetSpans(input, out var text, out var spans);
-            await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
-            var actualSpansWithState = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
-            var actualSpans = actualSpansWithState.Select(span => span.Span);
-            Assert.Equal(spans.OrderBy(s => s.Start), actualSpans);
-        }
+            [|Namespace Acme
+                [|Module Module1
+                    [|Sub Main()
+                        
+                    End Sub|]
+                End Module|]
+            End Namespace|]
+            """, out var text, out var spans);
+        await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
+        var actualSpansWithState = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
+        var actualSpans = actualSpansWithState.Select(span => span.Span);
+        Assert.Equal(spans.OrderBy(s => s.Start), actualSpans);
     }
 }

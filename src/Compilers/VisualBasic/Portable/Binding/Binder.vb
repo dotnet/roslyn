@@ -1029,6 +1029,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case Me.BindingLocation
                     Case BindingLocation.BaseTypes,
                          BindingLocation.MethodSignature,
+                         BindingLocation.FieldType,
+                         BindingLocation.PropertyType,
+                         BindingLocation.EventType,
                          BindingLocation.GenericConstraintsClause,
                          BindingLocation.ProjectImportsDeclaration,
                          BindingLocation.SourceFileImportsDeclaration

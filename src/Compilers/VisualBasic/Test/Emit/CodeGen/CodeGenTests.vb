@@ -4,13 +4,12 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -10481,7 +10480,7 @@ Public Class C1(Of T)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10498,7 +10497,7 @@ Public Class C2(Of U)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull()), ref1})
 
             CompileAndVerify(comp)
 
@@ -10539,7 +10538,7 @@ Public Class C1
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10566,7 +10565,7 @@ Public Class C2
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull()), ref1})
 
             Dim compilationVerifier = CompileAndVerify(comp)
 
@@ -13655,7 +13654,7 @@ End Module
     </file>
 </compilation>
 
-            Dim testReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.Repros.BadDefaultParameterValue).GetReference()
+            Dim testReference = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.Metadata.BadDefaultParameterValue).GetReference()
             Dim compilation = CompileAndVerify(source, references:=New MetadataReference() {testReference})
             compilation.VerifyIL("C.Main",
             <![CDATA[
@@ -13709,14 +13708,14 @@ End Class
             Dim i As Integer
 
             For i = 0 To count - 1
-                builder.Append(i + 1)
+                builder.Append((i + 1).ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(" * ")
                 builder.Append("f(")
-                builder.Append(i)
+                builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(") + ")
             Next
 
-            builder.Append(i + 1)
+            builder.Append((i + 1).ToString(Globalization.CultureInfo.InvariantCulture))
 
             Return builder.ToString()
         End Function
@@ -13788,16 +13787,16 @@ End Class
 
             For i = 0 To count - 1
                 builder.Append("a(")
-                builder.Append(i)
+                builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(")")
                 builder.Append(" AndAlso ")
                 builder.Append("f(")
-                builder.Append(i)
+                builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(") OrElse ")
             Next
 
             builder.Append("a(")
-            builder.Append(i)
+            builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
             builder.Append(")")
 
             Return builder.ToString()

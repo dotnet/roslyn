@@ -16,11 +16,20 @@ internal static partial class UsingsAndExternAliasesOrganizer
     public static void Organize(
         SyntaxList<ExternAliasDirectiveSyntax> externAliasList,
         SyntaxList<UsingDirectiveSyntax> usingList,
-        bool placeSystemNamespaceFirst, bool separateGroups,
-        SyntaxTrivia newLineTrivia,
+        bool placeSystemNamespaceFirst,
+        bool separateGroups,
+        SyntaxTrivia fallbackTrivia,
         out SyntaxList<ExternAliasDirectiveSyntax> organizedExternAliasList,
         out SyntaxList<UsingDirectiveSyntax> organizedUsingList)
     {
+        // Attempt to use an existing newline trivia from the existing usings/externs.  If we can't find any use what
+        // the caller passed in.
+        var newLineTrivia = ((IEnumerable<SyntaxNode>)externAliasList)
+            .Concat(usingList)
+            .Select(n => n.GetTrailingTrivia().FirstOrNull(t => t.Kind() == SyntaxKind.EndOfLineTrivia))
+            .Where(t => t != null)
+            .FirstOrDefault() ?? fallbackTrivia;
+
         OrganizeWorker(
             externAliasList, usingList, placeSystemNamespaceFirst,
             newLineTrivia,

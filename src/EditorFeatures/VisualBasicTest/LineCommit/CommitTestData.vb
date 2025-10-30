@@ -3,19 +3,18 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
     Friend Class CommitTestData
@@ -31,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
         Public Shared Function Create(test As XElement) As CommitTestData
-            Dim workspace = EditorTestWorkspace.Create(test, composition:=EditorTestCompositions.EditorFeaturesWpf)
+            Dim workspace = EditorTestWorkspace.Create(test, composition:=EditorTestCompositions.EditorFeatures)
             Return New CommitTestData(workspace)
         End Function
 
@@ -111,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     Throw New NotImplementedException()
                 End Sub
 
-                Public Function CommitAsync(previewChanges As Boolean, cancellationToken As CancellationToken) As Task Implements IInlineRenameSession.CommitAsync
+                Public Function CommitAsync(previewChanges As Boolean, editorOperationContext As IUIThreadOperationContext) As Task Implements IInlineRenameSession.CommitAsync
                     Throw New NotImplementedException()
                 End Function
             End Class

@@ -6,12 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
 using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -104,16 +99,25 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
 
     public bool IsConditional => false;
 
+#if !ROSLYN_4_12_OR_LOWER
+    public bool IsIterator => false;
+
+    public IMethodSymbol AssociatedExtensionImplementation => null;
+#endif
+
     public SignatureCallingConvention CallingConvention => SignatureCallingConvention.Default;
 
     public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => [];
 
     public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
-        => new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());
+        => new CodeGenerationConstructedMethodSymbol(this, [.. typeArguments]);
 
     public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
         => new CodeGenerationConstructedMethodSymbol(this, typeArguments);
 
     public DllImportData GetDllImportData()
         => null;
+
+    public IMethodSymbol ReduceExtensionMember(ITypeSymbol receiverType)
+        => throw new System.NotImplementedException();
 }

@@ -8,21 +8,15 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Globalization;
-using System.Linq;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
 using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
 using SVsUIShell = Microsoft.VisualStudio.Shell.Interop.SVsUIShell;
@@ -30,7 +24,7 @@ using SVsUIShell = Microsoft.VisualStudio.Shell.Interop.SVsUIShell;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane;
 
 [ExportWorkspaceServiceFactory(typeof(IPreviewPaneService), ServiceLayer.Host), Shared]
-internal class PreviewPaneService : IPreviewPaneService, IWorkspaceServiceFactory
+internal sealed class PreviewPaneService : IPreviewPaneService, IWorkspaceServiceFactory
 {
     private readonly IVsUIShell _uiShell;
 

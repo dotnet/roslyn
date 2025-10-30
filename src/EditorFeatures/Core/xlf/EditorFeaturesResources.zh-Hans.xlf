@@ -2,24 +2,44 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../EditorFeaturesResources.resx">
     <body>
-      <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
-        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
-        <target state="translated">标识符“{0}”的内联重命名会话处于活动状态。再次调用内联重命名以访问其他选项。可随时继续编辑正在重命名的标识符。</target>
-        <note>For screenreaders. {0} is the identifier being renamed.</note>
+      <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
+        <source>An error occurred while generating documentation for this code.</source>
+        <target state="translated">生成此代码的文档时出错。</target>
+        <note />
       </trans-unit>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">应用更改</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">无法导航到插入点下面的符号。</target>
-        <note />
+      <trans-unit id="Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset">
+        <source>Chat limit reached, [upgrade now] or wait for the limit to reset.</source>
+        <target state="translated">已达到聊天限制，[upgrade now] 或等待重置限制。</target>
+        <note>The text surrounded by "[" and "]" characters will be hyperlinked. Please ensure the localized text still has "[" and "]" characters.</note>
       </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">计算“封装字段”信息</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot">
+        <source>Copilot</source>
+        <target state="translated">Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot_thinking">
+        <source>Copilot thinking...</source>
+        <target state="translated">Copilot 正在思考...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="translated">使用 Copilot 进行描述</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="translated">“使用 Copilot 描述”不可用，因为你的组织已排除引用的文档。</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -56,6 +76,11 @@
         <source>Filter</source>
         <target state="translated">筛选</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
+      </trans-unit>
+      <trans-unit id="Generate_summary_with_Copilot">
+        <source>Generate summary with Copilot (might be inaccurate)</source>
+        <target state="translated">使用 Copilot 生成摘要(可能不准确)</target>
+        <note />
       </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
@@ -204,7 +229,12 @@
       </trans-unit>
       <trans-unit id="Obsolete_symbol">
         <source>Obsolete symbol</source>
-        <target state="new">Obsolete symbol</target>
+        <target state="translated">过时的符号</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="On_the_fly_documentation">
+        <source>On-the-fly documentation</source>
+        <target state="translated">动态文档</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -299,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Run">
         <source>Run</source>
-        <target state="new">Run</target>
+        <target state="translated">运行</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_comment">
@@ -602,9 +632,19 @@
         <target state="translated">将解决 {0} 个冲突</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_declarations_and_interceptors">
+        <source>'{0}' declarations and interceptors</source>
+        <target state="translated">'{0}' 声明和拦截器</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
         <target state="translated">“{0}”个实现的成员</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_intercepted_locations">
+        <source>'{0}' intercepted locations</source>
+        <target state="translated">“{0}”截获位置</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
@@ -750,11 +790,6 @@
       <trans-unit id="Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated">
         <source>Rename operation was not properly completed. Some file might not have been updated.</source>
         <target state="translated">重命名操作未正确完成。可能未更新某个文件。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">将“{0}” 重命名为“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">
@@ -942,11 +977,6 @@
         <target state="translated">正在查找上一个同级的范围...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_colon_0">
-        <source>Rename: {0}</source>
-        <target state="translated">重命名: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">引擎必须附加到“交互窗口”。</target>
@@ -1029,8 +1059,8 @@
       </trans-unit>
       <trans-unit id="Change_Signature">
         <source>Change Signature</source>
-        <target state="translated">更改签名</target>
-        <note />
+        <target state="needs-review-translation">更改签名</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Preview_Changes_0">
         <source>Preview Changes - {0}</source>
@@ -1062,17 +1092,10 @@
         <target state="translated">自动设置格式</target>
         <note />
       </trans-unit>
-      <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
-        <source>We can fix the error by not making struct "out/ref" parameter(s).
-Do you want to proceed?</source>
-        <target state="translated">通过不构建结构 "out/ref" 参数，可以修复此错误。
-想要继续吗?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_Signature_colon">
         <source>Change Signature:</source>
-        <target state="translated">更改签名:</target>
-        <note />
+        <target state="needs-review-translation">更改签名:</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
@@ -1127,11 +1150,6 @@ Do you want to proceed?</source>
       <trans-unit id="Preview_changes1">
         <source>_Preview changes</source>
         <target state="translated">预览更改(_P)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply3">
-        <source>Apply</source>
-        <target state="translated">应用</target>
         <note />
       </trans-unit>
       <trans-unit id="Cancel">
@@ -1202,16 +1220,6 @@ Do you want to proceed?</source>
       <trans-unit id="Go_To_Implementation">
         <source>Go To Implementation</source>
         <target state="translated">转到实现</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_name_colon_0">
-        <source>New name: {0}</source>
-        <target state="translated">新名称: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modify_any_highlighted_location_to_begin_renaming">
-        <source>Modify any highlighted location to begin renaming.</source>
-        <target state="translated">修改任意突出显示的位置以开始重命名。</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste">

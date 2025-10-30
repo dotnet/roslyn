@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -968,7 +969,7 @@ class Program
 }
 
 ";
-            CreateCompilationWithMscorlib40(source, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics();
         }
 
         [WorkItem(543691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543691")]
@@ -1204,6 +1205,34 @@ public class Test
             var authorResult = (IdentifierNameSyntax)tree.GetRoot().DescendantTokens().Last(t => t.Text == "authorResult").Parent;
             var authorResultType = model.GetTypeInfo(authorResult).Type;
             Assert.Equal("Author", authorResultType.Name);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49525")]
+        public void InterlockedExchangeWithNullableTypes()
+        {
+            var source = """
+                #nullable enable
+                using System.Threading;
+
+                namespace InterlockedExchangeNullProblem
+                {
+                    public class Class1
+                    {
+                        public void Method()
+                        {
+                            object? o = new object();
+                            var o1 = Interlocked.Exchange(ref o, null);
+
+                            class2? c = new class2();
+                            var c1 = Interlocked.Exchange(ref c, null);
+                            var c2 = Interlocked.Exchange<class2?>(ref c, null);
+                        }
+                    }
+                    public class class2 { }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics();
         }
     }
 }

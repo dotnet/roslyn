@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles;
 /// <param name="ApplicableSymbolInfo">The kinds of symbols this option applies to.</param>
 /// <param name="NamingScheme">The rules about how the specified symbols must be named.</param>
 /// <param name="Severity">The keve of build error that should be produced when a matching symbol does not meetthe naming requirements.</param>
-internal record class NamingStyleOption(
+internal sealed record class NamingStyleOption(
     Section Section,
     EditorConfigOption<string> RuleName,
     ApplicableSymbolInfo ApplicableSymbolInfo,
@@ -32,7 +32,7 @@ internal record class NamingStyleOption(
 /// <param name="SymbolKinds">The kinds of symbols this option applies to.</param>
 /// <param name="Accessibilities">The accessibilities of symbols this option applies to.</param>
 /// <param name="Modifiers">The required modifier that must be present on symbols this option applies to.</param>
-internal record class ApplicableSymbolInfo(
+internal sealed record class ApplicableSymbolInfo(
     EditorConfigOption<string> OptionName,
     EditorConfigOption<ImmutableArray<SymbolKindOrTypeKind>> SymbolKinds,
     EditorConfigOption<ImmutableArray<Accessibility>> Accessibilities,
@@ -46,7 +46,7 @@ internal record class ApplicableSymbolInfo(
 /// <param name="Suffix">Required prefix</param>
 /// <param name="WordSeparator">Required word separator characters</param>
 /// <param name="Capitalization">The capitalization scheme</param>
-internal record class NamingScheme(
+internal sealed record class NamingScheme(
     EditorConfigOption<string> OptionName,
     EditorConfigOption<string?> Prefix,
     EditorConfigOption<string?> Suffix,

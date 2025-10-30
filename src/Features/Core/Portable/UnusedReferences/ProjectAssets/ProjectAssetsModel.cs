@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets;
 // parse out the dependency tree and compilation assemblies that each reference brings
 // in to the project.
 
-internal class ProjectAssetsFile
+internal sealed class ProjectAssetsFile
 {
     public int Version { get; set; }
     public Dictionary<string, Dictionary<string, ProjectAssetsTargetLibrary>>? Targets { get; set; }
@@ -19,42 +19,42 @@ internal class ProjectAssetsFile
     public ProjectAssetsProject? Project { get; set; }
 }
 
-internal class ProjectAssetsTargetLibrary
+internal sealed class ProjectAssetsTargetLibrary
 {
     public string? Type { get; set; }
     public Dictionary<string, string>? Dependencies { get; set; }
     public Dictionary<string, ProjectAssetsTargetLibraryCompile>? Compile { get; set; }
 }
 
-internal class ProjectAssetsTargetLibraryCompile
+internal sealed class ProjectAssetsTargetLibraryCompile
 {
 
 }
 
-internal class ProjectAssetsLibrary
+internal sealed class ProjectAssetsLibrary
 {
     public string? Path { get; set; }
 }
 
-internal class ProjectAssetsProject
+internal sealed class ProjectAssetsProject
 {
     public ProjectAssetsProjectRestore? Restore { get; set; }
     public Dictionary<string, ProjectAssetsProjectFramework>? Frameworks { get; set; }
 }
 
-internal class ProjectAssetsProjectRestore
+internal sealed class ProjectAssetsProjectRestore
 {
     public string? ProjectPath { get; set; }
     public string? PackagesPath { get; set; }
 }
 
-internal class ProjectAssetsProjectFramework
+internal sealed class ProjectAssetsProjectFramework
 {
     public string? TargetAlias { get; set; }
     public Dictionary<string, ProjectAssetsProjectFrameworkDependency>? Dependencies { get; set; }
 }
 
-internal class ProjectAssetsProjectFrameworkDependency
+internal sealed class ProjectAssetsProjectFrameworkDependency
 {
     public bool AutoReferenced { get; set; }
 }

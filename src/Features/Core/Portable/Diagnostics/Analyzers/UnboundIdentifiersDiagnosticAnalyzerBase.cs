@@ -4,9 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.AddImport;
@@ -38,9 +35,6 @@ internal abstract class UnboundIdentifiersDiagnosticAnalyzerBase<TLanguageKindEn
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         => [DiagnosticDescriptor];
-
-    public bool OpenFileOnly(SimplifierOptions? options)
-        => false;
 
     public override void Initialize(AnalysisContext context)
     {

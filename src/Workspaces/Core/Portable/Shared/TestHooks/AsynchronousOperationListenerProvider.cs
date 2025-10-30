@@ -127,7 +127,7 @@ internal sealed partial class AsynchronousOperationListenerProvider : IAsynchron
         while (true)
         {
             var waiters = GetCandidateWaiters(featureNames);
-            tasks = waiters.Select(x => x.ExpeditedWaitAsync()).Where(t => !t.IsCompleted).ToList();
+            tasks = [.. waiters.Select(x => x.ExpeditedWaitAsync()).Where(t => !t.IsCompleted)];
 
             if (remoteHostClient is not null)
             {
@@ -151,7 +151,7 @@ internal sealed partial class AsynchronousOperationListenerProvider : IAsynchron
             do
             {
                 // wait for all current tasks to be done for the time given
-                if (Task.WaitAll(tasks.ToArray(), smallTimeout))
+                if (Task.WaitAll([.. tasks], smallTimeout))
                 {
                     // current set of tasks are done.
                     // see whether there are new tasks added while we were waiting
@@ -195,7 +195,7 @@ internal sealed partial class AsynchronousOperationListenerProvider : IAsynchron
     /// Get all saved DiagnosticAsyncToken to investigate tests failure easier
     /// </summary>
     public List<AsynchronousOperationListener.DiagnosticAsyncToken> GetTokens()
-        => _singletonListeners.Values.Where(l => l.TrackActiveTokens).SelectMany(l => l.ActiveDiagnosticTokens).ToList();
+        => [.. _singletonListeners.Values.Where(l => l.TrackActiveTokens).SelectMany(l => l.ActiveDiagnosticTokens)];
 
     internal static bool IsEnabled
     {

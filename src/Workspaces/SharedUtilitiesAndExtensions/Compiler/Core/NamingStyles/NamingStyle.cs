@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -391,7 +392,7 @@ internal readonly partial record struct NamingStyle
 
         if (!string.IsNullOrEmpty(WordSeparator))
         {
-            words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
+            words = name.Split([WordSeparator], StringSplitOptions.RemoveEmptyEntries);
 
             // Edge case: the only character(s) in the name is(are) the WordSeparator
             if (!words.Any())
@@ -427,9 +428,7 @@ internal readonly partial record struct NamingStyle
         for (var i = Suffix.Length; i > 0; i--)
         {
             if (name.EndsWith(Suffix[..i]))
-            {
                 return name + Suffix[i..];
-            }
         }
 
         return name + Suffix;
@@ -437,15 +436,26 @@ internal readonly partial record struct NamingStyle
 
     private string EnsurePrefix(string name)
     {
+        // Exceptional cases.  If the name is some interface name (like `InputStream`) and the rule is to have a single
+        // character prefix like "Add `I` for interfaces" don't consider the existing 'I' to be a match of the prefix.
+
+        if (Prefix is [var prefixChar] &&
+            char.IsUpper(prefixChar) &&
+            name is [var nameChar1, var nameChar2, ..] &&
+            prefixChar == nameChar1 &&
+            char.IsLower(nameChar2))
+        {
+            // return IInputStream here, even though InputStream already starts with 'I'.
+            return Prefix + name;
+        }
+
         // If the name already starts with any suffix of the Prefix, only prepend the prefix of
         // the Prefix not contained in the longest such Prefix suffix. For example, if the 
         // required prefix is "catdog_" and the name is "dog_test", then only prepend "cat".
         for (var i = 0; i < Prefix.Length; i++)
         {
             if (name.StartsWith(Prefix[i..]))
-            {
                 return Prefix[..i] + name;
-            }
         }
 
         return Prefix + name;
@@ -480,13 +490,11 @@ internal readonly partial record struct NamingStyle
     }
 
     public static NamingStyle ReadFrom(ObjectReader reader)
-    {
-        return new NamingStyle(
+        => new(
             reader.ReadGuid(),
             reader.ReadString(),
             reader.ReadString(),
             reader.ReadString(),
             reader.ReadString(),
             (Capitalization)reader.ReadInt32());
-    }
 }

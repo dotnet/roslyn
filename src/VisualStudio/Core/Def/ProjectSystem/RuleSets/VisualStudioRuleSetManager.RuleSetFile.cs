@@ -8,10 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ProjectSystem;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -68,7 +66,7 @@ internal sealed partial class VisualStudioRuleSetManager
                         includes = [FilePath];
                     }
 
-                    _fileChangeContext = fileChangeWatcher.CreateContext();
+                    _fileChangeContext = fileChangeWatcher.CreateContext([]);
                     _fileChangeContext.FileChanged += IncludeUpdated;
 
                     foreach (var include in includes)

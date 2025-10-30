@@ -2,11 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.IntroduceVariable
 Imports Microsoft.CodeAnalysis.Text
@@ -48,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Throw ExceptionUtilities.Unreachable()
         End Function
 
-        Protected Overrides Function CreateTupleDeconstructionAsync(document As Document, optionsProvider As CodeActionOptionsProvider, tupleType As INamedTypeSymbol, expression As ExpressionSyntax, cancellationToken As CancellationToken) As Task(Of ExpressionStatementSyntax)
+        Protected Overrides Function CreateTupleDeconstructionAsync(document As Document, tupleType As INamedTypeSymbol, expression As ExpressionSyntax, cancellationToken As CancellationToken) As Task(Of ExpressionStatementSyntax)
             Throw New NotImplementedException()
         End Function
     End Class

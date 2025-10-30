@@ -7,8 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -16,7 +14,7 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class StackTraceExplorerRootViewModel : ViewModelBase
+internal sealed class StackTraceExplorerRootViewModel : ViewModelBase
 {
     private readonly VisualStudioWorkspace _workspace;
     private readonly IClassificationFormatMap _formatMap;
@@ -32,12 +30,10 @@ internal class StackTraceExplorerRootViewModel : ViewModelBase
     }
 
     public ObservableCollection<StackTraceExplorerTab> Tabs { get; } = [];
-
-    private StackTraceExplorerTab? _selectedTab;
     public StackTraceExplorerTab? SelectedTab
     {
-        get => _selectedTab;
-        set => SetProperty(ref _selectedTab, value);
+        get;
+        set => SetProperty(ref field, value);
     }
 
     /// <summary>

@@ -2,14 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Globalization
-Imports System.Text
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 
@@ -42,7 +35,7 @@ End Namespace
             Assert.False(implicitClass.IsSubmissionClass)
             Assert.False(implicitClass.IsScriptClass)
 
-            Dim c2 = CreateCompilationWithMscorlib45(source:=Nothing, {c.ToMetadataReference()})
+            Dim c2 = CreateCompilationWithMscorlib461(source:=Nothing, {c.ToMetadataReference()})
 
             n = DirectCast(c2.GlobalNamespace.GetMembers("N").Single(), NamespaceSymbol)
             implicitClass = DirectCast(n.GetMembers().Single(), NamedTypeSymbol)

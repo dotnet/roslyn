@@ -2,18 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService;
 
-internal partial class AbstractTypeInferenceService : ITypeInferenceService
+internal abstract partial class AbstractTypeInferenceService : ITypeInferenceService
 {
     protected abstract class AbstractTypeInferrer
     {
@@ -75,18 +72,14 @@ internal partial class AbstractTypeInferenceService : ITypeInferenceService
 
         private ImmutableArray<TypeInferenceInfo> Filter(IEnumerable<TypeInferenceInfo> types, bool filterUnusable = true)
         {
-            return types.Where(filterUnusable ? IsUsableTypeFunc : s_isNotNull)
-                        .Distinct()
-                        .ToImmutableArray();
+            return [.. types.Where(filterUnusable ? IsUsableTypeFunc : s_isNotNull).Distinct()];
         }
 
         protected IEnumerable<TypeInferenceInfo> CreateResult(SpecialType type, NullableAnnotation nullableAnnotation = NullableAnnotation.None)
             => CreateResult(Compilation.GetSpecialType(type).WithNullableAnnotation(nullableAnnotation));
 
         protected static IEnumerable<TypeInferenceInfo> CreateResult(ITypeSymbol type)
-            => type == null
-                ? SpecializedCollections.EmptyCollection<TypeInferenceInfo>()
-                : SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(type));
+            => type == null ? [] : [new TypeInferenceInfo(type)];
 
         protected static IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
         {
@@ -114,9 +107,7 @@ internal partial class AbstractTypeInferenceService : ITypeInferenceService
 
                 var elementType = parameters.ElementAtOrDefault(0);
                 if (elementType != null)
-                {
-                    return SpecializedCollections.SingletonCollection(new TypeInferenceInfo(elementType));
-                }
+                    return [new TypeInferenceInfo(elementType)];
             }
 
             return [];

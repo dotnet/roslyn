@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-internal class RQTypeVariableType(string name) : RQType
+internal sealed class RQTypeVariableType(string name) : RQType
 {
     public readonly string Name = name;
 

@@ -2,13 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.IO
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1337,7 +1332,7 @@ End Class
             Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First.Type.OriginalDefinition.ContainingAssembly)
             Assert.Same(compilation1.SourceModule.CorLibrary(), DirectCast(test.Parameters.First.Type, NamedTypeSymbol).GetTypeArgumentCustomModifiers(0).First.Modifier.ContainingAssembly)
 
-            Dim compilation2 = CreateCompilationWithMscorlib45(source:=Nothing, references:={New VisualBasicCompilationReference(compilation1)})
+            Dim compilation2 = CreateCompilationWithMscorlib461(source:=Nothing, references:={New VisualBasicCompilationReference(compilation1)})
 
             test = compilation2.GetTypeByMetadataName("Module1").GetMember(Of MethodSymbol)("Test")
             Assert.Equal("Sub Module1.Test(x As System.Nullable(Of System.Int32 modopt(System.Runtime.CompilerServices.IsLong)))", test.ToTestDisplayString())

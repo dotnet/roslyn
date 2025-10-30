@@ -197,6 +197,11 @@
         <target state="translated">Użyj wyrażenia kolekcji</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_explicit_array">
+        <source>Use explicit array</source>
+        <target state="translated">Użyj jawnej tablicy</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Użyj interpolowanego ciągu dosłownego wyrażenia</target>

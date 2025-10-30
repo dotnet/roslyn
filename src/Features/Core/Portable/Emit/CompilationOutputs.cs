@@ -165,7 +165,7 @@ internal abstract class CompilationOutputs
 
     internal async ValueTask<bool> TryCopyPdbToAsync(Stream stream, CancellationToken cancellationToken)
     {
-        var pdb = OpenPdb();
+        using var pdb = OpenPdb();
         if (pdb == null)
         {
             return false;

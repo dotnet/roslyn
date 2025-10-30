@@ -3,20 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 
-internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryService
+internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryService, IDisposable
 {
     public TelemetrySession? CurrentSession { get; private set; }
 
@@ -53,4 +50,11 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
 
     public void UnregisterUnexpectedExceptionLogger(TraceSource logger)
         => FaultReporter.UnregisterLogger(logger);
+
+    public void Dispose()
+    {
+        // Ensure any aggregate telemetry is flushed when the catalog is destroyed.
+        // It is fine for this to be called multiple times - if telemetry has already been flushed this will no-op.
+        TelemetryLogging.Flush();
+    }
 }

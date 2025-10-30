@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +16,9 @@ using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 internal static partial class ITypeSymbolExtensions
 {
@@ -38,17 +39,14 @@ internal static partial class ITypeSymbolExtensions
         var type = symbol as ITypeSymbol;
         var containsAnonymousType = type != null && type.ContainsAnonymousType();
 
+        // something with an anonymous type can only be represented with 'var', regardless
+        // of what the user's preferences might be.
         if (containsAnonymousType && allowVar)
-        {
-            // something with an anonymous type can only be represented with 'var', regardless
-            // of what the user's preferences might be.
-            return SyntaxFactory.IdentifierName("var");
-        }
+            return IdentifierName("var");
 
         var syntax = containsAnonymousType
             ? TypeSyntaxGeneratorVisitor.CreateSystemObject()
-            : symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!
-                    .WithAdditionalAnnotations(Simplifier.Annotation);
+            : symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!.WithAdditionalAnnotations(Simplifier.Annotation);
 
         if (!allowVar)
             syntax = syntax.WithAdditionalAnnotations(DoNotAllowVarAnnotation.Annotation);
@@ -71,24 +69,24 @@ internal static partial class ITypeSymbolExtensions
     }
 
     public static TypeSyntax GenerateRefTypeSyntax(
-        this INamespaceOrTypeSymbol symbol)
+        this INamespaceOrTypeSymbol symbol, bool allowVar = true)
     {
-        var underlyingType = GenerateTypeSyntax(symbol)
-            .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
+        var underlyingType = GenerateTypeSyntax(symbol, allowVar)
+            .WithPrependedLeadingTrivia(ElasticMarker)
             .WithAdditionalAnnotations(Simplifier.Annotation);
-        var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
-        return SyntaxFactory.RefType(refKeyword, underlyingType);
+        var refKeyword = RefKeyword;
+        return RefType(refKeyword, underlyingType);
     }
 
     public static TypeSyntax GenerateRefReadOnlyTypeSyntax(
-        this INamespaceOrTypeSymbol symbol)
+        this INamespaceOrTypeSymbol symbol, bool allowVar = true)
     {
-        var underlyingType = GenerateTypeSyntax(symbol)
-            .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
+        var underlyingType = GenerateTypeSyntax(symbol, allowVar)
+            .WithPrependedLeadingTrivia(ElasticMarker)
             .WithAdditionalAnnotations(Simplifier.Annotation);
-        var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
-        var readOnlyKeyword = SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword);
-        return SyntaxFactory.RefType(refKeyword, readOnlyKeyword, underlyingType);
+        var refKeyword = RefKeyword;
+        var readOnlyKeyword = ReadOnlyKeyword;
+        return RefType(refKeyword, readOnlyKeyword, underlyingType);
     }
 
     public static bool ContainingTypesOrSelfHasUnsafeKeyword(this ITypeSymbol containingType)

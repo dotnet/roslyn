@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckBinaryOperator(BoundBinaryOperator node)
         {
-            if (node.Method is MethodSymbol method)
+            if (node.BinaryOperatorMethod is MethodSymbol method)
             {
                 if (_inExpressionLambda)
                 {

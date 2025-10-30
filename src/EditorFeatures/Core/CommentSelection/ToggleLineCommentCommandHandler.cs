@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -22,7 +21,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection;
 [VisualStudio.Utilities.Name(PredefinedCommandHandlerNames.ToggleLineComment)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class ToggleLineCommentCommandHandler(
+internal sealed class ToggleLineCommentCommandHandler(
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
     EditorOptionsService editorOptionsService) :
@@ -60,11 +58,12 @@ internal class ToggleLineCommentCommandHandler(
     internal override CommentSelectionResult CollectEdits(Document document, ICommentSelectionService service,
         ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, CancellationToken cancellationToken)
     {
-        using (Logger.LogBlock(FunctionId.CommandHandler_ToggleLineComment, KeyValueLogMessage.Create(LogType.UserAction, m =>
+        using (Logger.LogBlock(FunctionId.CommandHandler_ToggleLineComment, KeyValueLogMessage.Create(LogType.UserAction, static (m, args) =>
         {
+            var (document, subjectBuffer) = args;
             m[LanguageNameString] = document.Project.Language;
             m[LengthString] = subjectBuffer.CurrentSnapshot.Length;
-        }), cancellationToken))
+        }, (document, subjectBuffer)), cancellationToken))
         {
             var commentInfo = service.GetInfo();
             if (commentInfo.SupportsSingleLineComment)

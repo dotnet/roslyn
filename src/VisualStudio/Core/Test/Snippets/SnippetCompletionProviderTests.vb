@@ -4,13 +4,13 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     <[UseExportProvider]>
@@ -72,8 +72,7 @@ End Class</File>.Value
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/21801")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21801")>
         Public Async Function SnippetNotOfferedInComments() As Task
             Dim markup = <File>
 Class C
@@ -89,8 +88,7 @@ End Class</File>.Value
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/21801")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21801")>
         Public Async Function SnippetsNotOfferedInDocComments() As Task
             Dim markup = <File>
 Class C

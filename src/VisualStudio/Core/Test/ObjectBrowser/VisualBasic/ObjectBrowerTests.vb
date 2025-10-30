@@ -142,8 +142,7 @@ End Namespace
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         Public Sub TestContent_InheritedMembers1()
             Dim code =
 <Code>
@@ -197,8 +196,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         Public Sub TestContent_InheritedMembers2()
             Dim code =
 <Code>
@@ -253,8 +251,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         Public Sub TestContent_InheritedMembers3()
             Dim code =
 <Code>
@@ -309,8 +306,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         Public Sub TestContent_HelpKeyword_Ctor()
             Dim code =
 <Code>
@@ -887,8 +883,7 @@ $"    {String.Format(ServicesVSResources.Member_of_0, "N.C")}")
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939739")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939739")>
         Public Sub TestDescription_SubInInterface()
             Dim code =
 <Code>
@@ -2170,17 +2165,17 @@ End Class
 "Public Sub M(Of T)(i As Integer, s As String)" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Summary_colon & vbCrLf &
+FeaturesResources.Summary_colon & vbCrLf &
 "The is my summary!" & vbCrLf &
 "" & vbCrLf &
 ServicesVSResources.Type_Parameters_colon & vbCrLf &
 "T: Hello from a type parameter" & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Parameters_colon1 & vbCrLf &
+FeaturesResources.Parameters_colon & vbCrLf &
 "i: The parameter i" & vbCrLf &
 "s: The parameter t" & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Remarks_colon & vbCrLf &
+FeaturesResources.Remarks_colon & vbCrLf &
 "Takes i and s.")
             End Using
         End Sub
@@ -2212,10 +2207,10 @@ End Class
 "Public Function M() As Integer" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Summary_colon & vbCrLf &
+FeaturesResources.Summary_colon & vbCrLf &
 "Describes the method." & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Returns_colon & vbCrLf &
+FeaturesResources.Returns_colon & vbCrLf &
 "Returns a value.")
             End Using
         End Sub
@@ -2245,10 +2240,10 @@ End Class
 "Public ReadOnly Property M As Integer" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Summary_colon & vbCrLf &
+FeaturesResources.Summary_colon & vbCrLf &
 "Gets a value." & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Returns_colon & vbCrLf &
+FeaturesResources.Returns_colon & vbCrLf &
 "Returns a value.")
             End Using
         End Sub
@@ -2278,16 +2273,15 @@ End Class
 "Public ReadOnly Property M As Integer" & vbCrLf &
 $"    {String.Format(ServicesVSResources.Member_of_0, "C")}" & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Summary_colon & vbCrLf &
+FeaturesResources.Summary_colon & vbCrLf &
 "Gets a value." & vbCrLf &
 "" & vbCrLf &
-ServicesVSResources.Value_colon & vbCrLf &
+FeaturesResources.Value_colon & vbCrLf &
 "An integer value.")
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
         Public Sub TestNavInfo_Class()
             Dim code =
 <Code>
@@ -2310,8 +2304,7 @@ End Namespace
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
         Public Sub TestNavInfo_NestedEnum()
             Dim code =
 <Code>

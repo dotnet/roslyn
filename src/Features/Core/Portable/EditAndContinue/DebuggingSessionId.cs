@@ -13,4 +13,8 @@ internal readonly record struct DebuggingSessionId([property: DataMember] int Or
         => Ordinal.ToString();
 }
 
-internal readonly record struct UpdateId(DebuggingSessionId SessionId, int Ordinal);
+internal readonly record struct UpdateId(DebuggingSessionId SessionId, int Ordinal)
+{
+    public override string ToString()
+        => $"{SessionId}.{Ordinal}";
+}

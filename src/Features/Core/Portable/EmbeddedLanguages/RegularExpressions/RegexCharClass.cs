@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 // LICENSING NOTE: The license for this file is from the originating 
 // source and not the general https://github.com/dotnet/roslyn license.
 // See https://github.com/dotnet/runtime/blob/5b5bd46c03c86f8545f2c4c8628ac25d875210fe/src/libraries/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
@@ -191,12 +188,7 @@ internal static class RegexCharClass
 
     public static bool IsBoundaryWordChar(VirtualChar r)
     {
-        // unicode characters that do not fit in 16bits are not supported by 
-        // .net regex system.
-        if (r.Value > char.MaxValue)
-            return false;
-
-        var ch = (char)r.Value;
+        var ch = (char)r;
 
         // According to UTS#18 Unicode Regular Expressions (http://www.unicode.org/reports/tr18/)
         // RL 1.4 Simple Word Boundaries  The class of <word_character> includes all Alphabetic
@@ -205,11 +197,7 @@ internal static class RegexCharClass
 
         // Fast lookup in our lookup table for ASCII characters.  This is purely an optimization, and has the
         // behavior as if we fell through to the switch below (which was actually used to produce the lookup table).
-        ReadOnlySpan<byte> asciiLookup = new byte[]
-        {
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x03,
-            0xFE, 0xFF, 0xFF, 0x87, 0xFE, 0xFF, 0xFF, 0x07
-        };
+        ReadOnlySpan<byte> asciiLookup = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x03, 0xFE, 0xFF, 0xFF, 0x87, 0xFE, 0xFF, 0xFF, 0x07];
         var chDiv8 = ch >> 3;
         if ((uint)chDiv8 < (uint)asciiLookup.Length)
         {

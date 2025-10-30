@@ -3,9 +3,12 @@ trigger:
     include:
     - main
     - main-vs-deps
+    - community
     - release/dev16.*-vs-deps
     - release/dev17.*
+    - release/dev18.*
     - features/lsp_tools_host
+    - features/runtime-async
     exclude:
     - release/dev17.0
 pr: none
@@ -16,6 +19,11 @@ resources:
     type: git
     name: 1ESPipelineTemplates/1ESPipelineTemplates
     ref: refs/tags/release
+  pipelines:
+    - pipeline: profilingInputs
+      source: dotnet-vscode-csharp-profiling
+      branch: main
+      trigger: none
 
 parameters:
 - name: IbcDrop
@@ -37,12 +45,25 @@ parameters:
   type: boolean
   default: true
 
-# The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
+# An optional VS commit SHA that will be automatically cherry-picked
+# to the insertion PR created by this build.
+- name: VisualStudioCherryPickSHA
+  type: string
+  default: '(default)'
+
+schedules:
+  - cron: "0 8 23-29 * 0"
+    displayName: "Monthly smoke test"
+    branches:
+      include: 
+        - main
+        - release/*
+      exclude: 
+        - ""
+    always: true # Run even if there have been no source code changes since the last successful scheduled run
+    batch: false # Do not run the pipeline if the previously scheduled run is in-progress
+
 variables:
-  - name: _DotNetArtifactsCategory
-    value: .NETCore
-  - name: _DotNetValidationArtifactsCategory
-    value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
   - name: Codeql.Enabled
     value: true
@@ -53,11 +74,13 @@ variables:
   - group: DotNet-Versions-Publish
   - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
+  - group: AzureDevOps-Artifact-Feeds-Pats
   - name: _DevDivDropAccessToken
     value: $(dn-bot-devdiv-drop-rw-code-rw)
   - name: ArtifactServices.Drop.PAT
     value: $(dn-bot-devdiv-drop-rw-code-rw)
   - group: DotNet-Roslyn-Insertion-Variables
+  - group: AzureDevOps-Artifact-Feeds-Pats
 
   - name: BuildConfiguration
     value: release
@@ -77,23 +100,37 @@ variables:
   - name: Insertion.TitleSuffix
     value: ''
 
+  - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
+    - name: enableSourceIndex
+      value: true
+  - name: VSCodeOptimizationDataRoot
+    value: $(Pipeline.Workspace)/profilingInputs/merged mibc
+
+
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
     featureFlags:
       autoBaseline: true
+      autoEnablePREfastWithNewRuleset: false
+      autoEnableRoslynWithNewRuleset: false
     sdl:
       sourceAnalysisPool:
         name: NetCore1ESPool-Svc-Internal
-        image: 1es-windows-2022-pt
+        image: 1es-windows-2022
         os: windows
       sbom:
         enabled: false
       suppression:
         suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppres
+      policheck:
+          enabled: true
+      tsa:
+        enabled: true
+        configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
       name: NetCore1ESPool-Svc-Internal
-      image: windows.vs2022preview.amd64
+      image: windows.vs2022preview.scout.amd64
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -103,11 +140,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.10') }}:
+      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev18.0') }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev17.10
+            MirrorBranch: release/dev18.0
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -136,7 +173,7 @@ extends:
 
           - output: pipelineArtifact
             displayName: 'Publish Ngen Logs'
-            condition: succeeded()
+            condition: and(succeeded(), ${{ not(parameters.SkipApplyOptimizationData) }})
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
             artifactName: 'NGen Logs'
             publishLocation: Container
@@ -149,6 +186,7 @@ extends:
             dropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
             dropName: $(VisualStudio.DropName)
             accessToken: $(_DevDivDropAccessToken)
+            dropRetentionDays: 90
 
           # Publish insertion packages to CoreXT store.
           - output: nuget
@@ -183,6 +221,9 @@ extends:
             ArtifactName: AssetManifests
 
         steps:
+        - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
+          displayName: Disable Real-time Monitoring
+          
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
@@ -247,22 +288,19 @@ extends:
             useGlobalJson: true
             workingDirectory: '$(Build.SourcesDirectory)'
 
-        # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
-        - task: NuGetCommand@2
-          displayName: Restore internal tools
-          inputs:
-            command: restore
-            feedsToUse: config
-            restoreSolution: 'eng\common\internal\Tools.csproj'
-            nugetConfigPath: 'NuGet.config'
-            restoreDirectory: '$(Build.SourcesDirectory)\.packages'
-
         - task: MicroBuildSigningPlugin@4
           inputs:
-            signType: $(SignType)
+            signType: ${{ parameters.SignType }}
             zipSources: false
             feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
-          condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
+            # Set ConnectedPMEServiceName if the build is a CI build, otherwise it is not needed
+            ${{ if eq(variables['Build.Reason'], 'IndividualCI') }}:
+              ConnectedPMEServiceName: 248d384a-b39b-46e3-8ad5-c2c210d5e7ca
+          condition: and(succeeded(), in('${{ parameters.SignType }}', 'test', 'real'))
+
+        - download: profilingInputs
+          artifact: merged mibc
+          displayName: Download VSCode optimization inputs
 
         - task: PowerShell@2
           displayName: Build
@@ -279,15 +317,14 @@ extends:
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(Build.BuildNumber)
                        -officialSkipTests $(SkipTests)
-                       -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                       -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
                        -officialIbcDrop $(IbcDrop)
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
-                       /p:DotNetSignType=$(SignType)
-                       /p:PublishToSymbolServer=true
-                       /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
+                       /p:VSCodeOptimizationDataRoot="$(VSCodeOptimizationDataRoot)"
+                       /p:DotNetSignType=${{ parameters.SignType }}
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
@@ -299,7 +336,7 @@ extends:
           displayName: Publish Assets
           inputs:
             filePath: 'eng\publish-assets.ps1'
-            arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)"'
+            arguments: '-configuration $(BuildConfiguration)'
           condition: succeeded()
 
         # Publish OptProf configuration files to the artifact service
@@ -334,6 +371,15 @@ extends:
             name: NetCore1ESPool-Svc-Internal
             demands: ImageOverride -equals windows.vs2022.amd64
 
+      - ${{ if eq(variables.enableSourceIndex, 'true') }}:
+        - template: /eng/common/templates-official/job/source-index-stage1.yml@self
+          parameters:
+            sourceIndexBuildCommand: powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "eng\build.ps1 -configuration Release -prepareMachine -ci -restore -build -binaryLogName Build.binlog -skipDocumentation -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false"
+            binlogPath: artifacts/log/$(BuildConfiguration)/Build.binlog
+            pool:
+              name: $(DncEngInternalBuildPool)
+              demands: ImageOverride -equals 1es-windows-2022
+
     - stage: insert
       dependsOn:
       - publish_using_darc
@@ -357,17 +403,15 @@ extends:
             componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
             componentBuildProjectName: internal
             sourceBranch: "$(ComponentBranchName)"
-            publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
+            publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&version=$(ComponentBranchName)&api-version=6.0"
             publishDataAccessToken: "$(System.AccessToken)"
             dropPath: '$(Pipeline.Workspace)\VSSetup'
+            cherryPick: ${{ parameters.VisualStudioCherryPickSHA }}
 
     - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
       - template: /eng/common/templates-official/post-build/post-build.yml@self
         parameters:
           publishingInfraVersion: 3
-          # Symbol validation is not entirely reliable as of yet, so should be turned off until
-          # https://github.com/dotnet/arcade/issues/2871 is resolved.
-          enableSymbolValidation: false
           enableSourceLinkValidation: false
           # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
           SDLValidationParameters:

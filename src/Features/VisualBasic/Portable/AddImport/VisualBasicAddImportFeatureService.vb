@@ -6,7 +6,6 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CaseCorrection
-Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
@@ -17,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
     <ExportLanguageService(GetType(IAddImportFeatureService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicAddImportFeatureService
+    Friend NotInheritable Class VisualBasicAddImportFeatureService
         Inherits AbstractAddImportFeatureService(Of SimpleNameSyntax)
 
         <ImportingConstructor>
@@ -25,12 +24,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Public Sub New()
         End Sub
 
+        Protected Overrides Function IsWithinImport(node As SyntaxNode) As Boolean
+            Return node.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing
+        End Function
+
         Protected Overrides Function CanAddImport(node As SyntaxNode, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Boolean
-            cancellationToken.ThrowIfCancellationRequested()
             Return node.CanAddImportsStatements(allowInHiddenRegions, cancellationToken)
         End Function
 
-        Protected Overrides Function CanAddImportForMethod(
+        Protected Overrides Function CanAddImportForMember(
                 diagnosticId As String,
                 syntaxFacts As ISyntaxFacts,
                 node As SyntaxNode,
@@ -129,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 node.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing
         End Function
 
-        Protected Overrides Function CanAddImportForType(
+        Protected Overrides Function CanAddImportForTypeOrNamespace(
                 diagnosticId As String, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
                 Case AddImportDiagnosticIds.BC30002,
@@ -323,43 +325,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 SyntaxFactory.QualifiedName(CreateNameSyntax(nameSpaceParts, index - 1), namePiece))
         End Function
 
-        Protected Overrides Function IsViableExtensionMethod(method As IMethodSymbol,
-                                                             expression As SyntaxNode,
-                                                             semanticModel As SemanticModel,
-                                                             syntaxFacts As ISyntaxFacts,
-                                                             cancellationToken As CancellationToken) As Boolean
-            Dim leftExpressionType As ITypeSymbol
-            If syntaxFacts.IsInvocationExpression(expression) Then
-                leftExpressionType = semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken)
-            Else
-                Dim leftExpression As SyntaxNode
-                If TypeOf expression Is ObjectCreationExpressionSyntax Then
-                    leftExpression = expression
-                Else
-                    leftExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(
-                        expression, allowImplicitTarget:=True)
-                    If leftExpression Is Nothing Then
-                        Return False
-                    End If
-                End If
-
-                Dim semanticInfo = semanticModel.GetTypeInfo(leftExpression, cancellationToken)
-                leftExpressionType = semanticInfo.Type
-            End If
-
-            Return IsViableExtensionMethod(method, leftExpressionType)
-        End Function
-
-        Protected Overrides Function IsAddMethodContext(node As SyntaxNode, semanticModel As SemanticModel) As Boolean
+        Protected Overrides Function IsAddMethodContext(
+                node As SyntaxNode,
+                semanticModel As SemanticModel,
+                ByRef objectCreateExpression As SyntaxNode) As Boolean
             If node.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
-                Dim objectCreateExpression = node.GetAncestor(Of ObjectCreationExpressionSyntax)
-                If objectCreateExpression Is Nothing Then
-                    Return False
-                End If
-
-                Return True
+                objectCreateExpression = node.GetAncestor(Of ObjectCreationExpressionSyntax)
+                Return objectCreateExpression IsNot Nothing
             End If
 
+            objectCreateExpression = Nothing
             Return False
         End Function
     End Class

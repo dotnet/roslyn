@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -73,7 +71,7 @@ internal abstract class AbstractTaskListService : ITaskListService
             AppendTaskListItems(descriptors, syntaxDoc, trivia, items);
         }
 
-        return items.ToImmutable();
+        return items.ToImmutableAndClear();
     }
 
     private bool ContainsComments(SyntaxTrivia trivia)

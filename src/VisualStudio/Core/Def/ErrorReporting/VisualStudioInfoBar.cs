@@ -97,7 +97,7 @@ internal sealed class VisualStudioInfoBar(
         }
 
         var infoBarModel = new InfoBarModel(
-            new[] { new InfoBarTextSpan(message) },
+            [new InfoBarTextSpan(message)],
             actionItems,
             imageMoniker,
             isCloseButtonVisible);

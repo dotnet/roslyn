@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 [Export(typeof(ILanguageClient))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-internal class LiveShareInProcLanguageClient(
+internal sealed class LiveShareInProcLanguageClient(
     CSharpVisualBasicLspServiceProvider lspServiceProvider,
     IGlobalOptionService globalOptions,
     ExperimentalCapabilitiesProvider experimentalCapabilitiesProvider,

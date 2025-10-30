@@ -164,6 +164,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces,
         System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr,
         System_Runtime_CompilerServices_RuntimeFeature__ByRefFields,
+        System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics,
 
         System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor,
         System_Runtime_CompilerServices_InlineArrayAttribute__ctor,
@@ -192,6 +193,9 @@ namespace Microsoft.CodeAnalysis
         System_Array__SetValue,
 
         System_Type__GetTypeFromHandle,
+
+        System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter,
+        System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter,
 
         Count
     }

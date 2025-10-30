@@ -11,24 +11,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.EmbeddedStatementPlacement), Shared]
-internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvider
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EmbeddedStatementPlacementCodeFixProvider()
-    {
-    }
+using static SyntaxFactory;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.EmbeddedStatementPlacement), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class EmbeddedStatementPlacementCodeFixProvider() : CodeFixProvider
+{
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.EmbeddedStatementPlacementDiagnosticId];
 
@@ -39,20 +37,20 @@ internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvide
         context.RegisterCodeFix(
             CodeAction.Create(
                 CSharpCodeFixesResources.Place_statement_on_following_line,
-                c => FixAllAsync(document, [diagnostic], context.GetOptionsProvider(), c),
+                c => FixAllAsync(document, [diagnostic], c),
                 nameof(CSharpCodeFixesResources.Place_statement_on_following_line)),
             context.Diagnostics);
         return Task.CompletedTask;
     }
 
-    public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider codeActionOptionsProvider, CancellationToken cancellationToken)
+    public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(codeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-        var endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(options.NewLine);
+        var endOfLineTrivia = ElasticEndOfLine(options.NewLine);
 
         foreach (var diagnostic in diagnostics)
             FixOne(editor, diagnostic, endOfLineTrivia, cancellationToken);
@@ -95,7 +93,7 @@ internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvide
                         blockSyntax.Statements.Count == 0)
                     {
                         updatedStatement = blockSyntax.WithCloseBraceToken(
-                            AddLeadingTrivia(blockSyntax.CloseBraceToken, SyntaxFactory.ElasticMarker));
+                            AddLeadingTrivia(blockSyntax.CloseBraceToken, ElasticMarker));
                     }
 
                     return updatedStatement;
@@ -118,11 +116,11 @@ internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvide
                     if (!EmbeddedStatementPlacementDiagnosticAnalyzer.ContainsEndOfLineBetween(previousToken, openBrace))
                     {
                         currentBlock = currentBlock.WithOpenBraceToken(
-                            AddLeadingTrivia(currentBlock.OpenBraceToken, SyntaxFactory.ElasticMarker));
+                            AddLeadingTrivia(currentBlock.OpenBraceToken, ElasticMarker));
                     }
 
                     return currentBlock.WithCloseBraceToken(
-                        AddLeadingTrivia(currentBlock.CloseBraceToken, SyntaxFactory.ElasticMarker));
+                        AddLeadingTrivia(currentBlock.CloseBraceToken, ElasticMarker));
                 });
         }
     }
@@ -135,5 +133,5 @@ internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvide
 
     public override FixAllProvider GetFixAllProvider()
         => FixAllProvider.Create(
-            async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.GetOptionsProvider(), context.CancellationToken).ConfigureAwait(false));
+            async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
 }

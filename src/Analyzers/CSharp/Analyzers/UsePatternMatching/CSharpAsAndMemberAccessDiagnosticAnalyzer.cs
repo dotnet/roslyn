@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 /// </code>
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal partial class CSharpAsAndMemberAccessDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed partial class CSharpAsAndMemberAccessDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public CSharpAsAndMemberAccessDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UsePatternMatchingAsAndMemberAccessDiagnosticId,

@@ -4,7 +4,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
-Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
@@ -36,7 +35,7 @@ End NameSpace"
                     "test",
                     "test.dll",
                     LanguageNames.VisualBasic,
-                    metadataReferences:={TestMetadata.Net451.mscorlib}))
+                    metadataReferences:={NetFramework.mscorlib}))
 
             If globalImports IsNot Nothing Then
                 Dim gi = GlobalImport.Parse(globalImports)

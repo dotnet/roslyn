@@ -40,13 +40,11 @@ internal sealed partial class CSharpCopilotCodeFixProvider() : CodeFixProvider
     /// <summary>
     /// Ensure that fixes for Copilot diagnostics are always towards the bottom of the lightbulb.
     /// </summary>
-    /// <returns></returns>
     protected sealed override CodeActionRequestPriority ComputeRequestPriority() => CodeActionRequestPriority.Low;
 
     /// <summary>
     /// We do not support a FixAll operation for Copilot suggestions.
     /// </summary>
-    /// <returns></returns>
     public sealed override FixAllProvider? GetFixAllProvider() => null;
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds => [CopilotDiagnosticId];
@@ -56,13 +54,17 @@ internal sealed partial class CSharpCopilotCodeFixProvider() : CodeFixProvider
         var document = context.Document;
         var cancellationToken = context.CancellationToken;
 
-        var copilotService = document.GetLanguageService<ICopilotCodeAnalysisService>();
-        if (copilotService is null || !await copilotService.IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false))
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } copilotOptionsService ||
+            await copilotOptionsService.IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false) is false)
+        {
             return;
+        }
 
-        var isAvailable = await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false);
-        if (!isAvailable)
+        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+            await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+        {
             return;
+        }
 
         var promptTitles = await copilotService.GetAvailablePromptTitlesAsync(document, cancellationToken).ConfigureAwait(false);
         if (promptTitles.IsEmpty)

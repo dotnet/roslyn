@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
 
 internal partial class StreamingFindUsagesPresenter
 {
-    private class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
+    private sealed class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
     {
         private readonly StreamingFindUsagesPresenter _presenter;
 
@@ -35,6 +35,8 @@ internal partial class StreamingFindUsagesPresenter
         /// we get more than one flavor, we'll show that the user in the UI.
         /// </summary>
         private readonly Dictionary<(string? filePath, TextSpan span), DocumentSpanEntry> _locationToEntry = [];
+
+        private string? _text;
 
         public RoslynDefinitionBucket(
             string name,
@@ -108,7 +110,7 @@ internal partial class StreamingFindUsagesPresenter
             {
                 case StandardTableKeyNames.Text:
                 case StandardTableKeyNames.FullText:
-                    return DefinitionItem.DisplayParts.JoinText();
+                    return _text ??= DefinitionItem.DisplayParts.JoinText();
 
                 case StandardTableKeyNames2.TextInlines:
                     var inlines = new List<Inline> { new Run(" ") };

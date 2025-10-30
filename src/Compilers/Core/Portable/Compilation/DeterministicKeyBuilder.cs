@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var generator in generators)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    WriteType(writer, generator.GetType());
+                    WriteType(writer, generator.GetGeneratorType());
                 }
                 writer.WriteArrayEnd();
             }

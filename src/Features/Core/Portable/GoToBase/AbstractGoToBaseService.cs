@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,20 +30,18 @@ internal abstract class AbstractGoToBaseService : IGoToBaseService
 
     public async Task FindBasesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
     {
-        var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+        var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
             document, position, cancellationToken).ConfigureAwait(false);
 
-        if (symbolAndProjectOpt == null)
+        if (symbolAndProject is not var (symbol, project))
         {
             await context.ReportNoResultsAsync(
                 FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
             return;
         }
 
-        var (symbol, project) = symbolAndProjectOpt.Value;
-
         var solution = project.Solution;
-        var bases = await FindBaseHelpers.FindBasesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+        var bases = FindBaseHelpers.FindBases(symbol, solution, cancellationToken);
         if (bases.Length == 0 && symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor)
         {
             var nextConstructor = await FindNextConstructorInChainAsync(solution, constructor, cancellationToken).ConfigureAwait(false);
@@ -76,8 +73,8 @@ internal abstract class AbstractGoToBaseService : IGoToBaseService
             }
             else if (baseSymbol.Locations.Any(static l => l.IsInMetadata))
             {
-                var definitionItem = baseSymbol.ToNonClassifiedDefinitionItem(
-                    solution, FindReferencesSearchOptions.Default, includeHiddenLocations: true);
+                var definitionItem = await baseSymbol.ToNonClassifiedDefinitionItemAsync(
+                    solution, FindReferencesSearchOptions.Default, includeHiddenLocations: true, cancellationToken).ConfigureAwait(false);
                 await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                 found = true;
             }

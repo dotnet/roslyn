@@ -2,18 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Linq
-Imports System.Text
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -225,19 +218,19 @@ tryAgain:
             Dim analysis = CompileAndAnalyzeDataFlow(code)
 
             Assert.True(analysis.Succeeded)
-            Assert.Equal(If(alwaysAssigned, {}), analysis.AlwaysAssigned.Select(Function(s) s.Name).ToArray())
-            Assert.Equal(If(captured, {}), analysis.Captured.Select(Function(s) s.Name).ToArray())
-            Assert.Equal(If(dataFlowsIn, {}), analysis.DataFlowsIn.Select(Function(s) s.Name).ToArray())
-            Assert.Equal(If(dataFlowsOut, {}), analysis.DataFlowsOut.Select(Function(s) s.Name).ToArray())
-            Assert.Equal(If(definitelyAssignedOnEntry, {}), analysis.DefinitelyAssignedOnEntry.Select(Function(s) s.Name).ToArray())
-            Assert.Equal(If(definitelyAssignedOnExit, {}), analysis.DefinitelyAssignedOnExit.Select(Function(s) s.Name).ToArray())
-            Assert.Equal(If(readInside, {}), analysis.ReadInside.Select(Function(s) s.Name).ToArray())
-            Assert.Equal(If(readOutside, {}), analysis.ReadOutside.Select(Function(s) s.Name).ToArray())
-            Assert.Equal(If(variablesDeclared, {}), analysis.VariablesDeclared.Select(Function(s) s.Name).ToArray())
-            Assert.Equal(If(writtenInside, {}), analysis.WrittenInside.Select(Function(s) s.Name).ToArray())
-            Assert.Equal(If(writtenOutside, {}), analysis.WrittenOutside.Select(Function(s) s.Name).ToArray())
-            Assert.Equal(If(capturedInside, {}), analysis.CapturedInside.Select(Function(s) s.Name).ToArray())
-            Assert.Equal(If(capturedOutside, {}), analysis.CapturedOutside.Select(Function(s) s.Name).ToArray())
+            AssertEx.Equal(If(alwaysAssigned, {}), analysis.AlwaysAssigned.Select(Function(s) s.Name).ToArray())
+            AssertEx.Equal(If(captured, {}), analysis.Captured.Select(Function(s) s.Name).ToArray())
+            AssertEx.Equal(If(dataFlowsIn, {}), analysis.DataFlowsIn.Select(Function(s) s.Name).ToArray())
+            AssertEx.Equal(If(dataFlowsOut, {}), analysis.DataFlowsOut.Select(Function(s) s.Name).ToArray())
+            AssertEx.Equal(If(definitelyAssignedOnEntry, {}), analysis.DefinitelyAssignedOnEntry.Select(Function(s) s.Name).ToArray())
+            AssertEx.Equal(If(definitelyAssignedOnExit, {}), analysis.DefinitelyAssignedOnExit.Select(Function(s) s.Name).ToArray())
+            AssertEx.Equal(If(readInside, {}), analysis.ReadInside.Select(Function(s) s.Name).ToArray())
+            AssertEx.Equal(If(readOutside, {}), analysis.ReadOutside.Select(Function(s) s.Name).ToArray())
+            AssertEx.Equal(If(variablesDeclared, {}), analysis.VariablesDeclared.Select(Function(s) s.Name).ToArray())
+            AssertEx.Equal(If(writtenInside, {}), analysis.WrittenInside.Select(Function(s) s.Name).ToArray())
+            AssertEx.Equal(If(writtenOutside, {}), analysis.WrittenOutside.Select(Function(s) s.Name).ToArray())
+            AssertEx.Equal(If(capturedInside, {}), analysis.CapturedInside.Select(Function(s) s.Name).ToArray())
+            AssertEx.Equal(If(capturedOutside, {}), analysis.CapturedOutside.Select(Function(s) s.Name).ToArray())
         End Sub
 
     End Class

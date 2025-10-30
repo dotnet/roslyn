@@ -5,9 +5,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
@@ -15,7 +13,6 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.TextManager
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 

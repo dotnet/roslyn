@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,18 +22,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
-internal partial class CSharpCodeGenerationService : AbstractCodeGenerationService<CSharpCodeGenerationContextInfo>
-{
-    public CSharpCodeGenerationService(LanguageServices languageServices)
-        : base(languageServices)
-    {
-    }
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
+internal sealed partial class CSharpCodeGenerationService(LanguageServices languageServices)
+    : AbstractCodeGenerationService<CSharpCodeGenerationContextInfo>(languageServices)
+{
     public override CodeGenerationOptions DefaultOptions
         => CSharpCodeGenerationOptions.Default;
 
-    public override CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options, CodeGenerationOptions? fallbackOptions)
-        => new CSharpCodeGenerationOptions(options, (CSharpCodeGenerationOptions?)fallbackOptions);
+    public override CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options)
+        => new CSharpCodeGenerationOptions(options);
 
     public override CSharpCodeGenerationContextInfo GetInfo(CodeGenerationContext context, CodeGenerationOptions options, ParseOptions parseOptions)
         => new(context, (CSharpCodeGenerationOptions)options, this, ((CSharpParseOptions)parseOptions).LanguageVersion);
@@ -327,7 +325,7 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
             throw new ArgumentException("target");
         }
 
-        var attributeSyntaxList = AttributeGenerator.GenerateAttributeLists(attributes.ToImmutableArray(), info, target).ToArray();
+        var attributeSyntaxList = AttributeGenerator.GenerateAttributeLists([.. attributes], info, target).ToArray();
 
         return destination switch
         {
@@ -346,20 +344,22 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
 
         if (destination is EnumDeclarationSyntax enumDeclaration)
         {
-            return Cast<TDeclarationNode>(enumDeclaration.AddMembers(members.Cast<EnumMemberDeclarationSyntax>().ToArray()));
+            enumDeclaration.EnsureOpenAndCloseBraceTokens();
+            return Cast<TDeclarationNode>(enumDeclaration.AddMembers([.. members.Cast<EnumMemberDeclarationSyntax>()]));
         }
         else if (destination is TypeDeclarationSyntax typeDeclaration)
         {
-            return Cast<TDeclarationNode>(typeDeclaration.AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+            typeDeclaration = typeDeclaration.EnsureOpenAndCloseBraceTokens();
+            return Cast<TDeclarationNode>(typeDeclaration.AddMembers([.. members.Cast<MemberDeclarationSyntax>()]));
         }
         else if (destination is BaseNamespaceDeclarationSyntax namespaceDeclaration)
         {
-            return Cast<TDeclarationNode>(namespaceDeclaration.AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+            return Cast<TDeclarationNode>(namespaceDeclaration.AddMembers([.. members.Cast<MemberDeclarationSyntax>()]));
         }
         else
         {
             return Cast<TDeclarationNode>(Cast<CompilationUnitSyntax>(destination)
-                .AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+                .AddMembers([.. members.Cast<MemberDeclarationSyntax>()]));
         }
     }
 
@@ -454,14 +454,14 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
                 if (attributes.Count == 1)
                 {
                     // Remove the entire attribute list.
-                    ComputePositionAndTriviaForRemoveAttributeList(attributeList, (SyntaxTrivia t) => t.IsKind(SyntaxKind.EndOfLineTrivia), out positionOfRemovedNode, out trivia);
+                    ComputePositionAndTriviaForRemoveAttributeList(attributeList, t => t.IsKind(SyntaxKind.EndOfLineTrivia), out positionOfRemovedNode, out trivia);
                     newAttributeLists = attributeLists.Where(aList => aList != attributeList);
                 }
                 else
                 {
                     // Remove just the given attribute from the attribute list.
-                    ComputePositionAndTriviaForRemoveAttributeFromAttributeList(attributeToRemove, (SyntaxToken t) => t.IsKind(SyntaxKind.CommaToken), out positionOfRemovedNode, out trivia);
-                    var newAttributes = SyntaxFactory.SeparatedList(attributes.Where(a => a != attributeToRemove));
+                    ComputePositionAndTriviaForRemoveAttributeFromAttributeList(attributeToRemove, t => t.IsKind(SyntaxKind.CommaToken), out positionOfRemovedNode, out trivia);
+                    var newAttributes = SeparatedList(attributes.Where(a => a != attributeToRemove));
                     var newAttributeList = attributeList.WithAttributes(newAttributes);
                     newAttributeLists = attributeLists.Select(attrList => attrList == attributeList ? newAttributeList : attrList);
                 }
@@ -499,7 +499,7 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
         }
         else if (destinationMember is AccessorDeclarationSyntax accessorDeclaration)
         {
-            return (accessorDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(accessorDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+            return (accessorDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(accessorDeclaration.AddBodyStatements([.. StatementGenerator.GenerateStatements(statements)]));
         }
         else if (destinationMember is CompilationUnitSyntax compilationUnit && info.Context.BestLocation is null)
         {
@@ -509,7 +509,7 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
             // Insert the new global statement(s) at the end of any current global statements.
             // This code relies on 'LastIndexOf' returning -1 when no matching element is found.
             var insertionIndex = compilationUnit.Members.LastIndexOf(memberDeclaration => memberDeclaration.IsKind(SyntaxKind.GlobalStatement)) + 1;
-            var wrappedStatements = StatementGenerator.GenerateStatements(statements).Select(SyntaxFactory.GlobalStatement).ToArray();
+            var wrappedStatements = StatementGenerator.GenerateStatements(statements).Select(GlobalStatement).ToArray();
             return Cast<TDeclarationNode>(compilationUnit.WithMembers(compilationUnit.Members.InsertRange(insertionIndex, wrappedStatements)));
         }
         else if (destinationMember is StatementSyntax statement && statement.IsParentKind(SyntaxKind.GlobalStatement))
@@ -517,8 +517,8 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
             // We are adding a statement to a global statement in script, where the CompilationUnitSyntax is not a
             // statement container. If the global statement is not already a block, create a block which can hold
             // both the original statement and any new statements we are adding to it.
-            var block = statement as BlockSyntax ?? SyntaxFactory.Block(statement);
-            return Cast<TDeclarationNode>(block.AddStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+            var block = statement as BlockSyntax ?? Block(statement);
+            return Cast<TDeclarationNode>(block.AddStatements([.. StatementGenerator.GenerateStatements(statements)]));
         }
         else
         {
@@ -537,7 +537,7 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
 
         var token = location.FindToken(cancellationToken);
 
-        var block = token.Parent.GetAncestorsOrThis<BlockSyntax>().FirstOrDefault();
+        var block = token.Parent.GetAncestorOrThis<BlockSyntax>();
         if (block != null)
         {
             var blockStatements = block.Statements.ToSet();
@@ -582,9 +582,31 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
         var finalMember = baseMethodDeclaration
             .WithExpressionBody(null)
             .WithSemicolonToken(default)
-            .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+            .WithBody(AddStatementsToBlock(body, statements));
 
         return Cast<TDeclarationNode>(finalMember);
+    }
+
+    public static BlockSyntax AddStatementsToBlock(BlockSyntax block, IEnumerable<SyntaxNode> statements)
+    {
+        var statementsArray = StatementGenerator.GenerateStatements(statements);
+        if (statementsArray.Count > 0)
+        {
+            var closeBraceTrivia = block.CloseBraceToken.LeadingTrivia;
+            var lastEndIf = closeBraceTrivia.LastOrDefault(t => t.GetStructure() is EndIfDirectiveTriviaSyntax);
+            if (lastEndIf != default)
+            {
+                var splitIndex = closeBraceTrivia.IndexOf(lastEndIf) + 1;
+
+                statementsArray = statementsArray.Replace(
+                    statementsArray[0],
+                    statementsArray[0].WithPrependedLeadingTrivia(closeBraceTrivia.Take(splitIndex)));
+                block = block.WithCloseBraceToken(
+                    block.CloseBraceToken.WithLeadingTrivia(closeBraceTrivia.Skip(splitIndex)));
+            }
+        }
+
+        return block.WithStatements([.. block.Statements, .. statementsArray]);
     }
 
     private static TDeclarationNode AddStatementsToLocalFunctionStatement<TDeclarationNode>(
@@ -603,7 +625,7 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
         var finalMember = localFunctionStatement
             .WithExpressionBody(null)
             .WithSemicolonToken(default)
-            .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+            .WithBody(AddStatementsToBlock(body, statements));
 
         return Cast<TDeclarationNode>(finalMember);
     }
@@ -613,10 +635,10 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
     {
         if (anonymousFunctionSyntax.ExpressionBody is ExpressionSyntax expressionBody)
         {
-            var semicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+            var semicolonToken = SemicolonToken;
             if (expressionBody.TryConvertToStatement(semicolonToken, createReturnStatementForExpression: false, out var statement))
             {
-                var block = SyntaxFactory.Block(statement);
+                var block = Block(statement);
                 anonymousFunctionSyntax = anonymousFunctionSyntax.WithBlock(block).WithExpressionBody(null);
             }
         }
@@ -628,7 +650,7 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
 
         var finalMember = anonymousFunctionSyntax
             .WithExpressionBody(null)
-            .WithBody(body.WithStatements(body.Statements.AddRange(StatementGenerator.GenerateStatements(statements))));
+            .WithBody(AddStatementsToBlock(body, statements));
 
         return Cast<TDeclarationNode>(finalMember);
     }
@@ -727,14 +749,12 @@ internal partial class CSharpCodeGenerationService : AbstractCodeGenerationServi
 
     public override TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, IEnumerable<SyntaxToken> newModifiers, CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
     {
-        SyntaxTokenList computeNewModifiersList(SyntaxTokenList modifiersList) => newModifiers.ToSyntaxTokenList();
-        return UpdateDeclarationModifiers(declaration, computeNewModifiersList);
+        return UpdateDeclarationModifiers(declaration, _ => [.. newModifiers]);
     }
 
     public override TDeclarationNode UpdateDeclarationAccessibility<TDeclarationNode>(TDeclarationNode declaration, Accessibility newAccessibility, CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
     {
-        SyntaxTokenList computeNewModifiersList(SyntaxTokenList modifiersList) => UpdateDeclarationAccessibility(modifiersList, newAccessibility, info);
-        return UpdateDeclarationModifiers(declaration, computeNewModifiersList);
+        return UpdateDeclarationModifiers(declaration, modifiersList => UpdateDeclarationAccessibility(modifiersList, newAccessibility, info));
     }
 
     private static SyntaxTokenList UpdateDeclarationAccessibility(SyntaxTokenList modifiersList, Accessibility newAccessibility, CSharpCodeGenerationContextInfo info)

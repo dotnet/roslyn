@@ -4,16 +4,13 @@
 
 Imports System.IO
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -22,10 +19,10 @@ Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Friend Module RenameTestHelpers
-
-        Private ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
+        Private ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
             GetType(MockDocumentNavigationServiceFactory),
-            GetType(MockPreviewDialogService))
+            GetType(MockPreviewDialogService),
+            GetType(TestWorkspaceConfigurationService))
 
         Private Function GetSessionInfo(workspace As EditorTestWorkspace) As (document As Document, textSpan As TextSpan)
             Dim hostdoc = workspace.DocumentWithCursor
@@ -84,6 +81,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Next
         End Function
 
+        Public Async Function VerifyChangedSourceGeneratedDocumentFileNames(workspace As EditorTestWorkspace, ParamArray mappedFiles As String()) As Task
+            Await WaitForRename(workspace)
+
+            Assert.Equal(workspace.ChangedSourceGeneratedDocumentFileNames, mappedFiles)
+        End Function
+
         Public Sub VerifyFileName(document As Document, newIdentifierName As String)
             Dim expectedName = Path.ChangeExtension(newIdentifierName, Path.GetExtension(document.Name))
             Assert.Equal(expectedName, document.Name)
@@ -111,7 +114,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Dim tracker = New RenameTrackingTaggerProvider(
                 workspace.GetService(Of IThreadingContext),
                 workspace.GetService(Of IInlineRenameService)(),
-                workspace.GetService(Of IDiagnosticAnalyzerService)(),
                 workspace.GetService(Of IGlobalOptionService)(),
                 workspace.GetService(Of IAsynchronousOperationListenerProvider))
 

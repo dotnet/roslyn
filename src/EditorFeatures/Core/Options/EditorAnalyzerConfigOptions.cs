@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -65,6 +61,6 @@ internal sealed class EditorAnalyzerConfigOptions : AnalyzerConfigOptions
 
 internal static partial class EditorOptionsExtensions
 {
-    public static StructuredAnalyzerConfigOptions ToAnalyzerConfigOptions(this IEditorOptions editorOptions)
-        => StructuredAnalyzerConfigOptions.Create(new EditorAnalyzerConfigOptions(editorOptions));
+    public static StructuredAnalyzerConfigOptions ToAnalyzerConfigOptions(this IEditorOptions editorOptions, StructuredAnalyzerConfigOptions fallbackOptions)
+        => StructuredAnalyzerConfigOptions.Create(new EditorAnalyzerConfigOptions(editorOptions), fallbackOptions);
 }

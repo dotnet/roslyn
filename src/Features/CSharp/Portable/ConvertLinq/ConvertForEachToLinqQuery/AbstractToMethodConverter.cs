@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -124,8 +123,7 @@ internal abstract class AbstractToMethodConverter(
                 //  Output:
                 //  return queryGenerated.ToList(); or return queryGenerated.Count();
                 replacingExpression = returnStatement.Expression;
-                leadingTrivia = GetTriviaFromNode(nodeToRemoveIfFollowedByReturn)
-                    .Concat(SyntaxNodeOrTokenExtensions.GetTrivia(replacingExpression)).ToArray();
+                leadingTrivia = [.. GetTriviaFromNode(nodeToRemoveIfFollowedByReturn), .. SyntaxNodeOrTokenExtensions.GetTrivia(replacingExpression)];
                 editor.RemoveNode(nodeToRemoveIfFollowedByReturn);
             }
             else
@@ -154,10 +152,10 @@ internal abstract class AbstractToMethodConverter(
                         throw ExceptionUtilities.Unreachable();
                     }
 
-                    return new IEnumerable<SyntaxTrivia>[] {
+                    return [.. new IEnumerable<SyntaxTrivia>[] {
                         SyntaxNodeOrTokenExtensions.GetTrivia(localDeclaration.Declaration.Type),
                         GetTriviaFromVariableDeclarator(localDeclaration.Declaration.Variables[0]),
-                        SyntaxNodeOrTokenExtensions.GetTrivia(localDeclaration.SemicolonToken)}.Flatten().ToArray();
+                        SyntaxNodeOrTokenExtensions.GetTrivia(localDeclaration.SemicolonToken)}.Flatten()];
 
                 case SyntaxKind.VariableDeclarator:
                     return GetTriviaFromVariableDeclarator((VariableDeclaratorSyntax)node);

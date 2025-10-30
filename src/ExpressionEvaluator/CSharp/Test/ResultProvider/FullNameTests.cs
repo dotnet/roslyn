@@ -9,8 +9,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1001,7 +1001,7 @@ namespace @namespace
 
             IDkmClrFullNameProvider2 fullNameProvider = new CSharpFormatter();
             var inspectionContext = CreateDkmInspectionContext();
-            Assert.Equal("<StringParameter>P", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
+            Assert.Equal("StringParameter", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
         }
     }
 }

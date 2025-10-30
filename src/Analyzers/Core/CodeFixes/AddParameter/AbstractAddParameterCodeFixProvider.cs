@@ -10,9 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -23,18 +25,27 @@ internal abstract class AbstractAddParameterCodeFixProvider<
     TAttributeArgumentSyntax,
     TArgumentListSyntax,
     TAttributeArgumentListSyntax,
+    TExpressionSyntax,
     TInvocationExpressionSyntax,
     TObjectCreationExpressionSyntax> : CodeFixProvider
     where TArgumentSyntax : SyntaxNode
     where TArgumentListSyntax : SyntaxNode
     where TAttributeArgumentListSyntax : SyntaxNode
-    where TInvocationExpressionSyntax : SyntaxNode
-    where TObjectCreationExpressionSyntax : SyntaxNode
+    where TExpressionSyntax : SyntaxNode
+    where TInvocationExpressionSyntax : TExpressionSyntax
+    where TObjectCreationExpressionSyntax : TExpressionSyntax
 {
+    private static readonly SymbolDisplayFormat SimpleFormat = new(
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+        parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
+        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
     protected abstract ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; }
     protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
 
     protected abstract ITypeSymbol GetArgumentType(SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken);
+    protected abstract Argument<TExpressionSyntax> GetArgument(TArgumentSyntax argument);
 
     public override FixAllProvider? GetFixAllProvider()
     {
@@ -187,7 +198,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
         ImmutableArray<IMethodSymbol> methodCandidates)
     {
         var comparer = syntaxFacts.StringComparer;
-        var methodsAndArgumentToAdd = ArrayBuilder<ArgumentInsertPositionData<TArgumentSyntax>>.GetInstance();
+        using var _ = ArrayBuilder<ArgumentInsertPositionData<TArgumentSyntax>>.GetInstance(out var methodsAndArgumentToAdd);
 
         foreach (var method in methodCandidates.OrderBy(m => m.Parameters.Length))
         {
@@ -219,7 +230,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             }
         }
 
-        return methodsAndArgumentToAdd.ToImmutableAndFree();
+        return methodsAndArgumentToAdd.ToImmutableAndClear();
     }
 
     private static int NonParamsParameterCount(IMethodSymbol method)
@@ -244,7 +255,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
 
         ImmutableArray<CodeAction> NestByOverload()
         {
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length, out var builder);
+            var builder = new FixedSizeArrayBuilder<CodeAction>(codeFixData.Length);
             foreach (var data in codeFixData)
             {
                 // We create the mandatory data.CreateChangedSolutionNonCascading fix first.
@@ -276,12 +287,12 @@ internal abstract class AbstractAddParameterCodeFixProvider<
                 builder.Add(codeAction);
             }
 
-            return builder.ToImmutableAndClear();
+            return builder.MoveToImmutable();
         }
 
         ImmutableArray<CodeAction> NestByCascading()
         {
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(capacity: 2, out var builder);
+            using var builder = TemporaryArray<CodeAction>.Empty;
 
             var nonCascadingActions = codeFixData.SelectAsArray(data =>
             {
@@ -312,7 +323,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
                 builder.Add(CodeAction.Create(nestedCascadingTitle, cascadingActions, isInlinable: false));
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
     }
 
@@ -321,7 +332,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
         SeparatedSyntaxList<TArgumentSyntax> arguments,
         ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
     {
-        using var _ = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length, out var builder);
+        var builder = new FixedSizeArrayBuilder<CodeFixData>(methodsAndArgumentsToAdd.Length);
 
         // Order by the furthest argument index to the nearest argument index.  The ones with
         // larger argument indexes mean that we matched more earlier arguments (and thus are
@@ -332,18 +343,16 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             var argumentToInsert = argumentInsertPositionData.ArgumentToInsert;
 
             var cascadingFix = AddParameterService.HasCascadingDeclarations(methodToUpdate)
-                ? new Func<CancellationToken, Task<Solution>>(c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))
+                ? new Func<CancellationToken, Task<Solution>>(cancellationToken => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, cancellationToken))
                 : null;
 
-            var codeFixData = new CodeFixData(
+            builder.Add(new CodeFixData(
                 methodToUpdate,
-                c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c),
-                cascadingFix);
-
-            builder.Add(codeFixData);
+                cancellationToken => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, cancellationToken),
+                cascadingFix));
         }
 
-        return builder.ToImmutable();
+        return builder.MoveToImmutable();
     }
 
     private static string GetCodeFixTitle(string resourceString, IMethodSymbol methodToUpdate, bool includeParameters)
@@ -378,12 +387,13 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             invocationDocument, argument, method.ContainingType, cancellationToken).ConfigureAwait(false);
 
         var newParameterIndex = isNamedArgument ? (int?)null : argumentList.IndexOf(argument);
-        return await AddParameterService.AddParameterAsync(
+        return await AddParameterService.AddParameterAsync<TExpressionSyntax>(
             invocationDocument,
             method,
             argumentType,
             refKind,
-            argumentNameSuggestion,
+            new ParameterName(argumentNameSuggestion, isNamedArgument, tryMakeCamelCase: !method.ContainingType.IsRecord),
+            GetArgument(argument),
             newParameterIndex,
             fixAllReferences,
             cancellationToken).ConfigureAwait(false);
@@ -418,13 +428,6 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             return (argumentNameSuggestion: argumentName, isNamed: false);
         }
     }
-
-    private static readonly SymbolDisplayFormat SimpleFormat =
-                new(
-                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                    parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
-                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
     private static TArgumentSyntax? DetermineFirstArgumentToAdd(
         SemanticModel semanticModel,

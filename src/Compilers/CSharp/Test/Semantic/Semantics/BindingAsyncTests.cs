@@ -30,7 +30,7 @@ class C
         await t;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
             var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             Assert.True(method.IsAsync);
         }
@@ -51,7 +51,7 @@ class C
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(new SyntaxTree[] { tree }).VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(tree);
 
@@ -80,7 +80,7 @@ class C
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(new SyntaxTree[] { tree }).VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(tree);
 
@@ -95,7 +95,7 @@ class C
 class C {
     async public C() { }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("async"));
         }
 
@@ -107,7 +107,7 @@ class C
 {
     async extern ~C();
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("async"),
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "C").WithArguments("C.~C()"));
         }
@@ -126,7 +126,7 @@ class C
 
     async event MyDelegate MyEvent;
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "MyEvent").WithArguments("async"));
         }
 
@@ -143,7 +143,7 @@ class C
 
     async int i;
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "i").WithArguments("async"));
         }
 
@@ -154,7 +154,7 @@ class C
 public async class C
 {
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("async"));
         }
 
@@ -165,7 +165,7 @@ public async class C
 internal async struct S
 {
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("async"));
         }
 
@@ -176,7 +176,7 @@ internal async struct S
 internal async interface I
 {
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I").WithArguments("async"));
         }
 
@@ -186,7 +186,7 @@ internal async interface I
             var source = @"
 public async delegate void MyDelegate();
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "MyDelegate").WithArguments("async"));
         }
 
@@ -196,7 +196,7 @@ public async delegate void MyDelegate();
             var source = @"
 public async delegate void MyDelegate();
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "MyDelegate").WithArguments("async"));
         }
 
@@ -206,7 +206,7 @@ public async delegate void MyDelegate();
             var source = @"
 public async delegate void MyDelegate();
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "MyDelegate").WithArguments("async"));
         }
 
@@ -236,7 +236,7 @@ class C
         InferTaskOrTaskT(async () => { return await Task.Factory.StartNew(() => 1); });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
     // (14,9): error CS1997: Since 'C.F1()' is an async method that returns 'System.Threading.Tasks.Task', a return keyword must not be followed by an object expression
     //         return await Task.Factory.StartNew(() => 1);
     Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F1()", "System.Threading.Tasks.Task").WithLocation(14, 9),
@@ -283,7 +283,7 @@ class C
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (17,18): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async MyTask F2()
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "F2"),
@@ -325,7 +325,7 @@ class C
         Func<int> f2 = async () => { return await Task.Factory.StartNew(() => 1); };
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (9,33): error CS4010: Cannot convert async lambda expression to delegate type 'Func<int>'. An async lambda expression may return void, Task or Task<T>, none of which are convertible to 'Func<int>'.
                 //         Func<int> f1 = async () => await Task.Factory.StartNew(() => 1);
                 Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "=>").WithArguments("lambda expression", "System.Func<int>").WithLocation(9, 33),
@@ -355,7 +355,7 @@ class C
         InferTask_T(async () => { return await Task.Factory.StartNew(() => new Task<int>(() => 1)); });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (11,42): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
                 //         Func<Task<int>> f1 = async () => await Task.Factory.StartNew(() => new Task<int>(null));
                 Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "await Task.Factory.StartNew(() => new Task<int>(null))").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(11, 42),
@@ -409,7 +409,7 @@ class C
         Infer_T(async () => { return await Task.Factory.StartNew(() => { }); });
     }
 }";
-            CreateCompilationWithMscorlib45(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics(
     // (13,33): error CS8029: Anonymous function converted to a void returning delegate cannot return a value
     //         InferVoid(async () => { return await Task.Factory.StartNew(() => { }); });
     Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(13, 33),
@@ -446,7 +446,7 @@ class C
         InferTask_T(async () => { return await Task.Factory.StartNew(() => 1); });
     }
 }";
-            CreateCompilationWithMscorlib45(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -476,7 +476,7 @@ class C
         });
     }
 }";
-            CreateCompilationWithMscorlib45(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics(
                 // (19,17): error CS0126: An object of a type convertible to 'int' is required
                 //                 return;
                 Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("int"));
@@ -509,7 +509,7 @@ class C
         });
     }
 }";
-            CreateCompilationWithMscorlib45(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics(
     // (16,17): error CS8029: Anonymous function converted to a void returning delegate cannot return a value
     //                 return 1;
     Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(16, 17)
@@ -543,7 +543,7 @@ class C
         });
     }
 }";
-            CreateCompilationWithMscorlib45(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics(
     // (16,17): error CS8030: Async lambda expression converted to a 'System.Threading.Tasks.Task' returning delegate cannot return a value
     //                 return 1;
     Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithArguments("System.Threading.Tasks.Task").WithLocation(16, 17)
@@ -577,7 +577,7 @@ class C
         });
     }
 }";
-            CreateCompilationWithMscorlib45(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, new MetadataReference[] { LinqAssemblyRef, SystemRef }).VerifyDiagnostics(
                 // (19,17): error CS0126: An object of a type convertible to 'int' is required
                 //                 return;
                 Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("int"));
@@ -595,10 +595,7 @@ class C
     {
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async static Task F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F"));
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -622,7 +619,7 @@ class C
         Func<Task<int?>> f2 = async () => { return await Task.Factory.StartNew<int?>(() => { return null; }); };
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -638,7 +635,7 @@ class Test
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,23): error CS4006: __arglist is not allowed in the parameter list of async methods
                 //     async static Task M1(__arglist)
                 Diagnostic(ErrorCode.ERR_VarargsAsync, "M1"));
@@ -658,7 +655,7 @@ class Test
         return;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,23): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
                 //     async static Task M1<T>(__arglist)
                 Diagnostic(ErrorCode.ERR_BadVarargs, "M1"));
@@ -678,7 +675,7 @@ class Test
         return;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,23): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
                 //     async static Task M1<T>(__arglist)
                 Diagnostic(ErrorCode.ERR_BadVarargs, "M1"));
@@ -694,13 +691,10 @@ class Test
 {
     unsafe async static Task M1(int* i) { }
 }";
-            CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,38): error CS4005: Async methods cannot have pointer type parameters
                 //     unsafe async static Task M1(int* i)
-                Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i"),
-                // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     unsafe async static Task M1(ref int* i)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1"));
+                Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i"));
         }
 
         [Fact]
@@ -713,13 +707,10 @@ class Test
 {
     unsafe async static Task M1(delegate*<void> i) { }
 }";
-            CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,49): error CS4005: Async methods cannot have pointer type parameters
                 //     unsafe async static Task M1(delegate*<void> i) { }
-                Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i").WithLocation(6, 49),
-                // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     unsafe async static Task M1(delegate*<void> i) { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1").WithLocation(6, 30)
+                Diagnostic(ErrorCode.ERR_UnsafeAsyncArgType, "i").WithLocation(6, 49)
                 );
         }
 
@@ -736,7 +727,7 @@ class Test
     async static Task M3(int*[] i) { await Task.Yield(); } // 3
     async static Task M4(delegate*<void>[] i) { await Task.Yield(); } // 4
 }";
-            CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll)
+            CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll)
                 .VerifyDiagnostics(
                     // (6,45): error CS4004: Cannot await in an unsafe context
                     //     unsafe async static Task M1(int*[] i) { await Task.Yield(); } // 1
@@ -763,13 +754,10 @@ class Test
 {
     unsafe async static Task M1(ref int* i) { }
 }";
-            CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,42): error CS1988: Async methods cannot have ref, in or out parameters
                 //     unsafe async static Task M1(ref int* i)
-                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i"),
-                // (6,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     unsafe async static Task M1(ref int* i)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M1"));
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i"));
         }
 
         [Fact]
@@ -785,7 +773,7 @@ class Test
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,42): error CS1988: Async methods cannot have ref, in or out parameters
                 //     unsafe async static Task M1(ref int* i) { }
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i"));
@@ -804,7 +792,7 @@ class Test
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,34): error CS1988: Async methods cannot have ref, in or out parameters
                 //     async static Task M1(out int i) { }
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i"));
@@ -823,7 +811,7 @@ class Test
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,33): error CS1988: Async methods cannot have ref, in or out parameters
                 //     async static Task M1(in int i)
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i").WithLocation(6, 33)
@@ -848,7 +836,7 @@ class C
 
     int i = await t;
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (9,14): error CS1992: The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier
                 // [MyAttribute(await C.t)]
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await C.t"),
@@ -873,7 +861,7 @@ class C
         Action f3 = () => { await Task.Factory.StartNew(() => { }); };
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (9,34): error CS4034: The 'await' operator can only be used within an async anonymous method. Consider marking this anonymous method with the 'async' modifier.
                 //         Action f1 = delegate() { await Task.Factory.StartNew(() => { }); };
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncLambda, "await Task.Factory.StartNew(() => { })").WithArguments("anonymous method"),
@@ -903,7 +891,7 @@ class C
         return await Task.Factory.StartNew(() => 1);
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (8,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
                 //         await Task.Factory.StartNew(() => { });
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await Task.Factory.StartNew(() => { })"),
@@ -935,7 +923,7 @@ class Test
     }
 }";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,32): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<int>'.
                 //     static int Goo(int[] arr = await t)
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await t").WithArguments("int").WithLocation(10, 32)
@@ -982,7 +970,7 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
                 // (20,17): error CS1984: Cannot await in the body of a finally clause
                 //                 await Task.Factory.StartNew(() => { });
                 Diagnostic(ErrorCode.ERR_BadAwaitInFinally, "await Task.Factory.StartNew(() => { })").WithLocation(20, 17),
@@ -990,7 +978,7 @@ class Test
                 //                 await Task.Factory.StartNew(() => { });
                 Diagnostic(ErrorCode.ERR_BadAwaitInFinally, "await Task.Factory.StartNew(() => { })").WithLocation(30, 17)
                 );
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1014,12 +1002,12 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
                 // (12,13): error CS1985: Cannot await in a catch clause
                 //             await Task.Factory.StartNew(() => { });
                 Diagnostic(ErrorCode.ERR_BadAwaitInCatch, "await Task.Factory.StartNew(() => { })").WithLocation(12, 13)
                 );
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1043,10 +1031,64 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (11,19): error CS7094: Cannot await in the filter expression of a catch clause
                 //         catch when (await Task.Factory.StartNew(() => false))
                 Diagnostic(ErrorCode.ERR_BadAwaitInCatchFilter, "await Task.Factory.StartNew(() => false)").WithLocation(11, 21)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80331")]
+        public void BadSpreadInCatchFilter()
+        {
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                public class C
+                {
+                    // Use a custom list type to ensure that an AddRange isn't used
+                    public class MyList<T> : IEnumerable<T>
+                    {
+                        public void Add(T s) { throw null!; }
+                        public class MyEnumerator : IEnumerator<T>
+                        {
+                            public bool MoveNext() => false;
+                            public void Dispose() { }
+                            public void Reset() { }
+                            public T Current { get {  throw null!; } }
+                            object IEnumerator.Current { get { throw null!; } }
+                        }
+
+                        public IEnumerator<T> GetEnumerator() { throw null!; }
+                        IEnumerator IEnumerable.GetEnumerator() { throw null!; }
+
+                        public int Count;
+                    }
+
+                    public class MyException : Exception
+                    {
+                        public IEnumerable<String> Strings = [];
+                    }
+
+                    public bool A(MyList<string> s) { return false; }
+
+                    public void M()
+                    {
+                        try
+                        {
+                            throw new Exception();
+                        }
+                        catch (MyException e) when (A([.. e.Strings, "foo"]))
+                        {
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (38,40): error CS9332: Cannot use '..' spread operator in the filter expression of a catch clause
+                //         catch (MyException e) when (A([.. e.Strings, "foo"]))
+                Diagnostic(ErrorCode.ERR_BadSpreadInCatchFilter, ".. e.Strings").WithLocation(38, 40)
                 );
         }
 
@@ -1096,7 +1138,7 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,13): error CS1996: Cannot await in the body of a lock statement
                 //             await Task.Factory.StartNew(() => { });
                 Diagnostic(ErrorCode.ERR_BadAwaitInLock, "await Task.Factory.StartNew(() => { })"),
@@ -1136,7 +1178,7 @@ class Program
         return await M();
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (9,19): error CS1996: Cannot await in the body of a lock statement
                 //             lock (await M()) // error, in body of outer lock
                 Diagnostic(ErrorCode.ERR_BadAwaitInLock, "await M()"),
@@ -1164,7 +1206,7 @@ class Driver
 
     static void Main() { }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [WorkItem(611150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611150")]
@@ -1186,7 +1228,7 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1211,7 +1253,7 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,9): error CS4004: Cannot await in an unsafe context
                 //         await Task.Factory.StartNew(() => { });  // not OK
                 Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Factory.StartNew(() => { })"),
@@ -1250,7 +1292,7 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<System.Threading.Tasks.Task>'.
                 //         await Task.Factory.StartNew(() => { });
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Factory.StartNew(() => { })").WithArguments("System.Threading.Tasks.Task").WithLocation(8, 9),
@@ -1294,7 +1336,7 @@ class C : IInterface
 
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1305,7 +1347,7 @@ interface IInterface
 {
     async void F();
 }";
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (4,16): error CS8503: The modifier 'async' is not valid for this item in C# 7. Please use language version 'preview' or greater.
                 //     async void F(); 
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F").WithArguments("async", "7.0", "8.0").WithLocation(4, 16),
@@ -1339,7 +1381,7 @@ class Test
         var xs = from l in await F1() where l > 1 select l;
     }
 }";
-            CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef, LinqAssemblyRef }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef, LinqAssemblyRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1368,7 +1410,7 @@ class Test
                  where l > 1 select l;
     }
 }";
-            CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef, LinqAssemblyRef }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef, LinqAssemblyRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1396,7 +1438,7 @@ class Test
                  where l > 1 select await F1();
     }
 }";
-            CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef, LinqAssemblyRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef, LinqAssemblyRef }).VerifyDiagnostics(
                 // (20,37): error CS1995: The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause
                 //                  where l > 1 select await F1();
                 Diagnostic(ErrorCode.ERR_BadAwaitInQuery, "await F1()"));
@@ -1428,7 +1470,7 @@ class Test
                  select (from l2 in await F1() where l2 > 1 select l2);
     }
 }";
-            CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef, LinqAssemblyRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef, LinqAssemblyRef }).VerifyDiagnostics(
                 // (21,37): error CS1995: The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause
                 //                  select (from l2 in await F1() where l2 > 1 select l2);
                 Diagnostic(ErrorCode.ERR_BadAwaitInQuery, "await F1()"));
@@ -1463,7 +1505,7 @@ class Test
                          select l2);
     }
 }";
-            CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef, LinqAssemblyRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef, LinqAssemblyRef }).VerifyDiagnostics(
                 // (22,37): error CS1995: The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause
                 //                          join l3 in await F1() on l2 equals l3
                 Diagnostic(ErrorCode.ERR_BadAwaitInQuery, "await F1()"));
@@ -1499,7 +1541,7 @@ class Test
         }
     }
 }";
-            var c = CreateCompilationWithMscorlib45(
+            var c = CreateCompilationWithMscorlib461(
                 source,
                 new MetadataReference[] { SystemRef, LinqAssemblyRef },
                 TestOptions.UnsafeReleaseDll);
@@ -1540,7 +1582,7 @@ class Test
                             select l2);
     }
 }";
-            CreateCompilationWithMscorlib45(
+            CreateCompilationWithMscorlib461(
                 source,
                 new MetadataReference[] { SystemRef, LinqAssemblyRef },
                 TestOptions.ReleaseDll).VerifyDiagnostics(
@@ -1574,7 +1616,7 @@ class Test
                     select l;
     }
 }";
-            CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef, LinqAssemblyRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef, LinqAssemblyRef }).VerifyDiagnostics(
                 // (17,28): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
                 //         var xs = from l in await F1()
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await F1()"));
@@ -1602,25 +1644,7 @@ class Test
         Func<Task<int>> f5 = async delegate () { return 1; };
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (7,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async static Task M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(7, 23),
-                // (13,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Action f1 = async () => new Action(() => { })();
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(13, 30),
-                // (14,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Action f2 = async () => { };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(14, 30),
-                // (15,39): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<Task<int>> f3 = async () => { return 1; };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(15, 39),
-                // (16,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Action f4 = async delegate () { };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(16, 27),
-                // (17,36): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<Task<int>> f5 = async delegate () { return 1; };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(17, 36));
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1650,7 +1674,7 @@ class Test
         F2(false);
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         for (F1(); truth; F1()) ;
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "F1()"),
@@ -1699,7 +1723,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (16,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Goo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"));
@@ -1739,7 +1763,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
                 // (19,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Goo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
@@ -1748,10 +1772,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (27,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //             Goo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
-                // (31,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public async Task<dynamic> Goo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"));
         }
 
         [Fact]
@@ -1793,19 +1814,13 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (21,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Goo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (24,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         bar();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "bar()"),
-                // (19,31): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<object> Meth()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth"),
-                // (29,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<decimal?> Goo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"),
                 // (36,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Goo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"));
@@ -1848,22 +1863,13 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (19,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         i.MethExt();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MethExt()").WithLocation(19, 9),
                 // (20,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Goo(1);
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo(1)").WithLocation(20, 9),
-                // (16,26): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<T> Meth<T>(T t)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth").WithLocation(16, 26),
-                // (26,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         return Task.Run(async () => { return t; });
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(26, 34),
-                // (10,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         return Task.Run(async () => new C1());
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(10, 34));
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo(1)").WithLocation(20, 9));
         }
 
         [Fact]
@@ -1899,28 +1905,19 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
-                // (20,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<dynamic> Meth1()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth1"),
+            CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
                 // (23,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Goo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (23,9): warning CS0162: Unreachable code detected
                 //         Goo();
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "Goo"),
-                // (27,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<decimal?> Meth2()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth2"),
                 // (29,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Goo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (31,9): warning CS0162: Unreachable code detected
                 //         return null;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return"),
-                // (34,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<decimal?> Goo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return"));
         }
 
         [Fact]
@@ -1954,13 +1951,10 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
                 // (22,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Goo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
-                // (19,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<dynamic> Meth1()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth1"),
                 // (22,9): warning CS0162: Unreachable code detected
                 //         Goo();
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "Goo"),
@@ -1969,10 +1963,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (28,9): warning CS0162: Unreachable code detected
                 //         Goo();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Goo"),
-                // (31,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<double?> Goo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Goo"));
         }
 
         [Fact]
@@ -2025,7 +2016,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (30,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //             Meth(1);
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth(1)"),
@@ -2149,7 +2140,7 @@ class Driver
         return Driver.Result;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (55,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //             Meth(x);
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth(x)"),
@@ -2208,7 +2199,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (28,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //             Meth(1);
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth(1)"),
@@ -2217,10 +2208,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, @"Meth("""")"),
                 // (36,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //             Meth((decimal?)2);
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth((decimal?)2)"),
-                // (24,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task Goo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth((decimal?)2)"));
         }
 
         [Fact]
@@ -2274,7 +2262,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (33,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //             i.Meth(1);
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.Meth(1)"),
@@ -2313,13 +2301,13 @@ class Test
         get
         {
             Meth(1);
-            return field;
+            return @field;
         }
         set
         {
             Bar();
             Meth("""");
-            field = value;
+            @field = value;
         }
     }
 
@@ -2340,7 +2328,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
                 // (30,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //             Meth(1);
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth(1)"),
@@ -2388,19 +2376,14 @@ partial class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (19,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Meth("", null);
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, @"Meth("""", null)").WithLocation(19, 9),
                 // (25,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Meth(Task.Run(async () => 1), Meth(1));
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth(Task.Run(async () => 1), Meth(1))").WithLocation(25, 9),
-                // (25,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Meth(Task.Run(async () => 1), Meth(1));
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(25, 32),
-                // (22,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async public Task Goo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo").WithLocation(22, 23));
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth(Task.Run(async () => 1), Meth(1))").WithLocation(25, 9)
+            );
         }
 
         [WorkItem(611150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611150")]
@@ -2446,7 +2429,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (16,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //             Meth(await Meth(int.MaxValue) + 1);
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth(await Meth(int.MaxValue) + 1)"),
@@ -2478,7 +2461,7 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2529,7 +2512,7 @@ class Test
     }
 }";
 
-            CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
                 // (41,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Meth(1); //warning CS4014
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth(1)"),
@@ -2538,10 +2521,8 @@ class Test
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "test.Prop"),
                 // (48,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         test[1]; //error CS0201
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "test[1]"),
-                // (44,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public async Task Goo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "test[1]")
+            );
         }
 
         [Fact]
@@ -2580,7 +2561,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (27,14): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         for (Meth(""); await Meth(false); Meth((float?)null))
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, @"Meth("""")"),
@@ -2646,7 +2627,7 @@ public class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (33,14): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         for (testB.Meth2(); await testB.Meth(false); testB.Meth((float?)null))
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "testB.Meth2()"),
@@ -2687,7 +2668,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (15,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Goo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"));
@@ -2722,7 +2703,7 @@ class Test:IDisposable
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (29,14): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //              s.ExMeth();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "s.ExMeth()"));
@@ -2760,7 +2741,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (18,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Goo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
@@ -2810,7 +2791,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (21,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //             Goo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"));
@@ -2852,7 +2833,7 @@ class Testcase
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2887,7 +2868,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
                 // (27,17): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //                 del(y);
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "del(y)"));
@@ -2929,7 +2910,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2972,7 +2953,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3006,7 +2987,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3043,10 +3024,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (14,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         return Task.Run(async () => { return i; });
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(14, 34),
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (21,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //             test.Meth();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "test.Meth()").WithLocation(21, 13),
@@ -3091,7 +3069,7 @@ class Test
         return 0;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (17,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Goo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"));
@@ -3125,7 +3103,7 @@ class Test : IDisposable
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (22,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Goo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
@@ -3141,7 +3119,7 @@ class Test : IDisposable
 @"using System.Threading.Tasks;
 Task.FromResult(1);
 Task.FromResult(2);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics(
                 // (2,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 // Task.FromResult(1);
@@ -3181,7 +3159,7 @@ static class Test
 {
     static async Task M1();
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,23): error CS1994: The 'async' modifier can only be used in methods that have a body
                 //     static async Task M1();
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M1"));
@@ -3197,7 +3175,7 @@ static class Test
 {
     static async Task M1(__arglist);
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,23): error CS1994: The 'async' modifier can only be used in methods that have a body
                 //     static async Task M1(__arglist);
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M1"));
@@ -3217,10 +3195,10 @@ class Test
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (7,34): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+                // (7,34): error CS4012: Parameters of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions
                 //     async Task M1(TypedReference tr)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "tr").WithArguments("System.TypedReference"));
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "tr").WithArguments("System.TypedReference"));
         }
 
         [Fact]
@@ -3238,10 +3216,7 @@ class Test
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (9,9): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions
-                //         TypedReference tr;
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "TypedReference").WithArguments("System.TypedReference"),
+            CreateCompilationWithMscorlib461(source).VerifyEmitDiagnostics(
                 // (9,24): warning CS0168: The variable 'tr' is declared but never used
                 //         TypedReference tr;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "tr").WithArguments("tr"));
@@ -3258,17 +3233,32 @@ class Test
 {
     async Task M1(bool truth)
     {
-        var tr = new TypedReference();
+        var tr = new TypedReference(); // 1
         await Task.Factory.StartNew(() => { });
     }
+
+    async Task M2(bool truth)
+    {
+        var tr = new TypedReference();
+        await Task.Factory.StartNew(() => { });
+        var tr2 = tr; // 2
+    }
+
+    async Task M3()
+    {
+        var tr = new TypedReference();
+        await Task.Factory.StartNew(() => { });
+        tr = default;
+        var tr2 = tr;
+    }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (9,9): error CS4012: Parameters or locals of type 'TypedReference' cannot be declared in async methods or async lambda expressions.
-                //         var tr = new TypedReference();
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.TypedReference").WithLocation(9, 9),
+            CreateCompilationWithMscorlib461(source).VerifyEmitDiagnostics(
                 // (9,13): warning CS0219: The variable 'tr' is assigned but its value is never used
-                //         var tr = new TypedReference();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "tr").WithArguments("tr").WithLocation(9, 13));
+                //         var tr = new TypedReference(); // 1
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "tr").WithArguments("tr").WithLocation(9, 13),
+                // (17,19): error CS4007: Instance of type 'System.TypedReference' cannot be preserved across 'await' or 'yield' boundary.
+                //         var tr2 = tr; // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "tr").WithArguments("System.TypedReference").WithLocation(17, 19));
         }
 
         [Fact]
@@ -3284,19 +3274,14 @@ public class MyClass
         fixed (TypedReference tr) { }
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,31): error CS0209: The type of a local declared in a fixed statement must be a pointer type
                 //         fixed (TypedReference tr) { }
                 Diagnostic(ErrorCode.ERR_BadFixedInitType, "tr"),
-                // (8,16): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions.
-                //         fixed (TypedReference tr) { }
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "TypedReference").WithArguments("System.TypedReference"),
                 // (8,31): error CS0210: You must provide an initializer in a fixed or using statement declaration
                 //         fixed (TypedReference tr) { }
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "tr"),
-                // (6,37): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     unsafe async public static void F()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F"));
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "tr")
+            );
         }
 
         [Fact]
@@ -3314,7 +3299,7 @@ public class C
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (8,23): error CS4031: Async methods are not allowed in an Interface, Class, or Structure which has the 'SecurityCritical' or 'SecuritySafeCritical' attribute.
                 //     public async void M()
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, "M"));
@@ -3335,7 +3320,7 @@ public class C
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (8,23): error CS4031: Async methods are not allowed in an Interface, Class, or Structure which has the 'SecurityCritical' or 'SecuritySafeCritical' attribute.
                 //     public async void M()
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, "M"));
@@ -3357,7 +3342,7 @@ public class C
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (9,23): error CS4031: Async methods are not allowed in an Interface, Class, or Structure which has the 'SecurityCritical' or 'SecuritySafeCritical' attribute.
                 //     public async void M()
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, "M"));
@@ -3383,7 +3368,7 @@ public class C
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (12,27): error CS4031: Async methods are not allowed in an Interface, Class, or Structure which has the 'SecurityCritical' or 'SecuritySafeCritical' attribute.
                 //         public async void M()
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, "M"));
@@ -3404,7 +3389,7 @@ public class D
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (7,6): error CS4030: Security attribute 'SecurityCritical' cannot be applied to an Async method.
                 //     [SecurityCritical]
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecurityCritical").WithArguments("SecurityCritical"));
@@ -3425,7 +3410,7 @@ public class D
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (7,6): error CS4030: Security attribute 'SecuritySafeCritical' cannot be applied to an Async method.
                 //     [SecuritySafeCritical]
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecuritySafeCritical").WithArguments("SecuritySafeCritical"));
@@ -3447,7 +3432,7 @@ public class D
         await Task.Factory.StartNew(() => { });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (7,6): error CS4030: Security attribute 'SecurityCritical' cannot be applied to an Async method.
                 //     [SecurityCritical]
                 Diagnostic(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, "SecurityCritical").WithArguments("SecurityCritical"),
@@ -3466,10 +3451,7 @@ class Program
     {
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async void Meth()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth"));
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(547079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547079")]
@@ -3488,7 +3470,7 @@ class Test
         return 1;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,32): error CS1994: The 'async' modifier can only be used in methods that have a body.
                 //     public async abstract void M1();
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M1"));
@@ -3505,10 +3487,7 @@ class Test
     {
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
-                // (5,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async public static Task Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(5, 30));
+            CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(547081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547081")]
@@ -3522,11 +3501,8 @@ class Test
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             comp.VerifyDiagnostics(
-                // (5,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async public static Task Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(5, 30),
                 // (5,25): error CS8107: Feature 'async main' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //     async public static Task Main()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Task").WithArguments("async main", "7.1").WithLocation(5, 25),
@@ -3549,13 +3525,11 @@ class Driver
     public async void Goo(ref int x)
     { }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (9,35): error CS1988: Async methods cannot have ref, in or out parameters
                 //     public async void Goo(ref int x)
-                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x"),
-                // (9,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public async void Goo(ref int x)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x")
+            );
         }
 
         [Fact]
@@ -3573,7 +3547,7 @@ public class C
         return await Task.Factory.StartNew(() => 1);
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (9,21): error CS4015: 'MethodImplOptions.Synchronized' cannot be applied to an Async method.
                 //     async Task<int> F1()
                 Diagnostic(ErrorCode.ERR_SynchronizedAsyncMethod, "F1"));
@@ -3597,7 +3571,7 @@ public class C
             };
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (9,81): error CS4015: 'MethodImplOptions.Synchronized' cannot be applied to an async method
                 //         var a = [MethodImpl(MethodImplOptions.Synchronized)] async Task<int> () =>
                 Diagnostic(ErrorCode.ERR_SynchronizedAsyncMethod, "=>").WithLocation(9, 81));
@@ -3621,7 +3595,7 @@ public class C
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,25): error CS4015: 'MethodImplOptions.Synchronized' cannot be applied to an async method
                 //         async Task<int> local()
                 Diagnostic(ErrorCode.ERR_SynchronizedAsyncMethod, "local").WithLocation(10, 25),
@@ -3647,7 +3621,7 @@ public class C
         return await Task.Factory.StartNew(() => 1);
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,15): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async int F1()
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "F1"),
@@ -3698,7 +3672,7 @@ namespace B
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3714,13 +3688,11 @@ class C
         Func<int> x = async delegate { throw null; };
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,29): error CS4010: Cannot convert async anonymous method to delegate type 'Func<int>'. An async anonymous method may return void, Task or Task<T>, none of which are convertible to 'Func<int>'.
                 //         Func<int> x = async delegate { throw null; };
-                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "delegate").WithArguments("anonymous method", "System.Func<int>"),
-                // (6,29): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Func<int> x = async delegate { throw null; };
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(6, 29));
+                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "delegate").WithArguments("anonymous method", "System.Func<int>")
+            );
         }
 
         [WorkItem(588706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/588706")]
@@ -3739,7 +3711,7 @@ class C
         await Task.Delay(1);
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (8,26): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         Action<int> x = (await) => { }; // should be a syntax error
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(8, 26)
@@ -3765,7 +3737,7 @@ public class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (12,17): error CS0118: 'GetAwaiter' is a field but is used like a method
                 Diagnostic(ErrorCode.ERR_BadSKknown, "await x").WithArguments("GetAwaiter", "field", "method"));
         }
@@ -3789,7 +3761,7 @@ public class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (12,16): error CS0118: 'GetAwaiter' is a property but is used like a method
                 Diagnostic(ErrorCode.ERR_BadSKknown, "await x").WithArguments("GetAwaiter", "property", "method"));
         }
@@ -3809,7 +3781,7 @@ class Program
         return 1;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (9,16): error CS0029: Cannot implicitly convert type 'int' to 'T'
                 //         return 1;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "T")
@@ -3841,7 +3813,7 @@ class C
         Console.WriteLine(x);
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (11,38): error CS1988: Async methods cannot have ref, in or out parameters
                 //         D d = async delegate(ref int i)
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "i")
@@ -3883,7 +3855,7 @@ public class Program
 }";
             // The rules for when we give a warning may seem quirky, but we aim to precisely replicate
             // the diagnostics produced by the native compiler.
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (12,27): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Action x1 = () => XAsync(); // warn
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "XAsync()"),
@@ -3895,13 +3867,8 @@ public class Program
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "YAsync()"),
                 // (17,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         XAsync(); // warn
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "XAsync()"),
-                // (14,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Action x2 = async () => XAsync(); // warn
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(14, 30),
-                // (15,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         Action y2 = async () => YAsync(); // warn
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(15, 30));
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "XAsync()")
+            );
         }
 
         [Fact()]
@@ -3929,14 +3896,12 @@ class C
     static void F<T>(Func<Task<T>> f) { }
     static void M()
     {
-#pragma warning disable CS1998
         F(async () => { });
         F(async () => { return 3; });
-#pragma warning restore CS1998
     }
 }";
             var reference = CompileIL(ilSource);
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { reference });
             compilation.VerifyEmitDiagnostics();
         }
 

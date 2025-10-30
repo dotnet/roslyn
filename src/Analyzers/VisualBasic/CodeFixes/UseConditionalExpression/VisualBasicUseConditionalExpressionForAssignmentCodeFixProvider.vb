@@ -16,9 +16,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
-
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseConditionalExpressionForAssignment), [Shared]>
-    Friend Class VisualBasicUseConditionalExpressionForAssignmentCodeFixProvider
+    Friend NotInheritable Class VisualBasicUseConditionalExpressionForAssignmentCodeFixProvider
         Inherits AbstractUseConditionalExpressionForAssignmentCodeFixProvider(Of
             StatementSyntax, MultiLineIfBlockSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax, TernaryConditionalExpressionSyntax)
 
@@ -56,8 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
             Return statement
         End Function
 
-        Protected Overrides Function GetSyntaxFormatting() As ISyntaxFormatting
-            Return VisualBasicSyntaxFormatting.Instance
-        End Function
+        Protected Overrides ReadOnly Property SyntaxFormatting As ISyntaxFormatting = VisualBasicSyntaxFormatting.Instance
     End Class
 End Namespace

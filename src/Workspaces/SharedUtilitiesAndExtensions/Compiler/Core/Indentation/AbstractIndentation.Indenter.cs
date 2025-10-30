@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Indentation;
 
@@ -41,6 +40,7 @@ internal abstract partial class AbstractIndentation<TSyntaxRoot>
         public Indenter(
             AbstractIndentation<TSyntaxRoot> service,
             SyntaxTree tree,
+            SourceText text,
             ImmutableArray<AbstractFormattingRule> rules,
             IndentationOptions options,
             TextLine lineToBeIndented,
@@ -51,8 +51,8 @@ internal abstract partial class AbstractIndentation<TSyntaxRoot>
             _syntaxFacts = service.SyntaxFacts;
             Options = options;
             Tree = tree;
-            Text = tree.GetText(cancellationToken);
             Root = (TSyntaxRoot)tree.GetRoot(cancellationToken);
+            Text = text;
             LineToBeIndented = lineToBeIndented;
             _tabSize = options.FormattingOptions.TabSize;
             SmartTokenFormatter = smartTokenFormatter;

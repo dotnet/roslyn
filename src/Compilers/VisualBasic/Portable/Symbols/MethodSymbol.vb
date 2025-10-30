@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Returns the arity of this method, or the number of type parameters it takes.
+        ''' Returns the arity of this method. Arity is the number of type parameters a method declares.
         ''' A non-generic method has zero arity.
         ''' </summary>
         Public MustOverride ReadOnly Property Arity As Integer
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Source: Returns whether this method is an iterator; i.e., does it have the Iterator modifier?
         ''' Metadata: Returns False; methods from metadata cannot be an iterator.
         ''' </summary>
-        Public MustOverride ReadOnly Property IsIterator As Boolean
+        Public MustOverride ReadOnly Property IsIterator As Boolean Implements IMethodSymbol.IsIterator
 
         ''' <summary>
         ''' Indicates whether the accessor is marked with the 'init' modifier.
@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Build and add synthesized return type attributes for this method symbol.
         ''' </summary>
-        Friend Overridable Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overridable Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
         End Sub
 
         ''' <summary>
@@ -436,6 +436,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' This property will only return true if this method hides a base method by name and signature (Overloads keyword).
         ''' </remarks>
         Public MustOverride ReadOnly Property IsOverloads As Boolean
+
+        ''' <summary>
+        ''' Gets the resolution priority of this method, 0 if not set.
+        ''' </summary>
+        ''' <remarks>
+        ''' Do not call this method from early attribute binding, cycles will occur.
+        ''' </remarks>
+        Public ReadOnly Property OverloadResolutionPriority As Integer
+            Get
+                Return If(CanHaveOverloadResolutionPriority, GetOverloadResolutionPriority(), 0)
+            End Get
+        End Property
+
+        Public MustOverride Function GetOverloadResolutionPriority() As Integer
+
+        Public ReadOnly Property CanHaveOverloadResolutionPriority As Boolean
+            Get
+                Select Case MethodKind
+                    Case MethodKind.Ordinary,
+                         MethodKind.Constructor,
+                         MethodKind.UserDefinedOperator,
+                         MethodKind.ReducedExtension
+
+                        Return Not IsOverrides
+
+                    Case Else
+                        Return False
+                End Select
+            End Get
+        End Property
 
         ''' <summary>
         ''' True if the implementation of this method is supplied by the runtime.
@@ -784,16 +814,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Name lookup should use this method in order to capture proximity, which affects 
         ''' overload resolution. 
         ''' </summary>
-        Friend Function ReduceExtensionMethod(instanceType As TypeSymbol, proximity As Integer, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As MethodSymbol
-            Return ReducedExtensionMethodSymbol.Create(instanceType, Me, proximity, useSiteInfo)
+        Friend Function ReduceExtensionMethod(instanceType As TypeSymbol, proximity As Integer, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol), languageVersion As LanguageVersion) As MethodSymbol
+            Return ReducedExtensionMethodSymbol.Create(instanceType, Me, proximity, useSiteInfo, languageVersion)
         End Function
 
         ''' <summary>
         ''' If this is an extension method that can be applied to a instance of the given type,
         ''' returns the reduced method symbol thus formed. Otherwise, returns Nothing.
         ''' </summary>
-        Public Function ReduceExtensionMethod(instanceType As TypeSymbol, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As MethodSymbol
-            Return ReduceExtensionMethod(instanceType, proximity:=0, useSiteInfo)
+        Public Function ReduceExtensionMethod(instanceType As TypeSymbol, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol), languageVersion As LanguageVersion) As MethodSymbol
+            Return ReduceExtensionMethod(instanceType, proximity:=0, useSiteInfo, languageVersion)
+        End Function
+
+        Public Function ReduceExtensionMember(receiverType As ITypeSymbol) As IMethodSymbol Implements IMethodSymbol.ReduceExtensionMember
+            Return Nothing
         End Function
 
         ''' <summary>
@@ -965,7 +999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Throw New ArgumentNullException(NameOf(receiverType))
             End If
 
-            Return Me.ReduceExtensionMethod(receiverType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(receiverType)), CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
+            Return Me.ReduceExtensionMethod(receiverType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(receiverType)), CompoundUseSiteInfo(Of AssemblySymbol).Discarded, LanguageVersion.Latest)
         End Function
 
         Private ReadOnly Property IMethodSymbol_Parameters As ImmutableArray(Of IParameterSymbol) Implements IMethodSymbol.Parameters
@@ -1205,6 +1239,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitMethod(Me)
         End Function
+
+        Public ReadOnly Property AssociatedExtensionImplementation As IMethodSymbol Implements IMethodSymbol.AssociatedExtensionImplementation
+            Get
+                Return Nothing
+            End Get
+        End Property
 
 #End Region
 

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedEnumValueFieldSymbol : SynthesizedFieldSymbolBase
     {
         public SynthesizedEnumValueFieldSymbol(SourceNamedTypeSymbol containingEnum)
-            : base(containingEnum, WellKnownMemberNames.EnumBackingFieldName, isPublic: true, isReadOnly: false, isStatic: false)
+            : base(containingEnum, WellKnownMemberNames.EnumBackingFieldName, DeclarationModifiers.Public, isReadOnly: false, isStatic: false)
         {
         }
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return TypeWithAnnotations.Create(((SourceNamedTypeSymbol)ContainingType).EnumUnderlyingType);
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             // no attributes should be emitted
         }

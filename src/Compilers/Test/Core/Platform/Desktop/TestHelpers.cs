@@ -7,17 +7,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Reflection;
+using Basic.Reference.Assemblies;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Win32;
-using Basic.Reference.Assemblies;
 
 namespace Roslyn.Test.Utilities
 {
@@ -83,9 +81,9 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(SourceText.From(analyzerSource, encoding: null, SourceHashAlgorithms.Default)) },
                 new MetadataReference[]
                 {
-                    NetStandard20.mscorlib,
-                    NetStandard20.netstandard,
-                    NetStandard20.SystemRuntime,
+                    NetStandard20.References.mscorlib,
+                    NetStandard20.References.netstandard,
+                    NetStandard20.References.SystemRuntime,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },
@@ -96,20 +94,10 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
         public static string? GetMSBuildDirectory()
         {
-            var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
-            using (var key = Registry.LocalMachine.OpenSubKey($@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}", false))
-            {
-                if (key != null)
-                {
-                    var toolsPath = key.GetValue("MSBuildToolsPath");
-                    if (toolsPath != null)
-                    {
-                        return toolsPath.ToString();
-                    }
-                }
-            }
-
-            return null;
+            return MSBuildLocator.QueryVisualStudioInstances()
+                .OrderByDescending(v => v.Version)
+                .FirstOrDefault()?
+                .MSBuildPath;
         }
     }
 }

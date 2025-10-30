@@ -419,6 +419,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ScopedKeyword = 8448,
         /// <summary>Represents <see langword="file"/>.</summary>
         FileKeyword = 8449,
+        /// <summary>Represents <see langword="allows"/>.</summary>
+        AllowsKeyword = 8450,
+        /// <summary>Represents <see langword="extension"/>.</summary>
+        ExtensionKeyword = 8451,
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
@@ -526,6 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Utf8StringLiteralToken = 8520,
         Utf8SingleLineRawStringLiteralToken = 8521,
         Utf8MultiLineRawStringLiteralToken = 8522,
+        RazorContentToken = 8523,
 
         // trivia
         EndOfLineTrivia = 8539,
@@ -580,6 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CrefParameterList = 8603,
         CrefBracketedParameterList = 8604,
         CrefParameter = 8605,
+        ExtensionMemberCref = 8607,
 
         // names & type-names
         IdentifierName = 8616,
@@ -696,6 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NullLiteralExpression = 8754,
         DefaultLiteralExpression = 8755,
         Utf8StringLiteralExpression = 8756,
+        FieldExpression = 8757,
 
         // primary function expressions
         TypeOfExpression = 8760,
@@ -810,6 +817,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         OperatorDeclaration = 8876,
         ConversionOperatorDeclaration = 8877,
         ConstructorDeclaration = 8878,
+        AllowsConstraintClause = 8879,
+        RefStructConstraint = 8880,
 
         BaseConstructorInitializer = 8889,
         ThisConstructorInitializer = 8890,
@@ -919,5 +928,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         CollectionExpression = 9076,
         ExpressionElement = 9077,
         SpreadElement = 9078,
+
+        ExtensionBlockDeclaration = 9079,
+
+        IgnoredDirectiveTrivia = 9080,
     }
 }

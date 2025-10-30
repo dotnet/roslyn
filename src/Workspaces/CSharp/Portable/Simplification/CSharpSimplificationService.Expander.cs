@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -24,11 +23,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 internal partial class CSharpSimplificationService
 {
-    private class Expander : CSharpSyntaxRewriter
+    private sealed class Expander : CSharpSyntaxRewriter
     {
-        private static readonly SyntaxTrivia s_oneWhitespaceSeparator = SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
+        private static readonly SyntaxTrivia s_oneWhitespaceSeparator = SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
 
         private static readonly SymbolDisplayFormat s_typeNameFormatWithGenerics =
             new(
@@ -224,9 +226,9 @@ internal partial class CSharpSimplificationService
                         var typeSyntax = parameterSymbol.Type.GenerateTypeSyntax().WithTrailingTrivia(s_oneWhitespaceSeparator);
                         var newSimpleLambdaParameter = simpleLambda.Parameter.WithType(typeSyntax).WithoutTrailingTrivia();
 
-                        var parenthesizedLambda = SyntaxFactory.ParenthesizedLambdaExpression(
+                        var parenthesizedLambda = ParenthesizedLambdaExpression(
                             simpleLambda.AsyncKeyword,
-                            SyntaxFactory.ParameterList([newSimpleLambdaParameter])
+                            ParameterList([newSimpleLambdaParameter])
                                 .WithTrailingTrivia(simpleLambda.Parameter.GetTrailingTrivia())
                                 .WithLeadingTrivia(simpleLambda.Parameter.GetLeadingTrivia()),
                             simpleLambda.ArrowToken,
@@ -255,12 +257,12 @@ internal partial class CSharpSimplificationService
                 var inferredName = node.Expression.TryGetInferredMemberName();
                 if (CanMakeNameExplicitInTuple(tuple, inferredName))
                 {
-                    var identifier = SyntaxFactory.Identifier(inferredName);
+                    var identifier = Identifier(inferredName);
                     identifier = TryEscapeIdentifierToken(identifier, node);
 
                     newArgument = newArgument
                         .WithoutLeadingTrivia()
-                        .WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(identifier)))
+                        .WithNameColon(NameColon(IdentifierName(identifier)))
                         .WithAdditionalAnnotations(Simplifier.Annotation)
                         .WithLeadingTrivia(node.GetLeadingTrivia());
                 }
@@ -325,12 +327,12 @@ internal partial class CSharpSimplificationService
                 if (inferredName != null)
                 {
                     // Creating identifier without elastic trivia to avoid unexpected line break
-                    var identifier = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, inferredName, SyntaxTriviaList.Empty);
+                    var identifier = Identifier(SyntaxTriviaList.Empty, inferredName, SyntaxTriviaList.Empty);
                     identifier = TryEscapeIdentifierToken(identifier, node);
 
                     newDeclarator = newDeclarator
                         .WithoutLeadingTrivia()
-                        .WithNameEquals(SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(identifier))
+                        .WithNameEquals(NameEquals(IdentifierName(identifier))
                             .WithLeadingTrivia(node.GetLeadingTrivia()))
                         .WithAdditionalAnnotations(Simplifier.Annotation);
                 }
@@ -392,12 +394,12 @@ internal partial class CSharpSimplificationService
             var rewrittenname = (TypeSyntax)this.Visit(node.Name);
             var parameters = (CrefParameterListSyntax)this.Visit(node.Parameters);
 
-            if (rewrittenname.Kind() == SyntaxKind.QualifiedName)
+            if (rewrittenname is QualifiedNameSyntax qualifiedName)
             {
-                return node.CopyAnnotationsTo(SyntaxFactory.QualifiedCref(
-                    ((QualifiedNameSyntax)rewrittenname).Left
+                return node.CopyAnnotationsTo(QualifiedCref(
+                    qualifiedName.Left
                         .WithAdditionalAnnotations(Simplifier.Annotation),
-                    SyntaxFactory.NameMemberCref(((QualifiedNameSyntax)rewrittenname).Right, parameters)
+                    NameMemberCref(((QualifiedNameSyntax)rewrittenname).Right, parameters)
                     .WithLeadingTrivia(SyntaxTriviaList.Empty))
                         .WithLeadingTrivia(node.GetLeadingTrivia())
                         .WithTrailingTrivia(node.GetTrailingTrivia()))
@@ -405,7 +407,7 @@ internal partial class CSharpSimplificationService
             }
             else if (rewrittenname.Kind() == SyntaxKind.AliasQualifiedName)
             {
-                return node.CopyAnnotationsTo(SyntaxFactory.TypeCref(
+                return node.CopyAnnotationsTo(TypeCref(
                     rewrittenname).WithLeadingTrivia(node.GetLeadingTrivia())
                     .WithTrailingTrivia(node.GetTrailingTrivia()))
                     .WithAdditionalAnnotations(Simplifier.Annotation);
@@ -457,10 +459,8 @@ internal partial class CSharpSimplificationService
                 {
                     var aliasTarget = aliasInfo.Target;
 
-                    if (aliasTarget.IsNamespace() && ((INamespaceSymbol)aliasTarget).IsGlobalNamespace)
-                    {
+                    if (aliasTarget is INamespaceSymbol { IsGlobalNamespace: true })
                         return rewrittenSimpleName;
-                    }
 
                     // if the enclosing expression is a typeof expression that already contains open type we cannot
                     // we need to insert an open type as well.
@@ -556,8 +556,7 @@ internal partial class CSharpSimplificationService
             if (IsTypeArgumentDefinedRecursive(symbol, typeArgumentSymbols, enterContainingSymbol: true))
             {
                 if (symbol.ContainingSymbol.Equals(symbol.OriginalDefinition.ContainingSymbol) &&
-                    symbol.Kind == SymbolKind.Method &&
-                    ((IMethodSymbol)symbol).IsStatic)
+                    symbol is IMethodSymbol { IsStatic: true })
                 {
                     if (IsTypeArgumentDefinedRecursive(symbol, typeArgumentSymbols, enterContainingSymbol: false))
                     {
@@ -597,7 +596,7 @@ internal partial class CSharpSimplificationService
                         identifier = identifier.WithAdditionalAnnotations(SimplificationHelpers.DoNotSimplifyAnnotation);
                     }
 
-                    identifier = identifier.CopyAnnotationsTo(SyntaxFactory.VerbatimIdentifier(identifier.LeadingTrivia, name, name, identifier.TrailingTrivia));
+                    identifier = identifier.CopyAnnotationsTo(VerbatimIdentifier(identifier.LeadingTrivia, name, name, identifier.TrailingTrivia));
                 }
             }
 
@@ -644,8 +643,7 @@ internal partial class CSharpSimplificationService
             }
 
             // if it's a namespace or type name, fully qualify it.
-            if (symbol.Kind is SymbolKind.NamedType or
-                SymbolKind.Namespace)
+            if (symbol.Kind is SymbolKind.Namespace or SymbolKind.NamedType)
             {
                 var replacement = FullyQualifyIdentifierName(
                     (INamespaceOrTypeSymbol)symbol,
@@ -662,9 +660,7 @@ internal partial class CSharpSimplificationService
             }
 
             // if it's a member access, we're fully qualifying the left side and make it a member access.
-            if (symbol.Kind is SymbolKind.Method or
-                SymbolKind.Field or
-                SymbolKind.Property)
+            if (symbol.Kind is SymbolKind.Method or SymbolKind.Field or SymbolKind.Property)
             {
                 if (symbol.IsStatic ||
                     originalSimpleName.IsParentKind(SyntaxKind.NameMemberCref) ||
@@ -688,18 +684,18 @@ internal partial class CSharpSimplificationService
                         // Assumption here is, if the enclosing and containing types are different then there is inheritance relationship
                         if (!Equals(_semanticModel.GetEnclosingNamedType(originalSimpleName.SpanStart, _cancellationToken), symbol.ContainingType))
                         {
-                            left = SyntaxFactory.BaseExpression();
+                            left = BaseExpression();
                         }
                         else
                         {
-                            left = SyntaxFactory.ThisExpression();
+                            left = ThisExpression();
                         }
 
                         var identifiersLeadingTrivia = newNode.GetLeadingTrivia();
                         newNode = TryAddTypeArgumentToIdentifierName(newNode, symbol);
 
                         newNode = newNode.CopyAnnotationsTo(
-                            SyntaxFactory.MemberAccessExpression(
+                            MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression,
                                 left,
                                 (SimpleNameSyntax)newNode.WithLeadingTrivia(null))
@@ -738,24 +734,22 @@ internal partial class CSharpSimplificationService
 
         private static ExpressionSyntax TryAddTypeArgumentToIdentifierName(ExpressionSyntax newNode, ISymbol symbol)
         {
-            if (newNode.Kind() == SyntaxKind.IdentifierName && symbol.Kind == SymbolKind.Method)
+            if (newNode.Kind() == SyntaxKind.IdentifierName &&
+                symbol is IMethodSymbol { TypeArguments.Length: > 0 } method)
             {
-                if (((IMethodSymbol)symbol).TypeArguments.Length != 0)
+                var typeArguments = method.TypeArguments;
+                if (!typeArguments.Any(static t => t.ContainsAnonymousType()))
                 {
-                    var typeArguments = ((IMethodSymbol)symbol).TypeArguments;
-                    if (!typeArguments.Any(static t => t.ContainsAnonymousType()))
-                    {
-                        var genericName = SyntaxFactory.GenericName(
-                                        ((IdentifierNameSyntax)newNode).Identifier,
-                                        SyntaxFactory.TypeArgumentList(
-                                            [.. typeArguments.Select(p => SyntaxFactory.ParseTypeName(p.ToDisplayString(s_typeNameFormatWithGenerics)))]))
-                                        .WithLeadingTrivia(newNode.GetLeadingTrivia())
-                                        .WithTrailingTrivia(newNode.GetTrailingTrivia())
-                                        .WithAdditionalAnnotations(Simplifier.Annotation);
+                    var genericName = GenericName(
+                                    ((IdentifierNameSyntax)newNode).Identifier,
+                                    TypeArgumentList(
+                                        [.. typeArguments.Select(p => ParseTypeName(p.ToDisplayString(s_typeNameFormatWithGenerics)))]))
+                                    .WithLeadingTrivia(newNode.GetLeadingTrivia())
+                                    .WithTrailingTrivia(newNode.GetTrailingTrivia())
+                                    .WithAdditionalAnnotations(Simplifier.Annotation);
 
-                        genericName = newNode.CopyAnnotationsTo(genericName);
-                        return genericName;
-                    }
+                    genericName = newNode.CopyAnnotationsTo(genericName);
+                    return genericName;
                 }
             }
 
@@ -831,7 +825,7 @@ internal partial class CSharpSimplificationService
 
         private static void TypeArgumentsInAllContainingSymbol(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol, bool isRecursive)
         {
-            if (symbol == null || symbol.IsNamespace())
+            if (symbol == null || symbol is INamespaceSymbol)
             {
                 // This is the terminating condition
                 return;
@@ -912,8 +906,8 @@ internal partial class CSharpSimplificationService
                 if (!replaceNode && symbol.ContainingType == null && symbol.ContainingNamespace.IsGlobalNamespace)
                 {
                     return rewrittenNode.CopyAnnotationsTo(
-                        SyntaxFactory.AliasQualifiedName(
-                            SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword)),
+                        AliasQualifiedName(
+                            IdentifierName(GlobalKeyword),
                             (SimpleNameSyntax)rewrittenNode.WithLeadingTrivia(null))
                                 .WithLeadingTrivia(rewrittenNode.GetLeadingTrivia()));
                 }
@@ -932,7 +926,7 @@ internal partial class CSharpSimplificationService
 
                     var displayString = displaySymbol.ToDisplayString(s_typeNameFormatWithGenerics);
 
-                    ExpressionSyntax left = SyntaxFactory.ParseTypeName(displayString);
+                    ExpressionSyntax left = ParseTypeName(displayString);
 
                     // Replaces the '<' token with the '{' token since we are inside crefs
                     left = TryReplaceAngleBracesWithCurlyBraces(left, isInsideCref);
@@ -953,7 +947,7 @@ internal partial class CSharpSimplificationService
                     {
                         case SyntaxKind.QualifiedName:
                             result = rewrittenNode.CopyAnnotationsTo(
-                                SyntaxFactory.QualifiedName(
+                                QualifiedName(
                                     (NameSyntax)left,
                                     (SimpleNameSyntax)rewrittenNode));
 
@@ -961,7 +955,7 @@ internal partial class CSharpSimplificationService
 
                         case SyntaxKind.SimpleMemberAccessExpression:
                             result = rewrittenNode.CopyAnnotationsTo(
-                                SyntaxFactory.MemberAccessExpression(
+                                MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
                                     left,
                                     (SimpleNameSyntax)rewrittenNode));
@@ -974,17 +968,17 @@ internal partial class CSharpSimplificationService
                             if (SyntaxFacts.IsInNamespaceOrTypeContext(originalNode))
                             {
                                 var right = (SimpleNameSyntax)rewrittenNode;
-                                result = rewrittenNode.CopyAnnotationsTo(SyntaxFactory.QualifiedName((NameSyntax)left, right.WithAdditionalAnnotations(Simplifier.SpecialTypeAnnotation)));
+                                result = rewrittenNode.CopyAnnotationsTo(QualifiedName((NameSyntax)left, right.WithAdditionalAnnotations(Simplifier.SpecialTypeAnnotation)));
                             }
                             else if (originalNode.Parent is CrefSyntax)
                             {
                                 var right = (SimpleNameSyntax)rewrittenNode;
-                                result = rewrittenNode.CopyAnnotationsTo(SyntaxFactory.QualifiedName((NameSyntax)left, right));
+                                result = rewrittenNode.CopyAnnotationsTo(QualifiedName((NameSyntax)left, right));
                             }
                             else
                             {
                                 result = rewrittenNode.CopyAnnotationsTo(
-                                    SyntaxFactory.MemberAccessExpression(
+                                    MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
                                         left,
                                         (SimpleNameSyntax)rewrittenNode));
@@ -1004,12 +998,12 @@ internal partial class CSharpSimplificationService
         {
             if (oldToken.Kind() == SyntaxKind.LessThanToken)
             {
-                return SyntaxFactory.Token(oldToken.LeadingTrivia, SyntaxKind.LessThanToken, "{", "{", oldToken.TrailingTrivia);
+                return Token(oldToken.LeadingTrivia, SyntaxKind.LessThanToken, "{", "{", oldToken.TrailingTrivia);
             }
 
             if (oldToken.Kind() == SyntaxKind.GreaterThanToken)
             {
-                return SyntaxFactory.Token(oldToken.LeadingTrivia, SyntaxKind.GreaterThanToken, "}", "}", oldToken.TrailingTrivia);
+                return Token(oldToken.LeadingTrivia, SyntaxKind.GreaterThanToken, "}", "}", oldToken.TrailingTrivia);
             }
 
             Debug.Assert(false, "This method is used only replacing the '<' and '>' to '{' and '}' respectively");
@@ -1097,7 +1091,7 @@ internal partial class CSharpSimplificationService
 
             // We use .ParseExpression here, and not .GenerateTypeSyntax as we want this to be a property
             // MemberAccessExpression, and not a QualifiedNameSyntax.
-            var containingTypeSyntax = SyntaxFactory.ParseExpression(containingTypeString);
+            var containingTypeSyntax = ParseExpression(containingTypeString);
             var newContainingType = _semanticModel.GetSpeculativeSymbolInfo(speculationPosition, containingTypeSyntax, SpeculativeBindingOption.BindAsExpression).Symbol;
             if (newContainingType == null || !newContainingType.Equals(reducedExtensionMethod.ContainingType))
                 return originalNode;
@@ -1109,13 +1103,13 @@ internal partial class CSharpSimplificationService
             // Copies the annotation for the member access expression
             newMemberAccess = originalNode.Expression.CopyAnnotationsTo(newMemberAccess).WithAdditionalAnnotations(Simplifier.Annotation);
 
-            var thisArgument = SyntaxFactory.Argument(thisExpression).WithLeadingTrivia(SyntaxTriviaList.Empty);
+            var thisArgument = Argument(thisExpression).WithLeadingTrivia(SyntaxTriviaList.Empty);
 
             // Copies the annotation for the left hand side of the member access expression to the first argument in the complexified form
             thisArgument = originalMemberAccess.Expression.CopyAnnotationsTo(thisArgument);
 
             var arguments = originalNode.ArgumentList.Arguments.Insert(0, thisArgument);
-            var replacementNode = SyntaxFactory.InvocationExpression(
+            var replacementNode = InvocationExpression(
                 newMemberAccess,
                 originalNode.ArgumentList.WithArguments(arguments));
 

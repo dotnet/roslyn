@@ -4,21 +4,21 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal class OperatorDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<OperatorDeclarationSyntax>
+internal sealed class OperatorDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<OperatorDeclarationSyntax>
 {
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,
         OperatorDeclarationSyntax operatorDeclaration,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {
-        CSharpStructureHelpers.CollectCommentBlockSpans(operatorDeclaration, ref spans, options);
+        CSharpStructureHelpers.CollectCommentBlockSpans(operatorDeclaration, spans, options);
 
         // fault tolerance
         if (operatorDeclaration.Body == null ||

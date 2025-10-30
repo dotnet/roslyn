@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -15,16 +14,11 @@ using Microsoft.CodeAnalysis.MakeMemberStatic;
 namespace Microsoft.CodeAnalysis.CSharp.MakeMemberStatic;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeMemberStatic), Shared]
-internal sealed class CSharpMakeMemberStaticCodeFixProvider : AbstractMakeMemberStaticCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpMakeMemberStaticCodeFixProvider() : AbstractMakeMemberStaticCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpMakeMemberStaticCodeFixProvider()
-    {
-    }
-
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        ["CS0708"];
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ["CS0708"];
 
     protected override bool TryGetMemberDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? memberDeclaration)
     {

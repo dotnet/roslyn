@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
@@ -57,22 +58,21 @@ internal static partial class INamespaceSymbolExtensions
         this INamespaceSymbol namespaceSymbol,
         CancellationToken cancellationToken)
     {
-        var stack = new Stack<INamespaceOrTypeSymbol>();
+        using var _ = ArrayBuilder<INamespaceOrTypeSymbol>.GetInstance(out var stack);
         stack.Push(namespaceSymbol);
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var current))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var current = stack.Pop();
             if (current is INamespaceSymbol childNamespace)
             {
-                stack.Push(childNamespace.GetMembers().AsEnumerable());
+                stack.AddRange(childNamespace.GetMembers());
                 yield return childNamespace;
             }
             else
             {
                 var child = (INamedTypeSymbol)current;
-                stack.Push(child.GetTypeMembers());
+                stack.AddRange(child.GetTypeMembers());
                 yield return child;
             }
         }
@@ -82,18 +82,14 @@ internal static partial class INamespaceSymbolExtensions
         this INamespaceSymbol namespaceSymbol,
         CancellationToken cancellationToken)
     {
-        var stack = new Stack<INamespaceSymbol>();
+        using var _ = ArrayBuilder<INamespaceSymbol>.GetInstance(out var stack);
         stack.Push(namespaceSymbol);
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var childNamespace))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var current = stack.Pop();
-            if (current is INamespaceSymbol childNamespace)
-            {
-                stack.Push(childNamespace.GetNamespaceMembers());
-                yield return childNamespace;
-            }
+            stack.AddRange(childNamespace.GetNamespaceMembers());
+            yield return childNamespace;
         }
     }
 
@@ -114,21 +110,17 @@ internal static partial class INamespaceSymbolExtensions
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var stack = new Stack<INamespaceSymbol>();
+        using var _ = ArrayBuilder<INamespaceSymbol>.GetInstance(out var stack);
         stack.Push(namespaceSymbol);
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var current))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var current = stack.Pop();
-
             var matchingChildren = current.GetMembers(namespaceName).OfType<INamespaceSymbol>();
             foreach (var child in matchingChildren)
-            {
                 yield return child;
-            }
 
-            stack.Push(current.GetNamespaceMembers());
+            stack.AddRange(current.GetNamespaceMembers());
         }
     }
 

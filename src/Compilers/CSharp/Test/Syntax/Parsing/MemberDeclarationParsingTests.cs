@@ -645,27 +645,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.Regular11 })
             {
                 UsingDeclaration("C operator >>>=(C x, C y) => x;", options: options,
-                    // (1,14): error CS1003: Syntax error, '(' expected
+                    // (1,12): error CS1020: Overloadable binary operator expected
                     // C operator >>>=(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ">=").WithArguments("(").WithLocation(1, 14),
-                    // (1,14): error CS1001: Identifier expected
-                    // C operator >>>=(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">=").WithLocation(1, 14),
-                    // (1,27): error CS1001: Identifier expected
-                    // C operator >>>=(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 27),
-                    // (1,27): error CS1003: Syntax error, ',' expected
-                    // C operator >>>=(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 27),
-                    // (1,30): error CS1003: Syntax error, ',' expected
-                    // C operator >>>=(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 30),
-                    // (1,31): error CS1001: Identifier expected
-                    // C operator >>>=(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 31),
-                    // (1,31): error CS1026: ) expected
-                    // C operator >>>=(C x, C y) => x;
-                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31)
+                    Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, ">>>=").WithLocation(1, 12)
                     );
 
                 N(SyntaxKind.OperatorDeclaration);
@@ -675,46 +657,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.IdentifierToken, "C");
                     }
                     N(SyntaxKind.OperatorKeyword);
-                    N(SyntaxKind.GreaterThanGreaterThanToken);
+                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
                     N(SyntaxKind.ParameterList);
                     {
-                        M(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.TupleType);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.TupleElement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "C");
-                                    }
-                                    N(SyntaxKind.IdentifierToken, "x");
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.TupleElement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "C");
-                                    }
-                                    N(SyntaxKind.IdentifierToken, "y");
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.IdentifierToken, "C");
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "x");
                         }
-                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -4118,8 +4090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("public int I..operator +(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
                     // (1,14): error CS1001: Identifier expected
                     // public int I..operator +(int x) => x;
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".operato").WithLocation(1, 14)
-                    );
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 14));
 
                 N(SyntaxKind.OperatorDeclaration);
                 {
@@ -5964,8 +5935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("int I..operator +(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
                     // (1,7): error CS1001: Identifier expected
                     // int I..operator +(int x) => x;
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".operato").WithLocation(1, 7)
-                    );
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 7));
 
                 N(SyntaxKind.OperatorDeclaration);
                 {
@@ -6088,8 +6058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("int N.I..operator +(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
                     // (1,9): error CS1001: Identifier expected
                     // int N.I..operator +(int x) => x;
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".operato").WithLocation(1, 9)
-                    );
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 9));
 
                 N(SyntaxKind.OperatorDeclaration);
                 {
@@ -7819,8 +7788,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("explicit I..operator int(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
                     // (1,12): error CS1001: Identifier expected
                     // explicit I..operator int(int x) => x;
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".operato").WithLocation(1, 12)
-                    );
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 12));
 
                 N(SyntaxKind.ConversionOperatorDeclaration);
                 {
@@ -8551,8 +8519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("explicit N.I..operator int(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
                     // (1,14): error CS1001: Identifier expected
                     // explicit N.I..operator int(int x) => x;
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".operato").WithLocation(1, 14)
-                    );
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 14));
 
                 N(SyntaxKind.ConversionOperatorDeclaration);
                 {
@@ -10125,7 +10092,7 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
         [Theory, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
         [InlineData("implicit", SyntaxKind.ImplicitKeyword)]
         [InlineData("explicit", SyntaxKind.ExplicitKeyword)]
-        public void UnheckedOperatorDeclaration_05(string op, SyntaxKind opToken)
+        public void UncheckedOperatorDeclaration_05(string op, SyntaxKind opToken)
         {
             UsingDeclaration(op + " operator unchecked D(C x) => x;", expectedErrors:
                 // (1,19): error CS9027: Unexpected keyword 'unchecked'
@@ -10470,6 +10437,3445 @@ public class Class
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly_TypeWithSingleInvalidMemberFollowing(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        {
+            var text = $$"""
+                namespace N
+                {
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    // One method that will move into the type above.
+                    private void M()
+                    {
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
+                // (11,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(11, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(typeSyntaxKind);
+                    {
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly_TypeWithMultipleInvalidMembersFollowing(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        {
+            var text = $$"""
+                namespace N
+                {
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    // Two members that will move into the type above.
+                    private void M()
+                    {
+                    }
+
+                    public int Prop => 0;
+                }
+                """;
+            UsingTree(text,
+                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
+                // (13,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(13, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(typeSyntaxKind);
+                    {
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Prop");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly_TypeWithInvalidMembersFollowing_FollowedByType(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        {
+            var text = $$"""
+                namespace N
+                {
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    // Two members that will move into the type above.
+                    private void M()
+                    {
+                    }
+
+                    public int Prop => 0;
+                
+                    // Following type declaration
+                    class Type
+                    {
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
+                // (12,26): error CS1513: } expected
+                //     public int Prop => 0;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 26));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(typeSyntaxKind);
+                    {
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Prop");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly_MultipleTypesEachWithMultipleInvalidMembersFollowing(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        {
+            var text = $$"""
+                namespace N
+                {
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    // Two members that will move into the type above.
+                    private void M()
+                    {
+                    }
+
+                    public int Prop => 0;
+                
+                    // Following type declaration
+                    class Type
+                    {
+                    }
+
+                    private Constructor() { }
+
+                    private int field;
+                }
+                """;
+            UsingTree(text,
+                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
+                // (12,26): error CS1513: } expected
+                //     public int Prop => 0;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 26),
+                // (17,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(17, 5),
+                // (22,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(22, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(typeSyntaxKind);
+                    {
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Prop");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ConstructorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.IdentifierToken, "Constructor");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "field");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly_InitialInvalidMemberWithoutPrecedingType(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        {
+            var text = $$"""
+                namespace N
+                {
+                    // This has no type to go into.
+                    event Action BeforeTypeEvent;
+
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    // Two members that will move into the type above.
+                    private void M()
+                    {
+                    }
+
+                    public int Prop => 0;
+                
+                    // Following type declaration
+                    class Type
+                    {
+                    }
+
+                    private Constructor() { }
+
+                    private int field;
+                }
+                """;
+            UsingTree(text,
+                // (8,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 5),
+                // (15,26): error CS1513: } expected
+                //     public int Prop => 0;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 26),
+                // (20,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(20, 5),
+                // (25,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(25, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EventFieldDeclaration);
+                    {
+                        N(SyntaxKind.EventKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "BeforeTypeEvent");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(typeSyntaxKind);
+                    {
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Prop");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ConstructorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.IdentifierToken, "Constructor");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "field");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly_FileScopeNamespace(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        {
+            var text = $$"""
+                namespace N;
+
+                // This has no type to go into.
+                event Action BeforeTypeEvent;
+
+                {{typeKind}} Type
+                {
+                }
+
+                // Two members that will move into the type above.
+                private void M()
+                {
+                }
+
+                public int Prop => 0;
+                
+                // Following type declaration
+                class Type
+                {
+                }
+
+                private Constructor() { }
+
+                private int field;
+                """;
+            UsingTree(text,
+                // (8,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 1),
+                // (16,1): error CS1513: } expected
+                // 
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(16, 1),
+                // (20,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(20, 1),
+                // (24,19): error CS1513: } expected
+                // private int field;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(24, 19));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.EventFieldDeclaration);
+                    {
+                        N(SyntaxKind.EventKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "BeforeTypeEvent");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(typeSyntaxKind);
+                    {
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Prop");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ConstructorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.IdentifierToken, "Constructor");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "field");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly_NestedNamespaces_EachWithInvalidMembers(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        {
+            var text = $$"""
+                namespace N1
+                {
+                    namespace N2
+                    {
+                        {{typeKind}} Type
+                        {
+                        }
+
+                        // Should go into type
+                        private void M()
+                        {
+                        }
+
+                        // Should become the close curly of Type initially.
+                        }
+
+                        // Will not go into Type because N2 will initially end prior to this.
+                        // After M joins into Type and NT finishes, this will be a child of
+                        // N1.  We could think about merging this into Type at some point.
+                        private void N()
+
+                        // Should become the close curly of N1
+                        }
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (7,9): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //         }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(7, 9),
+                // (15,10): error CS1513: } expected
+                //         }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 10),
+                // (20,25): error CS1002: ; expected
+                //         private void N()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(20, 25),
+                // (24,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(24, 5),
+                // (25,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(25, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N1");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.NamespaceDeclaration);
+                    {
+                        N(SyntaxKind.NamespaceKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "N2");
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(typeSyntaxKind);
+                        {
+                            N(keywordKind);
+
+                            if (text.Contains("record struct"))
+                            {
+                                N(SyntaxKind.StructKeyword);
+                            }
+                            else if (text.Contains("record class"))
+                            {
+                                N(SyntaxKind.ClassKeyword);
+                            }
+
+                            N(SyntaxKind.IdentifierToken, "Type");
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.MethodDeclaration);
+                            {
+                                N(SyntaxKind.PrivateKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "M");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "N");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly_Operators(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        {
+            var text = $$"""
+                namespace N
+                {
+                    // This type should be unaffected
+                    class C
+                    {
+                    }
+
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    // Two members that will move into the type above.
+                    private void M()
+                    {
+                    }
+
+                    public static Type operator+(Type t1, Type t2) => default;
+                
+                    // Following type declaration
+                    class Type2
+                    {
+                    }
+
+                    private static implicit operator int(Type2 t) => 0;
+                }
+                """;
+            UsingTree(text,
+                // (10,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(10, 5),
+                // (17,63): error CS1513: } expected
+                //     public static Type operator+(Type t1, Type t2) => default;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 63),
+                // (22,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(22, 5),
+                // (25,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(25, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(typeSyntaxKind);
+                    {
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.OperatorDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.StaticKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.OperatorKeyword);
+                            N(SyntaxKind.PlusToken);
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "t1");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "t2");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.DefaultLiteralExpression);
+                                {
+                                    N(SyntaxKind.DefaultKeyword);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type2");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ConversionOperatorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.StaticKeyword);
+                            N(SyntaxKind.ImplicitKeyword);
+                            N(SyntaxKind.OperatorKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type2");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "t");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("")]
+        [InlineData("// Errant close curly")]
+        public void ExtraCloseCurly_AllTypeDeclarationOnlyMembers_VaryingTrailingTrivia(string closeCurlyTrailingTrivia)
+        {
+            // Test all the different type-only member forms.
+            var text = $$"""
+                namespace N
+                {
+                    class Type
+                    {
+                        } {{closeCurlyTrailingTrivia}}
+
+                        private Constructor() { }
+                        ~Destructor() { }
+                        private static implicit operator int(Type t) => 0;
+                        event Action E1 { add { } remove { } }
+                        event Action E2, E3;
+                        private int field1, field2;
+                        private int this[int i] => 0;
+                        private void Method() { }
+                        public static Type operator+(Type t1, Type t2) => default;
+                        private int Prop => 0;
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (5,9): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //         }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 9));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ConstructorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.IdentifierToken, "Constructor");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.DestructorDeclaration);
+                        {
+                            N(SyntaxKind.TildeToken);
+                            N(SyntaxKind.IdentifierToken, "Destructor");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.ConversionOperatorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.StaticKeyword);
+                            N(SyntaxKind.ImplicitKeyword);
+                            N(SyntaxKind.OperatorKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "t");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.EventDeclaration);
+                        {
+                            N(SyntaxKind.EventKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                            N(SyntaxKind.IdentifierToken, "E1");
+                            N(SyntaxKind.AccessorList);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.AddAccessorDeclaration);
+                                {
+                                    N(SyntaxKind.AddKeyword);
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.RemoveAccessorDeclaration);
+                                {
+                                    N(SyntaxKind.RemoveKeyword);
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.EventFieldDeclaration);
+                        {
+                            N(SyntaxKind.EventKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Action");
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "E2");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "E3");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "field1");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "field2");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.IndexerDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ThisKeyword);
+                            N(SyntaxKind.BracketedParameterList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "i");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Method");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.OperatorDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.StaticKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.OperatorKeyword);
+                            N(SyntaxKind.PlusToken);
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "t1");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "t2");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.DefaultLiteralExpression);
+                                {
+                                    N(SyntaxKind.DefaultKeyword);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Prop");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("")]
+        [InlineData("#if true")]
+        [InlineData("// comment")]
+        [InlineData("/// <summary></summary>")]
+        public void ExtraCloseCurly_LeadingTriviaCases(string closeCurlyLeadingTrivia)
+        {
+            // Test all the different type-only member forms.
+            var text = $$"""
+                namespace N
+                {
+                    class Type
+                    {
+                        {{closeCurlyLeadingTrivia}}
+                        }
+
+                        private Constructor() { }
+                        {{(closeCurlyLeadingTrivia.Contains("#") ? "#endif" : "")}}
+                    }
+                }
+                """;
+            UsingTree(text, options: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse),
+                // (6,9): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //         }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 9));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ConstructorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.IdentifierToken, "Constructor");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        public void ExtraCloseCurly_WithSemicolon()
+        {
+            var text = $$"""
+                namespace N
+                {
+                    class Type
+                    {
+                        };
+
+                        // Will not move into type
+                        private Constructor() { }
+                    }
+                }
+                """;
+            UsingTree(text,
+                    // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
+                    // }
+                    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.IdentifierToken, "Constructor");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        public void ExtraCloseCurly_WithExistingSkippedText()
+        {
+            var text = $$"""
+                namespace N
+                {
+                    class Type
+                    {
+                        } \
+
+                        // Will not move into type
+                        private Constructor() { }
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (5,11): error CS1056: Unexpected character '\'
+                //         } \
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(5, 11),
+                // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.IdentifierToken, "Constructor");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        public void ExtraTypeOnlyMembers_AfterEnum()
+        {
+            // Test all the different type-only member forms.
+            var text = $$"""
+                namespace N
+                {
+                    enum Type
+                    {
+                    }
+
+                    // This should not be sucked into the enum
+                    private void Method() { }
+                }
+                """;
+            UsingTree(text);
+            CreateCompilation(text).VerifyDiagnostics(
+                    // (8,18): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                    //     private void Method() { }
+                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Method").WithLocation(8, 18));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EnumDeclaration);
+                    {
+                        N(SyntaxKind.EnumKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Method");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        public void ExtraTypeOnlyMembers_AfterDelegate()
+        {
+            // Test all the different type-only member forms.
+            var text = $$"""
+                namespace N
+                {
+                    delegate int D();
+
+                    // This should not be sucked into the delegate
+                    private void Method() { }
+                }
+                """;
+            UsingTree(text);
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,18): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                //     private void Method() { }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Method").WithLocation(6, 18));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.DelegateDeclaration);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "D");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Method");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        public void ExtraTypeOnlyMembers_DoNotPullNextClassInEvenIfPrivate()
+        {
+            // Test all the different type-only member forms.
+            var text = $$"""
+                namespace N
+                {
+                    class C
+                    {
+                    }
+
+                    // Will get pulled into C
+                    void Method()
+                    {
+                    }
+
+                    // Not currently pulled in.  But could consider it in the future.
+                    private class T
+                    {
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
+                // (10,6): error CS1513: } expected
+                //     }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 6));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Method");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "T");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        public void ExtraTypeOnlyMembers_DoNotPullNextClassInEvenIfPrivate_PullLaterMembersIntoIt()
+        {
+            // Test all the different type-only member forms.
+            var text = $$"""
+                namespace N
+                {
+                    class C
+                    {
+                    }
+
+                    // Will get pulled into C
+                    void Method()
+                    {
+                    }
+
+                    // Not currently pulled in.  But could consider it in the future.
+                    private class T
+                    {
+                    }
+                
+                    // Will get pulled into T
+                    void Method2()
+                    {
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
+                // (10,6): error CS1513: } expected
+                //     }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 6),
+                // (15,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(15, 5),
+                // (21,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(21, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Method");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "T");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Method2");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("<<=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData(">>=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignmentDeclaration_01(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator " + op + "(C x) => x;", options);
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("<<=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData(">>=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignmentDeclaration_02(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator checked " + op + "(C x) => x;", options);
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.CheckedKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("<<=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData(">>=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignmentDeclaration_03(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C I.operator " + op + "(C x) => x;", options);
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "I");
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("<<=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData(">>=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignmentDeclaration_04(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C I.operator checked " + op + "(C x) => x;", options);
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "I");
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.CheckedKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignmentDeclaration_05()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator > >=(C x) => x;", options,
+                    // (1,14): error CS1003: Syntax error, '(' expected
+                    // C operator > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">=").WithArguments("(").WithLocation(1, 14),
+                    // (1,14): error CS1001: Identifier expected
+                    // C operator > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">=").WithLocation(1, 14),
+                    // (1,20): error CS8124: Tuple must contain at least two elements.
+                    // C operator > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 20),
+                    // (1,22): error CS1001: Identifier expected
+                    // C operator > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 22),
+                    // (1,22): error CS1003: Syntax error, ',' expected
+                    // C operator > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 22),
+                    // (1,25): error CS1003: Syntax error, ',' expected
+                    // C operator > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 25),
+                    // (1,26): error CS1001: Identifier expected
+                    // C operator > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 26),
+                    // (1,26): error CS1026: ) expected
+                    // C operator > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 26)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignmentDeclaration_06()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator >> =(C x) => x;", options,
+                    // (1,15): error CS1003: Syntax error, '(' expected
+                    // C operator >> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("(").WithLocation(1, 15),
+                    // (1,15): error CS1001: Identifier expected
+                    // C operator >> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 15),
+                    // (1,20): error CS8124: Tuple must contain at least two elements.
+                    // C operator >> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 20),
+                    // (1,22): error CS1001: Identifier expected
+                    // C operator >> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 22),
+                    // (1,22): error CS1003: Syntax error, ',' expected
+                    // C operator >> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 22),
+                    // (1,25): error CS1003: Syntax error, ',' expected
+                    // C operator >> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 25),
+                    // (1,26): error CS1001: Identifier expected
+                    // C operator >> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 26),
+                    // (1,26): error CS1026: ) expected
+                    // C operator >> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 26)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanGreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignmentDeclaration_07()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator > > =(C x) => x;", options,
+                    // (1,14): error CS1003: Syntax error, '(' expected
+                    // C operator > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("(").WithLocation(1, 14),
+                    // (1,14): error CS1001: Identifier expected
+                    // C operator > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 14),
+                    // (1,21): error CS8124: Tuple must contain at least two elements.
+                    // C operator > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 21),
+                    // (1,23): error CS1001: Identifier expected
+                    // C operator > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 23),
+                    // (1,23): error CS1003: Syntax error, ',' expected
+                    // C operator > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 23),
+                    // (1,26): error CS1003: Syntax error, ',' expected
+                    // C operator > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 26),
+                    // (1,27): error CS1001: Identifier expected
+                    // C operator > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 27),
+                    // (1,27): error CS1026: ) expected
+                    // C operator > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 27)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignmentDeclaration_08()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator > >>=(C x) => x;", options,
+                    // (1,14): error CS1003: Syntax error, '(' expected
+                    // C operator > >>=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("(").WithLocation(1, 14),
+                    // (1,14): error CS1001: Identifier expected
+                    // C operator > >>=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 14),
+                    // (1,21): error CS8124: Tuple must contain at least two elements.
+                    // C operator > >>=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 21),
+                    // (1,23): error CS1001: Identifier expected
+                    // C operator > >>=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 23),
+                    // (1,23): error CS1003: Syntax error, ',' expected
+                    // C operator > >>=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 23),
+                    // (1,26): error CS1003: Syntax error, ',' expected
+                    // C operator > >>=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 26),
+                    // (1,27): error CS1001: Identifier expected
+                    // C operator > >>=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 27),
+                    // (1,27): error CS1026: ) expected
+                    // C operator > >>=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 27)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignmentDeclaration_09()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator > > >=(C x) => x;", options,
+                    // (1,14): error CS1003: Syntax error, '(' expected
+                    // C operator > > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("(").WithLocation(1, 14),
+                    // (1,14): error CS1001: Identifier expected
+                    // C operator > > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 14),
+                    // (1,22): error CS8124: Tuple must contain at least two elements.
+                    // C operator > > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 22),
+                    // (1,24): error CS1001: Identifier expected
+                    // C operator > > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 24),
+                    // (1,24): error CS1003: Syntax error, ',' expected
+                    // C operator > > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 24),
+                    // (1,27): error CS1003: Syntax error, ',' expected
+                    // C operator > > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 27),
+                    // (1,28): error CS1001: Identifier expected
+                    // C operator > > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 28),
+                    // (1,28): error CS1026: ) expected
+                    // C operator > > >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 28)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignmentDeclaration_10()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator > > > =(C x) => x;", options,
+                    // (1,14): error CS1003: Syntax error, '(' expected
+                    // C operator > > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("(").WithLocation(1, 14),
+                    // (1,14): error CS1001: Identifier expected
+                    // C operator > > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 14),
+                    // (1,23): error CS8124: Tuple must contain at least two elements.
+                    // C operator > > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 23),
+                    // (1,25): error CS1001: Identifier expected
+                    // C operator > > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 25),
+                    // (1,25): error CS1003: Syntax error, ',' expected
+                    // C operator > > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 25),
+                    // (1,28): error CS1003: Syntax error, ',' expected
+                    // C operator > > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 28),
+                    // (1,29): error CS1001: Identifier expected
+                    // C operator > > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 29),
+                    // (1,29): error CS1026: ) expected
+                    // C operator > > > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 29)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignmentDeclaration_11()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator >> >=(C x) => x;", options,
+                    // (1,15): error CS1003: Syntax error, '(' expected
+                    // C operator >> >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">=").WithArguments("(").WithLocation(1, 15),
+                    // (1,15): error CS1001: Identifier expected
+                    // C operator >> >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">=").WithLocation(1, 15),
+                    // (1,21): error CS8124: Tuple must contain at least two elements.
+                    // C operator >> >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 21),
+                    // (1,23): error CS1001: Identifier expected
+                    // C operator >> >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 23),
+                    // (1,23): error CS1003: Syntax error, ',' expected
+                    // C operator >> >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 23),
+                    // (1,26): error CS1003: Syntax error, ',' expected
+                    // C operator >> >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 26),
+                    // (1,27): error CS1001: Identifier expected
+                    // C operator >> >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 27),
+                    // (1,27): error CS1026: ) expected
+                    // C operator >> >=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 27)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanGreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignmentDeclaration_12()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator >> > =(C x) => x;", options,
+                    // (1,15): error CS1003: Syntax error, '(' expected
+                    // C operator >> > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("(").WithLocation(1, 15),
+                    // (1,15): error CS1001: Identifier expected
+                    // C operator >> > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 15),
+                    // (1,22): error CS8124: Tuple must contain at least two elements.
+                    // C operator >> > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 22),
+                    // (1,24): error CS1001: Identifier expected
+                    // C operator >> > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 24),
+                    // (1,24): error CS1003: Syntax error, ',' expected
+                    // C operator >> > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 24),
+                    // (1,27): error CS1003: Syntax error, ',' expected
+                    // C operator >> > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 27),
+                    // (1,28): error CS1001: Identifier expected
+                    // C operator >> > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 28),
+                    // (1,28): error CS1026: ) expected
+                    // C operator >> > =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 28)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanGreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void CompoundAssignmentDeclaration_13()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator >>> =(C x) => x;", options,
+                    // (1,16): error CS1003: Syntax error, '(' expected
+                    // C operator >>> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("(").WithLocation(1, 16),
+                    // (1,16): error CS1001: Identifier expected
+                    // C operator >>> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 16),
+                    // (1,21): error CS8124: Tuple must contain at least two elements.
+                    // C operator >>> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 21),
+                    // (1,23): error CS1001: Identifier expected
+                    // C operator >>> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 23),
+                    // (1,23): error CS1003: Syntax error, ',' expected
+                    // C operator >>> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 23),
+                    // (1,26): error CS1003: Syntax error, ',' expected
+                    // C operator >>> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 26),
+                    // (1,27): error CS1001: Identifier expected
+                    // C operator >>> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 27),
+                    // (1,27): error CS1026: ) expected
+                    // C operator >>> =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 27)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+", SyntaxKind.PlusToken)]
+        [InlineData("-", SyntaxKind.MinusToken)]
+        [InlineData("*", SyntaxKind.AsteriskToken)]
+        [InlineData("/", SyntaxKind.SlashToken)]
+        [InlineData("%", SyntaxKind.PercentToken)]
+        [InlineData("&", SyntaxKind.AmpersandToken)]
+        [InlineData("|", SyntaxKind.BarToken)]
+        [InlineData("^", SyntaxKind.CaretToken)]
+        [InlineData("<<", SyntaxKind.LessThanLessThanToken)]
+        public void CompoundAssignmentDeclaration_14(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator " + op + " =(C x) => x;", options,
+                    // (1,14): error CS1003: Syntax error, '(' expected
+                    // C operator + =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("(").WithLocation(1, 14 + op.Length - 1),
+                    // (1,14): error CS1001: Identifier expected
+                    // C operator + =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 14 + op.Length - 1),
+                    // (1,19): error CS8124: Tuple must contain at least two elements.
+                    // C operator + =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 19 + op.Length - 1),
+                    // (1,21): error CS1001: Identifier expected
+                    // C operator + =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 21 + op.Length - 1),
+                    // (1,21): error CS1003: Syntax error, ',' expected
+                    // C operator + =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 21 + op.Length - 1),
+                    // (1,24): error CS1003: Syntax error, ',' expected
+                    // C operator + =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 24 + op.Length - 1),
+                    // (1,25): error CS1001: Identifier expected
+                    // C operator + =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 25 + op.Length - 1),
+                    // (1,25): error CS1026: ) expected
+                    // C operator + =(C x) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 25 + op.Length - 1)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("<<=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData(">>=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignmentDeclaration_15(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator " + op + "(C x1, C x2) => x;", options,
+                    // (1,12): error CS1020: Overloadable binary operator expected
+                    // C operator +=(C x1, C x2) => x;
+                    Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, op).WithLocation(1, 12)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x1");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x2");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("<<=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData(">>=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignmentDeclaration_16(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator " + op + "(C x1, C x2, C x3) => x;", options,
+                    // (1,12): error CS9313: Overloaded compound assignment operator '+=' takes one parameter
+                    // C operator +=(C x1, C x2, C x3) => x;
+                    Diagnostic(ErrorCode.ERR_BadCompoundAssignmentOpArgs, op).WithArguments(op).WithLocation(1, 12)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x1");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x2");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x3");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("<<=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData(">>=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignmentDeclaration_17(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator " + op + "() => x;", options,
+                    // (1,12): error CS9313: Overloaded compound assignment operator '+=' takes one parameter
+                    // C operator +=() => x;
+                    Diagnostic(ErrorCode.ERR_BadCompoundAssignmentOpArgs, op).WithArguments(op).WithLocation(1, 12)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("<<=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData(">>=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignmentDeclaration_18(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("C operator unchecked " + op + "(C x) => x;", options,
+                    // (1,12): error CS9027: Unexpected keyword 'unchecked'
+                    // C operator unchecked +=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 12)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("+=", SyntaxKind.PlusEqualsToken)]
+        [InlineData("-=", SyntaxKind.MinusEqualsToken)]
+        [InlineData("*=", SyntaxKind.AsteriskEqualsToken)]
+        [InlineData("/=", SyntaxKind.SlashEqualsToken)]
+        [InlineData("%=", SyntaxKind.PercentEqualsToken)]
+        [InlineData("&=", SyntaxKind.AmpersandEqualsToken)]
+        [InlineData("|=", SyntaxKind.BarEqualsToken)]
+        [InlineData("^=", SyntaxKind.CaretEqualsToken)]
+        [InlineData("<<=", SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData(">>=", SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        public void CompoundAssignmentDeclaration_19_Partial(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("partial C operator " + op + "(C x) => x;", options,
+                    // (1,11): error CS1003: Syntax error, '.' expected
+                    // partial C operator %=(C x) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 11)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        M(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignmentDeclaration_20_Partial([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("partial void operator " + op + "(C x) {}", options,
+                    // (1,1): error CS1073: Unexpected token 'void'
+                    // partial void operator +=(C x) {}
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "partial").WithArguments("void").WithLocation(1, 1),
+                    // (1,9): error CS1519: Invalid token 'void' in a member declaration
+                    // partial void operator +=(C x) {}
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "void").WithArguments("void").WithLocation(1, 9)
+                    );
+
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData("++", SyntaxKind.PlusPlusToken)]
+        [InlineData("--", SyntaxKind.MinusMinusToken)]
+        public void IncrementDeclaration_01_Partial(string op, SyntaxKind opToken)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("partial C operator " + op + "() => x;", options,
+                    // (1,11): error CS1003: Syntax error, '.' expected
+                    // partial C operator ++() => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 11)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        M(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(opToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void IncrementDeclaration_02_Partial([CombinatorialValues("++", "--")] string op)
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
+            {
+                UsingDeclaration("partial void operator " + op + "() {}", options,
+                    // (1,1): error CS1073: Unexpected token 'void'
+                    // partial void operator ++() {}
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "partial").WithArguments("void").WithLocation(1, 1),
+                    // (1,9): error CS1519: Invalid token 'void' in a member declaration
+                    // partial void operator ++() {}
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "void").WithArguments("void").WithLocation(1, 9)
+                    );
+
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                }
+                EOF();
+            }
         }
 
         #region Missing > after generic

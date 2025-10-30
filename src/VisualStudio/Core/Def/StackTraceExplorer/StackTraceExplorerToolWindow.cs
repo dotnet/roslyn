@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
-using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -30,7 +29,7 @@ using static Microsoft.VisualStudio.VSConstants;
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
 [Guid(Guids.StackTraceExplorerToolWindowIdString)]
-internal class StackTraceExplorerToolWindow : ToolWindowPane, IOleCommandTarget
+internal sealed class StackTraceExplorerToolWindow : ToolWindowPane, IOleCommandTarget
 {
     private bool _initialized;
 

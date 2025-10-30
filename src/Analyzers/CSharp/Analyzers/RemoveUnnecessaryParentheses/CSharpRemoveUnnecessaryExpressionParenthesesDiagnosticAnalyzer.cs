@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer
+internal sealed class CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer
     : AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<SyntaxKind, ParenthesizedExpressionSyntax>
 {
     protected override SyntaxKind GetSyntaxKind()
@@ -27,22 +27,23 @@ internal class CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer
     protected override bool CanRemoveParentheses(
         ParenthesizedExpressionSyntax parenthesizedExpression,
         SemanticModel semanticModel, CancellationToken cancellationToken,
-        out PrecedenceKind precedence, out bool clarifiesPrecedence)
+        out PrecedenceKind precedence, out bool clarifiesPrecedence, out bool innerExpressionHasPrimaryPrecedence)
     {
         return CanRemoveParenthesesHelper(
             parenthesizedExpression, semanticModel, cancellationToken,
-            out precedence, out clarifiesPrecedence);
+            out precedence, out clarifiesPrecedence, out innerExpressionHasPrimaryPrecedence);
     }
 
     public static bool CanRemoveParenthesesHelper(
         ParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel, CancellationToken cancellationToken,
-        out PrecedenceKind parentPrecedenceKind, out bool clarifiesPrecedence)
+        out PrecedenceKind parentPrecedenceKind, out bool clarifiesPrecedence, out bool innerExpressionHasPrimaryPrecedence)
     {
         var result = parenthesizedExpression.CanRemoveParentheses(semanticModel, cancellationToken);
         if (!result)
         {
             parentPrecedenceKind = default;
             clarifiesPrecedence = false;
+            innerExpressionHasPrimaryPrecedence = false;
             return false;
         }
 
@@ -50,11 +51,12 @@ internal class CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer
         var innerPrecedence = inner.GetOperatorPrecedence();
         var innerIsSimple = innerPrecedence is OperatorPrecedence.Primary or
                             OperatorPrecedence.None;
+        innerExpressionHasPrimaryPrecedence = innerIsSimple;
 
         ExpressionSyntax parentExpression;
         switch (parenthesizedExpression.Parent)
         {
-            case ConditionalExpressionSyntax _:
+            case ConditionalExpressionSyntax:
                 // If our parent is a conditional, then only remove parens if the inner
                 // expression is a primary. i.e. it's ok to remove any of the following:
                 //
@@ -77,7 +79,7 @@ internal class CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer
                 parentExpression = isPatternExpression;
                 break;
 
-            case ConstantPatternSyntax constantPattern when constantPattern.Parent is IsPatternExpressionSyntax isPatternExpression:
+            case ConstantPatternSyntax { Parent: IsPatternExpressionSyntax isPatternExpression }:
                 // on the right side of an 'x is const_pattern' expression
                 parentExpression = isPatternExpression;
                 break;

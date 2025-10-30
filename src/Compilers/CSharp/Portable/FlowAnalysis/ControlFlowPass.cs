@@ -5,12 +5,11 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -271,31 +270,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref LocalState tryState)
+        protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node)
         {
             if (node.CatchBlocks.IsEmpty)
             {
-                base.VisitTryBlock(tryBlock, node, ref tryState);
+                base.VisitTryBlock(tryBlock, node);
                 return;
             }
 
             var oldPending = SavePending(); // we do not support branches into a try block
-            base.VisitTryBlock(tryBlock, node, ref tryState);
+            base.VisitTryBlock(tryBlock, node);
             RestorePending(oldPending);
         }
 
-        protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
+        public override BoundNode VisitCatchBlock(BoundCatchBlock catchBlock)
         {
             var oldPending = SavePending(); // we do not support branches into a catch block
-            base.VisitCatchBlock(catchBlock, ref finallyState);
+            base.VisitCatchBlock(catchBlock);
             RestorePending(oldPending);
+            return null;
         }
 
-        protected override void VisitFinallyBlock(BoundStatement finallyBlock, ref LocalState endState)
+        protected override void VisitFinallyBlock(BoundStatement finallyBlock)
         {
             var oldPending1 = SavePending(); // we do not support branches into a finally block
             var oldPending2 = SavePending(); // track only the branches out of the finally block
-            base.VisitFinallyBlock(finallyBlock, ref endState);
+            base.VisitFinallyBlock(finallyBlock);
             RestorePending(oldPending2); // resolve branches that remain within the finally block
             foreach (var branch in PendingBranches.AsEnumerable())
             {
@@ -353,13 +353,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (sourceStart > usingStart && targetStart < usingStart)
                 {
-                    // Backwards jump, so we must have already seen the label, or it must be a switch case label. If it is a switch case label, we know
+                    // Backwards jump, so we must have already seen the label, or it must be a switch case label, or it might be in outer scope. If it is a switch case label, we know
                     // that either the user received an error for having a using declaration at the top level in a switch statement, or the label is a valid
                     // target to branch to.
-                    Debug.Assert(_labelsDefined.ContainsKey(node.Label));
 
                     // Error if label and using are part of the same block
-                    if (_labelsDefined[node.Label] == usingDecl.block)
+                    if (_labelsDefined.TryGetValue(node.Label, out BoundNode target) && target == usingDecl.block)
                     {
                         Diagnostics.Add(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, sourceLocation);
                         break;

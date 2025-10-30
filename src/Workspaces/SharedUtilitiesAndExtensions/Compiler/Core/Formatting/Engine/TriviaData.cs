@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
@@ -18,16 +16,12 @@ internal abstract class TriviaData
 {
     protected const int TokenPairIndexNotNeeded = int.MinValue;
 
-    private readonly string _language;
-
-    protected TriviaData(SyntaxFormattingOptions options, string language)
+    protected TriviaData(LineFormattingOptions options)
     {
         Options = options;
-        _language = language;
     }
 
-    protected SyntaxFormattingOptions Options { get; }
-    protected string Language => _language;
+    protected LineFormattingOptions Options { get; }
 
     public int LineBreaks { get; protected set; }
     public int Spaces { get; protected set; }

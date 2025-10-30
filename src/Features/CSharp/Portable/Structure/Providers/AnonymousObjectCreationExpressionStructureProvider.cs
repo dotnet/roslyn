@@ -6,18 +6,18 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal class AnonymousObjectCreationExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<AnonymousObjectCreationExpressionSyntax>
+internal sealed class AnonymousObjectCreationExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<AnonymousObjectCreationExpressionSyntax>
 {
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,
         AnonymousObjectCreationExpressionSyntax node,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {

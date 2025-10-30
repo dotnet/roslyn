@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
@@ -10,7 +9,7 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
 
-internal partial class AnalyzerSettingsViewModel : SettingsViewModelBase<
+internal sealed partial class AnalyzerSettingsViewModel : SettingsViewModelBase<
     AnalyzerSetting,
     AnalyzerSettingsViewModel.SettingsSnapshotFactory,
     AnalyzerSettingsViewModel.SettingsEntriesSnapshot>

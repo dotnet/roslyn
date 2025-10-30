@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -10,39 +9,46 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TypeStyle;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
-internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
-{
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public UseExplicitTypeCodeFixProvider()
-    {
-    }
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class UseExplicitTypeCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+{
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseExplicitTypeDiagnosticId];
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, CSharpAnalyzersResources.Use_explicit_type_instead_of_var, nameof(CSharpAnalyzersResources.Use_explicit_type_instead_of_var));
+        RegisterCodeFix(
+            context,
+            CSharpAnalyzersResources.Use_explicit_type_instead_of_var,
+            context.Diagnostics.First().Properties[CSharpTypeStyleUtilities.EquivalenceyKey]!);
         return Task.CompletedTask;
     }
 
+    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
+        => diagnostic.Properties[CSharpTypeStyleUtilities.EquivalenceyKey] == equivalenceKey;
+
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var root = editor.OriginalRoot;
 
@@ -96,9 +102,10 @@ internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
             var tupleTypeSymbol = GetConvertedType(semanticModel, typeSyntax.Parent, cancellationToken);
 
             var leadingTrivia = declarationExpression.GetLeadingTrivia()
-                .Concat(variableDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));
+                .Concat(variableDesignation.GetAllPrecedingTriviaToPreviousToken().SelectAsArray(t => !t.IsWhitespace(), t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));
 
-            var tupleDeclaration = GenerateTupleDeclaration(tupleTypeSymbol, variableDesignation).WithLeadingTrivia(leadingTrivia);
+            var tupleDeclaration = GenerateTupleDeclaration(
+                semanticModel, tupleTypeSymbol, variableDesignation, cancellationToken).WithLeadingTrivia(leadingTrivia);
 
             editor.ReplaceNode(declarationExpression, tupleDeclaration);
         }
@@ -128,16 +135,23 @@ internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
             varDecl.Variables.Single().Identifier.Parent!,
             cancellationToken);
 
-    private static async Task UpdateTypeSyntaxAsync(Document document, SyntaxEditor editor, TypeSyntax typeSyntax, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
+    private static async Task UpdateTypeSyntaxAsync(
+        Document document,
+        SyntaxEditor editor,
+        TypeSyntax typeSyntax,
+        SyntaxNode declarationSyntax,
+        CancellationToken cancellationToken)
     {
         typeSyntax = typeSyntax.StripRefIfNeeded();
 
+        var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var typeSymbol = GetConvertedType(semanticModel, typeSyntax, cancellationToken);
 
         typeSymbol = AdjustNullabilityOfTypeSymbol(
-            typeSymbol,
+            semanticFacts,
             semanticModel,
+            typeSymbol,
             declarationSyntax,
             cancellationToken);
 
@@ -145,8 +159,9 @@ internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     }
 
     private static ITypeSymbol AdjustNullabilityOfTypeSymbol(
-        ITypeSymbol typeSymbol,
+        ISemanticFacts semanticFacts,
         SemanticModel semanticModel,
+        ITypeSymbol typeSymbol,
         SyntaxNode declarationSyntax,
         CancellationToken cancellationToken)
     {
@@ -154,7 +169,7 @@ internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
         {
             // It's possible that the var shouldn't be annotated nullable, check assignments to the variable and 
             // determine if it needs to be null
-            var isPossiblyAssignedNull = NullableHelpers.IsDeclaredSymbolAssignedPossiblyNullValue(semanticModel, declarationSyntax, cancellationToken);
+            var isPossiblyAssignedNull = NullableHelpers.IsDeclaredSymbolAssignedPossiblyNullValue(semanticFacts, semanticModel, declarationSyntax, cancellationToken);
             if (!isPossiblyAssignedNull)
             {
                 // If the symbol is never assigned null we can update the type symbol to also be non-null
@@ -165,7 +180,11 @@ internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
         return typeSymbol;
     }
 
-    private static ExpressionSyntax GenerateTupleDeclaration(ITypeSymbol typeSymbol, ParenthesizedVariableDesignationSyntax parensDesignation)
+    private static ExpressionSyntax GenerateTupleDeclaration(
+        SemanticModel semanticModel,
+        ITypeSymbol typeSymbol,
+        ParenthesizedVariableDesignationSyntax parensDesignation,
+        CancellationToken cancellationToken)
     {
         Debug.Assert(typeSymbol.IsTupleType);
         var elements = ((INamedTypeSymbol)typeSymbol).TupleElements;
@@ -180,12 +199,18 @@ internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
             switch (designation.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
+                    var singleVariableDesignation = (SingleVariableDesignationSyntax)designation;
+                    var localSymbol = semanticModel.GetDeclaredSymbol(singleVariableDesignation, cancellationToken);
+                    var symbolType = localSymbol.GetSymbolType() ?? type;
+                    newDeclaration = DeclarationExpression(symbolType.GenerateTypeSyntax(allowVar: false), singleVariableDesignation);
+                    break;
                 case SyntaxKind.DiscardDesignation:
                     var typeName = type.GenerateTypeSyntax(allowVar: false);
-                    newDeclaration = SyntaxFactory.DeclarationExpression(typeName, designation);
+                    newDeclaration = DeclarationExpression(typeName, designation);
                     break;
                 case SyntaxKind.ParenthesizedVariableDesignation:
-                    newDeclaration = GenerateTupleDeclaration(type, (ParenthesizedVariableDesignationSyntax)designation);
+                    newDeclaration = GenerateTupleDeclaration(
+                        semanticModel, type, (ParenthesizedVariableDesignationSyntax)designation, cancellationToken);
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(designation.Kind());
@@ -195,25 +220,26 @@ internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
                 .WithLeadingTrivia(designation.GetAllPrecedingTriviaToPreviousToken())
                 .WithTrailingTrivia(designation.GetTrailingTrivia());
 
-            builder.Add(SyntaxFactory.Argument(newDeclaration));
+            builder.Add(Argument(newDeclaration));
         }
 
-        var separatorBuilder = ArrayBuilder<SyntaxToken>.GetInstance(builder.Count - 1, SyntaxFactory.Token(leading: default, SyntaxKind.CommaToken, trailing: default));
+        var separatorBuilder = ArrayBuilder<SyntaxToken>.GetInstance(builder.Count - 1, Token(leading: default, SyntaxKind.CommaToken, trailing: default));
 
-        return SyntaxFactory.TupleExpression(
-            SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTrailingTrivia(),
-            SyntaxFactory.SeparatedList(builder.ToImmutable(), separatorBuilder.ToImmutableAndFree()),
-            SyntaxFactory.Token(SyntaxKind.CloseParenToken))
+        return TupleExpression(
+            OpenParenToken.WithTrailingTrivia(),
+            SeparatedList(builder, separatorBuilder),
+            CloseParenToken)
             .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
     }
 
-    private static SyntaxNode GenerateTypeDeclaration(TypeSyntax typeSyntax, ITypeSymbol newTypeSymbol)
+    private static TypeSyntax GenerateTypeDeclaration(TypeSyntax typeSyntax, ITypeSymbol newTypeSymbol)
     {
         // We're going to be passed through the simplifier.  Tell it to not just convert this back to var (as
         // that would defeat the purpose of this refactoring entirely).
         var newTypeSyntax = newTypeSymbol
-                     .GenerateTypeSyntax(allowVar: false)
-                     .WithTriviaFrom(typeSyntax);
+            .GenerateTypeSyntax(allowVar: false)
+            .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
+            .WithTriviaFrom(typeSyntax);
 
         return newTypeSyntax;
     }

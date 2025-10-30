@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -18,22 +19,27 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
     private readonly Dictionary<(TypeSymbol?, TypeSymbol, MethodSymbol), FieldSymbol> _delegateFields = new(CLRSignatureComparer.Instance);
 
     /// <summary>Creates a type-scope concrete delegate cache container.</summary>
-    internal DelegateCacheContainer(TypeSymbol containingType, int generationOrdinal)
-        : base(GeneratedNames.DelegateCacheContainerType(generationOrdinal), containingMethod: null)
+    internal DelegateCacheContainer(NamedTypeSymbol containingType, int generationOrdinal)
+        : base(GeneratedNames.DelegateCacheContainerType(generationOrdinal))
     {
         Debug.Assert(containingType.IsDefinition);
 
         _containingSymbol = containingType;
     }
 
-    /// <summary>Creates a method-scope generic delegate cache container.</summary>
-    internal DelegateCacheContainer(MethodSymbol ownerMethod, int topLevelMethodOrdinal, int ownerUniqueId, int generationOrdinal)
-        : base(GeneratedNames.DelegateCacheContainerType(generationOrdinal, ownerMethod.Name, topLevelMethodOrdinal, ownerUniqueId), ownerMethod)
+    /// <summary>Creates a generic delegate cache container "scoped" to a specific <paramref name="owner"/>.</summary>
+    internal DelegateCacheContainer(NamedTypeSymbol containingType, Symbol owner, int topLevelMethodOrdinal, int ownerUniqueId, int generationOrdinal)
+        : base(GeneratedNames.DelegateCacheContainerType(generationOrdinal, owner.Name, topLevelMethodOrdinal, ownerUniqueId),
+               owner is NamedTypeSymbol type ?
+                   type.TypeParameters :
+                   (owner.ContainingType is { IsExtension: true } extensionType ? extensionType.TypeParameters : []).Concat(
+                    TypeMap.ConcatMethodTypeParameters((MethodSymbol)owner, stopAt: null)))
     {
-        Debug.Assert(ownerMethod.IsDefinition);
-        Debug.Assert(ownerMethod.Arity > 0);
+        Debug.Assert(containingType.IsDefinition);
+        Debug.Assert(owner.IsDefinition);
+        Debug.Assert(owner is NamedTypeSymbol { Arity: > 0 } or MethodSymbol { Arity: > 0 });
 
-        _containingSymbol = ownerMethod.ContainingType;
+        _containingSymbol = containingType;
         _constructedContainer = Construct(ConstructedFromTypeParameters);
     }
 
@@ -69,7 +75,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
         var fieldType = TypeParameters.IsEmpty ? delegateType : TypeMap.SubstituteType(delegateType).Type;
         var fieldName = GeneratedNames.DelegateCacheContainerFieldName(_delegateFields.Count, targetMethod.Name);
 
-        field = new SynthesizedFieldSymbol(this, fieldType, fieldName, isPublic: true, isStatic: true);
+        field = new SynthesizedFieldSymbol(this, fieldType, fieldName, DeclarationModifiers.Public, isStatic: true);
         factory.AddField(this, field);
 
         if (!TypeParameters.IsEmpty)

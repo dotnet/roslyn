@@ -10,16 +10,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
 
 /// <summary>
 /// Context for "Fix all occurrences" code fixes provided by a <see cref="FixAllProvider"/>.
 /// </summary>
-public partial class FixAllContext : IFixAllContext
+public partial class FixAllContext : IRefactorOrFixAllContext
 {
     internal FixAllState State { get; }
 
@@ -73,20 +71,19 @@ public partial class FixAllContext : IFixAllContext
     public IProgress<CodeAnalysisProgress> Progress { get; }
 
     #region IFixAllContext implementation
-    IFixAllState IFixAllContext.State => this.State;
+    IRefactorOrFixAllState IRefactorOrFixAllContext.State => this.State;
 
-    IFixAllProvider IFixAllContext.FixAllProvider => this.FixAllProvider;
+    IRefactorOrFixProvider IRefactorOrFixAllContext.Provider => this.CodeFixProvider;
 
-    object IFixAllContext.Provider => this.CodeFixProvider;
-
-    string IFixAllContext.GetDefaultFixAllTitle()
+    string IRefactorOrFixAllContext.GetDefaultTitle()
         => this.GetDefaultFixAllTitle();
 
-    IFixAllContext IFixAllContext.With(
+    IRefactorOrFixAllContext IRefactorOrFixAllContext.With(
         Optional<(Document? document, Project project)> documentAndProject,
         Optional<FixAllScope> scope,
-        Optional<string?> codeActionEquivalenceKey)
-        => this.With(documentAndProject, scope, codeActionEquivalenceKey);
+        Optional<string?> codeActionEquivalenceKey,
+        Optional<CancellationToken> cancellationToken)
+        => this.With(documentAndProject, scope, codeActionEquivalenceKey, cancellationToken);
     #endregion
 
     /// <summary>
@@ -164,8 +161,7 @@ public partial class FixAllContext : IFixAllContext
                 scope,
                 codeActionEquivalenceKey,
                 PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
-                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
-                CodeActionOptions.DefaultProvider),
+                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider))),
               CodeAnalysisProgress.None, cancellationToken)
     {
     }
@@ -200,8 +196,7 @@ public partial class FixAllContext : IFixAllContext
                 scope,
                 codeActionEquivalenceKey,
                 PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
-                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
-                CodeActionOptions.DefaultProvider),
+                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider))),
               CodeAnalysisProgress.None, cancellationToken)
     {
         if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
@@ -250,8 +245,8 @@ public partial class FixAllContext : IFixAllContext
             var diagnostics = await getDiagnosticsTask.ConfigureAwait(false);
             if (diagnostics != null)
             {
-                return diagnostics.Where(d => d != null && diagnosticIds.Contains(d.Id)
-                    && (filterSpan == null || filterSpan.Value.Contains(d.Location.SourceSpan))).ToImmutableArray();
+                return [.. diagnostics.Where(d => d != null && diagnosticIds.Contains(d.Id)
+                    && (filterSpan == null || filterSpan.Value.Contains(d.Location.SourceSpan)))];
             }
         }
 
@@ -330,23 +325,20 @@ public partial class FixAllContext : IFixAllContext
     /// Gets a new <see cref="FixAllContext"/> with the given cancellationToken.
     /// </summary>
     public FixAllContext WithCancellationToken(CancellationToken cancellationToken)
-    {
-        // TODO: We should change this API to be a virtual method, as the class is not sealed.
-        if (this.CancellationToken == cancellationToken)
-        {
-            return this;
-        }
-
-        return new FixAllContext(State, this.Progress, cancellationToken);
-    }
+        => With(cancellationToken: cancellationToken);
 
     internal FixAllContext With(
         Optional<(Document? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,
-        Optional<string?> codeActionEquivalenceKey = default)
+        Optional<string?> codeActionEquivalenceKey = default,
+        Optional<CancellationToken> cancellationToken = default)
     {
         var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
-        return State == newState ? this : new FixAllContext(newState, this.Progress, CancellationToken);
+        var newCancellationToken = cancellationToken.HasValue ? cancellationToken.Value : this.CancellationToken;
+
+        return State == newState && CancellationToken == newCancellationToken
+            ? this
+            : new FixAllContext(newState, this.Progress, newCancellationToken);
     }
 
     internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()

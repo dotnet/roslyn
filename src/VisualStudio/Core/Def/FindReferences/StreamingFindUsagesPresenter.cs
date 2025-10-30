@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition.Hosting;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -29,13 +28,11 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
 
 [Export(typeof(IStreamingFindUsagesPresenter)), Shared]
-internal partial class StreamingFindUsagesPresenter :
-    ForegroundThreadAffinitizedObject, IStreamingFindUsagesPresenter
+internal sealed partial class StreamingFindUsagesPresenter : IStreamingFindUsagesPresenter
 {
     public const string RoslynFindUsagesTableDataSourceIdentifier =
         nameof(RoslynFindUsagesTableDataSourceIdentifier);
@@ -51,6 +48,7 @@ internal partial class StreamingFindUsagesPresenter :
     private readonly Lazy<IClassificationFormatMap> _lazyClassificationFormatMap;
 
     private readonly Workspace _workspace;
+    private readonly IThreadingContext ThreadingContext;
     private readonly IGlobalOptionService _globalOptions;
 
     private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts = [];
@@ -114,9 +112,9 @@ internal partial class StreamingFindUsagesPresenter :
         IClassificationFormatMapService classificationFormatMapService,
         IEnumerable<ITableColumnDefinition> columns,
         IAsynchronousOperationListenerProvider asyncListenerProvider)
-        : base(threadingContext, assertIsForeground: false)
     {
         _workspace = workspace;
+        ThreadingContext = threadingContext;
         _globalOptions = optionService;
         _serviceProvider = serviceProvider;
         TypeMap = typeMap;
@@ -125,15 +123,18 @@ internal partial class StreamingFindUsagesPresenter :
 
         _lazyClassificationFormatMap = new Lazy<IClassificationFormatMap>(() =>
         {
-            AssertIsForeground();
+            ThreadingContext.ThrowIfNotOnUIThread();
             return classificationFormatMapService.GetClassificationFormatMap("tooltip");
         });
 
-        _customColumns = columns.ToImmutableArray();
+        _customColumns = [.. columns];
     }
 
     public IClassificationFormatMap ClassificationFormatMap
         => _lazyClassificationFormatMap.Value;
+
+    private static bool IsPrimary(DefinitionItem definition)
+        => definition.Properties.ContainsKey(DefinitionItem.Primary);
 
     private static IEnumerable<ITableColumnDefinition> GetCustomColumns(IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
     {
@@ -157,7 +158,7 @@ internal partial class StreamingFindUsagesPresenter :
 
     public void ClearAll()
     {
-        this.AssertIsForeground();
+        ThreadingContext.ThrowIfNotOnUIThread();
 
         foreach (var context in _currentContexts)
         {
@@ -170,7 +171,7 @@ internal partial class StreamingFindUsagesPresenter :
     /// </summary>
     public (FindUsagesContext context, CancellationToken cancellationToken) StartSearch(string title, StreamingFindUsagesPresenterOptions options)
     {
-        this.AssertIsForeground();
+        ThreadingContext.ThrowIfNotOnUIThread();
 
         var vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
 
@@ -199,7 +200,7 @@ internal partial class StreamingFindUsagesPresenter :
         // no longer being displayed, VS will dispose it and it will remove itself from
         // this set.
         _currentContexts.Add(context);
-        return (context, context.CancellationTokenSource!.Token);
+        return (context, context.CancellationTokenSource.Token);
     }
 
     private AbstractTableDataSourceFindUsagesContext StartSearchWithReferences(
@@ -219,7 +220,7 @@ internal partial class StreamingFindUsagesPresenter :
         tableControl.GroupingsChanged += (s, e) => StoreCurrentGroupingPriority(window);
 
         return new WithReferencesFindUsagesContext(
-            this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn, this.ThreadingContext);
+            this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn, ThreadingContext);
     }
 
     private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences(
@@ -230,7 +231,7 @@ internal partial class StreamingFindUsagesPresenter :
         // with the same items showing underneath them.
         SetDefinitionGroupingPriority(window, 0);
         return new WithoutReferencesFindUsagesContext(
-            this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn, this.ThreadingContext);
+            this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn, ThreadingContext);
     }
 
     private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)
@@ -240,7 +241,7 @@ internal partial class StreamingFindUsagesPresenter :
 
     private void SetDefinitionGroupingPriority(IFindAllReferencesWindow window, int priority)
     {
-        this.AssertIsForeground();
+        ThreadingContext.ThrowIfNotOnUIThread();
 
         using var _ = ArrayBuilder<ColumnState>.GetInstance(out var newColumns);
         var tableControl = (IWpfTableControl2)window.TableControl;
@@ -267,7 +268,7 @@ internal partial class StreamingFindUsagesPresenter :
         tableControl.SetColumnStates(newColumns);
     }
 
-    protected static (Guid, string projectName, string? projectFlavor) GetGuidAndProjectInfo(Document document)
+    private static (Guid, string projectName) GetGuidAndProjectName(Document document)
     {
         // The FAR system needs to know the guid for the project that a def/reference is 
         // from (to support features like filtering).  Normally that would mean we could
@@ -277,17 +278,17 @@ internal partial class StreamingFindUsagesPresenter :
         // certain features (like filtering) may not work in that context.
         var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
 
-        var (projectName, projectFlavor) = document.Project.State.NameAndFlavor;
+        var (projectName, _) = document.Project.State.NameAndFlavor;
         projectName ??= document.Project.Name;
 
         var guid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
 
-        return (guid, projectName, projectFlavor);
+        return (guid, projectName);
     }
 
     private void RemoveExistingInfoBar()
     {
-        this.ThreadingContext.ThrowIfNotOnUIThread();
+        ThreadingContext.ThrowIfNotOnUIThread();
 
         var infoBar = _infoBar;
         _infoBar = null;
@@ -300,7 +301,7 @@ internal partial class StreamingFindUsagesPresenter :
 
     private IVsInfoBarHost? GetInfoBarHost()
     {
-        this.ThreadingContext.ThrowIfNotOnUIThread();
+        ThreadingContext.ThrowIfNotOnUIThread();
 
         // Guid of the FindRefs window.  Defined here:
         // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Guids.cs&version=GBmain&line=24
@@ -320,7 +321,7 @@ internal partial class StreamingFindUsagesPresenter :
 
     private async Task ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
     {
-        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         RemoveExistingInfoBar();
 
         if (_serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) is not IVsInfoBarUIFactory factory)

@@ -286,6 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 instanceIdField: instanceIdField,
                 hoistedVariables: hoistedVariables,
                 nonReusableLocalProxies: nonReusableLocalProxies,
+                nonReusableFieldsForCleanup: nonReusableFieldsForCleanup,
                 synthesizedLocalOrdinals: synthesizedLocalOrdinals,
                 stateMachineStateDebugInfoBuilder,
                 slotAllocatorOpt: slotAllocatorOpt,

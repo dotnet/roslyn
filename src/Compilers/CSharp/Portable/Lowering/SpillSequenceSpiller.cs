@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     case BoundKind.Sequence:
-                        if (refKind != RefKind.None || expression.Type?.IsRefLikeType == true)
+                        if (refKind != RefKind.None || expression.Type?.IsRefLikeOrAllowsRefLikeType() == true)
                         {
                             var sequence = (BoundSequence)expression;
 
@@ -535,10 +535,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (assignment is
                 {
                     IsRef: true,
-                    Left: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.Ref } receiverRefLocal },
+                    Left: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: not RefKind.None } receiverRefLocal },
                     Right: BoundComplexConditionalReceiver
                     {
-                        ValueTypeReceiver: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.Ref } } valueTypeReceiver,
+                        ValueTypeReceiver: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: not RefKind.None } } valueTypeReceiver,
                         ReferenceTypeReceiver: BoundSequence
                         {
                             Locals.IsEmpty: true,
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 IsRef: false,
                                 Left: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.None } referenceTypeClone },
-                                Right: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.Ref } originalReceiverReference }
+                                Right: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: not RefKind.None } originalReceiverReference }
                             }
                             ],
                             Value: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.None } } referenceTypeReceiver
@@ -563,6 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && !receiverRefLocal.Type.IsReferenceType
                 && !receiverRefLocal.Type.IsValueType
                 && valueTypeReceiver.Type.Equals(receiverRefLocal.Type, TypeCompareKind.AllIgnoreOptions)
+                && receiverRefLocal.RefKind == valueTypeReceiver.LocalSymbol.RefKind
                 && referenceTypeReceiver.Type.Equals(receiverRefLocal.Type, TypeCompareKind.AllIgnoreOptions)
             )
             {
@@ -704,15 +705,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateStatement(builder, node.Update(expression));
         }
 
+#nullable enable
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
-            BoundExpression exceptionSourceOpt = (BoundExpression)this.Visit(node.ExceptionSourceOpt);
+            BoundExpression? exceptionSourceOpt = (BoundExpression?)this.Visit(node.ExceptionSourceOpt);
             var locals = node.Locals;
 
             var exceptionFilterPrologueOpt = node.ExceptionFilterPrologueOpt;
-            Debug.Assert(exceptionFilterPrologueOpt is null); // it is introduced by this pass
-            BoundSpillSequenceBuilder builder = null;
+            if (exceptionFilterPrologueOpt is not null)
+            {
+                exceptionFilterPrologueOpt = (BoundStatementList?)VisitStatementList(exceptionFilterPrologueOpt);
+            }
+            BoundSpillSequenceBuilder? builder = null;
+
             var exceptionFilterOpt = VisitExpression(ref builder, node.ExceptionFilterOpt);
+            Debug.Assert(exceptionFilterPrologueOpt is null || builder is null,
+                "You are exercising SpillSequenceSpiller in a new fashion, causing a spill in an exception filter after LocalRewriting is complete. This is not someting " +
+                "that this builder supports today, so please update this rewrite to include the statements from exceptionFilterPrologueOpt with the appropriate " +
+                "syntax node and tracking.");
             if (builder is { })
             {
                 Debug.Assert(builder.Value is null);
@@ -721,9 +731,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundBlock body = (BoundBlock)this.Visit(node.Body);
-            TypeSymbol exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
+            TypeSymbol? exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
             return node.Update(locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterPrologueOpt, exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll);
         }
+#nullable disable
 
 #if DEBUG
         public override BoundNode DefaultVisit(BoundNode node)
@@ -979,6 +990,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
+            Debug.Assert(!node.OperatorKind.IsDynamic());
+
             BoundSpillSequenceBuilder builder = null;
             var right = VisitExpression(ref builder, node.Right);
             BoundExpression left;
@@ -1010,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValueOpt, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type));
+            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValueOpt, node.BinaryOperatorMethod, node.ConstrainedToType, node.ResultKind, left, right, node.Type));
         }
 
         public override BoundNode VisitCall(BoundCall node)
@@ -1130,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return conditionBuilder.Update(_F.Default(node.Type));
             }
-            else
+            else if (!node.IsRef)
             {
                 var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.Spill, syntax: _F.Syntax);
 
@@ -1141,6 +1154,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UpdateStatement(alternativeBuilder, _F.Assignment(_F.Local(tmp), alternative))));
 
                 return conditionBuilder.Update(_F.Local(tmp));
+            }
+            else
+            {
+                Debug.Assert(condition.Type.SpecialType == SpecialType.System_Boolean);
+
+                // 1. Capture the boolean value (the condition) in a temp
+                var tmp = _F.SynthesizedLocal(condition.Type, kind: SynthesizedLocalKind.Spill, syntax: _F.Syntax);
+
+                conditionBuilder.AddLocal(tmp);
+                conditionBuilder.AddStatement(_F.Assignment(_F.Local(tmp), condition));
+                condition = _F.Local(tmp);
+
+                // 2. Conditionally execute side-effects from the builders based on the temp 
+                conditionBuilder.AddLocals(consequenceBuilder.GetLocals());
+                conditionBuilder.AddLocals(alternativeBuilder.GetLocals());
+
+                conditionBuilder.AddStatement(
+                    _F.If(condition,
+                        _F.StatementList(consequenceBuilder.GetStatements()),
+                        _F.StatementList(alternativeBuilder.GetStatements())));
+
+                consequenceBuilder.Free();
+                alternativeBuilder.Free();
+
+                // 3. Use updated conditional operator as the result. Note, we are using the captured temp as its condition,
+                // plus rewritten consequence and alternative.
+                return conditionBuilder.Update(node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.NaturalTypeOpt, node.WasTargetTyped, node.Type));
             }
         }
 
@@ -1264,9 +1304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (hasValueOpt == null)
                 {
-                    condition = _F.ObjectNotEqual(
-                        _F.Convert(_F.SpecialType(SpecialType.System_Object), receiver),
-                        _F.Null(_F.SpecialType(SpecialType.System_Object)));
+                    condition = _F.IsNotNullReference(receiver);
                 }
                 else
                 {
@@ -1282,18 +1320,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverBuilder.AddLocal(clone);
 
                 //  (object)default(T) != null
-                var isNotClass = _F.ObjectNotEqual(
-                                _F.Convert(_F.SpecialType(SpecialType.System_Object), _F.Default(receiver.Type)),
-                                _F.Null(_F.SpecialType(SpecialType.System_Object)));
+                var isNotClass = _F.IsNotNullReference(_F.Default(receiver.Type));
 
                 // isNotCalss || {clone = receiver; (object)clone != null}
                 condition = _F.LogicalOr(
                                     isNotClass,
                                     _F.MakeSequence(
                                         _F.AssignmentExpression(_F.Local(clone), receiver),
-                                        _F.ObjectNotEqual(
-                                            _F.Convert(_F.SpecialType(SpecialType.System_Object), _F.Local(clone)),
-                                            _F.Null(_F.SpecialType(SpecialType.System_Object))))
+                                        _F.IsNotNullReference(_F.Local(clone)))
                                     );
 
                 receiver = _F.ComplexConditionalReceiver(receiver, _F.Local(clone));

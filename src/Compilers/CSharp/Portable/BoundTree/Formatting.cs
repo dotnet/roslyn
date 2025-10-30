@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(this.Type is { }, $"Unexpected null type in {this.GetType().Name}");
+                RoslynDebug.Assert(this.Type is { }, $"Unexpected null type in {this.GetType().Name}");
                 return this.Type;
             }
         }
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundUnconvertedCollectionExpression
     {
         public override object Display
-            => (Type is null) ? MessageID.IDS_FeatureCollectionExpressions.Localize() : base.Display;
+            => (Type is null) ? MessageID.IDS_CollectionExpression.Localize() : base.Display;
     }
 
     internal partial class BoundPassByCopy

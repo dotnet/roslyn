@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             internal set
             {
-                Debug.Assert(value > 0, "Id must be positive but was set to " + value);
-                Debug.Assert(_id == -1, $"Id was set to {_id} and set again to {value}");
+                RoslynDebug.Assert(value > 0, "Id must be positive but was set to " + value);
+                RoslynDebug.Assert(_id == -1, $"Id was set to {_id} and set again to {value}");
                 _id = value;
             }
         }

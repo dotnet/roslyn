@@ -8,7 +8,9 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
 Imports System.Text
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -2056,7 +2058,7 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, {TestMetadata.Net20.mscorlib}, Nothing)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {Net20.References.mscorlib}, Nothing)
             Dim metadata = ModuleMetadata.CreateFromImage(compilation.EmitToArray())
 
             ' this is built with a 2.0 mscorlib. The runtimeMetadataVersion should be the same as the runtimeMetadataVersion stored in the assembly
@@ -2459,7 +2461,7 @@ Imports System
                                             Dim actualGlobalMembers = DirectCast(m, SourceModuleSymbol).GlobalNamespace.GetMembers().ToArray()
 
                                             Assert.NotNull(m.GlobalNamespace.ContainingModule)
-                                            Assert.Equal(Of String)("C.dll", m.GlobalNamespace.ContainingModule.ToString)
+                                            AssertEx.Equal(Of String)("C.dll", m.GlobalNamespace.ContainingModule.ToString)
 
                                             For i As Integer = 0 To Math.Max(expectedGlobalMembers.Length, actualGlobalMembers.Length) - 1
                                                 Assert.Equal(expectedGlobalMembers(i), actualGlobalMembers(i).Name)

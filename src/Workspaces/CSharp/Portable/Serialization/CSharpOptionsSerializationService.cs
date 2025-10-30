@@ -6,7 +6,6 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Serialization;
@@ -16,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Serialization;
 
 [ExportLanguageService(typeof(IOptionsSerializationService), LanguageNames.CSharp), Shared]
-internal class CSharpOptionsSerializationService : AbstractOptionsSerializationService
+internal sealed class CSharpOptionsSerializationService : AbstractOptionsSerializationService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

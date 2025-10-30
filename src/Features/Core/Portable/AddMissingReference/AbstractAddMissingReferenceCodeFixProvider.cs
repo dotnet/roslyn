@@ -9,27 +9,16 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddMissingReference;
 
 internal abstract partial class AbstractAddMissingReferenceCodeFixProvider : AbstractAddPackageCodeFixProvider
 {
-    /// <summary>
-    /// Values for these parameters can be provided (during testing) for mocking purposes.
-    /// </summary> 
-    protected AbstractAddMissingReferenceCodeFixProvider(
-        IPackageInstallerService? packageInstallerService = null,
-        ISymbolSearchService? symbolSearchService = null)
-        : base(packageInstallerService, symbolSearchService)
-    {
-    }
-
     protected override bool IncludePrerelease => false;
 
     public override FixAllProvider? GetFixAllProvider()

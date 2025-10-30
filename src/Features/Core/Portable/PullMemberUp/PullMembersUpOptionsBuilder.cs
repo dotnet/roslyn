@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PullMemberUp;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 
-internal class PullMembersUpOptionsBuilder
+internal sealed class PullMembersUpOptionsBuilder
 {
     public static PullMembersUpOptions BuildPullMembersUpOptions(
         INamedTypeSymbol destination,

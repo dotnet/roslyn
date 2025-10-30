@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -10,7 +9,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 
@@ -18,11 +16,11 @@ internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
     where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
     where TTag : class, ITag
 {
-    internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpans(
+    internal static Task<ImmutableArray<TagSpan<TTag>>> GetTagSpansAsync(
         EditorTestWorkspace workspace,
         IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null)
     {
-        return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(workspace, analyzerMap);
+        return SquiggleUtilities.GetTagSpansAsync<TProvider, TTag>(workspace, analyzerMap);
     }
 
     internal static DiagnosticData CreateDiagnosticData(EditorTestHostDocument document, TextSpan span)
@@ -40,7 +38,7 @@ internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
             isEnabledByDefault: true,
             warningLevel: 0,
             projectId: document.Project.Id,
-            customTags: ImmutableArray<string>.Empty,
+            customTags: [],
             properties: ImmutableDictionary<string, string?>.Empty,
             location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, linePosSpan), document.Id),
             language: document.Project.Language);

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -11,7 +12,6 @@ using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -117,11 +117,12 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
             // Handling syntax tree directly to avoid parsing in potentially UI blocking code-path
             var closingToken = FindClosingBraceToken(document.Root, closingPoint);
             var annotatedNewline = SyntaxFactory.EndOfLine(options.FormattingOptions.NewLine).WithAdditionalAnnotations(s_closingBraceNewlineAnnotation);
-            var newClosingToken = closingToken.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(annotatedNewline));
+            var newClosingToken = closingToken.WithPrependedLeadingTrivia(annotatedNewline);
 
             var rootToFormat = document.Root.ReplaceToken(closingToken, newClosingToken);
             annotatedNewline = rootToFormat.GetAnnotatedTrivia(s_closingBraceNewlineAnnotation).Single();
-            document = document.WithChangedRoot(rootToFormat, cancellationToken);
+
+            document = GetUpdatedDocument(document, [new TextChange(closingToken.FullSpan, newClosingToken.ToFullString())], rootToFormat);
 
             // Calculate text change for adding a newline and adjust closing point location.
             closingPoint = annotatedNewline.Token.Span.End;
@@ -137,7 +138,7 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
             options,
             cancellationToken);
 
-        var newDocument = document.WithChangedRoot(formattedRoot, cancellationToken);
+        var newDocument = GetUpdatedDocument(document, formattingChanges, formattedRoot);
 
         // Get the empty line between the curly braces.
         var desiredCaretLine = GetLineBetweenCurlys(newClosingPoint, newDocument.Text);
@@ -147,6 +148,17 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
         var caretPosition = GetIndentedLinePosition(newDocument, newDocument.Text, desiredCaretLine.LineNumber, options, cancellationToken);
 
         return new BraceCompletionResult(GetMergedChanges(newLineEdit, formattingChanges, newDocument.Text), caretPosition);
+
+        // Create a new ParsedDocument given an old document, a set of changes and the new root. Typically, creating a new ParsedDocument is
+        // done with either a call to ParsedDocument.WithChangedRoot or ParsedDocument.WithChangedText. The former ends up creating
+        // a SourceText, while the latter parses the document. For performance reasons, we don't want to do either of those, so
+        // we'll just created the ParsedDocument directly with the information we already have.
+        static ParsedDocument GetUpdatedDocument(ParsedDocument oldDocument, IEnumerable<TextChange> changes, SyntaxNode newRoot)
+        {
+            var newText = oldDocument.Text.WithChanges(changes);
+
+            return new ParsedDocument(oldDocument.Id, newText, newRoot, oldDocument.HostLanguageServices);
+        }
 
         static TextLine GetLineBetweenCurlys(int closingPosition, SourceText text)
         {
@@ -183,7 +195,7 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
                 [newLineEdit.Value.ToTextChangeRange()],
                 formattingChanges.SelectAsArray(f => f.ToTextChangeRange()));
 
-            using var _ = ArrayBuilder<TextChange>.GetInstance(out var mergedChanges);
+            var mergedChanges = new FixedSizeArrayBuilder<TextChange>(newRanges.Length);
             var amountToShift = 0;
             foreach (var newRange in newRanges)
             {
@@ -200,7 +212,7 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
                 mergedChanges.Add(new TextChange(newTextChangeSpan, newTextChangeText));
             }
 
-            return mergedChanges.ToImmutable();
+            return mergedChanges.MoveToImmutable();
         }
     }
 
@@ -245,7 +257,7 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
         var annotatedRoot = GetSyntaxRootWithAnnotatedClosingBrace(document.Root, closingPoint);
 
         var result = Formatter.GetFormattingResult(
-            annotatedRoot, SpecializedCollections.SingletonEnumerable(spanToFormat), document.SolutionServices, options.FormattingOptions, rules, cancellationToken);
+            annotatedRoot, [spanToFormat], document.SolutionServices, options.FormattingOptions, rules, cancellationToken);
 
         if (result == null)
         {

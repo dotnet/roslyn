@@ -8,10 +8,10 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 
@@ -28,7 +28,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
     // ruleset editor or solution explorer. Setting messageFormat to empty string ensures that we won't display
     // this diagnostic in the preview pane header.
     private static readonly DiagnosticDescriptor s_fixableIdDescriptor = CreateDescriptorWithId(
-        RemoveUnnecessaryImportsConstants.DiagnosticFixableId, EnforceOnBuild.Never, hasAnyCodeStyleOption: true, "", "", isConfigurable: false);
+        RemoveUnnecessaryImportsConstants.DiagnosticFixableId, EnforceOnBuild.Never, hasAnyCodeStyleOption: false, "", "", isConfigurable: false);
 
 #pragma warning disable RS0030 // Do not used banned APIs - Special diagnostic with 'Warning' default severity.
     private static readonly DiagnosticDescriptor s_enableGenerateDocumentationFileIdDescriptor = new(
@@ -40,7 +40,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
         isEnabledByDefault: true,
         helpLinkUri: "https://github.com/dotnet/roslyn/issues/41640",
         description: AnalyzersResources.Add_the_following_PropertyGroup_to_your_MSBuild_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build,
-        customTags: DiagnosticCustomTags.Microsoft.Concat(EnforceOnBuild.Never.ToCustomTag()).ToArray());
+        customTags: [.. DiagnosticCustomTags.Microsoft, EnforceOnBuild.Never.ToCustomTag()]);
 #pragma warning restore RS0030 // Do not used banned APIs
 
     private readonly DiagnosticDescriptor _classificationIdDescriptor;
@@ -70,8 +70,6 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
     protected abstract ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<TSyntaxNode> unnecessaryImports);
     protected abstract bool IsRegularCommentOrDocComment(SyntaxTrivia trivia);
     protected abstract IUnnecessaryImportsProvider<TSyntaxNode> UnnecessaryImportsProvider { get; }
-
-    protected override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics;
 
     protected abstract SyntaxToken? TryGetLastToken(SyntaxNode node);
 

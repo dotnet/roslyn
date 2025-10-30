@@ -10,14 +10,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp;
+
+using static CSharpSyntaxTokens;
 
 internal sealed partial class CSharpSyntaxFactsServiceFactory
 {
@@ -45,7 +45,7 @@ internal sealed partial class CSharpSyntaxFactsServiceFactory
             newContextNode = (TContextNode)newRoot.GetAnnotatedNodes(s_annotation).Single();
         }
 
-        private class AddFirstMissingCloseBraceRewriter : CSharpSyntaxRewriter
+        private sealed class AddFirstMissingCloseBraceRewriter : CSharpSyntaxRewriter
         {
             private readonly SyntaxNode _contextNode;
             private bool _seenContextNode = false;
@@ -95,7 +95,7 @@ internal sealed partial class CSharpSyntaxFactsServiceFactory
                 {
                     if (!_addedFirstCloseCurly)
                     {
-                        var closeBrace = SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
+                        var closeBrace = CloseBraceToken
                             .WithAdditionalAnnotations(Formatter.Annotation);
                         rewritten = rewritten.ReplaceToken(braces.closeBrace, closeBrace);
                         _addedFirstCloseCurly = true;

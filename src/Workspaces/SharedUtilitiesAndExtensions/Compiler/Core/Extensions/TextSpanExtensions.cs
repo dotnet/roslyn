@@ -19,7 +19,7 @@ internal static class TextSpanExtensions
         => new NormalizedTextSpanCollection(spans);
 
     public static ImmutableArray<TextSpan> ToNormalizedSpans(this ImmutableArray<TextSpan> spans)
-        => new NormalizedTextSpanCollection(spans).ToImmutableArray();
+        => [.. spans];
 
     public static TextSpan Collapse(this IEnumerable<TextSpan> spans)
     {

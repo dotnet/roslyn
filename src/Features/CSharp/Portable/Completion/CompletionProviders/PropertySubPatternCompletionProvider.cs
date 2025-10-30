@@ -16,17 +16,15 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
 [ExportCompletionProvider(nameof(PropertySubpatternCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(InternalsVisibleToCompletionProvider))]
 [Shared]
-internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
+internal sealed class PropertySubpatternCompletionProvider : LSPCompletionProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -70,7 +68,7 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
 
         // Find the members that can be tested.
         var members = GetCandidatePropertiesAndFields(document, semanticModel, position, type);
-        members = members.WhereAsArray(m => m.IsEditorBrowsable(context.CompletionOptions.HideAdvancedMembers, semanticModel.Compilation));
+        members = members.WhereAsArray(m => m.IsEditorBrowsable(context.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation));
 
         if (memberAccess is null)
         {
@@ -87,7 +85,7 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
                 displayText: member.Name.EscapeIdentifier(),
                 displayTextSuffix: "",
                 insertionText: null,
-                symbols: ImmutableArray.Create(member),
+                symbols: [member],
                 contextPosition: context.Position,
                 rules: s_rules));
         }
@@ -196,7 +194,7 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
 
         return default;
 
-        bool IsExtendedPropertyPattern(MemberAccessExpressionSyntax memberAccess, [NotNullWhen(true)] out PropertyPatternClauseSyntax? propertyPatternClause)
+        static bool IsExtendedPropertyPattern(MemberAccessExpressionSyntax memberAccess, [NotNullWhen(true)] out PropertyPatternClauseSyntax? propertyPatternClause)
         {
             while (memberAccess.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {

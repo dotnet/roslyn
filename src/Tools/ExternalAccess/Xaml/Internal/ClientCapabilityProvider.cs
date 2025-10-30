@@ -73,6 +73,14 @@ internal class ClientCapabilityProvider : IClientCapabilityProvider
                 return _clientCapabilities?.Workspace?.DidChangeConfiguration?.DynamicRegistration == true;
             case LSP.Methods.WorkspaceDidChangeWatchedFilesName:
                 return _clientCapabilities?.Workspace?.DidChangeWatchedFiles?.DynamicRegistration == true;
+            case LSP.VSInternalMethods.OnAutoInsertName:
+                if (_clientCapabilities.TextDocument is VSInternalTextDocumentClientCapabilities internalTextDocumentClientCapabilities)
+                {
+                    return internalTextDocumentClientCapabilities.OnAutoInsert?.DynamicRegistration == true;
+                }
+                return false;
+            case LSP.Methods.TextDocumentDocumentColorName:
+                return _clientCapabilities?.TextDocument?.ColorProvider?.DynamicRegistration == true;
             default:
                 throw new InvalidOperationException($"Unsupported dynamic registration method: {methodName}");
         }

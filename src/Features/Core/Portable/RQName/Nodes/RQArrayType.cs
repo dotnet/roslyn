@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-internal class RQArrayType(int rank, RQType elementType) : RQArrayOrPointerType(elementType)
+internal sealed class RQArrayType(int rank, RQType elementType) : RQArrayOrPointerType(elementType)
 {
     public readonly int Rank = rank;
 

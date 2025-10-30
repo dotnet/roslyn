@@ -2,14 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.IO
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1151,7 +1146,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -1196,7 +1191,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -1242,7 +1237,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             Assert.False(comp1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
 
             comp1.AssertTheseDiagnostics(
@@ -1297,7 +1292,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -1351,7 +1346,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -1659,7 +1654,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -1693,7 +1688,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -2304,7 +2299,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -2529,7 +2524,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6530,7 +6525,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6568,7 +6563,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6603,7 +6598,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6638,7 +6633,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6676,7 +6671,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6711,7 +6706,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6749,7 +6744,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37309: Target runtime doesn't support default interface implementation.
@@ -6796,7 +6791,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6843,7 +6838,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6887,7 +6882,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6931,7 +6926,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -6978,7 +6973,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -7022,7 +7017,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -8124,7 +8119,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -8158,7 +8153,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -8196,7 +8191,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37309: Target runtime doesn't support default interface implementation.
@@ -8240,7 +8235,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -8284,7 +8279,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -9389,7 +9384,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -9423,7 +9418,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -9461,7 +9456,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37309: Target runtime doesn't support default interface implementation.
@@ -9505,7 +9500,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -9549,7 +9544,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -10816,7 +10811,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -10854,7 +10849,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -10896,7 +10891,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37309: Target runtime doesn't support default interface implementation.
@@ -10944,7 +10939,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.
@@ -10992,7 +10987,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.DesktopLatestExtended, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.Mscorlib461Extended, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
 BC37310: Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.

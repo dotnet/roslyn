@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -236,6 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+
         /// <summary>
         /// Lookup a nested namespace.
         /// </summary>
@@ -246,9 +249,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Symbol for the most nested namespace, if found. Nothing 
         /// if namespace or any part of it can not be found.
         /// </returns>
-        internal NamespaceSymbol LookupNestedNamespace(ImmutableArray<ReadOnlyMemory<char>> names)
+        internal NamespaceSymbol? LookupNestedNamespace(ImmutableArray<ReadOnlyMemory<char>> names)
         {
-            NamespaceSymbol scope = this;
+            NamespaceSymbol? scope = this;
             foreach (ReadOnlyMemory<char> name in names)
             {
                 scope = scope.GetNestedNamespace(name);
@@ -259,10 +262,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return scope;
         }
 
-        internal NamespaceSymbol GetNestedNamespace(string name)
+        internal NamespaceSymbol? GetNestedNamespace(string name)
             => GetNestedNamespace(name.AsMemory());
 
-        internal virtual NamespaceSymbol GetNestedNamespace(ReadOnlyMemory<char> name)
+        internal virtual NamespaceSymbol? GetNestedNamespace(ReadOnlyMemory<char> name)
         {
             foreach (var sym in this.GetMembers(name))
             {
@@ -274,6 +277,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return null;
         }
+
+#nullable disable
 
         public abstract ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name);
 
@@ -330,6 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="nameOpt">Optional method name</param>
         /// <param name="arity">Method arity</param>
         /// <param name="options">Lookup options</param>
+        /// <remarks>Does not perform a full viability check</remarks>
         internal virtual void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {
             var assembly = this.ContainingAssembly;
@@ -350,6 +356,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type.DoGetExtensionMethods(methods, nameOpt, arity, options);
             }
         }
+
+#nullable enable
+        /// <remarks>Does not perform a full viability check</remarks>
+        internal virtual void GetExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            foreach (var type in this.GetTypeMembersUnordered())
+            {
+                type.GetExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
+            }
+        }
+#nullable disable
 
         internal string QualifiedName
         {

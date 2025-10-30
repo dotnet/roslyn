@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -17,6 +16,8 @@ using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+
+using static SyntaxFactory;
 
 internal static class NamespaceGenerator
 {
@@ -102,16 +103,16 @@ internal static class NamespaceGenerator
 
         // If they're just generating the empty namespace then make that into compilation unit.
         if (name == string.Empty)
-            return SyntaxFactory.CompilationUnit().WithUsings(usings);
+            return CompilationUnit().WithUsings(usings);
 
         if (destination == CodeGenerationDestination.CompilationUnit &&
             info.Options.NamespaceDeclarations.Value == NamespaceDeclarationPreference.FileScoped &&
             info.LanguageVersion >= LanguageVersion.CSharp10)
         {
-            return SyntaxFactory.FileScopedNamespaceDeclaration(SyntaxFactory.ParseName(name)).WithUsings(usings);
+            return FileScopedNamespaceDeclaration(ParseName(name)).WithUsings(usings);
         }
 
-        return SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName(name)).WithUsings(usings);
+        return NamespaceDeclaration(ParseName(name)).WithUsings(usings);
     }
 
     private static SyntaxNode GetDeclarationSyntaxWithoutMembers(
@@ -153,8 +154,8 @@ internal static class NamespaceGenerator
             var name = GenerateName(alias.Target);
             if (name != null)
             {
-                return SyntaxFactory.UsingDirective(
-                    SyntaxFactory.NameEquals(alias.Name.ToIdentifierName()),
+                return UsingDirective(
+                    NameEquals(alias.Name.ToIdentifierName()),
                     name);
             }
         }
@@ -163,7 +164,7 @@ internal static class NamespaceGenerator
             var name = GenerateName(namespaceOrType);
             if (name != null)
             {
-                return SyntaxFactory.UsingDirective(name);
+                return UsingDirective(name);
             }
         }
 
@@ -174,6 +175,6 @@ internal static class NamespaceGenerator
     {
         return symbol is ITypeSymbol type
             ? type.GenerateNameSyntax()
-            : SyntaxFactory.ParseName(symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            : ParseName(symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
     }
 }

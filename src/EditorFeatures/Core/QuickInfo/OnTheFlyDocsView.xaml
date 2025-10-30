@@ -1,0 +1,32 @@
+﻿<UserControl x:Class="Microsoft.CodeAnalysis.Editor.QuickInfo.OnTheFlyDocsView"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Microsoft.CodeAnalysis.Editor.QuickInfo"
+             DataContext="{Binding RelativeSource={RelativeSource Self}}"
+             AutomationProperties.Name="{Binding OnTheFlyDocumentation}">
+    <UserControl.Resources>
+        <local:OnTheFlyDocsViewStateVisibilityConverter x:Key="VisibilityConverter"></local:OnTheFlyDocsViewStateVisibilityConverter>
+    </UserControl.Resources>
+
+    <Grid>
+        <ContentControl
+            Visibility="{Binding Path=CurrentState,
+                         Converter={StaticResource VisibilityConverter},
+                         ConverterParameter={x:Static local:OnTheFlyDocsState.OnDemandLink}}"
+            Content="{Binding Path=OnDemandLinkContent}" />
+        <ContentControl
+            Visibility="{Binding Path=CurrentState,
+                         Converter={StaticResource VisibilityConverter},
+                         ConverterParameter={x:Static local:OnTheFlyDocsState.Loading}}"
+            Content="{Binding Path=LoadingContent}" />
+        <ContentControl
+            Visibility="{Binding Path=CurrentState,
+                         Converter={StaticResource VisibilityConverter},
+                         ConverterParameter={x:Static local:OnTheFlyDocsState.Finished}}"
+            Content="{Binding Path=ResultsContent}" />
+
+    </Grid>
+</UserControl>

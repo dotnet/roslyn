@@ -106,3 +106,22 @@ in source and unified build. Until that moves to `pwsh` our scripts need to stay
 
 The exception is that our VS Code helper scripts should use `pwsh`. That is not a part of our 
 infrastructure and needs to run cross platform hence `pwsh` is appropriate.
+
+### Supporting .cmd file
+
+Consider adding a `.cmd` file that calls the `.ps1` file. This is to support users who are not 
+running a powershell shell. It also helps with ensuring the script is run locally the same it is 
+run in CI by controlling the powershell used to invoke the script.
+
+test.cmd
+
+```cmd
+@echo off
+set PSMODULEPATH=
+powershell -noprofile -ExecutionPolicy Unrestricted -file "%~dp0\test.ps1" %*
+```
+
+Note: the `PSMODULEPATH` is cleared to ensure a pwsh shell [does not interfere][psmodulepath] 
+with launching powershell.
+
+[psmodulepath]: https://github.com/PowerShell/PowerShell/discussions/24630

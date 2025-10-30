@@ -6,7 +6,6 @@
 
 using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -15,713 +14,524 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing;
+
+[Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+public sealed class BlockCommentEditingTests : AbstractTypingCommandHandlerTest<ReturnKeyCommandArgs>
 {
-    [Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-    public class BlockCommentEditingTests : AbstractTypingCommandHandlerTest<ReturnKeyCommandArgs>
-    {
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11057")]
-        public void EdgeCase0()
-        {
-            var code = @"
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11057")]
+    public void EdgeCase0()
+        => Verify(@"
 $$/**/
-";
-            var expected = @"
+", @"
 
 $$/**/
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11057")]
-        public void EdgeCase1()
-        {
-            var code = @"
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11057")]
+    public void EdgeCase1()
+        => Verify(@"
 /**/$$
-";
-            var expected = @"
+", @"
 /**/
 $$
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11056")]
-        public void EdgeCase2()
-        {
-            var code = @"
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11056")]
+    public void EdgeCase2()
+        => Verify(@"
 $$/* */
-";
-            var expected = @"
+", @"
 
 $$/* */
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11056")]
-        public void EdgeCase3()
-        {
-            var code = @"
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11056")]
+    public void EdgeCase3()
+        => Verify(@"
 /* */$$
-";
-            var expected = @"
+", @"
 /* */
 $$
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
-        public void EofCase0()
-        {
-            var code = @"
-/* */$$";
-            var expected = @"
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
+    public void EofCase0()
+        => Verify(@"
+/* */$$", @"
 /* */
-$$";
-            Verify(code, expected);
-        }
+$$");
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
-        public void EofCase1()
-        {
-            var code = @"
-    /*$$";
-            var expected = @"
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
+    public void EofCase1()
+        => Verify(@"
+    /*$$", @"
     /*
-     * $$";
-            Verify(code, expected);
-        }
+     * $$");
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
-        public void EofCase2()
-        {
-            var code = @"
-    /***$$";
-            var expected = @"
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16128")]
+    public void EofCase2()
+        => Verify(@"
+    /***$$", @"
     /***
-     * $$";
-            Verify(code, expected);
-        }
+     * $$");
 
-        [WpfFact]
-        public void InsertOnStartLine0()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnStartLine0()
+        => Verify(@"
     /*$$
-";
-            var expected = @"
+", @"
     /*
      * $$
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnStartLine1()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnStartLine1()
+        => Verify(@"
     /*$$*/
-";
-            var expected = @"
+", @"
     /*
      $$*/
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnStartLine2()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnStartLine2()
+        => Verify(@"
     /*$$ */
-";
-            var expected = @"
+", @"
     /*
      * $$*/
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnStartLine3()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnStartLine3()
+        => Verify(@"
     /* $$ 1.
      */
-";
-            var expected = @"
+", @"
     /* 
      * $$1.
      */
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnStartLine4()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnStartLine4()
+        => Verify(@"
     /*  1.$$
      */
-";
-            var expected = @"
+", @"
     /*  1.
      *  $$
      */
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnStartLine5()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnStartLine5()
+        => Verify(@"
     /********$$
-";
-            var expected = @"
+", @"
     /********
      * $$
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnStartLine6()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnStartLine6()
+        => Verify(@"
     /**$$
-";
-            var expected = @"
+", @"
     /**
      * $$
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnStartLine7()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnStartLine7()
+        => Verify(@"
     /*   $$
-";
-            var expected = @"
+", @"
     /*   
      *   $$
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void NotInsertOnStartLine0()
-        {
-            var code = @"
+    [WpfFact]
+    public void NotInsertOnStartLine0()
+        => Verify(@"
     /$$*
      */
-";
-            var expected = @"
+", @"
     /
 $$*
      */
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine0()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine0()
+        => Verify(@"
     /*
      *$$
-";
-            var expected = @"
+", @"
     /*
      *
      *$$
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine1()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine1()
+        => Verify(@"
     /*
      *$$*/
-";
-            var expected = @"
+", @"
     /*
      *
      $$*/
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine2()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine2()
+        => Verify(@"
     /*
      *$$ */
-";
-            var expected = @"
+", @"
     /*
      *
      *$$*/
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine3()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine3()
+        => Verify(@"
     /*
      * $$ 1.
      */
-";
-            var expected = @"
+", @"
     /*
      * 
      * $$1.
      */
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine4()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine4()
+        => Verify(@"
     /*
      *  1.$$
      */
-";
-            var expected = @"
+", @"
     /*
      *  1.
      *  $$
      */
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine5()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine5()
+        => Verify(@"
     /*
      *   1.
      *   $$
      */
-";
-            var expected = @"
+", @"
     /*
      *   1.
      *   
      *   $$
      */
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine6()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine6()
+        => Verify(@"
     /*
   $$   *
      */
-";
-            var expected = @"
+", @"
     /*
   
      $$*
      */
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine7()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine7()
+        => Verify(@"
     /*
      *************$$
      */
-";
-            var expected = @"
+", @"
     /*
      *************
      *$$
      */
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine8()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine8()
+        => Verify(@"
     /**
      *$$
      */
-";
-            var expected = @"
+", @"
     /**
      *
      *$$
      */
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine9()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine9()
+        => Verify(@"
     /**
       *$$
-";
-            var expected = @"
+", @"
     /**
       *
       *$$
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnEndLine0()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnEndLine0()
+        => Verify(@"
     /*
      *$$/
-";
-            var expected = @"
+", @"
     /*
      *
      *$$/
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnEndLine1()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnEndLine1()
+        => Verify(@"
     /**
      *$$/
-";
-            var expected = @"
+", @"
     /**
      *
      *$$/
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnEndLine2()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnEndLine2()
+        => Verify(@"
     /**
       *
       *$$/
-";
-            var expected = @"
+", @"
     /**
       *
       *
       *$$/
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnEndLine3()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnEndLine3()
+        => Verify(@"
     /*
   $$   */
-";
-            var expected = @"
+", @"
     /*
   
      $$*/
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnEndLine4()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnEndLine4()
+        => Verify(@"
     /*
      $$*/
-";
-            var expected = @"
+", @"
     /*
      
      $$*/
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void NotInsertInVerbatimString0()
-        {
-            var code = @"
+    [WpfFact]
+    public void NotInsertInVerbatimString0()
+        => Verify(@"
 var code = @""
 /*$$
 "";
-";
-            var expected = @"
+", @"
 var code = @""
 /*
 $$
 "";
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void NotInsertInVerbatimString1()
-        {
-            var code = @"
+    [WpfFact]
+    public void NotInsertInVerbatimString1()
+        => Verify(@"
 var code = @""
 /*
  *$$
 "";
-";
-            var expected = @"
+", @"
 var code = @""
 /*
  *
 $$
 "";
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void BoundCheckInsertOnStartLine0()
-        {
-            var code = @"
-    /$$*";
-            var expected = @"
+    [WpfFact]
+    public void BoundCheckInsertOnStartLine0()
+        => Verify(@"
+    /$$*", @"
     /
-$$*";
-            Verify(code, expected);
-        }
+$$*");
 
-        [WpfFact]
-        public void BoundCheckInsertOnStartLine1()
-        {
-            var code = @"
-    /*$$ ";
-            var expected = @"
+    [WpfFact]
+    public void BoundCheckInsertOnStartLine1()
+        => Verify(@"
+    /*$$ ", @"
     /*
-     * $$";
-            Verify(code, expected);
-        }
+     * $$");
 
-        [WpfFact]
-        public void BoundCheckInsertOnMiddleLine()
-        {
-            var code = @"
+    [WpfFact]
+    public void BoundCheckInsertOnMiddleLine()
+        => Verify(@"
     /*
-     *$$ ";
-            var expected = @"
+     *$$ ", @"
     /*
      *
-     *$$";
-            Verify(code, expected);
-        }
+     *$$");
 
-        [WpfFact]
-        public void BoundCheckInsertOnEndLine()
-        {
-            var code = @"
+    [WpfFact]
+    public void BoundCheckInsertOnEndLine()
+        => Verify(@"
     /*
-     *$$/";
-            var expected = @"
+     *$$/", @"
     /*
      *
-     *$$/";
-            Verify(code, expected);
-        }
+     *$$/");
 
-        [WpfFact]
-        public void InsertOnStartLine2_Tab()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnStartLine2_Tab()
+        => VerifyTabs(@"
     /*$$<tab>*/
-";
-            var expected = @"
+", @"
     /*
      * $$*/
-";
-            VerifyTabs(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnStartLine3_Tab()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnStartLine3_Tab()
+        => VerifyTabs(@"
     /*<tab>$$<tab>1.
      */
-";
-            var expected = @"
+", @"
     /*<tab>
      *<tab>$$1.
      */
-";
-            VerifyTabs(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnStartLine4_Tab()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnStartLine4_Tab()
+        => VerifyTabs(@"
     /* <tab>1.$$
      */
-";
-            var expected = @"
+", @"
     /* <tab>1.
      * <tab>$$
      */
-";
-            VerifyTabs(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnStartLine6_Tab()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnStartLine6_Tab()
+        => VerifyTabs(@"
     /*<tab>$$
-";
-            var expected = @"
+", @"
     /*<tab>
      *<tab>$$
-";
-            VerifyTabs(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine2_Tab()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine2_Tab()
+        => VerifyTabs(@"
     /*
      *$$<tab>*/
-";
-            var expected = @"
+", @"
     /*
      *
      *$$*/
-";
-            VerifyTabs(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine3_Tab()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine3_Tab()
+        => VerifyTabs(@"
     /*
      * $$<tab>1.
      */
-";
-            var expected = @"
+", @"
     /*
      * 
      * $$1.
      */
-";
-            VerifyTabs(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine4_Tab()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine4_Tab()
+        => VerifyTabs(@"
     /*
      * <tab>1.$$
      */
-";
-            var expected = @"
+", @"
     /*
      * <tab>1.
      * <tab>$$
      */
-";
-            VerifyTabs(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InsertOnMiddleLine5_Tab()
-        {
-            var code = @"
+    [WpfFact]
+    public void InsertOnMiddleLine5_Tab()
+        => VerifyTabs(@"
     /*
      *<tab> 1.
      *<tab> $$
      */
-";
-            var expected = @"
+", @"
     /*
      *<tab> 1.
      *<tab> 
      *<tab> $$
      */
-";
-            VerifyTabs(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InLanguageConstructTrailingTrivia()
-        {
-            var code = @"
+    [WpfFact]
+    public void InLanguageConstructTrailingTrivia()
+        => Verify(@"
 class C
 {
     int i; /*$$
 }
-";
-            var expected = @"
+", @"
 class C
 {
     int i; /*
             * $$
 }
-";
-            Verify(code, expected);
-        }
+");
 
-        [WpfFact]
-        public void InLanguageConstructTrailingTrivia_Tabs()
-        {
-            var code = @"
+    [WpfFact]
+    public void InLanguageConstructTrailingTrivia_Tabs()
+        => VerifyTabs(@"
 class C
 {
 <tab>int i; /*$$
 }
-";
-            var expected = @"
+", @"
 class C
 {
 <tab>int i; /*
 <tab>        * $$
 }
-";
-            VerifyTabs(code, expected);
-        }
+");
 
-        protected override EditorTestWorkspace CreateTestWorkspace(string initialMarkup)
-            => EditorTestWorkspace.CreateCSharp(initialMarkup);
+    protected override EditorTestWorkspace CreateTestWorkspace(string initialMarkup)
+        => EditorTestWorkspace.CreateCSharp(initialMarkup);
 
-        protected override (ReturnKeyCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer)
-            => (new ReturnKeyCommandArgs(textView, textBuffer), "\r\n");
+    protected override (ReturnKeyCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer)
+        => (new ReturnKeyCommandArgs(textView, textBuffer), "\r\n");
 
-        internal override ICommandHandler<ReturnKeyCommandArgs> GetCommandHandler(EditorTestWorkspace workspace)
-            => Assert.IsType<BlockCommentEditingCommandHandler>(workspace.GetService<ICommandHandler>(ContentTypeNames.CSharpContentType, nameof(BlockCommentEditingCommandHandler)));
-    }
+    internal override ICommandHandler<ReturnKeyCommandArgs> GetCommandHandler(EditorTestWorkspace workspace)
+        => Assert.IsType<BlockCommentEditingCommandHandler>(workspace.GetService<ICommandHandler>(ContentTypeNames.CSharpContentType, nameof(BlockCommentEditingCommandHandler)));
 }

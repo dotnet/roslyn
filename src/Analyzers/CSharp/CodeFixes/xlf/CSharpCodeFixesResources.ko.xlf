@@ -197,6 +197,11 @@
         <target state="translated">컬렉션 식 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_explicit_array">
+        <source>Use explicit array</source>
+        <target state="translated">명시적 배열 사용</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">보간된 축자 문자열 사용</target>

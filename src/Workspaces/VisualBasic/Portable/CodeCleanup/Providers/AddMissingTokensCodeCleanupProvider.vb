@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -141,9 +142,9 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Return newNode
                 End If
 
-                If Not TypeOf node.Expression Is NameSyntax AndAlso
-                   Not TypeOf node.Expression Is ParenthesizedExpressionSyntax AndAlso
-                   Not TypeOf node.Expression Is MemberAccessExpressionSyntax Then
+                If TypeOf node.Expression IsNot NameSyntax AndAlso
+                   TypeOf node.Expression IsNot ParenthesizedExpressionSyntax AndAlso
+                   TypeOf node.Expression IsNot MemberAccessExpressionSyntax Then
                     Return newNode
                 End If
 

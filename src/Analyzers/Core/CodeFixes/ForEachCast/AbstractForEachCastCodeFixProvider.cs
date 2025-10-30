@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -15,7 +13,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ForEachCast;
 
@@ -31,7 +28,7 @@ internal abstract class AbstractForEachCastCodeFixProvider<TForEachStatementSynt
     {
         if (context.Diagnostics.First().Properties.ContainsKey(ForEachCastHelpers.IsFixable))
         {
-            RegisterCodeFix(context, AnalyzersResources.Add_explicit_cast, nameof(AbstractForEachCastCodeFixProvider<SyntaxNode>));
+            RegisterCodeFix(context, AnalyzersResources.Add_explicit_cast, nameof(AbstractForEachCastCodeFixProvider<>));
         }
 
         return Task.CompletedTask;
@@ -42,7 +39,7 @@ internal abstract class AbstractForEachCastCodeFixProvider<TForEachStatementSynt
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -96,7 +93,7 @@ internal abstract class AbstractForEachCastCodeFixProvider<TForEachStatementSynt
                     collection,
                     generator.GenericName(
                         nameof(Enumerable.Cast),
-                        new[] { iterationVariableType })));
+                        [iterationVariableType])));
         }
         else
         {

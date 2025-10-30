@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
@@ -26,7 +25,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         Table,
     }
 
-    private class FormatterState
+    private sealed class FormatterState
     {
         private bool _anyNonWhitespaceSinceLastPara;
         private bool _pendingParagraphBreak;
@@ -310,10 +309,20 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
 
     private static void AppendTextFromNode(FormatterState state, XNode node, Compilation compilation)
     {
-        if (node.NodeType is XmlNodeType.Text or XmlNodeType.CDATA)
+        if (node is XText textNode)
         {
-            // cast is safe since XCData inherits XText
-            AppendTextFromTextNode(state, (XText)node);
+            if (textNode.NodeType == XmlNodeType.Text)
+            {
+                AppendTextFromTextNode(state, textNode, replaceNewLineWithPara: false);
+            }
+            else if (textNode.NodeType == XmlNodeType.CDATA)
+            {
+                state.PushStyle(TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace);
+                AppendTextFromTextNode(state, textNode, replaceNewLineWithPara: true);
+                state.PopStyle();
+            }
+
+            return;
         }
 
         if (node.NodeType != XmlNodeType.Element)
@@ -360,7 +369,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
 
             return;
         }
-        else if (name is DocumentationCommentXmlNames.CElementName or "tt")
+        else if (name is DocumentationCommentXmlNames.CElementName or DocumentationCommentXmlNames.TtElementName)
         {
             needPopStyle = true;
             state.PushStyle(TaggedTextStyle.Code);
@@ -370,12 +379,12 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             needPopStyle = true;
             state.PushStyle(TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace);
         }
-        else if (name is "em" or "i")
+        else if (name is DocumentationCommentXmlNames.EmElementName or DocumentationCommentXmlNames.IElementName)
         {
             needPopStyle = true;
             state.PushStyle(TaggedTextStyle.Emphasis);
         }
-        else if (name is "strong" or "b" or DocumentationCommentXmlNames.TermElementName)
+        else if (name is DocumentationCommentXmlNames.StrongElementName or DocumentationCommentXmlNames.BElementName or DocumentationCommentXmlNames.TermElementName)
         {
             needPopStyle = true;
             state.PushStyle(TaggedTextStyle.Strong);
@@ -403,8 +412,8 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             state.NextListItem();
         }
 
-        if (name is DocumentationCommentXmlNames.ParaElementName
-            or DocumentationCommentXmlNames.CodeElementName)
+        if (name is DocumentationCommentXmlNames.ParaElementName or
+                    DocumentationCommentXmlNames.CodeElementName)
         {
             state.MarkBeginOrEndPara();
         }
@@ -418,8 +427,8 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             AppendTextFromNode(state, childNode, compilation);
         }
 
-        if (name is DocumentationCommentXmlNames.ParaElementName
-            or DocumentationCommentXmlNames.CodeElementName)
+        if (name is DocumentationCommentXmlNames.ParaElementName or
+                    DocumentationCommentXmlNames.CodeElementName)
         {
             state.MarkBeginOrEndPara();
         }
@@ -490,7 +499,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
                 ? attribute.Value
                 : null;
             var navigationHint = navigationTarget;
-            state.AppendParts(SpecializedCollections.SingletonEnumerable(new TaggedText(displayKind, text, style, navigationTarget, navigationHint)));
+            state.AppendParts([new TaggedText(displayKind, text, style, navigationTarget, navigationHint)]);
         }
     }
 
@@ -514,8 +523,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         }
 
         // if any of that fails fall back to just displaying the raw text
-        return SpecializedCollections.SingletonEnumerable(
-            new SymbolDisplayPart(kind, symbol: null, text: TrimCrefPrefix(crefValue)));
+        return [new SymbolDisplayPart(kind, symbol: null, text: TrimCrefPrefix(crefValue))];
     }
 
     internal static IEnumerable<SymbolDisplayPart> TypeParameterRefToSymbolDisplayParts(
@@ -535,8 +543,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         }
 
         // if any of that fails fall back to just displaying the raw text
-        return SpecializedCollections.SingletonEnumerable(
-            new SymbolDisplayPart(SymbolDisplayPartKind.TypeParameterName, symbol: null, text: TrimCrefPrefix(crefValue)));
+        return [new SymbolDisplayPart(SymbolDisplayPartKind.TypeParameterName, symbol: null, text: TrimCrefPrefix(crefValue))];
     }
 
     private static string TrimCrefPrefix(string value)
@@ -547,13 +554,19 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         return value;
     }
 
-    private static void AppendTextFromTextNode(FormatterState state, XText element)
+    private static void AppendTextFromTextNode(FormatterState state, XText element, bool replaceNewLineWithPara)
     {
         var rawText = element.Value;
         if ((state.Style & TaggedTextStyle.PreserveWhitespace) == TaggedTextStyle.PreserveWhitespace)
         {
-            // Don't normalize code from middle. Only trim leading/trailing new lines.
+            if (replaceNewLineWithPara && rawText is ['\n', ..])
+                state.MarkBeginOrEndPara();
+
             state.AppendString(rawText.Trim('\n'));
+
+            if (replaceNewLineWithPara && rawText is [.., '\n'])
+                state.MarkBeginOrEndPara();
+
             return;
         }
 

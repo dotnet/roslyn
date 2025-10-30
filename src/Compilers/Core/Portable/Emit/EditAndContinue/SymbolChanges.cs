@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly ISet<ISymbolInternal> _replacedSymbols;
 
         /// <summary>
-        /// A set of symbols, from the old compilation, that have been deleted from the new compilation
+        /// A set of symbols (<see cref="IMethodSymbol"/>, <see cref="IPropertySymbol"/>, <see cref="IEventSymbol"/>),
+        /// from the old compilation, that have been deleted from the new compilation
         /// keyed by the containing type from the new compilation.
         /// Populated based on semantic edits with <see cref="SemanticEditKind.Delete"/>.
         /// </summary>
@@ -412,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 var newMember = GetRequiredInternalSymbol(edit.NewSymbol);
 
-                // Partial methods are supplied as implementations but recorded
+                // Partial methods/properties/indexers are supplied as implementations but recorded
                 // internally as definitions since definitions are used in emit.
                 if (newMember.Kind == SymbolKind.Method)
                 {
@@ -436,6 +437,16 @@ namespace Microsoft.CodeAnalysis.Emit
 
                         updatedMethodsPerType.Add((oldMethod.PartialDefinitionPart ?? oldMethod, (IMethodSymbolInternal)newMember));
                     }
+                }
+                else if (newMember.Kind == SymbolKind.Property)
+                {
+                    var newProperty = (IPropertySymbolInternal)newMember;
+
+                    // Partial properties should be implementations, not definitions.
+                    Debug.Assert(newProperty.PartialImplementationPart == null);
+                    Debug.Assert(edit.OldSymbol == null || ((IPropertySymbol)edit.OldSymbol).PartialImplementationPart == null);
+
+                    newMember = newProperty.PartialDefinitionPart ?? newMember;
                 }
 
                 AddContainingSymbolChanges(changesBuilder, newMember);

@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Structure PackedFlags
             ' Flags are packed into a 32-bit int with the following layout:
-            ' |            l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            ' |           m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             '
             ' a = method kind. 5 bits
             ' b = method kind populated. 1 bit
@@ -66,6 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' j = is init-only populated. 1 bit.
             ' k = has SetsRequiredMembers. 1 bit.
             ' l = has SetsRequiredMembers populated. 1 bit.
+            ' m = OverloadResolutionPriority populated. 1 bit.
 
             Private _bits As Integer
 
@@ -82,6 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Private Const s_isInitOnlyPopulatedBit = 1 << 13
             Private Const s_hasSetsRequiredMembersBit = 1 << 14
             Private Const s_hasSetsRequiredMembersPopulatedBit = 1 << 15
+            Private Const s_OverloadResolutionPriorityIsPopulatedBit As Integer = 1 << 16
 
             Public Property MethodKind As MethodKind
                 Get
@@ -113,25 +115,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Public ReadOnly Property IsObsoleteAttributePopulated As Boolean
                 Get
-                    Return (_bits And s_isObsoleteAttributePopulatedBit) <> 0
+                    Return (Volatile.Read(_bits) And s_isObsoleteAttributePopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsCustomAttributesPopulated As Boolean
                 Get
-                    Return (_bits And s_isCustomAttributesPopulatedBit) <> 0
+                    Return (Volatile.Read(_bits) And s_isCustomAttributesPopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsUseSiteDiagnosticPopulated As Boolean
                 Get
-                    Return (_bits And s_isUseSiteDiagnosticPopulatedBit) <> 0
+                    Return (Volatile.Read(_bits) And s_isUseSiteDiagnosticPopulatedBit) <> 0
                 End Get
             End Property
 
             Public ReadOnly Property IsConditionalPopulated As Boolean
                 Get
-                    Return (_bits And s_isConditionalAttributePopulatedBit) <> 0
+                    Return (Volatile.Read(_bits) And s_isConditionalAttributePopulatedBit) <> 0
                 End Get
             End Property
 
@@ -197,6 +199,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet))
                 ThreadSafeFlagOperations.Set(_bits, bitsToSet)
             End Sub
+
+            Public ReadOnly Property OverloadResolutionPriorityPopulated As Boolean
+                Get
+                    Return (Volatile.Read(_bits) And s_OverloadResolutionPriorityIsPopulatedBit) <> 0
+                End Get
+            End Property
+
+            Public Sub SetOverloadResolutionPriorityPopulated()
+                ThreadSafeFlagOperations.Set(_bits, s_OverloadResolutionPriorityIsPopulatedBit)
+            End Sub
         End Structure
 
         ''' <summary>
@@ -209,6 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Public _lazyConditionalAttributeSymbols As ImmutableArray(Of String)
             Public _lazyObsoleteAttributeData As ObsoleteAttributeData
             Public _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol)
+            Public _lazyOverloadResolutionPriority As Integer
         End Class
 
         Private Function CreateUncommonFields() As UncommonFields
@@ -628,7 +641,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             If Not _packedFlags.IsCustomAttributesPopulated Then
                 Dim attributeData As ImmutableArray(Of VisualBasicAttributeData) = Nothing
                 Dim containingPEModuleSymbol = DirectCast(ContainingModule(), PEModuleSymbol)
-                containingPEModuleSymbol.LoadCustomAttributes(Me.Handle, attributeData)
+                Dim checkForRequiredMembers = MethodKind = MethodKind.Constructor AndAlso
+                                              HasSetsRequiredMembers = False AndAlso
+                                              (Me.ContainingType.HasAnyDeclaredRequiredMembers OrElse Not Me.ContainingType.AllRequiredMembers.IsEmpty)
+
+                If checkForRequiredMembers Then
+                    Dim compilerFeatureRequiredDiagnostic As DiagnosticInfo = Nothing
+                    DeriveCompilerFeatureRequiredUseSiteInfo(compilerFeatureRequiredDiagnostic)
+
+                    Dim discard1 As CustomAttributeHandle = Nothing
+                    Dim discard2 As CustomAttributeHandle = Nothing
+                    attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(
+                        Me.Handle,
+                        filteredOutAttribute1:=discard1,
+                        filterOut1:=If(compilerFeatureRequiredDiagnostic Is Nothing, AttributeDescription.CompilerFeatureRequiredAttribute, Nothing),
+                        filteredOutAttribute2:=discard2,
+                        filterOut2:=If(ObsoleteAttributeData Is Nothing, AttributeDescription.ObsoleteAttribute, Nothing))
+
+                Else
+                    containingPEModuleSymbol.LoadCustomAttributes(Me.Handle, attributeData)
+                End If
                 Debug.Assert(Not attributeData.IsDefault)
                 If Not attributeData.IsEmpty Then
                     attributeData = InterlockedOperations.Initialize(AccessUncommonFields()._lazyCustomAttributes, attributeData)
@@ -822,6 +854,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' aren't marked explicitly with Overrides modifier.
             End Get
         End Property
+
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            If Not _packedFlags.OverloadResolutionPriorityPopulated Then
+
+                Dim priority As Integer
+                If _containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, priority) AndAlso
+                   priority <> 0 Then
+                    Interlocked.CompareExchange(AccessUncommonFields()._lazyOverloadResolutionPriority, priority, 0)
+#If DEBUG Then
+                Else
+                    ' 0 is the default if nothing is present in metadata, and we don't care about preserving the difference between "not present" and "set to the default value".
+                    Debug.Assert(_uncommonFields Is Nothing OrElse _uncommonFields._lazyOverloadResolutionPriority = 0)
+#End If
+                End If
+
+                _packedFlags.SetOverloadResolutionPriorityPopulated()
+            End If
+
+            Return If(_uncommonFields?._lazyOverloadResolutionPriority, 0)
+        End Function
 
         Friend Overrides ReadOnly Property IsHiddenBySignature As Boolean
             Get
@@ -1251,7 +1303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             If useSiteInfo.DiagnosticInfo IsNot Nothing OrElse Not useSiteInfo.SecondaryDependencies.IsNullOrEmpty() Then
-                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitialize(PrimaryDependency, useSiteInfo)
+                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitializeFromDefault(PrimaryDependency, useSiteInfo)
             End If
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated()

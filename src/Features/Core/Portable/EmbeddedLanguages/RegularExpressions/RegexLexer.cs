@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -52,7 +50,7 @@ internal struct RegexLexer
         => GetSubPattern(start, Position);
 
     public readonly VirtualCharSequence GetSubPattern(int start, int end)
-        => Text.GetSubSequence(TextSpan.FromBounds(start, end));
+        => Text[start..end];
 
     public RegexToken ScanNextToken(bool allowTrivia, RegexOptions options)
     {
@@ -65,7 +63,7 @@ internal struct RegexLexer
         var ch = this.CurrentChar;
         Position++;
 
-        return CreateToken(GetKind(ch), trivia, Text.GetSubSequence(new TextSpan(Position - 1, 1)));
+        return CreateToken(GetKind(ch), trivia, Text[(Position - 1)..Position]);
     }
 
     private static RegexKind GetKind(VirtualChar ch)
@@ -124,7 +122,7 @@ internal struct RegexLexer
             break;
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     public RegexTrivia? ScanComment(RegexOptions options)
@@ -233,16 +231,11 @@ internal struct RegexLexer
     public RegexToken? TryScanEscapeCategory()
     {
         var start = Position;
-        while (Position < Text.Length &&
-               IsEscapeCategoryChar(this.CurrentChar))
-        {
+        while (Position < Text.Length && IsEscapeCategoryChar(this.CurrentChar))
             Position++;
-        }
 
         if (Position == start)
-        {
             return null;
-        }
 
         var token = CreateToken(RegexKind.EscapeCategoryToken, [], GetSubPatternToCurrentPos(start));
         var category = token.VirtualChars.CreateString();
@@ -257,10 +250,11 @@ internal struct RegexLexer
         return token;
     }
 
-    private static bool IsEscapeCategoryChar(VirtualChar ch)
-        => ch.Value is '-' or
+    public static bool IsEscapeCategoryChar(VirtualChar ch)
+        => ch.Value is '-' or '_' or
            (>= 'a' and <= 'z') or
-           (>= 'A' and <= 'Z');
+           (>= 'A' and <= 'Z') or
+           (>= '0' and <= '9');
 
     public RegexToken? TryScanNumber()
     {
@@ -281,7 +275,7 @@ internal struct RegexLexer
 
             unchecked
             {
-                var charVal = ch.Value - '0';
+                var charVal = ch - '0';
                 if (value > MaxValueDiv10 || (value == MaxValueDiv10 && charVal > MaxValueMod10))
                 {
                     error = true;
@@ -303,7 +297,7 @@ internal struct RegexLexer
         if (error)
         {
             token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue,
+                FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue,
                 token.GetSpan()));
         }
 
@@ -395,7 +389,7 @@ internal struct RegexLexer
         if (length != count)
         {
             result = result.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                FeaturesResources.Insufficient_hexadecimal_digits,
+                FeaturesResources.Insufficient_or_invalid_hexadecimal_digits,
                 GetTextSpan(beforeSlash, Position)));
         }
 
@@ -430,7 +424,7 @@ internal struct RegexLexer
         {
             if (Position < Text.Length && IsOctalDigit(this.CurrentChar))
             {
-                var octalVal = this.CurrentChar.Value - '0';
+                var octalVal = this.CurrentChar - '0';
                 Debug.Assert(octalVal is >= 0 and <= 7);
                 currentVal *= 8;
                 currentVal += octalVal;

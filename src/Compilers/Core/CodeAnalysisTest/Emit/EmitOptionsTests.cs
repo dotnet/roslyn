@@ -92,7 +92,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 nameof(EmitOptions.IncludePrivateMembers),
                 nameof(EmitOptions.InstrumentationKinds),
                 nameof(EmitOptions.DefaultSourceFileEncoding),
-                nameof(EmitOptions.FallbackSourceFileEncoding));
+                nameof(EmitOptions.FallbackSourceFileEncoding),
+                nameof(EmitOptions.TestOnly_DataToHexViaXxHash128));
         }
 
         [Fact]
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 tolerateErrors: true,
                 includePrivateMembers: false,
                 instrumentationKinds: ImmutableArray.Create(InstrumentationKind.TestCoverage),
-                pdbChecksumAlgorithm: HashAlgorithmName.MD5);
+                pdbChecksumAlgorithm: HashAlgorithmName.MD5); // CodeQL [SM02196] This is testing an algorithm that our codebase must support for PDBs
 
             Assert.Equal(options1, options2.WithInstrumentationKinds(default));
             Assert.Equal(options2, options3.WithPdbChecksumAlgorithm(HashAlgorithmName.SHA256));

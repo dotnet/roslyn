@@ -6,23 +6,26 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
-using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CodeGenerationHelpers;
+using static CSharpCodeGenerationHelpers;
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 internal static class MethodGenerator
 {
-    private static readonly TypeParameterConstraintSyntax s_classConstraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint);
-    private static readonly TypeParameterConstraintSyntax s_structConstraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint);
-    private static readonly TypeParameterConstraintSyntax s_defaultConstraint = SyntaxFactory.DefaultConstraint();
+    private static readonly TypeParameterConstraintSyntax s_classConstraint = ClassOrStructConstraint(SyntaxKind.ClassConstraint);
+    private static readonly TypeParameterConstraintSyntax s_structConstraint = ClassOrStructConstraint(SyntaxKind.StructConstraint);
+    private static readonly TypeParameterConstraintSyntax s_defaultConstraint = DefaultConstraint();
 
     internal static BaseNamespaceDeclarationSyntax AddMethodTo(
         BaseNamespaceDeclarationSyntax destination,
@@ -117,28 +120,52 @@ internal static class MethodGenerator
 
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
-        var methodDeclaration = SyntaxFactory.MethodDeclaration(
-            attributeLists: GenerateAttributes(method, info, explicitInterfaceSpecifier != null),
+        var isExplicit = explicitInterfaceSpecifier != null;
+        var parameters = method.Parameters.SelectAsArray(static (p, destination) => FilterAttributes(p, destination), destination);
+
+        var methodDeclaration = MethodDeclaration(
+            attributeLists: GenerateAttributes(method, isExplicit, info),
             modifiers: GenerateModifiers(method, destination, info),
             returnType: method.GenerateReturnTypeSyntax(),
             explicitInterfaceSpecifier: explicitInterfaceSpecifier,
             identifier: method.Name.ToIdentifierToken(),
             typeParameterList: GenerateTypeParameterList(method, info),
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, info),
+            parameterList: ParameterGenerator.GenerateParameterList(parameters, isExplicit: isExplicit, info),
             constraintClauses: GenerateConstraintClauses(method),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
-            semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
+            semicolonToken: hasNoBody ? SemicolonToken : default);
 
         methodDeclaration = UseExpressionBodyIfDesired(info, methodDeclaration, cancellationToken);
         return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
+    }
+
+    private static IParameterSymbol FilterAttributes(IParameterSymbol parameter, CodeGenerationDestination destination)
+        => parameter.WithAttributes(parameter.GetAttributes().WhereAsArray(static (a, destination) => FilterAttribute(a, destination), destination));
+
+    private static bool FilterAttribute(AttributeData attribute, CodeGenerationDestination destination)
+    {
+        if (destination is CodeGenerationDestination.InterfaceType)
+        {
+            // EnumeratorCancellation serves no purpose in an interface.  Filter it out.
+            return attribute.AttributeClass is not
+            {
+                Name: nameof(EnumeratorCancellationAttribute),
+                ContainingNamespace.Name: nameof(System.Runtime.CompilerServices),
+                ContainingNamespace.ContainingNamespace.Name: nameof(System.Runtime),
+                ContainingNamespace.ContainingNamespace.ContainingNamespace.Name: nameof(System),
+                ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true,
+            };
+        }
+
+        return true;
     }
 
     private static LocalFunctionStatementSyntax GenerateLocalFunctionDeclarationWorker(
         IMethodSymbol method, CodeGenerationDestination destination,
         CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
     {
-        var localFunctionDeclaration = SyntaxFactory.LocalFunctionStatement(
+        var localFunctionDeclaration = LocalFunctionStatement(
             modifiers: GenerateModifiers(method, destination, info),
             returnType: method.GenerateReturnTypeSyntax(),
             identifier: method.Name.ToIdentifierToken(),
@@ -190,17 +217,14 @@ internal static class MethodGenerator
     }
 
     private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-        IMethodSymbol method, CSharpCodeGenerationContextInfo info, bool isExplicit)
+        IMethodSymbol method, bool isExplicit, CSharpCodeGenerationContextInfo info)
     {
-        var attributes = new List<AttributeListSyntax>();
+        if (isExplicit)
+            return default;
 
-        if (!isExplicit)
-        {
-            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info));
-            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, SyntaxFactory.Token(SyntaxKind.ReturnKeyword)));
-        }
-
-        return [.. attributes];
+        return [
+            .. AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
+            .. AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, ReturnKeyword)];
     }
 
     private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
@@ -228,19 +252,60 @@ internal static class MethodGenerator
             if (!referencedTypeParameters.Contains(typeParameter))
                 continue;
 
-            var constraint = typeParameter switch
-            {
-                { HasReferenceTypeConstraint: true } => s_classConstraint,
-                { HasValueTypeConstraint: true } => s_structConstraint,
-                _ => s_defaultConstraint
-            };
+            var constraint = GetConstraint(typeParameter);
 
-            listOfClauses.Add(SyntaxFactory.TypeParameterConstraintClause(
+            listOfClauses.Add(TypeParameterConstraintClause(
                 typeParameter.Name.ToIdentifierName(),
                 [constraint]));
         }
 
         return [.. listOfClauses];
+    }
+
+    private static TypeParameterConstraintSyntax GetConstraint(ITypeParameterSymbol typeParameter)
+    {
+        using var _ = PooledHashSet<ITypeParameterSymbol>.GetInstance(out var visited);
+        var constraint = GetConstraintRecursive(typeParameter);
+
+        return constraint ?? s_defaultConstraint;
+
+        TypeParameterConstraintSyntax? GetConstraintRecursive(ITypeParameterSymbol typeParameter)
+        {
+            if (visited.Add(typeParameter))
+            {
+                // If it is explicitly marked as `T : struct` or `T : class` then we want to have the same constraint on the override.
+                if (typeParameter.HasValueTypeConstraint)
+                    return s_structConstraint;
+
+                if (typeParameter.HasReferenceTypeConstraint)
+                    return s_classConstraint;
+
+                foreach (var constraintType in typeParameter.ConstraintTypes)
+                {
+                    // If we ended up being constrained on a value type, then we have to have the `T : struct`
+                    // constraint to align with that.
+                    if (constraintType.IsValueType)
+                        return s_structConstraint;
+
+                    // For all reference types *except* interfaces, we want the `T : class` constraint.  An interface
+                    // can be implemented by a value type or a referernce type, so it adds no information to the
+                    // constraints.
+                    if (constraintType.IsReferenceType && constraintType.TypeKind != TypeKind.Interface)
+                        return s_classConstraint;
+
+                    // If we have `where T : U` then peek into the other contraint to see if it adds information.
+                    if (constraintType is ITypeParameterSymbol constraintTypeParameter)
+                    {
+                        var constraint = GetConstraintRecursive(constraintTypeParameter);
+                        if (constraint != null)
+                            return constraint;
+                    }
+                }
+            }
+
+            // We learned nothing from this constraint.
+            return null;
+        }
     }
 
     private static TypeParameterListSyntax? GenerateTypeParameterList(
@@ -249,19 +314,22 @@ internal static class MethodGenerator
         return TypeParameterGenerator.GenerateTypeParameterList(method.TypeParameters, info);
     }
 
-    private static SyntaxTokenList GenerateModifiers(
-        IMethodSymbol method, CodeGenerationDestination destination, CSharpCodeGenerationContextInfo info)
+    public static SyntaxTokenList GenerateModifiers(
+        IMethodSymbol method,
+        CodeGenerationDestination destination,
+        CSharpCodeGenerationContextInfo info,
+        bool includeAccessibility = true)
     {
-        var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         // Only "static" and "unsafe" modifiers allowed if we're an explicit impl.
         if (method.ExplicitInterfaceImplementations.Any())
         {
             if (method.IsStatic)
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                tokens.Add(StaticKeyword);
 
             if (CodeGenerationMethodInfo.GetIsUnsafe(method))
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+                tokens.Add(UnsafeKeyword);
         }
         else
         {
@@ -270,67 +338,61 @@ internal static class MethodGenerator
             {
                 if (method.IsStatic)
                 {
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(StaticKeyword);
 
                     // We only generate the abstract keyword in interfaces for static abstract members
                     if (method.IsAbstract)
-                        tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                        tokens.Add(AbstractKeyword);
                 }
             }
             else if (destination is not CodeGenerationDestination.CompilationUnit and
                 not CodeGenerationDestination.Namespace)
             {
-                CSharpCodeGenerationHelpers.AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                if (includeAccessibility)
+                    AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (method.IsStatic)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(StaticKeyword);
 
                 if (method.IsAbstract)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                    tokens.Add(AbstractKeyword);
 
                 if (method.IsSealed)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
+                    tokens.Add(SealedKeyword);
 
                 // Don't show the readonly modifier if the containing type is already readonly
                 // ContainingSymbol is used to guard against methods which are not members of their ContainingType (e.g. lambdas and local functions)
                 if (method.IsReadOnly && (method.ContainingSymbol as INamedTypeSymbol)?.IsReadOnly != true)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+                    tokens.Add(ReadOnlyKeyword);
 
                 if (method.IsOverride)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.OverrideKeyword));
+                    tokens.Add(OverrideKeyword);
 
                 if (method.IsVirtual)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.VirtualKeyword));
-
-                if (CodeGenerationMethodInfo.GetIsPartial(method) && !method.IsAsync)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
+                    tokens.Add(VirtualKeyword);
             }
             else if (destination is CodeGenerationDestination.CompilationUnit)
             {
                 if (method.IsStatic)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(StaticKeyword);
             }
 
             if (CodeGenerationMethodInfo.GetIsUnsafe(method))
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+                tokens.Add(UnsafeKeyword);
 
             if (CodeGenerationMethodInfo.GetIsNew(method))
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
+                tokens.Add(NewKeyword);
         }
 
         if (destination != CodeGenerationDestination.InterfaceType)
         {
             if (CodeGenerationMethodInfo.GetIsAsyncMethod(method))
-            {
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword));
-            }
+                tokens.Add(AsyncKeyword);
         }
 
-        if (CodeGenerationMethodInfo.GetIsPartial(method) && method.IsAsync)
-        {
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
-        }
+        if (CodeGenerationMethodInfo.GetIsPartial(method))
+            tokens.Add(PartialKeyword);
 
-        return tokens.ToSyntaxTokenListAndFree();
+        return [.. tokens];
     }
 }

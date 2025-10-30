@@ -5,13 +5,12 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class CSharpStructuredTriviaFormatEngine : AbstractFormatEngine
+internal sealed class CSharpStructuredTriviaFormatEngine : AbstractFormatEngine
 {
     public static IFormattingResult Format(
         SyntaxTrivia trivia,
@@ -43,7 +42,7 @@ internal class CSharpStructuredTriviaFormatEngine : AbstractFormatEngine
     internal override IHeaderFacts HeaderFacts => CSharpHeaderFacts.Instance;
 
     protected override AbstractTriviaDataFactory CreateTriviaFactory()
-        => new TriviaDataFactory(this.TreeData, this.Options);
+        => new TriviaDataFactory(this.TreeData, this.Options.LineFormatting);
 
     protected override FormattingContext CreateFormattingContext(TokenStream tokenStream, CancellationToken cancellationToken)
         => new(this, tokenStream);

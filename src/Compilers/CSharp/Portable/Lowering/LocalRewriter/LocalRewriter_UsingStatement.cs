@@ -410,7 +410,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: resourceSyntax,
                     rewrittenCondition: ifCondition,
                     rewrittenConsequence: disposeStatement,
-                    rewrittenAlternativeOpt: null,
                     hasErrors: false);
             }
 
@@ -471,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     disposeInfo = MethodArgumentInfo.CreateParameterlessMethod(disposeMethod);
                 }
 
-                disposeCall = MakeCallWithNoExplicitArgument(disposeInfo, resourceSyntax, disposedExpression, firstRewrittenArgument: null);
+                disposeCall = MakeCall(disposeInfo, resourceSyntax, disposedExpression, firstRewrittenArgument: null);
 
                 if (awaitOpt is object)
                 {
@@ -490,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Synthesize a call `expression.Method()`, but with some extra smarts to handle extension methods. This call expects that the
         /// receiver parameter has already been visited.
         /// </summary>
-        private BoundExpression MakeCallWithNoExplicitArgument(MethodArgumentInfo methodArgumentInfo, SyntaxNode syntax, BoundExpression? expression, BoundExpression? firstRewrittenArgument)
+        private BoundExpression MakeCall(MethodArgumentInfo methodArgumentInfo, SyntaxNode syntax, BoundExpression? expression, BoundExpression? firstRewrittenArgument)
         {
             MethodSymbol method = methodArgumentInfo.Method;
 
@@ -514,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                 ref expression,
-                captureReceiverMode: ReceiverCaptureMode.Default,
+                forceReceiverCapturing: false,
                 methodArgumentInfo.Arguments,
                 method,
                 argsToParamsOpt: default,
@@ -532,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref temps,
                 invokedAsExtensionMethod: method.IsExtensionMethod);
 
-            return MakeCall(null, syntax, expression, method, rewrittenArguments, argumentRefKindsOpt, LookupResultKind.Viable, method.ReturnType, temps.ToImmutableAndFree());
+            return MakeCall(null, syntax, expression, method, rewrittenArguments, argumentRefKindsOpt, LookupResultKind.Viable, temps.ToImmutableAndFree());
         }
     }
 }

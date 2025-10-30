@@ -2,15 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.UseCoalesceExpression
-Imports Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
-
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression.VisualBasicUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.UseCoalesceExpression.UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider)
+    Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression.VisualBasicUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpression
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>
@@ -252,6 +246,88 @@ end class
             Await New VerifyVB.Test With {
                 .TestCode = text,
                 .FixedCode = text
+            }.RunAsync()
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74460")>
+        Public Async Function TestLocalDeclaration_NoCastBaseAssignment() As Task
+            Await New VerifyVB.Test With {
+                .TestCode = "
+interface I
+end interface
+
+class C
+    implements I
+
+    sub Main(o as object)
+        dim item as I = TryCast(o, C)
+        [|if|] item is nothing then
+            item = TryCast(o, D)
+        end if
+    end sub
+end class
+
+class D
+    implements I
+end class
+                ",
+                .FixedCode = "
+interface I
+end interface
+
+class C
+    implements I
+
+    sub Main(o as object)
+        dim item as I = If(TryCast(o, C), TryCast(o, D))
+    end sub
+end class
+
+class D
+    implements I
+end class
+                "
+            }.RunAsync()
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74460")>
+        Public Async Function TestLocalDeclaration_NoCastBaseAssignment1() As Task
+            Await New VerifyVB.Test With {
+                .TestCode = "
+interface I
+end interface
+
+class C
+    implements I
+
+    sub Main(c as C, d as D)
+        dim item as I = c
+        [|if|] item is nothing then
+            item = d
+        end if
+    end sub
+end class
+
+class D
+    implements I
+end class
+                ",
+                .FixedCode = "
+interface I
+end interface
+
+class C
+    implements I
+
+    sub Main(c as C, d as D)
+        dim item as I = If(c, d)
+    end sub
+end class
+
+class D
+    implements I
+end class
+                "
             }.RunAsync()
         End Function
     End Class

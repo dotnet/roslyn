@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-internal class RQMethod(
+internal sealed class RQMethod(
     RQUnconstructedType containingType,
     RQMethodPropertyOrEventName memberName,
     int typeParameterCount,

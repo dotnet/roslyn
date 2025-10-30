@@ -44,10 +44,10 @@ internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigura
     public FixAllProvider? GetFixAllProvider()
         => null;
 
-    public Task<ImmutableArray<CodeFix>> GetFixesAsync(TextDocument document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public Task<ImmutableArray<CodeFix>> GetFixesAsync(TextDocument document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         => Task.FromResult(GetConfigurations(document.Project, diagnostics, cancellationToken));
 
-    public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         => Task.FromResult(GetConfigurations(project, diagnostics, cancellationToken));
 
     private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
@@ -68,7 +68,7 @@ internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigura
             }
 
             var codeAction = new TopLevelConfigureSeverityCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
-            result.Add(new CodeFix(project, codeAction, diagnostic));
+            result.Add(new CodeFix(codeAction, [diagnostic]));
 
             // Bulk configuration is only supported for analyzer diagnostics.
             if (!SuppressionHelpers.IsCompilerDiagnostic(diagnostic))
@@ -111,7 +111,7 @@ internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigura
             }
 
             var codeAction = new TopLevelBulkConfigureSeverityCodeAction(nestedActions.ToImmutableAndFree(), category);
-            result.Add(new CodeFix(project, codeAction, diagnostics));
+            result.Add(new CodeFix(codeAction, diagnostics));
         }
     }
 }

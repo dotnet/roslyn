@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 builder.Add(New SymbolAndSelectionInfo(enumType, Preselect:=False))
 
                 For Each member In enumType.GetMembers()
-                    If member.Kind = SymbolKind.Field AndAlso DirectCast(member, IFieldSymbol).IsConst AndAlso member.IsEditorBrowsable(options.HideAdvancedMembers, syntaxContext.SemanticModel.Compilation) Then
+                    If member.Kind = SymbolKind.Field AndAlso DirectCast(member, IFieldSymbol).IsConst AndAlso member.IsEditorBrowsable(options.MemberDisplayOptions.HideAdvancedMembers, syntaxContext.SemanticModel.Compilation) Then
                         builder.Add(New SymbolAndSelectionInfo(member, Preselect:=True))
                     End If
                 Next
@@ -86,14 +86,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)
-
-        Private Shared Function GetTypeFromSymbol(symbol As ISymbol) As ITypeSymbol
-            Dim symbolType = If(TryCast(symbol, IFieldSymbol)?.Type,
-                             If(TryCast(symbol, ILocalSymbol)?.Type,
-                             If(TryCast(symbol, IParameterSymbol)?.Type,
-                                TryCast(symbol, IPropertySymbol)?.Type)))
-            Return symbolType
-        End Function
 
         ' PERF: Cached values for GetDisplayAndInsertionText. Cuts down on the number of calls to ToMinimalDisplayString for large enums.
         Private ReadOnly _gate As New Object()

@@ -3,16 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Windows;
 using System.Windows.Input;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class StackTraceExplorerTab
+internal sealed class StackTraceExplorerTab
 {
     private readonly StackTraceExplorerViewModel _stackExplorerVM;
     public int NameIndex { get; }

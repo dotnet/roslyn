@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -35,8 +36,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             throw ExceptionUtilities.Unreachable();
         }
 
+        // Emitting netmodules is not supported by EnC.
         public override EmitBaseline? PreviousGeneration => null;
         public override SymbolChanges? EncSymbolChanges => null;
+        public override bool FieldRvaSupported => true;
+
+        public override INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType()
+            => null;
+
+        public override IMethodSymbolInternal GetOrCreateHotReloadExceptionConstructorDefinition()
+            => throw ExceptionUtilities.Unreachable();
+
+        public override INamedTypeSymbolInternal? GetUsedSynthesizedHotReloadExceptionType()
+            => null;
 
         public override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context) => SpecializedCollections.EmptyEnumerable<Cci.IFileReference>();
         public override ISourceAssemblySymbolInternal? SourceAssemblyOpt => null;

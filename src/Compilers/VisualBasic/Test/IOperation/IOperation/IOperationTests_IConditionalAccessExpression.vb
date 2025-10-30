@@ -716,7 +716,7 @@ Block[B8] - Exit
     Statements (0)
 ]]>.Value
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, Net451XmlReferences)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, Net461XmlReferences)
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(comp, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
@@ -821,7 +821,7 @@ Block[B6] - Exit
     Statements (0)
 ]]>.Value
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, Net451XmlReferences)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, Net461XmlReferences)
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(comp, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
@@ -928,7 +928,7 @@ Block[B6] - Exit
     Statements (0)
 ]]>.Value
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, Net451XmlReferences)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, Net461XmlReferences)
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(comp, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
@@ -1093,7 +1093,7 @@ Block[B10] - Exit
     Statements (0)
 ]]>.Value
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, Net451XmlReferences)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, Net461XmlReferences)
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(comp, expectedFlowGraph, expectedDiagnostics)
         End Sub
     End Class

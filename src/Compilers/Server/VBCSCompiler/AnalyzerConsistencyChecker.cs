@@ -5,13 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CommandLine;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -128,7 +129,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var loadedAssemblyMvid = loadedAssembly.ManifestModule.ModuleVersionId;
                 if (resolvedPathMvid != loadedAssemblyMvid)
                 {
-                    var message = $"analyzer assembly '{resolvedPath}' has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.Location}' has MVID '{loadedAssemblyMvid}'";
+                    var loadedAssemblyLocation = loader.GetOriginalDependencyLocation(loadedAssembly.GetName()) ?? loadedAssembly.Location;
+                    var message = $"analyzer assembly '{resolvedPath}' has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssemblyLocation}' has MVID '{loadedAssemblyMvid}'";
                     errorMessages ??= new List<string>();
                     errorMessages.Add(message);
                     logger.LogError(message);

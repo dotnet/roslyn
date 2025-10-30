@@ -63,7 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         localSymbol.Type
                     ),
                     rewrittenInitializer,
-                    localSymbol.Type,
                     localSymbol.IsRef),
                 hasErrors);
 

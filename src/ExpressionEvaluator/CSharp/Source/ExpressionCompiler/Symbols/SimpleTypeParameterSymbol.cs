@@ -4,11 +4,10 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -73,6 +72,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool? IsNotNullable => null;
 
         public override bool HasValueTypeConstraint
+        {
+            get { return false; }
+        }
+
+        public override bool AllowsRefLikeType
         {
             get { return false; }
         }

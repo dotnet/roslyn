@@ -60,6 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ReportedVarianceDiagnostics = &H2    ' Set if variance diagnostics have been reported.
             ReportedBaseClassConstraintsDiagnostics = &H4    ' Set if base class constraints diagnostics have been reported.
             ReportedInterfacesConstraintsDiagnostics = &H8    ' Set if constraints diagnostics for base/implemented interfaces have been reported.
+            ReportedCodeAnalysisEmbeddedAttributeDiagnostics = &H10 ' Set if the symbol has been checked for Microsoft.CodeAnalysis.EmbeddedAttribute definition diagnostics.
         End Enum
 
         ' Containing symbol
@@ -391,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If container IsNot Nothing Then
                 Debug.Assert(container.IsInterfaceType() AndAlso container.HasVariance())
 
-                diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_VarianceInterfaceNesting), Locations(0)))
+                diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_VarianceInterfaceNesting), GetFirstLocation()))
             End If
         End Sub
 
@@ -980,7 +981,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If asClause IsNot Nothing Then
                     location = asClause.Type.GetLocation()
                 Else
-                    location = method.Locations(0)
+                    location = method.GetFirstLocation()
                 End If
 
                 ReportDiagnostics(diagnostics, location, infosBuffer)
@@ -1017,7 +1018,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If syntax IsNot Nothing AndAlso syntax.AsClause IsNot Nothing Then
                         location = syntax.AsClause.Type.GetLocation()
                     Else
-                        location = param.Locations(0)
+                        location = param.GetFirstLocation()
                     End If
 
                     ReportDiagnostics(diagnostics, location, infosBuffer)
@@ -1042,7 +1043,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 For Each constraint As TypeSymbol In param.ConstraintTypesNoUseSiteDiagnostics
                     GenerateVarianceDiagnosticsForType(constraint, VarianceKind.In, VarianceContext.Constraint, infosBuffer)
                     If HaveDiagnostics(infosBuffer) Then
-                        Dim location As Location = param.Locations(0)
+                        Dim location As Location = param.GetFirstLocation()
 
                         For Each constraintInfo As TypeParameterConstraint In param.GetConstraints()
                             If constraintInfo.TypeConstraint IsNot Nothing AndAlso
@@ -1088,7 +1089,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If syntax IsNot Nothing AndAlso syntax.AsClause IsNot Nothing Then
                     location = syntax.AsClause.Type.GetLocation()
                 Else
-                    location = [property].Locations(0)
+                    location = [property].GetFirstLocation()
                 End If
 
                 ReportDiagnostics(diagnostics, location, infosBuffer)
@@ -1124,7 +1125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If syntax IsNot Nothing AndAlso syntax.AsClause IsNot Nothing Then
                     location = syntax.AsClause.Type.GetLocation()
                 Else
-                    location = [event].Locations(0)
+                    location = [event].GetFirstLocation()
                 End If
 
                 ReportDiagnostics(diagnostics, location, infosBuffer)
@@ -1919,7 +1920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         Debug.Assert(implParameter.Locations.Length = 1)
                         diagnostics.Add(ERRID.ERR_PartialMethodParamNamesMustMatch3,
-                                        implParameter.Locations(0),
+                                        implParameter.GetFirstLocation(),
                                         implParameter.Name, declParameter.Name, implMethod.Name)
                     End If
                 Next
@@ -1940,7 +1941,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         Debug.Assert(implParameter.Locations.Length = 1)
                         diagnostics.Add(ERRID.ERR_PartialMethodTypeParamNameMismatch3,
-                                        implParameter.Locations(0),
+                                        implParameter.GetFirstLocation(),
                                         implParameter.Name, declParameter.Name, implMethod.Name)
                     End If
 
@@ -2022,16 +2023,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ''' <summary> Set of processed structure types </summary>
             Public ReadOnly ProcessedTypes As HashSet(Of NamedTypeSymbol)
 
+            Public ReadOnly TypesWithCycle As HashSet(Of NamedTypeSymbol)
+
             ''' <summary> Queue element structure </summary>
             Public Structure QueueElement
                 Public ReadOnly Type As NamedTypeSymbol
-                Public ReadOnly Path As ConsList(Of FieldSymbol)
+                Public ReadOnly FieldPath As ConsList(Of FieldSymbol)
+                Public ReadOnly ContainingDefinitionsPath As ConsList(Of NamedTypeSymbol)
+                Public ReadOnly Report As Boolean
 
-                Public Sub New(type As NamedTypeSymbol, path As ConsList(Of FieldSymbol))
+                Public Sub New(type As NamedTypeSymbol, fieldPath As ConsList(Of FieldSymbol), containingDefinitionsPath As ConsList(Of NamedTypeSymbol), report As Boolean)
                     Debug.Assert(type IsNot Nothing)
-                    Debug.Assert(path IsNot Nothing)
+                    Debug.Assert(fieldPath IsNot Nothing)
+                    Debug.Assert(containingDefinitionsPath IsNot Nothing)
                     Me.Type = type
-                    Me.Path = path
+                    Me.FieldPath = fieldPath
+                    Me.ContainingDefinitionsPath = containingDefinitionsPath
+                    Me.Report = report
                 End Sub
             End Structure
 
@@ -2040,6 +2048,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private Sub New()
                 ProcessedTypes = New HashSet(Of NamedTypeSymbol)()
+                TypesWithCycle = New HashSet(Of NamedTypeSymbol)()
                 Queue = New Queue(Of QueueElement)
             End Sub
 
@@ -2050,6 +2059,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public Sub Free()
                 Me.Queue.Clear()
                 Me.ProcessedTypes.Clear()
+                Me.TypesWithCycle.Clear()
                 s_pool.Free(Me)
             End Sub
 
@@ -2091,7 +2101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             '  Allocate data set
             Dim data = StructureCircularityDetectionDataSet.GetInstance()
-            data.Queue.Enqueue(New StructureCircularityDetectionDataSet.QueueElement(Me, ConsList(Of FieldSymbol).Empty))
+            data.Queue.Enqueue(New StructureCircularityDetectionDataSet.QueueElement(Me, ConsList(Of FieldSymbol).Empty, ConsList(Of NamedTypeSymbol).Empty.Prepend(Me), report:=True))
 
             Dim hasCycle = False
 
@@ -2101,6 +2111,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim current = data.Queue.Dequeue()
                     If Not data.ProcessedTypes.Add(current.Type) Then
                         ' In some cases the queue may contain two same types which are not processed yet
+                        Continue While
+                    End If
+
+                    If data.TypesWithCycle.Contains(current.Type.OriginalDefinition) Then
                         Continue While
                     End If
 
@@ -2121,13 +2135,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     Continue For
                                 End If
 
-                                If fieldType.OriginalDefinition.Equals(Me) Then
+                                If current.ContainingDefinitionsPath.ContainsReference(fieldType.OriginalDefinition) Then
                                     '  a cycle detected
 
-                                    If Not cycleReportedForCurrentType Then
+                                    data.TypesWithCycle.Add(fieldType.OriginalDefinition)
+
+                                    If current.Report AndAlso Not cycleReportedForCurrentType AndAlso fieldType.OriginalDefinition.Equals(Me) Then
 
                                         '  the cycle includes 'current.Path' and ends with 'field'; the order is reversed in the list
-                                        Dim cycleFields = New ConsList(Of FieldSymbol)(field, current.Path)
+                                        Dim cycleFields = New ConsList(Of FieldSymbol)(field, current.FieldPath)
 
                                         '  generate a message info
                                         Dim diagnosticInfos = ArrayBuilder(Of DiagnosticInfo).GetInstance()
@@ -2149,7 +2165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         Dim symbolToReportErrorOn As Symbol = If(firstField.AssociatedSymbol, DirectCast(firstField, Symbol))
                                         Debug.Assert(symbolToReportErrorOn.Locations.Length > 0)
                                         diagnostics.Add(ERRID.ERR_RecordCycle2,
-                                                        symbolToReportErrorOn.Locations(0),
+                                                        symbolToReportErrorOn.GetFirstLocation(),
                                                         firstField.ContainingType.Name,
                                                         New CompoundDiagnosticInfo(diagnosticInfos.ToArrayAndFree()))
 
@@ -2158,18 +2174,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         hasCycle = True
                                     End If
 
-                                ElseIf Not data.ProcessedTypes.Contains(fieldType) Then
+                                ElseIf Not data.ProcessedTypes.Contains(fieldType) AndAlso Not data.TypesWithCycle.Contains(fieldType.OriginalDefinition) Then
                                     ' Add to the queue if we don't know yet if it was processed
-
-                                    If Not fieldType.IsDefinition Then
-                                        ' Types constructed from generic types are considered to be a separate types. We never report 
-                                        ' errors on such types. We also process only fields actually changed compared to original generic type.
-                                        data.Queue.Enqueue(New StructureCircularityDetectionDataSet.QueueElement(
-                                                fieldType, New ConsList(Of FieldSymbol)(field, current.Path)))
-
-                                        ' The original Generic type is added using regular rules (see next note).
-                                        fieldType = fieldType.OriginalDefinition
-                                    End If
 
                                     ' NOTE: we want to make sure we report the same error for the same types 
                                     '       consistently and don't depend on the call order; this solution uses
@@ -2180,14 +2186,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     '           (b) thus, this analysis only considers the cycles consisting of the 
                                     '               types which are 'bigger' than 'structBeingAnalyzed' because we will not 
                                     '               report the error regarding this cycle for this type anyway
-                                    Dim stepIntoType As Boolean = DetectTypeCircularity_ShouldStepIntoType(fieldType)
-                                    If stepIntoType Then
+                                    Dim stepIntoType As Boolean = DetectTypeCircularity_ShouldStepIntoType(fieldType.OriginalDefinition)
+
+                                    If stepIntoType OrElse Not fieldType.IsDefinition Then
                                         '  enqueue to be processed
+                                        ' First, visit type as a definition in order to detect the fact that it itself has a cycle.
+                                        ' This prevents us from going into an infinite generic expansion while visiting constructed form
+                                        ' of the type below.
                                         data.Queue.Enqueue(New StructureCircularityDetectionDataSet.QueueElement(
-                                                fieldType, New ConsList(Of FieldSymbol)(field, current.Path)))
+                                                fieldType.OriginalDefinition, New ConsList(Of FieldSymbol)(field, current.FieldPath),
+                                                current.ContainingDefinitionsPath.Prepend(fieldType.OriginalDefinition),
+                                                report:=stepIntoType))
                                     Else
                                         '  should not process 
                                         data.ProcessedTypes.Add(fieldType)
+                                    End If
+
+                                    If Not fieldType.IsDefinition Then
+                                        ' Types constructed from generic types are considered to be a separate types. We never report 
+                                        ' errors on such types. We also process only fields actually changed compared to original generic type.
+                                        data.Queue.Enqueue(New StructureCircularityDetectionDataSet.QueueElement(
+                                                fieldType, New ConsList(Of FieldSymbol)(field, current.FieldPath),
+                                                current.ContainingDefinitionsPath,
+                                                report:=True))
                                     End If
                                 End If
                             End If
@@ -2229,10 +2250,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' We use simple comparison based on source location 
-            Dim typeToTestLocation = typeToTest.Locations(0)
+            Dim typeToTestLocation = typeToTest.GetFirstLocation()
 
             Debug.Assert(Me.Locations.Length > 0)
-            Dim structBeingAnalyzedLocation = Me.Locations(0)
+            Dim structBeingAnalyzedLocation = Me.GetFirstLocation()
 
             Dim compilation = Me.DeclaringCompilation
             Dim fileCompResult = compilation.CompareSourceLocations(typeToTestLocation, structBeingAnalyzedLocation)
@@ -2264,11 +2285,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 defaultPropertyName = name
 
                                 If Not defaultProperty.ShadowsExplicitly Then
-                                    CheckDefaultPropertyAgainstAllBases(Me, defaultPropertyName, propertySymbol.Locations(0), diagBag)
+                                    CheckDefaultPropertyAgainstAllBases(Me, defaultPropertyName, propertySymbol.GetFirstLocation(), diagBag)
                                 End If
                             Else
                                 ' "'Default' can be applied to only one property name in a {0}."
-                                diagBag.Add(ERRID.ERR_DuplicateDefaultProps1, propertySymbol.Locations(0), GetKindText())
+                                diagBag.Add(ERRID.ERR_DuplicateDefaultProps1, propertySymbol.GetFirstLocation(), GetKindText())
                             End If
                             Exit For
                         End If
@@ -2285,7 +2306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                             If Not propertySymbol.IsDefault Then
                                 ' "'{0}' and '{1}' cannot overload each other because only one is declared 'Default'."
-                                diagBag.Add(ERRID.ERR_DefaultMissingFromProperty2, propertySymbol.Locations(0), defaultProperty, propertySymbol)
+                                diagBag.Add(ERRID.ERR_DefaultMissingFromProperty2, propertySymbol.GetFirstLocation(), defaultProperty, propertySymbol)
                             End If
                         End If
                     Next
@@ -2425,12 +2446,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 If explicitlyShadows Then
                                     If Not shadowsExplicitly Then
                                         Debug.Assert(symbol.Locations.Length > 0)
-                                        diagBag.Add(ERRID.ERR_MustShadow2, symbol.Locations(0), symbol.GetKindText(), symbol.Name)
+                                        diagBag.Add(ERRID.ERR_MustShadow2, symbol.GetFirstLocation(), symbol.GetKindText(), symbol.Name)
                                     End If
                                 ElseIf explicitlyOverloads Then
                                     If Not overridesExplicitly AndAlso Not overloadsExplicitly Then
                                         Debug.Assert(symbol.Locations.Length > 0)
-                                        diagBag.Add(ERRID.ERR_MustBeOverloads2, symbol.Locations(0), symbol.GetKindText(), symbol.Name)
+                                        diagBag.Add(ERRID.ERR_MustBeOverloads2, symbol.GetFirstLocation(), symbol.GetKindText(), symbol.Name)
                                     End If
                                 End If
                             End If
@@ -2929,14 +2950,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         ' "{0} '{1}' implicitly defines a member '{2}' which has the same name as a type parameter."
                         Binder.ReportDiagnostic(diagBag,
-                                                symImplicitlyDefinedBy.Locations(0),
+                                                symImplicitlyDefinedBy.GetFirstLocation(),
                                                 ERRID.ERR_SyntMemberShadowsGenericParam3,
                                                 symImplicitlyDefinedBy.GetKindText(),
                                                 symImplicitlyDefinedBy.Name,
                                                 sym.Name)
                     Else
                         ' "'{0}' has the same name as a type parameter."
-                        Binder.ReportDiagnostic(diagBag, sym.Locations(0), ERRID.ERR_ShadowingGenericParamWithMember1, sym.Name)
+                        Binder.ReportDiagnostic(diagBag, sym.GetFirstLocation(), ERRID.ERR_ShadowingGenericParamWithMember1, sym.Name)
                     End If
                 End If
             Next
@@ -3030,7 +3051,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' "{0} '{1}' implicitly defines '{2}', which conflicts with a member of the same name in {3} '{4}'."
                     Binder.ReportDiagnostic(
                             diagBag,
-                            firstAssociatedSymbol.Locations(0),
+                            firstAssociatedSymbol.GetFirstLocation(),
                             ERRID.ERR_SynthMemberClashesWithMember5,
                             firstAssociatedSymbol.GetKindText(),
                             OverrideHidingHelper.AssociatedSymbolName(firstAssociatedSymbol),
@@ -3050,7 +3071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         '{0} '{1}' implicitly defines '{2}', which conflicts with a member implicitly declared for {3} '{4}' in {5} '{6}'.
                         Binder.ReportDiagnostic(
                                 diagBag,
-                                firstAssociatedSymbol.Locations(0),
+                                firstAssociatedSymbol.GetFirstLocation(),
                                 ERRID.ERR_SynthMemberClashesWithSynth7,
                                 firstAssociatedSymbol.GetKindText(),
                                 OverrideHidingHelper.AssociatedSymbolName(firstAssociatedSymbol),
@@ -3066,7 +3087,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' "{0} '{1}' conflicts with a member implicitly declared for {2} '{3}' in {4} '{5}'."
                 Binder.ReportDiagnostic(
                         diagBag,
-                        secondSymbol.Locations(0),
+                        secondSymbol.GetFirstLocation(),
                         ERRID.ERR_MemberClashesWithSynth6,
                         secondSymbol.GetKindText(),
                         secondSymbol.Name,
@@ -3086,7 +3107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' "'{0}' is already declared in this {1}."
                     Binder.ReportDiagnostic(
                             diagBag,
-                            firstSymbol.Locations(0),
+                            firstSymbol.GetFirstLocation(),
                             ERRID.ERR_MultiplyDefinedEnumMember2,
                             firstSymbol.Name,
                             Me.GetKindText())
@@ -3098,7 +3119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' "'{0}' is already declared as '{1}' in this {2}."
                     Binder.ReportDiagnostic(
                             diagBag,
-                            firstSymbol.Locations(0),
+                            firstSymbol.GetFirstLocation(),
                             ERRID.ERR_MultiplyDefinedType3,
                             firstSymbol.Name,
                             If(includeKind,
@@ -3401,11 +3422,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                             diagnostics.Add(New VBDiagnostic(diag, GetImplementsLocation(iface)))
 
                                         ElseIf implementingSet.Count = 1 Then ' Otherwise, a duplicate implementation error is reported above
-                                            diagnostics.Add(useSiteInfo, implementingSet.Single.Locations(0))
+                                            diagnostics.Add(useSiteInfo, implementingSet.Single.GetFirstLocation())
                                         End If
 
                                     ElseIf implementingSet.Count = 1 Then
-                                        diagnostics.Add(useSiteInfo, implementingSet.Single.Locations(0))
+                                        diagnostics.Add(useSiteInfo, implementingSet.Single.GetFirstLocation())
                                     End If
                                 End If
                             Next
@@ -3557,7 +3578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                                     ' only report diagnostics if the signature is considered equal following VB rules.
                                     If (comparisonResults And Not SymbolComparisonResults.MismatchesForConflictingMethods) = 0 Then
-                                        ReportOverloadsErrors(comparisonResults, member, nextMember, member.Locations(0), diagnostics)
+                                        ReportOverloadsErrors(comparisonResults, member, nextMember, member.GetFirstLocation(), diagnostics)
                                         Exit For
                                     End If
                                 End If
@@ -3696,7 +3717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_MatchingOperatorExpected2,
                                                        SyntaxFacts.GetText(OverloadResolution.GetOperatorTokenKind(nameOfThePair)),
-                                                       method), method.Locations(0))
+                                                       method), method.GetFirstLocation())
             End If
 
             Return True
@@ -3738,7 +3759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' only report diagnostics if the signature is considered equal following VB rules.
                 If (comparisonResults And significantDiff) = 0 Then
-                    ReportOverloadsErrors(comparisonResults, method, nextMethod, method.Locations(0), diagnostics)
+                    ReportOverloadsErrors(comparisonResults, method, nextMethod, method.GetFirstLocation(), diagnostics)
                     Return True
                 End If
             Next
@@ -4014,7 +4035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             If EmitExtensionAttribute Then

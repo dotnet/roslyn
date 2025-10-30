@@ -3,22 +3,27 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
-Imports System.Reflection
-Imports Microsoft.CodeAnalysis
+Imports System.Reflection.PortableExecutable
+Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
-Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
     Friend NotInheritable Class VisualBasicInteractiveCompiler
         Inherits VisualBasicCompiler
 
-        Friend Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), analyzerLoader As IAnalyzerAssemblyLoader)
+        Private ReadOnly _createFromFileFunc As Func(Of String, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference)
+
+        Friend Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), analyzerLoader As IAnalyzerAssemblyLoader, Optional createFromFileFunc As Func(Of String, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference) = Nothing)
             MyBase.New(VisualBasicCommandLineParser.Script, responseFile, args, buildPaths, Nothing, analyzerLoader)
+            If createFromFileFunc Is Nothing Then
+                createFromFileFunc = AddressOf Script.CreateFromFile
+            End If
+            _createFromFileFunc = createFromFileFunc
         End Sub
 
         Friend Overrides Function GetCommandLineMetadataReferenceResolver(loggerOpt As TouchedFileLogger) As MetadataReferenceResolver
-            Return CommandLineRunner.GetMetadataReferenceResolver(Arguments, loggerOpt)
+            Return CommandLineRunner.GetMetadataReferenceResolver(Arguments, loggerOpt, _createFromFileFunc)
         End Function
 
         Friend Overrides ReadOnly Property Type As Type

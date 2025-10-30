@@ -23,18 +23,26 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 
+using static CSharpSyntaxTokens;
 using static CSharpUsePrimaryConstructorDiagnosticAnalyzer;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePrimaryConstructor), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixProvider
+internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixProvider
 {
+    private static readonly Matcher<SyntaxTrivia> s_commentFollowedByBlankLine = Matcher.Sequence(
+        Matcher.Single<SyntaxTrivia>(t => t.IsSingleOrMultiLineComment(), "comment"),
+        Matcher.Single<SyntaxTrivia>(t => t.Kind() == SyntaxKind.EndOfLineTrivia, "first end of line"),
+        Matcher.Repeat(Matcher.Single<SyntaxTrivia>(t => t.Kind() == SyntaxKind.WhitespaceTrivia, "whitespace")),
+        Matcher.Single<SyntaxTrivia>(t => t.IsKind(SyntaxKind.EndOfLineTrivia), "second end of line"));
+
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UsePrimaryConstructorDiagnosticId];
 
@@ -151,12 +159,12 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
 
                 var finalAttributeLists = currentTypeDeclaration.AttributeLists.AddRange(
                     constructorDeclaration.AttributeLists.Select(
-                        a => a.WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.MethodKeyword))).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation)));
+                        a => a.WithTarget(AttributeTargetSpecifier(MethodKeyword)).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation)));
 
                 var finalTrivia = CreateFinalTypeDeclarationLeadingTrivia(
                     currentTypeDeclaration, constructorDeclaration, constructor, properties, removedMembers);
 
-                return currentTypeDeclaration
+                var finalTypeDeclaration = currentTypeDeclaration
                     .WithAttributeLists(finalAttributeLists)
                     .WithLeadingTrivia(finalTrivia)
                     .WithIdentifier(typeParameterList != null ? currentTypeDeclaration.Identifier : currentTypeDeclaration.Identifier.WithoutTrailingTrivia())
@@ -165,9 +173,45 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                         .WithoutLeadingTrivia()
                         .WithTrailingTrivia(triviaAfterName)
                         .WithAdditionalAnnotations(Formatter.Annotation));
+
+                return WithCommentMoved(finalTypeDeclaration);
             });
 
         return;
+
+        TypeDeclarationSyntax WithCommentMoved(TypeDeclarationSyntax finalTypeDeclaration)
+        {
+            var firstMember = typeDeclaration.Members.First();
+            if (firstMember == constructorDeclaration || removedMembers.Any(kvp => kvp.Value.memberNode == firstMember))
+            {
+                // We're removing the first member in the type.  If this member had comments above it (with a blank line
+                // between it and the member) then keep those comments around.
+                var triviaToMove = GetLeadingCommentTrivia(firstMember);
+                if (triviaToMove.Length > 0)
+                {
+                    var nextToken = finalTypeDeclaration.OpenBraceToken.GetNextToken();
+                    return finalTypeDeclaration.ReplaceToken(
+                        nextToken,
+                        nextToken.WithPrependedLeadingTrivia(triviaToMove));
+                }
+            }
+
+            return finalTypeDeclaration;
+        }
+
+        ImmutableArray<SyntaxTrivia> GetLeadingCommentTrivia(MemberDeclarationSyntax firstMember)
+        {
+            var leadingTrivia = firstMember.GetLeadingTrivia().ToImmutableArray();
+
+            for (var i = leadingTrivia.Length - 1; i >= 0; i--)
+            {
+                var currentIndex = i;
+                if (s_commentFollowedByBlankLine.TryMatch(leadingTrivia, ref currentIndex))
+                    return leadingTrivia[..currentIndex];
+            }
+
+            return [];
+        }
 
         SyntaxRemoveOptions GetConstructorRemovalOptions()
         {
@@ -457,7 +501,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                         // Use existing semicolon if we have it.  Otherwise create a fresh one and place existing
                         // trailing trivia after it.
                         expressionStatement?.SemicolonToken
-                        ?? Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(propertyDeclaration.GetTrailingTrivia()));
+                        ?? SemicolonToken.WithTrailingTrivia(propertyDeclaration.GetTrailingTrivia()));
             }
             else
             {

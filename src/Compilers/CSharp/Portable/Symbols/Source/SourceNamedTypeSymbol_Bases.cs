@@ -386,10 +386,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_StaticBaseClass, baseTypeLocation, baseType, this);
                 }
 
-                if (!this.IsNoMoreVisibleThan(baseType, ref useSiteInfo))
+                if (baseType.FindTypeLessVisibleThan(this, ref useSiteInfo) is { } lessVisibleType)
                 {
-                    // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
-                    diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, baseType);
+                    if (ReferenceEquals(baseType, lessVisibleType))
+                    {
+                        // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
+                        diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, lessVisibleType);
+                    }
+                    else
+                    {
+                        // Inconsistent accessibility: type '{1}' is less accessible than class '{0}'
+                        diagnostics.Add(ErrorCode.ERR_BadVisBaseType, baseTypeLocation, this, lessVisibleType);
+                    }
                 }
 
                 if (baseType.HasFileLocalTypes() && !this.HasFileLocalTypes())
@@ -569,8 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (this.IsRefLikeType)
                         {
-                            // '{0}': ref structs cannot implement interfaces
-                            diagnostics.Add(ErrorCode.ERR_RefStructInterfaceImpl, location, this);
+                            Binder.CheckFeatureAvailability(typeSyntax, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
                         }
 
                         if (baseType.ContainsDynamic())
@@ -717,6 +724,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert((object)GetDeclaredBaseType(basesBeingResolved: null) == null, "Computation skipped for enums");
                 declaredBase = compilation.GetSpecialType(SpecialType.System_Enum);
             }
+            else if (typeKind == TypeKind.Extension)
+            {
+                Binder.GetSpecialType(compilation, SpecialType.System_Object, this.GetFirstLocationOrNone(), diagnostics);
+                return null;
+            }
             else
             {
                 declaredBase = GetDeclaredBaseType(basesBeingResolved: null);
@@ -727,7 +739,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (typeKind)
                 {
                     case TypeKind.Class:
-
                         if (this.SpecialType == SpecialType.System_Object)
                         {
                             return null;

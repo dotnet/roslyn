@@ -21,8 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         EventSignature
         FieldType
         HandlesClause
+        PropertyType
         PropertySignature
         PropertyAccessorSignature
+        EventType
         EventAccessorSignature
     End Enum
 

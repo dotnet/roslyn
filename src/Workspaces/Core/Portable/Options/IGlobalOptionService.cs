@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -65,7 +64,7 @@ internal interface IGlobalOptionService : IOptionsReader
     /// </remarks>
     bool RefreshOption(OptionKey2 optionKey, object? newValue);
 
-    void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler);
+    void AddOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler);
 
-    void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler);
+    void RemoveOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler);
 }

@@ -11,12 +11,13 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
 internal interface IRemoteNavigateToSearchService
 {
-    ValueTask SearchDocumentAsync(Checksum solutionChecksum, DocumentId documentId, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+    ValueTask SearchDocumentAndRelatedDocumentsAsync(Checksum solutionChecksum, DocumentId documentId, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
     ValueTask SearchProjectsAsync(Checksum solutionChecksum, ImmutableArray<ProjectId> projectIds, ImmutableArray<DocumentId> priorityDocumentIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
 
     ValueTask SearchGeneratedDocumentsAsync(Checksum solutionChecksum, ImmutableArray<ProjectId> projectIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
@@ -24,9 +25,9 @@ internal interface IRemoteNavigateToSearchService
 
     ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken);
 
-    public interface ICallback
+    interface ICallback
     {
-        ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result);
+        ValueTask OnItemsFoundAsync(RemoteServiceCallbackId callbackId, ImmutableArray<RoslynNavigateToItem> items);
         ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId);
     }
 }
@@ -39,22 +40,23 @@ internal sealed class NavigateToSearchServiceServerCallbackDispatcher() : Remote
     private new NavigateToSearchServiceCallback GetCallback(RemoteServiceCallbackId callbackId)
         => (NavigateToSearchServiceCallback)base.GetCallback(callbackId);
 
-    public ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result)
-        => GetCallback(callbackId).OnResultFoundAsync(result);
+    public ValueTask OnItemsFoundAsync(RemoteServiceCallbackId callbackId, ImmutableArray<RoslynNavigateToItem> items)
+        => GetCallback(callbackId).OnItemsFoundAsync(items);
 
     public ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId)
         => GetCallback(callbackId).OnProjectCompletedAsync();
 }
 
 internal sealed class NavigateToSearchServiceCallback(
-    Func<RoslynNavigateToItem, Task> onResultFound,
-    Func<Task>? onProjectCompleted)
+    Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
+    Func<Task>? onProjectCompleted,
+    CancellationToken cancellationToken)
 {
-    public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result)
+    public async ValueTask OnItemsFoundAsync(ImmutableArray<RoslynNavigateToItem> items)
     {
         try
         {
-            await onResultFound(result).ConfigureAwait(false);
+            await onItemsFound(items, default, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
         {

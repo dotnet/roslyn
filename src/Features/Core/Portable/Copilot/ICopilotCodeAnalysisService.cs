@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Copilot;
@@ -16,17 +20,6 @@ namespace Microsoft.CodeAnalysis.Copilot;
 /// </summary>
 internal interface ICopilotCodeAnalysisService : ILanguageService
 {
-    /// <summary>
-    /// Returns true if we should show 'Refine using Copilot' hyperlink in the lightbulb
-    /// preview for code actions.
-    /// </summary>
-    Task<bool> IsRefineOptionEnabledAsync();
-
-    /// <summary>
-    /// Returns true if Copilot background code analysis feature is enabled.
-    /// </summary>
-    Task<bool> IsCodeAnalysisOptionEnabledAsync();
-
     /// <summary>
     /// Returns true if the Copilot service is available for making Copilot code analysis requests.
     /// </summary>
@@ -70,4 +63,42 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// which might be used to provide additional context to Copilot for the refinement session.
     /// </summary>
     Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Retrieves the prompt 
+    /// </summary>
+    /// <param name="onTheFlyDocsInfo">Type containing code and other context about the symbol being examined.</param>
+    /// <returns></returns>
+    Task<string> GetOnTheFlyDocsPromptAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Retrieves the response from Copilot summarizing what a symbol is being used for and whether or not the quota has exceeded.
+    /// </summary>
+    /// <param name="prompt">The input text used to generate the response.</param>
+    Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Determines if the given <paramref name="filePath"/> is excluded in the workspace.
+    /// </summary>
+    Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Method to retrieve the documentation comment for a given <paramref name="proposal"/>
+    /// </summary>
+    /// <param name="proposal">The documentation comment that has been broken down into its individual pieces.</param>
+    Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Checks if the feature for implementing <see cref="System.NotImplementedException"/> is available.
+    /// </summary>
+    Task<bool> IsImplementNotImplementedExceptionsAvailableAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Implements methods or properties containing <see cref="System.NotImplementedException"/> throws in the given <paramref name="document"/>.
+    /// </summary>
+    /// <returns>A dictionary mapping the original syntax nodes to their implementation details.</returns>
+    Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(
+        Document document,
+        ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
+        CancellationToken cancellationToken);
 }

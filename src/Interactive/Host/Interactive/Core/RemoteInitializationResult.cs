@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -43,8 +41,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             => new Data()
             {
                 ScriptPath = ScriptPath,
-                MetadataReferencePaths = MetadataReferencePaths.ToArray(),
-                Imports = Imports.ToArray(),
+                MetadataReferencePaths = [.. MetadataReferencePaths],
+                Imports = [.. Imports],
             };
     }
 }

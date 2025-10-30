@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
@@ -25,11 +26,13 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
 /// to an entirely differently (ideally 'pull') model for test discovery.
 /// </summary>
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener<object>
+internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener
 {
     private readonly IGlobalOptionService _globalOptions;
     private readonly IThreadingContext _threadingContext;
     private readonly AsyncBatchingWorkQueue<WorkspaceChangeEventArgs> _eventQueue;
+
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -47,21 +50,24 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
             _threadingContext.DisposalToken);
     }
 
-    public void StartListening(Workspace workspace, object? serviceOpt)
+    public void StartListening(Workspace workspace)
     {
         // We only support this option to disable crawling in internal speedometer and ddrit perf runs to lower noise.
         // It is not exposed to the user.
         if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
+    }
+
+    public void StopListening(Workspace workspace)
+    {
+        if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
         {
-            workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _threadingContext.DisposalToken.Register(() =>
-            {
-                workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            });
+            _workspaceChangedDisposer?.Dispose();
+            _workspaceChangedDisposer = null;
         }
     }
 
-    private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         // Legacy workspace events exist solely to let unit testing continue to work using their own fork of solution
         // crawler.  As such, they only need events for the project types they care about.  Specifically, that is only

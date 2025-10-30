@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
@@ -23,6 +25,12 @@ internal static class ContractWrappers
     public static InternalContracts.SourceSpan ToContract(this SourceSpan id)
         => new(id.StartLine, id.StartColumn, id.EndLine, id.EndColumn);
 
+    public static InternalContracts.ProjectInstanceId ToContract(this ProjectInstanceId id)
+        => new(id.ProjectFilePath, id.TargetFramework);
+
+    public static InternalContracts.RunningProjectInfo ToContract(this RunningProjectInfo id)
+        => new(id.ProjectInstanceId.ToContract(), id.RestartAutomatically);
+
     public static InternalContracts.ManagedHotReloadAvailability ToContract(this ManagedHotReloadAvailability value)
         => new((InternalContracts.ManagedHotReloadAvailabilityStatus)value.Status, value.LocalizedMessage);
 
@@ -41,7 +49,7 @@ internal static class ContractWrappers
             exceptionRegions: update.ExceptionRegions.SelectAsArray(FromContract));
 
     public static ManagedHotReloadUpdates FromContract(this InternalContracts.ManagedHotReloadUpdates updates)
-        => new(updates.Updates.FromContract(), updates.Diagnostics.FromContract());
+        => new(updates.Updates.FromContract(), updates.Diagnostics.FromContract(), updates.ProjectsToRebuild.SelectAsArray(FromContract), updates.ProjectsToRestart.SelectAsArray(FromContract));
 
     public static ImmutableArray<ManagedHotReloadUpdate> FromContract(this ImmutableArray<InternalContracts.ManagedHotReloadUpdate> diagnostics)
         => diagnostics.SelectAsArray(FromContract);
@@ -60,6 +68,9 @@ internal static class ContractWrappers
 
     public static SourceSpan FromContract(this InternalContracts.SourceSpan id)
         => new(id.StartLine, id.StartColumn, id.EndLine, id.EndColumn);
+
+    public static ProjectInstanceId FromContract(this InternalContracts.ProjectInstanceId id)
+        => new(id.ProjectFilePath, id.TargetFramework);
 
     public static ManagedExceptionRegionUpdate FromContract(this InternalContracts.ManagedExceptionRegionUpdate update)
         => new(FromContract(update.Method), update.Delta, FromContract(update.NewSpan));

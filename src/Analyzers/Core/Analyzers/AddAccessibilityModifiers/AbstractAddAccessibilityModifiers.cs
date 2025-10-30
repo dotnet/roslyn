@@ -5,9 +5,9 @@
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers;
+namespace Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers;
 
-internal abstract class AbstractAddAccessibilityModifiers<TMemberDeclarationSyntax> : IAddAccessibilityModifiers
+internal abstract class AbstractAddOrRemoveAccessibilityModifiers<TMemberDeclarationSyntax> : IAddOrRemoveAccessibilityModifiers
     where TMemberDeclarationSyntax : SyntaxNode
 {
     public bool ShouldUpdateAccessibilityModifier(

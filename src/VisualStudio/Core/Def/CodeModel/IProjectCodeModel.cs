@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 

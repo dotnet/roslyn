@@ -13,6 +13,6 @@ internal static class IFileBannerFactsExtensions
         this IFileBannerFacts bannerService, SyntaxNode node)
     {
         var leadingBlankLines = bannerService.GetLeadingBlankLines(node);
-        return node.GetLeadingTrivia().Skip(leadingBlankLines.Length).ToImmutableArray();
+        return [.. node.GetLeadingTrivia().Skip(leadingBlankLines.Length)];
     }
 }

@@ -3,20 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class TypeOfKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class TypeOfKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.TypeOfKeyword)
 {
-    public TypeOfKeywordRecommender()
-        : base(SyntaxKind.TypeOfKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return

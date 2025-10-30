@@ -2,39 +2,39 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.WorkspaceEventMap;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 [Export(typeof(MiscellaneousFilesWorkspace))]
 internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenTextBufferEventListener
 {
+    private readonly IThreadingContext _threadingContext;
     private readonly IVsService<IVsTextManager> _textManagerService;
     private readonly OpenTextBufferProvider _openTextBufferProvider;
-    private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
+    private readonly Lazy<IMetadataAsSourceFileService> _fileTrackingMetadataAsSourceService;
 
-    private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = [];
+    private readonly ConcurrentDictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = [];
 
     /// <summary>
     /// <see cref="WorkspaceRegistration"/> instances for all open buffers being tracked by by this object
@@ -46,13 +46,9 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     /// The mapping of all monikers in the RDT and the <see cref="ProjectId"/> of the project and <see cref="SourceTextContainer"/> of the open
     /// file we have created for that open buffer. An entry should only be in here if it's also already in <see cref="_monikerToWorkspaceRegistration"/>.
     /// </summary>
-    private readonly Dictionary<string, (ProjectId projectId, SourceTextContainer textContainer)> _monikersToProjectIdAndContainer = new Dictionary<string, (ProjectId, SourceTextContainer)>();
+    private readonly Dictionary<string, (ProjectId projectId, SourceTextContainer textContainer)> _monikersToProjectIdAndContainer = [];
 
-    private readonly ImmutableArray<MetadataReference> _metadataReferences;
-
-    private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitization;
-
-    private IVsTextManager _textManager;
+    private readonly Lazy<ImmutableArray<MetadataReference>> _metadataReferences;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -60,38 +56,23 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         IThreadingContext threadingContext,
         IVsService<SVsTextManager, IVsTextManager> textManagerService,
         OpenTextBufferProvider openTextBufferProvider,
-        IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
-        VisualStudioWorkspace visualStudioWorkspace)
-        : base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
+        Lazy<IMetadataAsSourceFileService> fileTrackingMetadataAsSourceService,
+        Composition.ExportProvider exportProvider)
+        : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.MiscellaneousFiles)
     {
-        _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
-
+        _threadingContext = threadingContext;
         _textManagerService = textManagerService;
         _openTextBufferProvider = openTextBufferProvider;
         _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
 
-        _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
+        _metadataReferences = new(() => [.. CreateMetadataReferences()]);
 
         _openTextBufferProvider.AddListener(this);
     }
 
-    public async Task InitializeAsync()
-    {
-        await TaskScheduler.Default;
-        _textManager = await _textManagerService.GetValueAsync().ConfigureAwait(false);
-    }
-
-    void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _) => TrackOpenedDocument(moniker, textBuffer);
-    void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
+    void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? _) => TrackOpenedDocument(moniker, textBuffer);
 
     void IOpenTextBufferEventListener.OnCloseDocument(string moniker) => TryUntrackClosingDocument(moniker);
-
-    /// <summary>
-    /// File hierarchy events are not relevant to the misc workspace.
-    /// </summary>
-    void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
-    {
-    }
 
     void IOpenTextBufferEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
     {
@@ -107,14 +88,32 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         }
     }
 
+    /// <summary>
+    /// Not relevant to the misc workspace.
+    /// </summary>
+    void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy) { }
+
+    /// <summary>
+    /// Not relevant to the misc workspace.
+    /// </summary>
+    void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
+
+    /// <summary>
+    /// Not relevant to the misc workspace.
+    /// </summary>
+    void IOpenTextBufferEventListener.OnSaveDocument(string moniker) { }
+
     public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)
         => _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
 
-    private LanguageInformation TryGetLanguageInformation(string filename)
+    private LanguageInformation? TryGetLanguageInformation(string filename)
     {
-        LanguageInformation languageInformation = null;
+        _threadingContext.ThrowIfNotOnUIThread();
 
-        if (ErrorHandler.Succeeded(_textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
+        LanguageInformation? languageInformation = null;
+
+        var textManager = _threadingContext.JoinableTaskFactory.Run(() => _textManagerService.GetValueOrNullAsync(CancellationToken.None));
+        if (textManager != null && ErrorHandler.Succeeded(textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
         {
             _languageInformationByLanguageGuid.TryGetValue(fileLanguageGuid, out languageInformation);
         }
@@ -124,8 +123,15 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
 
     private IEnumerable<MetadataReference> CreateMetadataReferences()
     {
+        // VisualStudioMetadataReferenceManager construction requires the main thread
+        // TODO: Determine if main thread affinity can be removed: https://github.com/dotnet/roslyn/issues/77791
+        _threadingContext.ThrowIfNotOnUIThread();
+
         var manager = this.Services.GetService<VisualStudioMetadataReferenceManager>();
         var searchPaths = VisualStudioMetadataReferenceManager.GetReferencePaths();
+
+        if (manager == null)
+            return [];
 
         return from fileName in new[] { "mscorlib.dll", "System.dll", "System.Core.dll" }
                let fullPath = FileUtilities.ResolveRelativePath(fileName, basePath: null, baseDirectory: null, searchPaths: searchPaths, fileExists: File.Exists)
@@ -135,7 +141,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
 
     private void TrackOpenedDocument(string moniker, ITextBuffer textBuffer)
     {
-        _foregroundThreadAffinitization.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var languageInformation = TryGetLanguageInformation(moniker);
         if (languageInformation == null)
@@ -165,13 +171,17 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         // We may or may not be getting this notification from the foreground thread if another workspace
         // is raising events on a background. Let's send it back to the UI thread since we can't talk
         // to the RDT in the background thread. Since this is all asynchronous a bit more asynchrony is fine.
-        if (!_foregroundThreadAffinitization.IsForeground())
+        if (!_threadingContext.JoinableTaskContext.IsOnMainThread)
         {
-            ScheduleTask(() => Registration_WorkspaceChanged(sender, e));
+            // Require main thread on the callback as this method requires that per the comment above.
+            var handlerAndOptions = new WorkspaceEventHandlerAndOptions(args => Registration_WorkspaceChanged(sender, e), WorkspaceEventOptions.RequiresMainThreadOptions);
+            var handlerSet = EventHandlerSet.Create(handlerAndOptions);
+
+            ScheduleTask(e, handlerSet);
             return;
         }
 
-        _foregroundThreadAffinitization.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var workspaceRegistration = (WorkspaceRegistration)sender;
 
@@ -230,7 +240,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     /// <returns>true if we were previously tracking it.</returns>
     private bool TryUntrackClosingDocument(string moniker)
     {
-        _foregroundThreadAffinitization.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var unregisteredRegistration = false;
 
@@ -258,9 +268,9 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
 
     private void AttachToDocument(string moniker, ITextBuffer textBuffer)
     {
-        _foregroundThreadAffinitization.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
-        if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer.AsTextContainer()))
+        if (_fileTrackingMetadataAsSourceService.Value.TryAddDocumentToWorkspace(moniker, textBuffer.AsTextContainer(), out var _))
         {
             // We already added it, so we will keep it excluded from the misc files workspace
             return;
@@ -288,13 +298,13 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         var checksumAlgorithm = SourceHashAlgorithms.Default;
         var fileLoader = new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null);
         return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-            this, filePath, fileLoader, languageInformation, checksumAlgorithm, Services.SolutionServices, _metadataReferences);
+            this, filePath, fileLoader, languageInformation, checksumAlgorithm, Services.SolutionServices, _metadataReferences.Value);
     }
 
     private void DetachFromDocument(string moniker)
     {
-        _foregroundThreadAffinitization.AssertIsForeground();
-        if (_fileTrackingMetadataAsSourceService.TryRemoveDocumentFromWorkspace(moniker))
+        _threadingContext.ThrowIfNotOnUIThread();
+        if (_fileTrackingMetadataAsSourceService.Value.TryRemoveDocumentFromWorkspace(moniker))
         {
             return;
         }

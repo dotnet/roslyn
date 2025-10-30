@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics</RootNamespace>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics</PackageId>
+    <PackageDescription>
+      A supporting package for Visual Studio Microsoft.VisualStudio.DesignTools.CodeAnalysis.Diagnostics:
+      https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/Xaml/Diagnostics/Source/CodeAnalysisDiagnostics
+    </PackageDescription>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- ⚠ Only designTools assemblies should be added here ⚠ -->
+    <InternalsVisibleTo Include="DesignTools.Tests.Component.CodeAnalysisDiagnostics" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis.Diagnostics" Key="$(VisualStudioKey)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="InternalAPI.Shipped.txt" />
+    <PublicAPI Include="InternalAPI.Unshipped.txt" />
+  </ItemGroup>
+</Project>

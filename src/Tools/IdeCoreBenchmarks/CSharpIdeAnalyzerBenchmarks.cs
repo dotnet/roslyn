@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace IdeCoreBenchmarks
@@ -58,7 +57,6 @@ namespace IdeCoreBenchmarks
                 applyChanges: false,
                 useAll: false,
                 iterations: 1,
-                usePersistentStorage: false,
                 fullSolutionAnalysis: false,
                 incrementalAnalyzerNames: ImmutableArray<string>.Empty);
 

@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement;
 
@@ -59,8 +59,8 @@ internal abstract class AbstractConsecutiveStatementPlacementDiagnosticAnalyzer<
             if (!context.ShouldAnalyzeSpan(child.FullSpan))
                 continue;
 
-            if (child.IsNode)
-                Recurse(context, notificationOption, child.AsNode()!, cancellationToken);
+            if (child.AsNode(out var childNode))
+                Recurse(context, notificationOption, childNode, cancellationToken);
         }
     }
 
@@ -108,7 +108,7 @@ internal abstract class AbstractConsecutiveStatementPlacementDiagnosticAnalyzer<
             GetDiagnosticLocation(block),
             notificationOption,
             context.Options,
-            additionalLocations: ImmutableArray.Create(nextToken.GetLocation()),
+            additionalLocations: [nextToken.GetLocation()],
             properties: null));
     }
 }

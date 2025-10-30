@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Sub EnsureLazyMembersAreLoaded()
 
-            If _lazyConstructorArguments Is Nothing Then
+            If Volatile.Read(_lazyConstructorArguments) Is Nothing Then
 
                 Dim constructorArgs As TypedConstant() = Nothing
                 Dim namedArgs As KeyValuePair(Of String, TypedConstant)() = Nothing

@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -19,18 +18,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.TransposeRecordKeyword), Shared]
-internal class CSharpTransposeRecordKeywordCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpTransposeRecordKeywordCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     private const string CS9012 = nameof(CS9012); // Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpTransposeRecordKeywordCodeFixProvider()
-    {
-    }
-
-    public override ImmutableArray<string> FixableDiagnosticIds
-        => [CS9012];
+    public override ImmutableArray<string> FixableDiagnosticIds => [CS9012];
 
     private static bool TryGetRecordDeclaration(
         Diagnostic diagnostic, CancellationToken cancellationToken, [NotNullWhen(true)] out RecordDeclarationSyntax? recordDeclaration)
@@ -100,7 +94,7 @@ internal class CSharpTransposeRecordKeywordCodeFixProvider : SyntaxEditorBasedCo
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
         {

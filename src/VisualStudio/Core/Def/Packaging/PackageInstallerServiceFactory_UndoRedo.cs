@@ -6,8 +6,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -15,7 +13,7 @@ using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging;
 
-internal partial class PackageInstallerService
+internal sealed partial class PackageInstallerService
 {
     private async Task<bool> TryInstallAndAddUndoActionAsync(
         string? source, string packageName, string? version, bool includePrerelease,
@@ -124,7 +122,7 @@ internal partial class PackageInstallerService
         }
     }
 
-    private class UninstallPackageUndoUnit : BaseUndoUnit
+    private sealed class UninstallPackageUndoUnit : BaseUndoUnit
     {
         public UninstallPackageUndoUnit(
             PackageInstallerService packageInstallerService,
@@ -159,7 +157,7 @@ internal partial class PackageInstallerService
             => pBstr = string.Format(ServicesVSResources.Uninstall_0, packageName);
     }
 
-    private class InstallPackageUndoUnit : BaseUndoUnit
+    private sealed class InstallPackageUndoUnit : BaseUndoUnit
     {
         public InstallPackageUndoUnit(
             PackageInstallerService packageInstallerService,

@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LambdaSymbol : SourceMethodSymbolWithAttributes
+    internal sealed class LambdaSymbol : SourceMethodSymbol
     {
         private readonly Binder _binder;
         private readonly Symbol _containingSymbol;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxNode _syntax;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private RefKind _refKind;
+        private ImmutableArray<CustomModifier> _refCustomModifiers;
         private TypeWithAnnotations _returnType;
         private readonly bool _isSynthesized;
         private readonly bool _isAsync;
@@ -46,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind,
+            ImmutableArray<CustomModifier> refCustomModifiers,
             TypeWithAnnotations returnType) :
             base(unboundLambda.Syntax.GetReference())
         {
@@ -56,9 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
-            if (!unboundLambda.HasExplicitReturnType(out _refKind, out _returnType))
+            if (!unboundLambda.HasExplicitReturnType(out _refKind, out _refCustomModifiers, out _returnType))
             {
                 _refKind = refKind;
+                _refCustomModifiers = refCustomModifiers;
                 _returnType = !returnType.HasType ? TypeWithAnnotations.Create(ReturnTypeIsBeingInferred) : returnType;
             }
             _isSynthesized = unboundLambda.WasCompilerGenerated;
@@ -114,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return false;
         }
@@ -147,6 +151,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _refKind; }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return _refCustomModifiers; }
+        }
+
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get { return _returnType; }
@@ -160,13 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(inferredReturnType.HasType);
             Debug.Assert(_returnType.Type.IsErrorType());
+            Debug.Assert(refKind != RefKind.RefReadOnly);
             _refKind = refKind;
+            _refCustomModifiers = [];
             _returnType = inferredReturnType;
-        }
-
-        public override ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         internal override bool IsExplicitInterfaceImplementation
@@ -345,35 +351,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int p = 0; p < unboundLambda.ParameterCount; ++p)
             {
+                var refKind = unboundLambda.RefKind(p);
+                var scope = unboundLambda.DeclaredScope(p);
+                var paramSyntax = unboundLambda.ParameterSyntax(p);
+
                 // If there are no types given in the lambda then use the delegate type.
                 // If the lambda is typed then the types probably match the delegate types;
                 // if they do not, use the lambda types for binding. Either way, if we 
                 // can, then we use the lambda types. (Whatever you do, do not use the names 
                 // in the delegate parameters; they are not in scope!)
-
-                TypeWithAnnotations type;
-                RefKind refKind;
-                ScopedKind scope;
-                ParameterSyntax? paramSyntax = null;
-                if (hasExplicitlyTypedParameterList)
-                {
-                    type = unboundLambda.ParameterTypeWithAnnotations(p);
-                    refKind = unboundLambda.RefKind(p);
-                    scope = unboundLambda.DeclaredScope(p);
-                    paramSyntax = unboundLambda.ParameterSyntax(p);
-                }
-                else if (p < numDelegateParameters)
-                {
-                    type = parameterTypes[p];
-                    refKind = RefKind.None;
-                    scope = ScopedKind.None;
-                }
-                else
-                {
-                    type = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
-                    refKind = RefKind.None;
-                    scope = ScopedKind.None;
-                }
+                var type = hasExplicitlyTypedParameterList
+                    ? unboundLambda.ParameterTypeWithAnnotations(p)
+                    : p < numDelegateParameters
+                        ? parameterTypes[p]
+                        : TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
 
                 var attributeLists = unboundLambda.ParameterAttributes(p);
                 var name = unboundLambda.ParameterName(p);
@@ -396,6 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbol is LambdaSymbol lambda
                 && lambda._syntax == _syntax
                 && lambda._refKind == _refKind
+                && lambda._refCustomModifiers.SequenceEqual(_refCustomModifiers)
                 && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, compareKind)
                 && ParameterTypesWithAnnotations.SequenceEqual(lambda.ParameterTypesWithAnnotations, compareKind,
                                                                (p1, p2, compareKind) => p1.Equals(p2, compareKind))

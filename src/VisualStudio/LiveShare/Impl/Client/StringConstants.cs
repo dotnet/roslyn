@@ -4,24 +4,23 @@
 
 #nullable disable
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client;
+
+internal sealed class StringConstants
 {
-    internal class StringConstants
-    {
-        public const string BaseRemoteAssemblyTitle = "Base Remote Language Service";
+    public const string BaseRemoteAssemblyTitle = "Base Remote Language Service";
 
-        // The service name for an LSP server implemented using Roslyn designed to be used with the Roslyn client
-        public const string RoslynContractName = "Roslyn";
-        // The service name for an LSP server implemented using Roslyn designed to be used with the LSP SDK client
-        public const string RoslynLspSdkContractName = "RoslynLSPSDK";
+    // The service name for an LSP server implemented using Roslyn designed to be used with the Roslyn client
+    public const string RoslynContractName = "Roslyn";
+    // The service name for an LSP server implemented using Roslyn designed to be used with the LSP SDK client
+    public const string RoslynLspSdkContractName = "RoslynLSPSDK";
 
-        // LSP server provider names.
-        public const string RoslynProviderName = "Roslyn";
-        public const string CSharpProviderName = "RoslynCSharp";
-        public const string VisualBasicProviderName = "RoslynVisualBasic";
-        public const string TypeScriptProviderName = "RoslynTypeScript";
-        public const string AnyProviderName = "any";
+    // LSP server provider names.
+    public const string RoslynProviderName = "Roslyn";
+    public const string CSharpProviderName = "RoslynCSharp";
+    public const string VisualBasicProviderName = "RoslynVisualBasic";
+    public const string TypeScriptProviderName = "RoslynTypeScript";
+    public const string AnyProviderName = "any";
 
-        public const string TypeScriptLanguageName = "TypeScript";
-    }
+    public const string TypeScriptLanguageName = "TypeScript";
 }

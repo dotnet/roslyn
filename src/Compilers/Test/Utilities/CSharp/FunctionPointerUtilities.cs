@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.False(symbol.IsDeclaredReadOnly);
                 Assert.False(symbol.IsMetadataNewSlot(true));
                 Assert.False(symbol.IsMetadataNewSlot(false));
-                Assert.False(symbol.IsMetadataVirtual(true));
-                Assert.False(symbol.IsMetadataVirtual(false));
+                Assert.False(symbol.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges));
+                Assert.False(symbol.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.None));
 
                 Assert.Equal(symbol.IsVararg, symbol.CallingConvention.IsCallingConvention(CallingConvention.ExtraArguments));
 

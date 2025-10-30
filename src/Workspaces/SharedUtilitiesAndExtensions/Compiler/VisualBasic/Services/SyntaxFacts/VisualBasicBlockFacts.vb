@@ -3,12 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
     Friend Class VisualBasicBlockFacts
-        Inherits AbstractBlockFacts
+        Inherits AbstractBlockFacts(Of StatementSyntax)
 
-        Public Shared ReadOnly Instance As IBlockFacts = New VisualBasicBlockFacts()
+        Public Shared ReadOnly Instance As New VisualBasicBlockFacts()
 
         Public Overrides Function IsScopeBlock(node As SyntaxNode) As Boolean
             ' VB has no equivalent of curly braces.
@@ -19,7 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return node.IsExecutableBlock()
         End Function
 
-        Public Overrides Function GetExecutableBlockStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
+        Public Overrides Function GetImmediateParentExecutableBlockForStatement(statement As StatementSyntax) As SyntaxNode
+            Return If(IsExecutableBlock(statement.Parent), statement.Parent, Nothing)
+        End Function
+
+        Public Overrides Function GetExecutableBlockStatements(node As SyntaxNode) As IReadOnlyList(Of StatementSyntax)
             Return node.GetExecutableBlockStatements()
         End Function
 
@@ -31,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return IsExecutableBlock(node)
         End Function
 
-        Public Overrides Function GetStatementContainerStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
+        Public Overrides Function GetStatementContainerStatements(node As SyntaxNode) As IReadOnlyList(Of StatementSyntax)
             Return GetExecutableBlockStatements(node)
         End Function
     End Class

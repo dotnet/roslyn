@@ -7,7 +7,7 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.Collections
@@ -71,17 +71,17 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     {SyntaxKind.LessThanEqualsToken, New List(Of SyntaxKind) From {SyntaxKind.EqualsToken, SyntaxKind.LessThanToken}}
                 }
 
-            Private ReadOnly _spans As TextSpanIntervalTree
+            Private ReadOnly _spans As TextSpanMutableIntervalTree
             Private ReadOnly _cancellationToken As CancellationToken
 
             Shared Sub New()
-                Debug.Assert(String.Join(",", s_modifierKindsInOrder.Select(AddressOf SyntaxFacts.GetText)) = VisualBasicIdeCodeStyleOptions.Default.PreferredModifierOrder.Value)
+                Debug.Assert(String.Join(",", s_modifierKindsInOrder.Select(AddressOf SyntaxFacts.GetText)) = VisualBasicCodeStyleOptions.PreferredModifierOrder.DefaultValue.Value)
             End Sub
 
             Public Sub New(spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken)
                 MyBase.New(visitIntoStructuredTrivia:=True)
 
-                _spans = New TextSpanIntervalTree(spans)
+                _spans = New TextSpanMutableIntervalTree(spans)
                 _cancellationToken = cancellationToken
             End Sub
 

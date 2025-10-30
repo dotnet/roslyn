@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
@@ -26,19 +23,15 @@ internal class TreeViewItemBase : ViewModelBase
         get => _isExpanded;
         set => SetProperty(ref _isExpanded, value);
     }
-
-    private bool _isSelected = false;
     public bool IsNodeSelected
     {
-        get => _isSelected;
-        set => SetProperty(ref _isSelected, value);
-    }
-
-    private bool _isLoading;
+        get;
+        set => SetProperty(ref field, value);
+    } = false;
     public bool IsLoading
     {
-        get => _isLoading;
-        set => SetProperty(ref _isLoading, value);
+        get;
+        set => SetProperty(ref field, value);
     }
 
     public TreeViewItemBase()

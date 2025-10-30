@@ -430,7 +430,7 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,16): error CS1674: 'Span<int>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'Span<int>': type used in a using statement must implement 'System.IDisposable'
                 //         using (var v = stackalloc int[1])
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(6, 16)
             );
@@ -737,15 +737,15 @@ class Test
         var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
     }
 }").VerifyDiagnostics(
-                // (8,14): error CS0306: The type 'S' may not be used as a type argument
+                // (8,14): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Span<T>'
                 //         Span<S> explicitError = default;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S").WithArguments("S").WithLocation(8, 14),
-                // (9,67): error CS0306: The type 'S' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "S").WithArguments("System.Span<T>", "T", "S").WithLocation(8, 14),
+                // (9,67): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Span<T>'
                 //         var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S[10]").WithArguments("S").WithLocation(9, 67),
-                // (9,86): error CS0306: The type 'S' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "S[10]").WithArguments("System.Span<T>", "T", "S").WithLocation(9, 67),
+                // (9,86): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Span<T>'
                 //         var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S[100]").WithArguments("S").WithLocation(9, 86)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "S[100]").WithArguments("System.Span<T>", "T", "S").WithLocation(9, 86)
                 );
         }
 

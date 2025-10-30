@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 ///     }
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public static readonly CSharpIsAndCastCheckDiagnosticAnalyzer Instance = new();
 
@@ -215,10 +214,8 @@ internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyle
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
         stack.Push(scope);
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var current))
         {
-            var current = stack.Pop();
-
             if (current == variable)
                 continue;
 
@@ -235,8 +232,8 @@ internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyle
 
             foreach (var child in current.ChildNodesAndTokens())
             {
-                if (child.IsNode)
-                    stack.Push(child.AsNode()!);
+                if (child.AsNode(out var childNode))
+                    stack.Push(childNode);
             }
         }
 

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // IsMetadataVirtualIgnoringInterfaceImplementationChanges.  This also has the advantage of making
             // this method safe to call before declaration diagnostics have been computed.
             if ((object)method == null || method.Name != WellKnownMemberNames.DestructorName ||
-                method.ParameterCount != 0 || method.Arity != 0 || !method.IsMetadataVirtual(ignoreInterfaceImplementationChanges: true))
+                method.ParameterCount != 0 || method.Arity != 0 || !method.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges))
             {
                 return false;
             }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Specifically, methods, properties, and types cannot hide constructors, destructors,
         /// operators, conversions, or accessors.
         /// </summary>
-        public static bool CanBeHiddenByMemberKind(this MethodSymbol hiddenMethod, SymbolKind hidingMemberKind)
+        public static bool CanBeHiddenByMember(this MethodSymbol hiddenMethod, Symbol hidingMember)
         {
             Debug.Assert((object)hiddenMethod != null);
 
@@ -102,18 +102,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            switch (hidingMemberKind)
+            switch (hidingMember.Kind)
             {
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                 case SymbolKind.Method:
                 case SymbolKind.Property:
-                    return CanBeHiddenByMethodPropertyOrType(hiddenMethod);
+                    return CanBeHiddenByMethodPropertyOrType(hiddenMethod, hidingMember);
                 case SymbolKind.Field:
                 case SymbolKind.Event: // Events are not covered by CSemanticChecker::FindSymHiddenByMethPropAgg.
                     return true;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(hidingMemberKind);
+                    throw ExceptionUtilities.UnexpectedValue(hidingMember.Kind);
             }
         }
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Some kinds of methods are never considered hidden by methods, properties, or types
         /// (constructors, destructors, operators, conversions, and accessors).
         /// </summary>
-        private static bool CanBeHiddenByMethodPropertyOrType(MethodSymbol method)
+        private static bool CanBeHiddenByMethodPropertyOrType(MethodSymbol method, Symbol hidingMember)
         {
             switch (method.MethodKind)
             {
@@ -129,9 +129,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case MethodKind.Destructor:
                 case MethodKind.Constructor:
                 case MethodKind.StaticConstructor:
-                case MethodKind.UserDefinedOperator:
                 case MethodKind.Conversion:
                     return false;
+                case MethodKind.UserDefinedOperator:
+                    return !method.IsStatic && hidingMember is MethodSymbol { IsStatic: false, MethodKind: MethodKind.UserDefinedOperator };
+
                 case MethodKind.EventAdd:
                 case MethodKind.EventRemove:
                 case MethodKind.PropertyGet:
@@ -216,8 +218,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsValidUnscopedRefAttributeTarget(this MethodSymbol method)
         {
             return !method.IsStatic &&
-                method.ContainingType?.IsStructType() == true &&
-                method.MethodKind is (MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.PropertyGet or MethodKind.PropertySet) &&
+                method.ContainingType is NamedTypeSymbol containingType &&
+                (containingType.IsStructType() == true || (containingType.IsInterface && method.IsImplementable())) &&
+                method.MethodKind is (MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.PropertyGet or MethodKind.PropertySet or MethodKind.UserDefinedOperator) &&
                 !method.IsInitOnly;
         }
 

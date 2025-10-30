@@ -6,10 +6,12 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
-    <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Test.Utilities</PackageId>
-    <PackageDescription>This is an internal package for testing. Not meant for external or production uses. The API can and will break at our discretion.</PackageDescription>
     <IsTestUtilityProject>true</IsTestUtilityProject>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>This is an internal package for testing. Not meant for external or production uses. The API can and will break at our discretion.</PackageDescription>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
@@ -44,6 +46,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.UnitTests" />
     <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.TestUtilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
@@ -60,12 +63,15 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.HotReload.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Rebuild.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.Test.PdbUtilities" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
@@ -89,7 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DiffPlex" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" />
+    <PackageReference Include="Microsoft.Build.Locator" />
     <PackageReference Include="Microsoft.DiaSymReader.Converter.Xml" />
     <PackageReference Include="Microsoft.Metadata.Visualizer" />
     <PackageReference Include="Microsoft.NETCore.Platforms" />
@@ -97,27 +103,17 @@
     <PackageReference Include="xunit.assert" />
     <PackageReference Include="xunit.extensibility.core" />
     <PackageReference Include="Xunit.Combinatorial" />
-    <PackageReference Include="System.Private.Uri" />
     <PackageReference Include="ICSharpCode.Decompiler" />
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" />
 
     <!-- Needed to find the Unsafe.dll binary to lay out at runtime for the compiler when testing analyzers. -->
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net451" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net40" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net20" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.NET.Build.Extensions" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="jnm2.ReferenceAssemblies.net35" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.CSharp" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.VisualBasic" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
-
+    <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="Basic.Reference.Assemblies.NetStandard20" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net20" />
     <PackageReference Include="Basic.Reference.Assemblies.Net70" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net40" />
     <PackageReference Include="Basic.Reference.Assemblies.Net461" />
     <PackageReference Include="Microsoft.ILVerification" />
   </ItemGroup>
-
-  <Import Project="Generated.targets" />
 </Project>

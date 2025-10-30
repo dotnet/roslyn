@@ -4,9 +4,9 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
@@ -44,13 +44,12 @@ internal abstract class AbstractReferenceDirectiveCompletionProvider : AbstractD
             builder.Add(',');
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     protected override async Task ProvideCompletionsAsync(CompletionContext context, string pathThroughLastSlash)
     {
-        var resolver = context.Document.Project.CompilationOptions.MetadataReferenceResolver as RuntimeMetadataReferenceResolver;
-        if (resolver != null && pathThroughLastSlash.IndexOfAny(s_pathIndicators) < 0)
+        if (context.Document.Project.CompilationOptions.MetadataReferenceResolver is RuntimeMetadataReferenceResolver resolver && pathThroughLastSlash.IndexOfAny(s_pathIndicators) < 0)
         {
             foreach (var (name, path) in resolver.TrustedPlatformAssemblies)
             {

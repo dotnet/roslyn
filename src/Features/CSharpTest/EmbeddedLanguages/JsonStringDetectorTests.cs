@@ -5,141 +5,125 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    CSharpJsonDetectionAnalyzer,
+    CSharpJsonDetectionCodeFixProvider>;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
+public sealed class JsonStringDetectorTests
 {
-    using VerifyCS = CSharpCodeFixVerifier<
-        CSharpJsonDetectionAnalyzer,
-        CSharpJsonDetectionCodeFixProvider>;
-
-    [Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
-    public class JsonStringDetectorTests
-    {
-        [Fact]
-        public async Task TestStrict()
+    [Fact]
+    public Task TestStrict()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode =
+            """
+            class C
             {
-                TestCode =
-                """
-                class C
+                void Goo()
                 {
-                    void Goo()
-                    {
-                        var j = [|"{ \"a\": 0 }"|];
-                    }
+                    var j = [|"{ \"a\": 0 }"|];
                 }
-                """,
-                FixedCode =
-                """
-                class C
+            }
+            """,
+            FixedCode =
+            """
+            class C
+            {
+                void Goo()
                 {
-                    void Goo()
-                    {
-                        var j = /*lang=json,strict*/ "{ \"a\": 0 }";
-                    }
+                    var j = /*lang=json,strict*/ "{ \"a\": 0 }";
                 }
-                """,
-            }.RunAsync();
-        }
+            }
+            """,
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNonStrict()
+    [Fact]
+    public Task TestNonStrict()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode =
+            """
+            class C
             {
-                TestCode =
-                """
-                class C
+                void Goo()
                 {
-                    void Goo()
-                    {
-                        var j = [|"{ 'a': 00 }"|];
-                    }
+                    var j = [|"{ 'a': 00 }"|];
                 }
-                """,
-                FixedCode =
-                """
-                class C
+            }
+            """,
+            FixedCode =
+            """
+            class C
+            {
+                void Goo()
                 {
-                    void Goo()
-                    {
-                        var j = /*lang=json*/ "{ 'a': 00 }";
-                    }
+                    var j = /*lang=json*/ "{ 'a': 00 }";
                 }
-                """,
-            }.RunAsync();
-        }
+            }
+            """,
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNonStrictRawString()
+    [Fact]
+    public Task TestNonStrictRawString()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode =
+            """"
+            class C
             {
-                TestCode =
-                """"
-                class C
+                void Goo()
                 {
-                    void Goo()
-                    {
-                        var j = [|"""{ 'a': 00 }"""|];
-                    }
+                    var j = [|"""{ 'a': 00 }"""|];
                 }
-                """",
-                FixedCode =
-                """"
-                class C
+            }
+            """",
+            FixedCode =
+            """"
+            class C
+            {
+                void Goo()
                 {
-                    void Goo()
-                    {
-                        var j = /*lang=json*/ """{ 'a': 00 }""";
-                    }
+                    var j = /*lang=json*/ """{ 'a': 00 }""";
                 }
-                """",
-                LanguageVersion = LanguageVersion.CSharp12,
-            }.RunAsync();
-        }
+            }
+            """",
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNotWithExistingComment()
+    [Fact]
+    public Task TestNotWithExistingComment()
+        => new VerifyCS.Test
         {
-            var code = """
-                class C
-                {
-                    void Goo()
-                    {
-                        var j = /*lang=json,strict*/ "{ \"a\": 0 }";
-                    }
-                }
-                """;
-            await new VerifyCS.Test
+            TestCode = """
+            class C
             {
-                TestCode = code,
-                FixedCode = code,
-            }.RunAsync();
-        }
+                void Goo()
+                {
+                    var j = /*lang=json,strict*/ "{ \"a\": 0 }";
+                }
+            }
+            """,
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNotOnUnlikelyJson()
+    [Fact]
+    public Task TestNotOnUnlikelyJson()
+        => new VerifyCS.Test
         {
-            var code = """
-                class C
-                {
-                    void Goo()
-                    {
-                        var j = "[1, 2, 3]";
-                    }
-                }
-                """;
-            await new VerifyCS.Test
+            TestCode = """
+            class C
             {
-                TestCode = code,
-                FixedCode = code,
-            }.RunAsync();
-        }
-    }
+                void Goo()
+                {
+                    var j = "[1, 2, 3]";
+                }
+            }
+            """,
+        }.RunAsync();
 }

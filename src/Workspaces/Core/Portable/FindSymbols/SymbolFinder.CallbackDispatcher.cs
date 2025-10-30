@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,14 +44,8 @@ public static partial class SymbolFinder
         public ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup symbolGroup, CancellationToken cancellationToken)
             => GetFindReferencesCallback(callbackId).OnDefinitionFoundAsync(symbolGroup, cancellationToken);
 
-        public ValueTask OnFindInDocumentCompletedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken)
-            => GetFindReferencesCallback(callbackId).OnFindInDocumentCompletedAsync(documentId, cancellationToken);
-
-        public ValueTask OnFindInDocumentStartedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken)
-            => GetFindReferencesCallback(callbackId).OnFindInDocumentStartedAsync(documentId, cancellationToken);
-
-        public ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSymbolGroup symbolGroup, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference, CancellationToken cancellationToken)
-            => GetFindReferencesCallback(callbackId).OnReferenceFoundAsync(symbolGroup, definition, reference, cancellationToken);
+        public ValueTask OnReferencesFoundAsync(RemoteServiceCallbackId callbackId, ImmutableArray<(SerializableSymbolGroup group, SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)> references, CancellationToken cancellationToken)
+            => GetFindReferencesCallback(callbackId).OnReferencesFoundAsync(references, cancellationToken);
 
         public ValueTask OnStartedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
             => GetFindReferencesCallback(callbackId).OnStartedAsync(cancellationToken);

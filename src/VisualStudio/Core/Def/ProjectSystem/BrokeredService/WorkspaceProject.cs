@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Roslyn.Utilities;
 
@@ -166,7 +165,7 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public Task SetCommandLineArgumentsAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
     {
-        _project.SetOptions(arguments.ToImmutableArray());
+        _project.SetOptions([.. arguments]);
         return Task.CompletedTask;
     }
 
@@ -189,7 +188,7 @@ internal sealed class WorkspaceProject : IWorkspaceProject
         return new WorkspaceProjectBatch(disposableBatchScope);
     }
 
-    private class WorkspaceProjectBatch : IWorkspaceProjectBatch
+    private sealed class WorkspaceProjectBatch : IWorkspaceProjectBatch
     {
         private IAsyncDisposable? _batch;
 

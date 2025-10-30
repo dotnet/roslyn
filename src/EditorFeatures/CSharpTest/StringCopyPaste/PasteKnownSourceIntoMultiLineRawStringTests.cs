@@ -3,20 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using Roslyn.Test.Utilities;
-using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste;
+
+public sealed class PasteKnownSourceIntoMultiLineRawStringTests : StringCopyPasteCommandHandlerKnownSourceTests
 {
-    public class PasteKnownSourceIntoMultiLineRawStringTests : StringCopyPasteCommandHandlerKnownSourceTests
-    {
-        #region Normal Copy/Paste tests
+    #region Normal Copy/Paste tests
 
-        // Tests where we actually set up a document to copy code from.
+    // Tests where we actually set up a document to copy code from.
 
-        [WpfFact]
-        public void TestPasteSimpleNormalLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteSimpleNormalLiteralContent()
+        => TestCopyPaste(
 """var v = "{|Copy:goo|}";""",
 """"
 var dest =
@@ -36,12 +34,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteSimpleSubstringNormalLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteSimpleSubstringNormalLiteralContent()
+        => TestCopyPaste(
 """var v = "g{|Copy:o|}o";""",
 """"
 var dest =
@@ -61,12 +57,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPastePartiallySelectedEscapeNormalLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPastePartiallySelectedEscapeNormalLiteralContent()
+        => TestCopyPaste(
 """var v = "\{|Copy:n|}";""",
 """"
 var dest =
@@ -86,12 +80,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteFullySelectedEscapeNormalLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteFullySelectedEscapeNormalLiteralContent()
+        => TestCopyPaste(
 """var v = "{|Copy:\n|}";""",
 """"
 var dest =
@@ -106,12 +98,10 @@ var dest =
     \n[||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPastePartiallySelectedQuoteNormalLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPastePartiallySelectedQuoteNormalLiteralContent()
+        => TestCopyPaste(
 """var v = "\{|Copy:"|}";""",
 """"
 var dest =
@@ -131,12 +121,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteFullySelectedQuoteNormalLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteFullySelectedQuoteNormalLiteralContent()
+        => TestCopyPaste(
 """var v = "{|Copy:\"|}";""",
 """"
 var dest =
@@ -156,12 +144,10 @@ var dest =
     \"[||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteSimpleVerbatimLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteSimpleVerbatimLiteralContent()
+        => TestCopyPaste(
 """var v = @"{|Copy:goo|}";""",
 """"
 var dest =
@@ -181,12 +167,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteSimpleSubstringVerbatimLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteSimpleSubstringVerbatimLiteralContent()
+        => TestCopyPaste(
 """var v = @"g{|Copy:o|}o";""",
 """"
 var dest =
@@ -206,12 +190,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteSelectedVerbatimNewLineLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteSelectedVerbatimNewLineLiteralContent()
+        => TestCopyPaste(
 """
 var v = @"{|Copy:
 |}";
@@ -236,12 +218,10 @@ var dest =
 [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteFullySelectedEscapeVerbatimLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteFullySelectedEscapeVerbatimLiteralContent()
+        => TestCopyPaste(
 """var v = @"{|Copy:""|}";""",
 """"
 var dest =
@@ -261,12 +241,10 @@ var dest =
     ""[||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteSimpleRawSingleLineLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteSimpleRawSingleLineLiteralContent()
+        => TestCopyPaste(
 """"var v = """{|Copy:goo|}""";"""",
 """"
 var dest =
@@ -286,12 +264,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteQuotesRawSingleLineLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteQuotesRawSingleLineLiteralContent()
+        => TestCopyPaste(
 """"var v = """{|Copy: "" |}""";"""",
 """"
 var dest =
@@ -311,12 +287,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteSimpleRawMultiLineLiteralContent1()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteSimpleRawMultiLineLiteralContent1()
+        => TestCopyPaste(
 """"
 var v = """
     {|Copy:goo|}
@@ -340,12 +314,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteSimpleRawMultiLineLiteralContent2()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteSimpleRawMultiLineLiteralContent2()
+        => TestCopyPaste(
 """"
 var v = """
     {|Copy:goo
@@ -371,12 +343,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteSimpleRawMultiLineLiteralContent3()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteSimpleRawMultiLineLiteralContent3()
+        => TestCopyPaste(
 """"
 var v = """
 {|Copy:    goo
@@ -403,12 +373,10 @@ var dest =
     bar[||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationFromInterpolatedStringLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationFromInterpolatedStringLiteralContent()
+        => TestCopyPaste(
 """var v = $"{|Copy:{0}|}";""",
 """"
 var dest =
@@ -428,12 +396,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationWithFormatClauseFromInterpolatedStringLiteralContent1()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationWithFormatClauseFromInterpolatedStringLiteralContent1()
+        => TestCopyPaste(
 """var v = $"{|Copy:{0:X}|}";""",
 """"
 var dest =
@@ -453,12 +419,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationWithFormatClauseFromInterpolatedStringLiteralContent2()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationWithFormatClauseFromInterpolatedStringLiteralContent2()
+        => TestCopyPaste(
 """var v = $"{|Copy:{0:\"X\"}|}";""",
 """"
 var dest =
@@ -478,12 +442,10 @@ var dest =
     {0:\"X\"}[||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationWithStringFromInterpolatedStringLiteralContent1()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationWithStringFromInterpolatedStringLiteralContent1()
+        => TestCopyPaste(
 """var v = $"{|Copy:{"goo"}|}";""",
 """"
 var dest =
@@ -503,12 +465,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationWithStringFromInterpolatedStringLiteralContent2()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationWithStringFromInterpolatedStringLiteralContent2()
+        => TestCopyPaste(
 """var v = $"{|Copy:X{"goo"}Y|}";""",
 """"
 var dest =
@@ -528,12 +488,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationWithStringFromInterpolatedStringLiteralContent3()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationWithStringFromInterpolatedStringLiteralContent3()
+        => TestCopyPaste(
 """var v = $"{|Copy:\"X{"goo"}Y\"|}";""",
 """"
 var dest =
@@ -553,12 +511,10 @@ var dest =
     \"X{"goo"}Y\"[||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationWithStringFromInterpolatedStringLiteralContent4()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationWithStringFromInterpolatedStringLiteralContent4()
+        => TestCopyPaste(
 """var v = $"{|Copy:\"X{@"goo"}Y\"|}";""",
 """"
 var dest =
@@ -578,12 +534,10 @@ var dest =
     \"X{@"goo"}Y\"[||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationFromVerbatimInterpolatedStringLiteralContent()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationFromVerbatimInterpolatedStringLiteralContent()
+        => TestCopyPaste(
 """var v = $@"{|Copy:{0}|}";""",
 """"
 var dest =
@@ -603,12 +557,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationWithFormatClauseFromVerbatimInterpolatedStringLiteralContent1()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationWithFormatClauseFromVerbatimInterpolatedStringLiteralContent1()
+        => TestCopyPaste(
 """var v = $@"{|Copy:{0:X}|}";""",
 """"
 var dest =
@@ -628,12 +580,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationWithFormatClauseFromVerbatimInterpolatedStringLiteralContent2()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationWithFormatClauseFromVerbatimInterpolatedStringLiteralContent2()
+        => TestCopyPaste(
 """var v = $@"{|Copy:{0:""X""}|}";""",
 """"
 var dest =
@@ -653,12 +603,10 @@ var dest =
     {0:""X""}[||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationWithStringFromVerbatimInterpolatedStringLiteralContent1()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationWithStringFromVerbatimInterpolatedStringLiteralContent1()
+        => TestCopyPaste(
 """var v = $@"{|Copy:{"goo"}|}";""",
 """"
 var dest =
@@ -678,12 +626,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationWithStringFromVerbatimInterpolatedStringLiteralContent2()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationWithStringFromVerbatimInterpolatedStringLiteralContent2()
+        => TestCopyPaste(
 """var v = $@"{|Copy:X{"goo"}Y|}";""",
 """"
 var dest =
@@ -703,12 +649,10 @@ var dest =
     [||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationWithStringFromVerbatimInterpolatedStringLiteralContent3()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationWithStringFromVerbatimInterpolatedStringLiteralContent3()
+        => TestCopyPaste(
 """var v = $@"{|Copy:""X{"goo"}Y""|}";""",
 """"
 var dest =
@@ -728,12 +672,10 @@ var dest =
     ""X{"goo"}Y""[||]
     """;
 """");
-        }
 
-        [WpfFact]
-        public void TestPasteInterpolationWithStringFromVerbatimInterpolatedStringLiteralContent4()
-        {
-            TestCopyPaste(
+    [WpfFact]
+    public void TestPasteInterpolationWithStringFromVerbatimInterpolatedStringLiteralContent4()
+        => TestCopyPaste(
 """var v = $@"{|Copy:""X{@"goo"}Y""|}";""",
 """"
 var dest =
@@ -753,785 +695,725 @@ var dest =
     ""X{@"goo"}Y""[||]
     """;
 """");
-        }
 
-        #endregion
+    #endregion
 
-        #region Known Source tests
+    #region Known Source tests
 
-        // Tests where we place things directly on the clipboard (avoiding the need to do the actual copy).
-        // This allows a port of the tests in PasteUnknownSourceIntoSingleLineRawStringTests.cs
+    // Tests where we place things directly on the clipboard (avoiding the need to do the actual copy).
+    // This allows a port of the tests in PasteUnknownSourceIntoSingleLineRawStringTests.cs
 
-        [WpfFact]
-        public void TestNewLineIntoSingleLineRawString1_A()
-        {
-            TestPasteKnownSource(
-                pasteText: "\n",
-""""
-var x = """
-    [||]
-    """
-"""",
-"var x = \"\"\"\r\n    \n    [||]\r\n    \"\"\"",
-                afterUndo:
-"var x = \"\"\"\r\n    \n[||]\r\n    \"\"\"");
-        }
+    [WpfFact]
+    public void TestNewLineIntoSingleLineRawString1_A()
+        => TestPasteKnownSource(
+            pasteText: "\n",
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            "var x = \"\"\"\r\n    \n    [||]\r\n    \"\"\"",
+            afterUndo:
+            "var x = \"\"\"\r\n    \n[||]\r\n    \"\"\"");
 
-        [WpfFact]
-        public void TestNewLineIntoSingleLineRawString2_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """
+    [WpfFact]
+    public void TestNewLineIntoSingleLineRawString2_A()
+        => TestPasteKnownSource(
+            pasteText: """
 
 
-                """,
-""""
-var x = """
-    [||]
-    """
-"""",
-""""
-var x = """
-    
-    [||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    
-[||]
-    """
-"""");
-        }
+            """,
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """"
+            var x = """
+                
+                [||]
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                
+            [||]
+                """
+            """");
 
-        [WpfFact]
-        public void TestSpacesIntoSingleLineRawString1_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """    """,
-""""
-var x = """
-    [||]
-    """
-"""",
-""""
-var x = """
-        [||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    [||]
-    """
-"""");
-        }
+    [WpfFact]
+    public void TestSpacesIntoSingleLineRawString1_A()
+        => TestPasteKnownSource(
+            pasteText: """    """,
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """"
+            var x = """
+                    [||]
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                [||]
+                """
+            """");
 
-        [WpfFact]
-        public void TestSpacesIntoSingleLineRawString2()
-        {
-            TestPasteKnownSource(
-                pasteText: """
+    [WpfFact]
+    public void TestSpacesIntoSingleLineRawString2()
+        => TestPasteKnownSource(
+            pasteText: """
+                
+
+            """,
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """"
+            var x = """
                     
-
-                """,
-""""
-var x = """
-    [||]
-    """
-"""",
-""""
-var x = """
-        
-    [||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-        
-[||]
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestSingleQuoteIntoSingleLineRawString_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """'""",
-""""
-var x = """
-    [||]
-    """
-"""",
-""""
-var x = """
-    '[||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    [||]
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestDoubleQuoteIntoSingleLineRawString_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """
-                "
-                """,
-""""
-var x = """
-    [||]
-    """
-"""",
-""""
-var x = """
-    "[||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    [||]
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestTripleQuoteIntoSingleLineRawString1_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """"
+                [||]
                 """
-                """",
-""""
-var x = """
-    [||]
-    """
-"""",
-"""""
-var x = """"
-    """[||]
-    """"
-""""",
-                afterUndo:
-""""
-var x = """
-    """[||]
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestTwoQuotesIntoSingleLineRawString3()
-        {
-            TestPasteKnownSource(
-                pasteText: """
-                ""
-                """,
-""""
-var x = """
-    "[||]
-    """
-"""",
-"""""
-var x = """"
-    """[||]
-    """"
-""""",
-                afterUndo:
-""""
-var x = """
-    """[||]
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestTripleQuoteIntoSingleLineRawString3()
-        {
-            TestPasteKnownSource(
-                pasteText: """"
+            """",
+            afterUndo:
+            """"
+            var x = """
+                    
+            [||]
                 """
-                """",
-""""
-var x = """
-    "[||]
-    """
-"""",
-""""""
-var x = """""
-    """"[||]
-    """""
-"""""",
-                afterUndo:
-"""""
-var x = """
-    """"[||]
-    """
-""""");
-        }
+            """");
 
-        [WpfFact]
-        public void TestTripleQuoteIntoSingleLineRawString4()
-        {
-            TestPasteKnownSource(
-                pasteText: """"
+    [WpfFact]
+    public void TestSingleQuoteIntoSingleLineRawString_A()
+        => TestPasteKnownSource(
+            pasteText: """'""",
+            """"
+            var x = """
+                [||]
                 """
-                """",
-""""
-var x = """
-    "[||]"
-    """
-"""",
-"""""""
-var x = """"""
-    """"[||]"
-    """"""
-""""""",
-                afterUndo:
-"""""
-var x = """
-    """"[||]"
-    """
-""""");
-        }
-
-        [WpfFact]
-        public void TestTripleQuoteIntoSingleLineRawString5()
-        {
-            TestPasteKnownSource(
-                pasteText: """"
+            """",
+            """"
+            var x = """
+                '[||]
                 """
-                """",
-""""
-var x = """
-    [||]"
-    """
-"""",
-""""""
-var x = """""
-    """[||]"
-    """""
-"""""",
-                afterUndo:
-""""
-var x = """
-    """[||]"
-    """
-"""");
-        }
+            """",
+            afterUndo:
+            """"
+            var x = """
+                [||]
+                """
+            """");
 
-        [WpfFact]
-        public void TestQuadrupleQuoteIntoSingleLineRawString()
-        {
-            TestPasteKnownSource(
-                pasteText: """""
+    [WpfFact]
+    public void TestDoubleQuoteIntoSingleLineRawString_A()
+        => TestPasteKnownSource(
+            pasteText: """
+            "
+            """,
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """"
+            var x = """
+                "[||]
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                [||]
+                """
+            """");
+
+    [WpfFact]
+    public void TestTripleQuoteIntoSingleLineRawString1_A()
+        => TestPasteKnownSource(
+            pasteText: """"
+            """
+            """",
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """""
+            var x = """"
+                """[||]
                 """"
-                """"",
-""""
-var x = """
-    [||]
-    """
-"""",
-""""""
-var x = """""
-    """"[||]
-    """""
-"""""",
-                afterUndo:
-"""""
-var x = """
-    """"[||]
-    """
-""""");
-        }
+            """"",
+            afterUndo:
+            """"
+            var x = """
+                """[||]
+                """
+            """");
 
-        [WpfFact]
-        public void TestComplexStringIntoSingleLineRawString()
-        {
-            TestPasteKnownSource(
-                pasteText: """  ""  """,
-""""
-var x = """
-    [||]
-    """
-"""",
-""""
-var x = """
-      ""  [||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    [||]
-    """
-"""");
-        }
+    [WpfFact]
+    public void TestTwoQuotesIntoSingleLineRawString3()
+        => TestPasteKnownSource(
+            pasteText: """
+            ""
+            """,
+            """"
+            var x = """
+                "[||]
+                """
+            """",
+            """""
+            var x = """"
+                """[||]
+                """"
+            """"",
+            afterUndo:
+            """"
+            var x = """
+                """[||]
+                """
+            """");
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawString_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """abc""",
-""""
-var x = """
-    [||]
-    """
-"""",
-""""
-var x = """
-    abc[||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    [||]
-    """
-"""");
-        }
+    [WpfFact]
+    public void TestTripleQuoteIntoSingleLineRawString3()
+        => TestPasteKnownSource(
+            pasteText: """"
+            """
+            """",
+            """"
+            var x = """
+                "[||]
+                """
+            """",
+            """"""
+            var x = """""
+                """"[||]
+                """""
+            """""",
+            afterUndo:
+            """""
+            var x = """
+                """"[||]
+                """
+            """"");
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine1_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """
+    [WpfFact]
+    public void TestTripleQuoteIntoSingleLineRawString4()
+        => TestPasteKnownSource(
+            pasteText: """"
+            """
+            """",
+            """"
+            var x = """
+                "[||]"
+                """
+            """",
+            """""""
+            var x = """"""
+                """"[||]"
+                """"""
+            """"""",
+            afterUndo:
+            """""
+            var x = """
+                """"[||]"
+                """
+            """"");
+
+    [WpfFact]
+    public void TestTripleQuoteIntoSingleLineRawString5()
+        => TestPasteKnownSource(
+            pasteText: """"
+            """
+            """",
+            """"
+            var x = """
+                [||]"
+                """
+            """",
+            """"""
+            var x = """""
+                """[||]"
+                """""
+            """""",
+            afterUndo:
+            """"
+            var x = """
+                """[||]"
+                """
+            """");
+
+    [WpfFact]
+    public void TestQuadrupleQuoteIntoSingleLineRawString()
+        => TestPasteKnownSource(
+            pasteText: """""
+            """"
+            """"",
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """"""
+            var x = """""
+                """"[||]
+                """""
+            """""",
+            afterUndo:
+            """""
+            var x = """
+                """"[||]
+                """
+            """"");
+
+    [WpfFact]
+    public void TestComplexStringIntoSingleLineRawString()
+        => TestPasteKnownSource(
+            pasteText: """  ""  """,
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """"
+            var x = """
+                  ""  [||]
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                [||]
+                """
+            """");
+
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawString_A()
+        => TestPasteKnownSource(
+            pasteText: """abc""",
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """"
+            var x = """
+                abc[||]
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                [||]
+                """
+            """");
+
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine1_A()
+        => TestPasteKnownSource(
+            pasteText: """
+            abc
+            def
+            """,
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """"
+            var x = """
                 abc
-                def
-                """,
-""""
-var x = """
-    [||]
-    """
-"""",
-""""
-var x = """
-    abc
-    def[||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    abc
-def[||]
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine4()
-        {
-            TestPasteKnownSource(
-                pasteText: """
+                def[||]
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
                 abc
+            def[||]
+                """
+            """");
+
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine4()
+        => TestPasteKnownSource(
+            pasteText: """
+            abc
+            def
+            """,
+            """"
+            var x = """
+                goo[||]
+                """
+            """",
+            """"
+            var x = """
+                gooabc
+                def[||]
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                gooabc
+            def[||]
+                """
+            """");
+
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine5()
+        => TestPasteKnownSource(
+            pasteText: """
+            abc
+            def
+            """,
+            """"
+            var x = """
+                goo[||]bar
+                """
+            """",
+            """"
+            var x = """
+                gooabc
+                def[||]bar
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                gooabc
+            def[||]bar
+                """
+            """");
+
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine6()
+        => TestPasteKnownSource(
+            pasteText: """
+            abc
+            def
+
+            """,
+            """"
+            var x = """
+                goo[||]bar
+                """
+            """",
+            """"
+            var x = """
+                gooabc
                 def
-                """,
-""""
-var x = """
-    goo[||]
-    """
-"""",
-""""
-var x = """
-    gooabc
-    def[||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    gooabc
-def[||]
-    """
-"""");
-        }
+                [||]bar
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                gooabc
+            def
+            [||]bar
+                """
+            """");
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine5()
-        {
-            TestPasteKnownSource(
-                pasteText: """
-                abc
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine7_A()
+        => TestPasteKnownSource(
+            pasteText: """
+            abc
                 def
-                """,
-""""
-var x = """
-    goo[||]bar
-    """
-"""",
-""""
-var x = """
-    gooabc
-    def[||]bar
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    gooabc
-def[||]bar
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine6()
-        {
-            TestPasteKnownSource(
-                pasteText: """
-                abc
-                def
-
-                """,
-""""
-var x = """
-    goo[||]bar
-    """
-"""",
-""""
-var x = """
-    gooabc
-    def
-    [||]bar
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    gooabc
-def
-[||]bar
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine7_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """
+            ghi
+            """,
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """"
+            var x = """
                 abc
                     def
+                ghi[||]
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                abc
+                def
+            ghi[||]
+                """
+            """");
+
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine7_B()
+        => TestPasteKnownSource(
+            pasteText: """
+            abc
+                def
+            ghi
+            """,
+            """"
+            var x = """
+                      [||]
+                      """
+            """",
+            """"
+            var x = """
+                      abc
+                          def
+                      ghi[||]
+                      """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                      abc
+                def
+            ghi[||]
+                      """
+            """");
+
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine8_A()
+        => TestPasteKnownSource(
+            pasteText: """
+            abc
+                def
                 ghi
-                """,
-""""
-var x = """
-    [||]
-    """
-"""",
-""""
-var x = """
-    abc
-        def
-    ghi[||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    abc
-    def
-ghi[||]
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine7_B()
-        {
-            TestPasteKnownSource(
-                pasteText: """
+            """,
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """"
+            var x = """
                 abc
                     def
+                    ghi[||]
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                abc
+                def
+                ghi[||]
+                """
+            """");
+
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine9_A()
+        => TestPasteKnownSource(
+            pasteText: """
+                abc
+                def
                 ghi
-                """,
-""""
-var x = """
-          [||]
-          """
-"""",
-""""
-var x = """
-          abc
-              def
-          ghi[||]
-          """
-"""",
-                afterUndo:
-""""
-var x = """
-          abc
-    def
-ghi[||]
-          """
-"""");
-        }
-
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine8_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """
-                abc
-                    def
-                    ghi
-                """,
-""""
-var x = """
-    [||]
-    """
-"""",
-""""
-var x = """
-    abc
-        def
-        ghi[||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    abc
-    def
-    ghi[||]
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine9_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """
+            """,
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """"
+            var x = """
                     abc
                     def
-                    ghi
-                """,
-""""
-var x = """
-    [||]
-    """
-"""",
-""""
-var x = """
-        abc
-        def
-        ghi[||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-        abc
-    def
-    ghi[||]
-    """
-"""");
-        }
+                    ghi[||]
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                    abc
+                def
+                ghi[||]
+                """
+            """");
 
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine10_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine10_A()
+        => TestPasteKnownSource(
+            pasteText: """
+                    abc
+                def
+                ghi
+            """,
+            """"
+            var x = """
+                [||]
+                """
+            """",
+            """"
+            var x = """
                         abc
                     def
-                    ghi
-                """,
-""""
-var x = """
-    [||]
-    """
-"""",
-""""
-var x = """
-            abc
-        def
-        ghi[||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-            abc
-    def
-    ghi[||]
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine11_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """
-                abc
-                def
-                """,
-""""
-var x = """
-    [||]{|Selection:    |}
-    """
-"""",
-""""
-var x = """
-    abc
-    def[||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    abc
-def[||]
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine12_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """
-                abc
-                def
-
-                """,
-""""
-var x = """
-    [||]{|Selection:    |}
-    """
-"""",
-""""
-var x = """
-    abc
-    def
-    [||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    abc
-def
-[||]
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringSingleLine13_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """
-                abc
-                def
-                """,
-""""
-var x = """
-    [||]{|Selection:    |}  
-    """
-"""",
-""""
-var x = """
-    abc
-    def[||]  
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    abc
-def[||]  
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestNormalTextIntoSingleLineRawStringHeader1_A()
-        {
-            TestPasteKnownSource(
-                pasteText: """
-                "bar
-                """,
-""""
-var x = """
-    [||]goo
-    """
-"""",
-""""
-var x = """
-    "bar[||]goo
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-    [||]goo
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestQuotesIntoHeader1()
-        {
-            TestPasteKnownSource(
-                pasteText: """
-                ""
-                """,
-""""
-var x = """
-    [||]{|Selection:    |}
-    """
-"""",
-""""
-var x = """
-    ""[||]
-    """
-"""",
-                afterUndo:
-""""
-var x = """
-        [||]
-    """
-"""");
-        }
-
-        [WpfFact]
-        public void TestQuotesIntoHeader2()
-        {
-            TestPasteKnownSource(
-                pasteText: """"
+                    ghi[||]
                 """
-                """",
-""""
-var x = """
-    [||]{|Selection:    |}
-    """
-"""",
-"""""
-var x = """"
-    """[||]
-    """"
-""""",
-                afterUndo:
-""""
-var x = """
-    """[||]
-    """
-"""");
-        }
+            """",
+            afterUndo:
+            """"
+            var x = """
+                        abc
+                def
+                ghi[||]
+                """
+            """");
 
-        #endregion
-    }
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine11_A()
+        => TestPasteKnownSource(
+            pasteText: """
+            abc
+            def
+            """,
+            """"
+            var x = """
+                [||]{|Selection:    |}
+                """
+            """",
+            """"
+            var x = """
+                abc
+                def[||]
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                abc
+            def[||]
+                """
+            """");
+
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine12_A()
+        => TestPasteKnownSource(
+            pasteText: """
+            abc
+            def
+
+            """,
+            """"
+            var x = """
+                [||]{|Selection:    |}
+                """
+            """",
+            """"
+            var x = """
+                abc
+                def
+                [||]
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                abc
+            def
+            [||]
+                """
+            """");
+
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringSingleLine13_A()
+        => TestPasteKnownSource(
+            pasteText: """
+            abc
+            def
+            """,
+            """"
+            var x = """
+                [||]{|Selection:    |}  
+                """
+            """",
+            """"
+            var x = """
+                abc
+                def[||]  
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                abc
+            def[||]  
+                """
+            """");
+
+    [WpfFact]
+    public void TestNormalTextIntoSingleLineRawStringHeader1_A()
+        => TestPasteKnownSource(
+            pasteText: """
+            "bar
+            """,
+            """"
+            var x = """
+                [||]goo
+                """
+            """",
+            """"
+            var x = """
+                "bar[||]goo
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                [||]goo
+                """
+            """");
+
+    [WpfFact]
+    public void TestQuotesIntoHeader1()
+        => TestPasteKnownSource(
+            pasteText: """
+            ""
+            """,
+            """"
+            var x = """
+                [||]{|Selection:    |}
+                """
+            """",
+            """"
+            var x = """
+                ""[||]
+                """
+            """",
+            afterUndo:
+            """"
+            var x = """
+                    [||]
+                """
+            """");
+
+    [WpfFact]
+    public void TestQuotesIntoHeader2()
+        => TestPasteKnownSource(
+            pasteText: """"
+            """
+            """",
+            """"
+            var x = """
+                [||]{|Selection:    |}
+                """
+            """",
+            """""
+            var x = """"
+                """[||]
+                """"
+            """"",
+            afterUndo:
+            """"
+            var x = """
+                """[||]
+                """
+            """");
+
+    #endregion
 }

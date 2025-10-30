@@ -9,6 +9,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators;
 
+using static SyntaxFactory;
+
 /// <summary>
 /// Base class to represent a pattern constructed from various checks
 /// </summary>
@@ -48,12 +50,12 @@ internal abstract class AnalyzedPattern
             // semantics, and for 'C.X' could be a compile error.
             //
             // So lets create a pattern syntax and make sure the result is the same
-            var dummyStatement = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
+            var dummyStatement = ExpressionStatement(AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
-                SyntaxFactory.IdentifierName("_"),
-                SyntaxFactory.IsPatternExpression(
+                IdentifierName("_"),
+                IsPatternExpression(
                     binaryExpression.Left,
-                    SyntaxFactory.ConstantPattern(SyntaxFactory.ParenthesizedExpression(binaryExpression.Right.WithAdditionalAnnotations(s_annotation)))
+                    ConstantPattern(ParenthesizedExpression(binaryExpression.Right.WithAdditionalAnnotations(s_annotation)))
                 )
             ));
 
@@ -149,7 +151,20 @@ internal abstract class AnalyzedPattern
                 return null;
 
             var compareTarget = target == leftTarget ? rightTarget : leftTarget;
-            if (!SyntaxFactory.AreEquivalent(target.Syntax, compareTarget.Syntax))
+            if (!AreEquivalent(target.Syntax, compareTarget.Syntax))
+                return null;
+
+            // An &&/|| expression that looks the same on both sides.  This looks like something we could merge into an
+            // 'and/or' pattern that only executes the target once, and compares the result to multiple constants.
+            // However, we disqualify certain forms as they strongly imply that executing the target multiple times
+            // is necessary.  For example:
+            //
+            //  `if (ReadValue(x, ref index) == A && ReadValue(x, ref index) == B)`
+            //
+            // This should not get converted to `if (ReadValue(x, ref index) == A and B)`.
+            //
+            // This list is not exhaustive and can be expanded as needed.
+            if (target.Syntax.DescendantNodesAndSelf().OfType<ArgumentSyntax>().Any(a => a.RefKindKeyword.Kind() is SyntaxKind.RefKeyword))
                 return null;
 
             return new Binary(leftPattern, rightPattern, isDisjunctive, token, target);

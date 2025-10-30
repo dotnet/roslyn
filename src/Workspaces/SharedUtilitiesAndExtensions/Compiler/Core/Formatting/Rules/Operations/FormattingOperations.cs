@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules;
 
@@ -139,18 +138,6 @@ internal static class FormattingOperations
         }
 
         return new AdjustSpacesOperation(space, option);
-    }
-
-    /// <summary>
-    /// return SuppressOperation for the node provided by the given formatting rules
-    /// </summary>
-    internal static IEnumerable<SuppressOperation> GetSuppressOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, SyntaxFormattingOptions options)
-    {
-        var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
-
-        var list = new List<SuppressOperation>();
-        chainedFormattingRules.AddSuppressOperations(list, node);
-        return list;
     }
 
     /// <summary>

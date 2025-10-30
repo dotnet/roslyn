@@ -12,45 +12,45 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare;
+
+/// <summary>
+/// TODO - Move to lower layer once the protocol converter is figured out.
+/// </summary>
+internal class ProjectsHandler : ILspRequestHandler<object, object[], Solution>
 {
-    /// <summary>
-    /// TODO - Move to lower layer once the protocol converter is figured out.
-    /// </summary>
-    internal class ProjectsHandler : ILspRequestHandler<object, object[], Solution>
+    public async Task<object[]> HandleAsync(object param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
     {
-        public async Task<object[]> HandleAsync(object param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        using var _1 = ArrayBuilder<CustomProtocol.Project>.GetInstance(out var projects);
+        using var _2 = ArrayBuilder<Uri>.GetInstance(out var externalUris);
+        var solution = requestContext.Context;
+        foreach (var project in solution.Projects)
         {
-            var projects = new ArrayBuilder<CustomProtocol.Project>();
-            var solution = requestContext.Context;
-            foreach (var project in solution.Projects)
+            foreach (var sourceFile in project.Documents)
             {
-                var externalUris = new ArrayBuilder<Uri>();
-                foreach (var sourceFile in project.Documents)
-                {
-                    var uri = new Uri(sourceFile.FilePath);
+                var uri = new Uri(sourceFile.FilePath);
 #pragma warning disable 0612
-                    if (!requestContext.ProtocolConverter.IsContainedInRootFolders(uri))
+                if (!requestContext.ProtocolConverter.IsContainedInRootFolders(uri))
 #pragma warning restore 0612
-                    {
-                        externalUris.Add(uri);
-                    }
+                {
+                    externalUris.Add(uri);
                 }
+            }
 #pragma warning disable 0612
-                await requestContext.ProtocolConverter.RegisterExternalFilesAsync(externalUris.ToArrayAndFree()).ConfigureAwait(false);
+            await requestContext.ProtocolConverter.RegisterExternalFilesAsync(externalUris.ToArray()).ConfigureAwait(false);
 #pragma warning restore 0612
 
-                var lspProject = new CustomProtocol.Project
-                {
-                    Name = project.Name,
-                    SourceFiles = project.Documents.Select(d => requestContext.ProtocolConverter.ToProtocolUri(new Uri(d.FilePath))).ToArray(),
-                    Language = project.Language
-                };
+            var lspProject = new CustomProtocol.Project
+            {
+                Name = project.Name,
+                SourceFiles = [.. project.Documents.Select(d => requestContext.ProtocolConverter.ToProtocolUri(new Uri(d.FilePath)))],
+                Language = project.Language
+            };
 
-                projects.Add(lspProject);
-            }
-
-            return projects.ToArrayAndFree();
+            projects.Add(lspProject);
+            externalUris.Clear();
         }
+
+        return projects.ToArray();
     }
 }

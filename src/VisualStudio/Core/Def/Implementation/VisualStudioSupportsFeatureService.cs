@@ -7,12 +7,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Configuration;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Text;
@@ -27,7 +24,7 @@ internal sealed class VisualStudioSupportsFeatureService
     private const string ContainedLanguageMarker = nameof(ContainedLanguageMarker);
 
     [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), ServiceLayer.Host), Shared]
-    private class VisualStudioTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
+    private sealed class VisualStudioTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -82,7 +79,7 @@ internal sealed class VisualStudioSupportsFeatureService
     }
 
     [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), ServiceLayer.Host), Shared]
-    private class VisualStudioDocumentSupportsFeatureService : IDocumentSupportsFeatureService
+    private sealed class VisualStudioDocumentSupportsFeatureService : IDocumentSupportsFeatureService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

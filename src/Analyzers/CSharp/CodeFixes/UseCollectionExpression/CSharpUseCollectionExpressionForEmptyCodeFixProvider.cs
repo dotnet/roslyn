@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -34,7 +33,6 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyCodeFixProvid
     protected override Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         SyntaxNode diagnosticNode,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)

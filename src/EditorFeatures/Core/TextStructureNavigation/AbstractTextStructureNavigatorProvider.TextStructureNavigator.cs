@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation;
 
 internal partial class AbstractTextStructureNavigatorProvider
 {
-    private class TextStructureNavigator : ITextStructureNavigator
+    private sealed class TextStructureNavigator : ITextStructureNavigator
     {
         private readonly ITextBuffer _subjectBuffer;
         private readonly ITextStructureNavigator _naturalLanguageNavigator;
@@ -66,51 +65,35 @@ internal partial class AbstractTextStructureNavigatorProvider
         {
             var textLength = position.Snapshot.Length;
             if (textLength == 0)
-            {
                 return _naturalLanguageNavigator.GetExtentOfWord(position);
-            }
 
             // If at the end of the file, go back one character so stuff works
             if (position == textLength && position > 0)
-            {
                 position -= 1;
-            }
 
             // If we're at the EOL position, return the line break's extent
             var line = position.Snapshot.GetLineFromPosition(position);
             if (position >= line.End && position < line.EndIncludingLineBreak)
-            {
                 return new TextExtent(new SnapshotSpan(line.End, line.EndIncludingLineBreak - line.End), isSignificant: false);
-            }
 
             var document = GetDocument(position);
             if (document != null)
             {
-                var root = document.GetSyntaxRootSynchronously(cancellationToken);
+                var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
                 var trivia = root.FindTrivia(position, findInsideTrivia: true);
 
-                if (trivia != default)
-                {
-                    if (trivia.Span.Start == position && _provider.ShouldSelectEntireTriviaFromStart(trivia))
-                    {
-                        // We want to select the entire comment
-                        return new TextExtent(trivia.Span.ToSnapshotSpan(position.Snapshot), isSignificant: true);
-                    }
-                }
+                // See if we want to select the entire comment
+                if (trivia != default && trivia.Span.Start == position && _provider.ShouldSelectEntireTriviaFromStart(trivia))
+                    return new TextExtent(trivia.Span.ToSnapshotSpan(position.Snapshot), isSignificant: true);
 
                 var token = root.FindToken(position, findInsideTrivia: true);
 
                 // If end of file, go back a token
                 if (token.Span.Length == 0 && token.Span.Start == textLength)
-                {
                     token = token.GetPreviousToken();
-                }
 
-                if (token.Span.Length > 0 && token.Span.Contains(position) && !_provider.IsWithinNaturalLanguage(token, position))
-                {
-                    // Cursor position is in our domain - handle it.
-                    return _provider.GetExtentOfWordFromToken(token, position);
-                }
+                if (token.Span.Length > 0 && token.Span.Contains(position))
+                    return _provider.GetExtentOfWordFromToken(_naturalLanguageNavigator, token, position);
             }
 
             // Fall back to natural language navigator do its thing.
@@ -290,7 +273,7 @@ internal partial class AbstractTextStructureNavigatorProvider
             return node == null ? activeSpan : node.Value.Span.ToSnapshotSpan(activeSpan.Snapshot);
         }
 
-        private static Document GetDocument(SnapshotPoint point)
+        private static Document? GetDocument(SnapshotPoint point)
         {
             var textLength = point.Snapshot.Length;
             if (textLength == 0)
@@ -325,7 +308,7 @@ internal partial class AbstractTextStructureNavigatorProvider
         /// </summary>
         private static bool TryFindLeafToken(SnapshotPoint point, out SyntaxToken token, CancellationToken cancellationToken)
         {
-            var syntaxTree = GetDocument(point).GetSyntaxTreeSynchronously(cancellationToken);
+            var syntaxTree = GetDocument(point)?.GetSyntaxTreeSynchronously(cancellationToken);
             if (syntaxTree != null)
             {
                 token = syntaxTree.GetRoot(cancellationToken).FindToken(point, true);

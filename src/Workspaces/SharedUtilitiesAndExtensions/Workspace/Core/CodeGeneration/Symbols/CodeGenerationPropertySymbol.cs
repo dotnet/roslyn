@@ -5,16 +5,11 @@
 #nullable disable
 
 using System.Collections.Immutable;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
 using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationPropertySymbol(
+internal sealed class CodeGenerationPropertySymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility declaredAccessibility,
@@ -85,4 +80,13 @@ internal class CodeGenerationPropertySymbol(
     public ImmutableArray<CustomModifier> RefCustomModifiers => [];
 
     public ImmutableArray<CustomModifier> TypeCustomModifiers => [];
+
+    public IPropertySymbol PartialImplementationPart => null;
+
+    public IPropertySymbol PartialDefinitionPart => null;
+
+    public bool IsPartialDefinition => false;
+
+    public IPropertySymbol ReduceExtensionMember(ITypeSymbol receiverType)
+        => throw new System.NotImplementedException();
 }

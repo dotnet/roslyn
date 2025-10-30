@@ -2,12 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -20,22 +15,18 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
     TExpressionSyntax,
     TStatementSyntax,
     TVariableDeclarator,
-    TIfStatementSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    TIfStatementSyntax>() : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseCoalesceExpressionForIfNullCheckDiagnosticId,
+        EnforceOnBuildValues.UseCoalesceExpression,
+        CodeStyleOptions2.PreferCoalesceExpression,
+        new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     where TSyntaxKind : struct
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
     where TVariableDeclarator : SyntaxNode
     where TIfStatementSyntax : TStatementSyntax
 {
-    protected AbstractUseCoalesceExpressionForIfNullStatementCheckDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseCoalesceExpressionForIfNullCheckDiagnosticId,
-               EnforceOnBuildValues.UseCoalesceExpression,
-               CodeStyleOptions2.PreferCoalesceExpression,
-               new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-               new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
-    {
-    }
-
     protected abstract TSyntaxKind IfStatementKind { get; }
     protected abstract ISyntaxFacts SyntaxFacts { get; }
 
@@ -91,6 +82,9 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
                 return;
         }
 
+        if (syntaxFacts.ContainsInterleavedDirective([previousStatement, ifStatement], cancellationToken))
+            return;
+
         TExpressionSyntax? expressionToCoalesce;
 
         if (syntaxFacts.IsLocalDeclarationStatement(previousStatement))
@@ -120,11 +114,12 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckDiag
             ifStatement.GetFirstToken().GetLocation(),
             option.Notification,
             context.Options,
-            ImmutableArray.Create(
-                expressionToCoalesce.GetLocation(),
+            [expressionToCoalesce.GetLocation(),
                 ifStatement.GetLocation(),
-                whenTrueStatement.GetLocation()),
+                whenTrueStatement.GetLocation()],
             properties: null));
+
+        return;
 
         bool AnalyzeLocalDeclarationForm(
             TStatementSyntax localDeclarationStatement,

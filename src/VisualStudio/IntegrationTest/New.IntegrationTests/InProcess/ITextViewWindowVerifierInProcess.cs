@@ -4,12 +4,11 @@
 
 using Microsoft.VisualStudio.Extensibility.Testing;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
-{
-    internal interface ITextViewWindowVerifierInProcess
-    {
-        TestServices TestServices { get; }
+namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
-        ITextViewWindowInProcess TextViewWindow { get; }
-    }
+internal interface ITextViewWindowVerifierInProcess
+{
+    TestServices TestServices { get; }
+
+    ITextViewWindowInProcess TextViewWindow { get; }
 }

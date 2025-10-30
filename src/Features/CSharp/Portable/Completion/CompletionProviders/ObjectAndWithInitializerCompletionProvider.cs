@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -25,17 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 // - new() { $$
 // - new C() { $$
 // - expr with { $$
-[ExportCompletionProvider(nameof(ObjectAndWithInitializerCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(ObjectAndWithInitializerCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(ObjectCreationCompletionProvider))]
-[Shared]
-internal class ObjectAndWithInitializerCompletionProvider : AbstractObjectInitializerCompletionProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ObjectAndWithInitializerCompletionProvider() : AbstractObjectInitializerCompletionProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ObjectAndWithInitializerCompletionProvider()
-    {
-    }
-
     internal override string Language => LanguageNames.CSharp;
 
     protected override async Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken)
@@ -65,36 +59,26 @@ internal class ObjectAndWithInitializerCompletionProvider : AbstractObjectInitia
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
         if (tree.IsInNonUserCode(position, cancellationToken))
-        {
             return false;
-        }
 
         var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
         token = token.GetPreviousTokenIfTouchingWord(position);
 
         if (token.Parent == null)
-        {
             return false;
-        }
 
         if (token.Parent.Parent is not ExpressionSyntax expression)
-        {
             return false;
-        }
 
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(expression, cancellationToken).ConfigureAwait(false);
         var initializedType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
         if (initializedType == null)
-        {
             return false;
-        }
 
         var enclosingSymbol = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
         // Non-exclusive if initializedType can be initialized as a collection.
         if (initializedType.CanSupportCollectionInitializer(enclosingSymbol))
-        {
             return false;
-        }
 
         // By default, only our member names will show up.
         return true;
@@ -105,27 +89,21 @@ internal class ObjectAndWithInitializerCompletionProvider : AbstractObjectInitia
 
     public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
-    protected override Tuple<ITypeSymbol, Location>? GetInitializedType(
+    protected override (ITypeSymbol type, Location location, bool isObjectInitializer)? GetInitializedType(
         Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
     {
         var tree = semanticModel.SyntaxTree;
         if (tree.IsInNonUserCode(position, cancellationToken))
-        {
             return null;
-        }
 
         var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
         token = token.GetPreviousTokenIfTouchingWord(position);
 
         if (token.Kind() is not SyntaxKind.CommaToken and not SyntaxKind.OpenBraceToken)
-        {
             return null;
-        }
 
         if (token.Parent == null || token.Parent.Parent == null)
-        {
             return null;
-        }
 
         // If we got a comma, we can syntactically find out if we're in an ObjectInitializerExpression or WithExpression
         if (token.Kind() == SyntaxKind.CommaToken &&
@@ -136,11 +114,9 @@ internal class ObjectAndWithInitializerCompletionProvider : AbstractObjectInitia
 
         var type = GetInitializedType(token, document, semanticModel, cancellationToken);
         if (type is null)
-        {
             return null;
-        }
 
-        return Tuple.Create(type, token.GetLocation());
+        return (type, token.GetLocation(), token.Parent.Kind() is not SyntaxKind.WithInitializerExpression);
     }
 
     private static ITypeSymbol? GetInitializedType(SyntaxToken token, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -178,33 +154,25 @@ internal class ObjectAndWithInitializerCompletionProvider : AbstractObjectInitia
                         .GetPreviousTokenIfTouchingWord(position);
 
         // We should have gotten back a { or ,
-        if (token.Kind() is SyntaxKind.CommaToken or SyntaxKind.OpenBraceToken)
+        if (token.Kind() is SyntaxKind.CommaToken or SyntaxKind.OpenBraceToken &&
+            token.Parent is InitializerExpressionSyntax initializer)
         {
-            if (token.Parent != null)
-            {
-
-                if (token.Parent is InitializerExpressionSyntax initializer)
-                {
-                    return new HashSet<string>(initializer.Expressions.OfType<AssignmentExpressionSyntax>()
-                        .Where(b => b.OperatorToken.Kind() == SyntaxKind.EqualsToken)
-                        .Select(b => b.Left)
-                        .OfType<IdentifierNameSyntax>()
-                        .Select(i => i.Identifier.ValueText));
-                }
-            }
+            return [.. initializer.Expressions.OfType<AssignmentExpressionSyntax>()
+                .Where(b => b.OperatorToken.Kind() == SyntaxKind.EqualsToken)
+                .Select(b => b.Left)
+                .OfType<IdentifierNameSyntax>()
+                .Select(i => i.Identifier.ValueText)];
         }
 
         return [];
     }
 
-    protected override bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)
+    protected override bool IsInitializableFieldOrProperty(ISymbol fieldOrProperty, INamedTypeSymbol containingType)
     {
-        if (member is IPropertySymbol property && property.Parameters.Any(static p => !p.IsOptional))
-        {
+        if (fieldOrProperty is IPropertySymbol property && property.Parameters.Any(static p => !p.IsOptional))
             return false;
-        }
 
-        return base.IsInitializable(member, containingType);
+        return base.IsInitializableFieldOrProperty(fieldOrProperty, containingType);
     }
 
     protected override string EscapeIdentifier(ISymbol symbol)

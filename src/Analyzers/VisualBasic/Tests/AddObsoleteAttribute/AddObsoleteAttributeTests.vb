@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddObsoleteAttribu
 
         <Fact>
         Public Async Function TestObsoleteClassNoMessage() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 <System.Obsolete>
 class Base
@@ -42,7 +42,7 @@ end class
 
         <Fact>
         Public Async Function TestObsoleteClassWithMessage() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 <System.Obsolete(""message"")>
 class Base
@@ -66,7 +66,7 @@ end class
 
         <Fact>
         Public Async Function TestObsoleteClassUsedInField() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 <System.Obsolete>
 class Base
@@ -92,7 +92,7 @@ end class
 
         <Fact>
         Public Async Function TestObsoleteClassUsedInMethod() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 <System.Obsolete>
 class Base
@@ -142,7 +142,7 @@ end class
 
         <Fact>
         Public Async Function TestObsoleteClassFixAll1() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 <System.Obsolete>
 class Base
@@ -174,7 +174,7 @@ end class
 
         <Fact>
         Public Async Function TestObsoleteClassFixAll2() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 <System.Obsolete>
 class Base
@@ -206,7 +206,7 @@ end class
 
         <Fact>
         Public Async Function TestObsoleteClassFixAll3() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "
 <System.Obsolete>
 class Base

@@ -2,47 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
-using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 
 /// <summary>
 /// The TaggerProvider that calls upon the service in order to locate the spans and names
 /// </summary>
-[Export(typeof(IViewTaggerProvider))]
-[VSUtilities.ContentType(ContentTypeNames.RoslynContentType)]
-[TagType(typeof(InlineHintDataTag))]
-[VSUtilities.Name(nameof(InlineHintsDataTaggerProvider))]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-[method: ImportingConstructor]
-internal partial class InlineHintsDataTaggerProvider(
-    IThreadingContext threadingContext,
-    IGlobalOptionService globalOptions,
-    [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor,
-    [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<InlineHintDataTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.InlineHints))
+internal sealed partial class InlineHintsDataTaggerProvider<TAdditionalInformation>(
+    TaggerHost taggerHost,
+    IInlineHintKeyProcessor inlineHintKeyProcessor)
+    : AsynchronousViewportTaggerProvider<InlineHintDataTag<TAdditionalInformation>>(taggerHost, FeatureAttribute.InlineHints)
+    where TAdditionalInformation : class
 {
-    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
     private readonly IInlineHintKeyProcessor _inlineHintKeyProcessor = inlineHintKeyProcessor;
 
     protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
@@ -61,43 +46,30 @@ internal partial class InlineHintsDataTaggerProvider(
     {
         return TaggerEventSources.Compose(
             TaggerEventSources.OnViewSpanChanged(this.ThreadingContext, textView),
-            TaggerEventSources.OnWorkspaceChanged(subjectBuffer, _listener),
+            TaggerEventSources.OnWorkspaceChanged(subjectBuffer, this.AsyncListener),
             new InlineHintKeyProcessorEventSource(_inlineHintKeyProcessor),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.EnabledForParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForLiteralParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForIndexerParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForObjectCreationParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForOtherParameters),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.EnabledForTypes),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForImplicitVariableTypes),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForLambdaParameterTypes),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InlineHintsOptionsStorage.ForImplicitObjectCreation));
-    }
-
-    protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
-    {
-        this.ThreadingContext.ThrowIfNotOnUIThread();
-        Contract.ThrowIfNull(textView);
-
-        // Find the visible span some 100 lines +/- what's actually in view.  This way
-        // if the user scrolls up/down, we'll already have the results.
-        var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
-        if (visibleSpanOpt == null)
-        {
-            // Couldn't find anything visible, just fall back to tagging all hint locations
-            return base.GetSpansToTag(textView, subjectBuffer);
-        }
-
-        return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
+            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, static option =>
+                option.Equals(InlineHintsOptionsStorage.EnabledForParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForLiteralParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForIndexerParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForObjectCreationParameters) ||
+                option.Equals(InlineHintsOptionsStorage.ForOtherParameters) ||
+                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent) ||
+                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix) ||
+                option.Equals(InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName) ||
+                option.Equals(InlineHintsOptionsStorage.EnabledForTypes) ||
+                option.Equals(InlineHintsOptionsStorage.ForImplicitVariableTypes) ||
+                option.Equals(InlineHintsOptionsStorage.ForLambdaParameterTypes) ||
+                option.Equals(InlineHintsOptionsStorage.ForImplicitObjectCreation) ||
+                option.Equals(InlineHintsOptionsStorage.ForCollectionExpressions)));
     }
 
     protected override async Task ProduceTagsAsync(
-        TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
+        TaggerContext<InlineHintDataTag<TAdditionalInformation>> context,
+        DocumentSnapshotSpan spanToTag,
+        CancellationToken cancellationToken)
     {
-        var document = documentSnapshotSpan.Document;
+        var document = spanToTag.Document;
         if (document == null)
             return;
 
@@ -113,7 +85,7 @@ internal partial class InlineHintsDataTaggerProvider(
 
         var options = GlobalOptions.GetInlineHintsOptions(document.Project.Language);
 
-        var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+        var snapshotSpan = spanToTag.SnapshotSpan;
         var hints = await service.GetInlineHintsAsync(
             document, snapshotSpan.Span.ToTextSpan(), options,
             displayAllOverride: _inlineHintKeyProcessor?.State is true,
@@ -125,12 +97,12 @@ internal partial class InlineHintsDataTaggerProvider(
             if (hint.DisplayParts.Sum(p => p.ToString().Length) == 0)
                 continue;
 
-            context.AddTag(new TagSpan<InlineHintDataTag>(
+            context.AddTag(new TagSpan<InlineHintDataTag<TAdditionalInformation>>(
                 hint.Span.ToSnapshotSpan(snapshotSpan.Snapshot),
-                new InlineHintDataTag(this, snapshotSpan.Snapshot, hint)));
+                new(this, snapshotSpan.Snapshot, hint)));
         }
     }
 
-    protected override bool TagEquals(InlineHintDataTag tag1, InlineHintDataTag tag2)
+    protected override bool TagEquals(InlineHintDataTag<TAdditionalInformation> tag1, InlineHintDataTag<TAdditionalInformation> tag2)
         => tag1.Equals(tag2);
 }

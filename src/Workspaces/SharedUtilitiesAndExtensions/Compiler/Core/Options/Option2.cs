@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options;
 
@@ -25,7 +24,7 @@ internal interface ISingleValuedOption : IOption2
     /// </list>
     /// Note that this property is not (and should not be) used for computing option values or storing options.
     /// </remarks>
-    public string? LanguageName { get; }
+    string? LanguageName { get; }
 }
 
 /// <inheritdoc cref="ISingleValuedOption"/>
@@ -33,7 +32,7 @@ internal interface ISingleValuedOption<T> : ISingleValuedOption
 {
 }
 
-internal partial class Option2<T> : ISingleValuedOption<T>
+internal sealed partial class Option2<T> : ISingleValuedOption<T>
 {
     public OptionDefinition<T> Definition { get; }
     public IPublicOption? PublicOption { get; }
@@ -67,7 +66,7 @@ internal partial class Option2<T> : ISingleValuedOption<T>
             return;
         }
 
-        Debug.Assert(LanguageName is null == (Definition.ConfigName.StartsWith("dotnet_", StringComparison.Ordinal) ||
+        Debug.Assert(LanguageName is null == (Definition.ConfigName.StartsWith(OptionDefinition.LanguageAgnosticConfigNamePrefix, StringComparison.Ordinal) ||
             Definition.ConfigName is "file_header_template" or "insert_final_newline"));
         Debug.Assert(LanguageName is LanguageNames.CSharp == Definition.ConfigName.StartsWith(OptionDefinition.CSharpConfigNamePrefix, StringComparison.Ordinal));
         Debug.Assert(LanguageName is LanguageNames.VisualBasic == Definition.ConfigName.StartsWith(OptionDefinition.VisualBasicConfigNamePrefix, StringComparison.Ordinal));
@@ -76,7 +75,7 @@ internal partial class Option2<T> : ISingleValuedOption<T>
     public T DefaultValue => Definition.DefaultValue;
     OptionDefinition IOption2.Definition => Definition;
 
-#if CODE_STYLE
+#if !WORKSPACE
     bool IOption2.IsPerLanguage => false;
 #else
     string IOption.Feature => "config";

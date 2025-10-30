@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return true; }
             }
 
-            internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+            internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
             {
                 return true;
             }

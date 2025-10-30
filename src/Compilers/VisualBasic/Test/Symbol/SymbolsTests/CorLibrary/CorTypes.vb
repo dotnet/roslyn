@@ -50,14 +50,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetCoreApp.SystemRuntime})
             Dim msCorLibRef As MetadataOrSourceAssemblySymbol = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
 
-            Dim knownMissingTypes As HashSet(Of Integer) = New HashSet(Of Integer) From {SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute}
+            Dim knownMissingSpecialTypes As HashSet(Of SpecialType) = New HashSet(Of SpecialType) From {SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute}
+            Dim knownMissingInternalSpecialTypes As HashSet(Of InternalSpecialType) = New HashSet(Of InternalSpecialType) From {InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers}
 
             For i As Integer = 1 To SpecialType.Count
-                Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))
+                Dim specialType = CType(i, SpecialType)
+                Dim t = msCorLibRef.GetSpecialType(specialType)
                 Assert.Equal(CType(i, SpecialType), t.SpecialType)
                 Assert.Equal(CType(i, ExtendedSpecialType), t.ExtendedSpecialType)
                 Assert.Same(msCorLibRef, t.ContainingAssembly)
-                If knownMissingTypes.Contains(i) Then
+                If knownMissingSpecialTypes.Contains(specialType) Then
                     ' not present on dotnet core 3.1
                     Assert.Equal(TypeKind.Error, t.TypeKind)
                 Else
@@ -66,11 +68,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             Next
 
             For i As Integer = InternalSpecialType.First To InternalSpecialType.NextAvailable - 1
-                Dim t = msCorLibRef.GetSpecialType(CType(i, InternalSpecialType))
+                Dim internalSpecialType = CType(i, InternalSpecialType)
+                Dim t = msCorLibRef.GetSpecialType(internalSpecialType)
                 Assert.Equal(SpecialType.None, t.SpecialType)
                 Assert.Equal(CType(i, ExtendedSpecialType), t.ExtendedSpecialType)
                 Assert.Same(msCorLibRef, t.ContainingAssembly)
-                If knownMissingTypes.Contains(i) Then
+                If knownMissingInternalSpecialTypes.Contains(internalSpecialType) Then
                     ' not present on dotnet core 3.1
                     Assert.Equal(TypeKind.Error, t.TypeKind)
                 Else
@@ -106,8 +109,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
                 Next
             End While
 
-            Assert.Equal(count + knownMissingTypes.Count, CType(SpecialType.Count, Integer))
-            Assert.Equal(knownMissingTypes.Any(), msCorLibRef.KeepLookingForDeclaredSpecialTypes)
+            Assert.Equal(count + knownMissingSpecialTypes.Count, CType(SpecialType.Count, Integer))
+            Assert.Equal(knownMissingSpecialTypes.Any(), msCorLibRef.KeepLookingForDeclaredSpecialTypes)
         End Sub
 
         <Fact()>
@@ -224,7 +227,7 @@ End Namespace
 
             Dim c1 = VisualBasicCompilation.Create("Test1",
                 syntaxTrees:={VisualBasicSyntaxTree.ParseText(source1.Value)},
-                references:={TestMetadata.Net40.mscorlib})
+                references:={Net40.References.mscorlib})
 
             Assert.Null(c1.GetTypeByMetadataName("DoesntExist"))
             Assert.Null(c1.GetTypeByMetadataName("DoesntExist`1"))
@@ -239,14 +242,14 @@ End Namespace
             Dim c2 = VisualBasicCompilation.Create("Test2",
                         syntaxTrees:={VisualBasicSyntaxTree.ParseText(source2.Value)},
                         references:={New VisualBasicCompilationReference(c1),
-                                        TestMetadata.Net40.mscorlib})
+                                        Net40.References.mscorlib})
 
             Dim c2TestClass As NamedTypeSymbol = c2.GetTypeByMetadataName("System.TestClass")
             Assert.Same(c2.Assembly, c2TestClass.ContainingAssembly)
 
             Dim c3 = VisualBasicCompilation.Create("Test3",
                         references:={New VisualBasicCompilationReference(c2),
-                                    TestMetadata.Net40.mscorlib})
+                                    Net40.References.mscorlib})
 
             Dim c3TestClass As NamedTypeSymbol = c3.GetTypeByMetadataName("System.TestClass")
             Assert.NotSame(c2TestClass, c3TestClass)
@@ -256,7 +259,7 @@ End Namespace
 
             Dim c4 = VisualBasicCompilation.Create("Test4",
                         references:={New VisualBasicCompilationReference(c1), New VisualBasicCompilationReference(c2),
-                                    TestMetadata.Net40.mscorlib})
+                                    Net40.References.mscorlib})
 
             Dim c4TestClass As NamedTypeSymbol = c4.GetTypeByMetadataName("System.TestClass")
             Assert.Null(c4TestClass)

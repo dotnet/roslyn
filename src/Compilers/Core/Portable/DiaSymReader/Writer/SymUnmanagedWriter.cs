@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Cci;
 
 namespace Microsoft.DiaSymReader
 {
@@ -141,7 +142,7 @@ namespace Microsoft.DiaSymReader
         /// <exception cref="InvalidOperationException">Writes are not allowed to the underlying stream.</exception>
         /// <exception cref="SymUnmanagedWriterException">Error occurred while writing PDB data.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="metadata"/> is null</exception>
-        public abstract void DefineCustomMetadata(byte[] metadata);
+        public abstract void DefineCustomMetadata(byte[] metadata, IMethodDefinition methodDefinition);
 
         /// <summary>
         /// Designates specified method as an entry point.

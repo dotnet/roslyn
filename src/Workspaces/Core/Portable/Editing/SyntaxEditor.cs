@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing;
 
@@ -55,7 +54,6 @@ namespace Microsoft.CodeAnalysis.Editing;
 /// </remarks>
 public class SyntaxEditor
 {
-    private readonly SyntaxGenerator _generator;
     private readonly List<Change> _changes = [];
 
     /// <summary>
@@ -87,7 +85,7 @@ public class SyntaxEditor
     internal SyntaxEditor(SyntaxNode root, SyntaxGenerator generator)
     {
         OriginalRoot = root;
-        _generator = generator;
+        Generator = generator;
     }
 
     /// <summary>
@@ -98,7 +96,7 @@ public class SyntaxEditor
     /// <summary>
     /// A <see cref="SyntaxGenerator"/> to use to create and change <see cref="SyntaxNode"/>'s.
     /// </summary>
-    public SyntaxGenerator Generator => _generator;
+    public SyntaxGenerator Generator { get; }
 
     /// <summary>
     /// Returns the changed root node.
@@ -110,7 +108,7 @@ public class SyntaxEditor
         var newRoot = OriginalRoot.TrackNodes(nodes);
 
         foreach (var change in _changes)
-            newRoot = change.Apply(newRoot, _generator);
+            newRoot = change.Apply(newRoot, Generator);
 
         return newRoot;
     }
@@ -311,7 +309,7 @@ public class SyntaxEditor
 
     private sealed class InsertChange(SyntaxNode node, IEnumerable<SyntaxNode> newNodes, bool isBefore) : Change(node)
     {
-        private readonly List<SyntaxNode> _newNodes = newNodes.ToList();
+        private readonly List<SyntaxNode> _newNodes = [.. newNodes];
 
         protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
             => isBefore

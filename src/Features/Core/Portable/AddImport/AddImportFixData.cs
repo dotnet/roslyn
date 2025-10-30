@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeActions;

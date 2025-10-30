@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal readonly struct InterpolatedStringHandlerData
     {
-        public readonly TypeSymbol BuilderType;
+        public readonly TypeSymbol? BuilderType;
         public readonly BoundExpression Construction;
         public readonly bool UsesBoolReturns;
         /// <summary>
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool HasTrailingHandlerValidityParameter => ArgumentPlaceholders.Length > 0 && ArgumentPlaceholders[^1].ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter;
 
-        public readonly BoundInterpolatedStringHandlerPlaceholder ReceiverPlaceholder;
+        public readonly BoundInterpolatedStringHandlerPlaceholder? ReceiverPlaceholder;
 
         public bool IsDefault => Construction is null;
 
@@ -47,11 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReceiverPlaceholder = receiverPlaceholder;
         }
 
-        /// <summary>
-        /// Simple helper method to get the object creation expression for this data. This should only be used in
-        /// scenarios where the data in <see cref="Construction"/> is known to be valid, or it will throw.
-        /// </summary>
-        public readonly BoundObjectCreationExpression GetValidConstructor()
-            => (BoundObjectCreationExpression)Construction;
+        public InterpolatedStringHandlerData(BoundExpression construction)
+        {
+            BuilderType = null;
+            Construction = construction;
+            UsesBoolReturns = false;
+            ArgumentPlaceholders = default;
+            PositionInfo = default;
+            ReceiverPlaceholder = null;
+        }
     }
 }

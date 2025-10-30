@@ -67,8 +67,7 @@ using G.H.I;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/4457")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4457")>
         Public Async Function TestAddImport_InsideNamespace() As Task
             Dim originalCode = "
 using A;
@@ -387,7 +386,7 @@ using G=   H.I;
 
                 Dim formattingOptions = CSharpSyntaxFormattingOptions.Default
 
-                Dim updatedDocument = expansionClient.GetTestAccessor().LanguageHelper.AddImports(
+                Dim updatedDocument = Await expansionClient.GetTestAccessor().LanguageHelper.AddImportsAsync(
                     document,
                     addImportOptions,
                     formattingOptions,

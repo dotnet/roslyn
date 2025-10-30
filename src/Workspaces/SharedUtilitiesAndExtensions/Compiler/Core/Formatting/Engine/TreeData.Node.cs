@@ -4,13 +4,12 @@
 
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
 internal abstract partial class TreeData
 {
-    private class Node : TreeData
+    private sealed class Node : TreeData
     {
         public Node(SyntaxNode root)
             : base(root)

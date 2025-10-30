@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 using Utils = Microsoft.CodeAnalysis.CSharp.UnitTests.CompilationUtils;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -1095,12 +1096,12 @@ static class C
     static void F(this object o) { }
     static void F<T>(this T t) where T : struct { }
 }";
-            CreateCompilationWithMscorlib40(text, references: new[] { TestMetadata.Net40.SystemCore }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.References.SystemCore }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (7,9): error CS0310: 'I' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C.E<T>(T)'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "i.E").WithArguments("C.E<T>(T)", "T", "I").WithLocation(7, 9),
                 // (9,9): error CS0453: The type 'I' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.F<T>(T)'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "i.F").WithArguments("C.F<T>(T)", "T", "I").WithLocation(9, 9));
-            CreateCompilationWithMscorlib40(text, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics();
         }
 
         [ClrOnlyFact]
@@ -4545,83 +4546,117 @@ class B
             compilation.VerifyIL("B.M1<T>(T)",
 @"
 {
-  // Code size      216 (0xd8)
+  // Code size      290 (0x122)
   .maxstack  4
-  .locals init (int V_0,
-            T& V_1,
-            T V_2)
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3,
+                T& V_4)
   IL_0000:  ldarga.s   V_0
-  IL_0002:  dup
-  IL_0003:  constrained. ""T""
-  IL_0009:  callvirt   ""int I.P.get""
-  IL_000e:  stloc.0
-  IL_000f:  ldloc.0
-  IL_0010:  ldc.i4.1
-  IL_0011:  add
-  IL_0012:  constrained. ""T""
-  IL_0018:  callvirt   ""void I.P.set""
-  IL_001d:  ldarga.s   V_0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    ""T""
+  IL_000b:  ldloc.3
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
   IL_001f:  dup
-  IL_0020:  ldc.i4.0
-  IL_0021:  constrained. ""T""
-  IL_0027:  callvirt   ""int I.this[int].get""
-  IL_002c:  stloc.0
-  IL_002d:  ldc.i4.0
-  IL_002e:  ldloc.0
-  IL_002f:  ldc.i4.1
-  IL_0030:  add
-  IL_0031:  constrained. ""T""
-  IL_0037:  callvirt   ""void I.this[int].set""
-  IL_003c:  ldarga.s   V_0
-  IL_003e:  stloc.1
-  IL_003f:  ldloc.1
-  IL_0040:  ldloca.s   V_2
-  IL_0042:  initobj    ""T""
-  IL_0048:  ldloc.2
-  IL_0049:  box        ""T""
-  IL_004e:  brtrue.s   IL_0058
-  IL_0050:  ldobj      ""T""
-  IL_0055:  stloc.2
-  IL_0056:  ldloca.s   V_2
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""int I.P.get""
+  IL_002b:  stloc.2
+  IL_002c:  ldloc.2
+  IL_002d:  ldc.i4.1
+  IL_002e:  add
+  IL_002f:  constrained. ""T""
+  IL_0035:  callvirt   ""void I.P.set""
+  IL_003a:  ldarga.s   V_0
+  IL_003c:  stloc.1
+  IL_003d:  ldloca.s   V_3
+  IL_003f:  initobj    ""T""
+  IL_0045:  ldloc.3
+  IL_0046:  box        ""T""
+  IL_004b:  brtrue.s   IL_0058
+  IL_004d:  ldloc.1
+  IL_004e:  ldobj      ""T""
+  IL_0053:  stloc.0
+  IL_0054:  ldloca.s   V_0
+  IL_0056:  br.s       IL_0059
   IL_0058:  ldloc.1
-  IL_0059:  constrained. ""T""
-  IL_005f:  callvirt   ""int I.P.get""
-  IL_0064:  ldc.i4.2
-  IL_0065:  add
-  IL_0066:  constrained. ""T""
-  IL_006c:  callvirt   ""void I.P.set""
-  IL_0071:  ldarga.s   V_0
-  IL_0073:  stloc.1
-  IL_0074:  ldloc.1
-  IL_0075:  ldloca.s   V_2
-  IL_0077:  initobj    ""T""
-  IL_007d:  ldloc.2
-  IL_007e:  box        ""T""
-  IL_0083:  brtrue.s   IL_008d
-  IL_0085:  ldobj      ""T""
-  IL_008a:  stloc.2
-  IL_008b:  ldloca.s   V_2
-  IL_008d:  ldc.i4.0
-  IL_008e:  ldloc.1
-  IL_008f:  ldc.i4.0
-  IL_0090:  constrained. ""T""
-  IL_0096:  callvirt   ""int I.this[int].get""
-  IL_009b:  ldc.i4.2
-  IL_009c:  add
-  IL_009d:  constrained. ""T""
-  IL_00a3:  callvirt   ""void I.this[int].set""
-  IL_00a8:  ldstr      ""{0}, {1}""
-  IL_00ad:  ldarga.s   V_0
-  IL_00af:  constrained. ""T""
-  IL_00b5:  callvirt   ""int I.P.get""
-  IL_00ba:  box        ""int""
-  IL_00bf:  ldarga.s   V_0
-  IL_00c1:  ldc.i4.0
-  IL_00c2:  constrained. ""T""
-  IL_00c8:  callvirt   ""int I.this[int].get""
-  IL_00cd:  box        ""int""
-  IL_00d2:  call       ""void System.Console.WriteLine(string, object, object)""
-  IL_00d7:  ret
+  IL_0059:  dup
+  IL_005a:  ldc.i4.0
+  IL_005b:  constrained. ""T""
+  IL_0061:  callvirt   ""int I.this[int].get""
+  IL_0066:  stloc.2
+  IL_0067:  ldc.i4.0
+  IL_0068:  ldloc.2
+  IL_0069:  ldc.i4.1
+  IL_006a:  add
+  IL_006b:  constrained. ""T""
+  IL_0071:  callvirt   ""void I.this[int].set""
+  IL_0076:  ldarga.s   V_0
+  IL_0078:  stloc.s    V_4
+  IL_007a:  ldloca.s   V_3
+  IL_007c:  initobj    ""T""
+  IL_0082:  ldloc.3
+  IL_0083:  box        ""T""
+  IL_0088:  brtrue.s   IL_0096
+  IL_008a:  ldloc.s    V_4
+  IL_008c:  ldobj      ""T""
+  IL_0091:  stloc.0
+  IL_0092:  ldloca.s   V_0
+  IL_0094:  br.s       IL_0098
+  IL_0096:  ldloc.s    V_4
+  IL_0098:  stloc.1
+  IL_0099:  ldloc.1
+  IL_009a:  ldloc.1
+  IL_009b:  constrained. ""T""
+  IL_00a1:  callvirt   ""int I.P.get""
+  IL_00a6:  ldc.i4.2
+  IL_00a7:  add
+  IL_00a8:  constrained. ""T""
+  IL_00ae:  callvirt   ""void I.P.set""
+  IL_00b3:  ldarga.s   V_0
+  IL_00b5:  stloc.1
+  IL_00b6:  ldloca.s   V_3
+  IL_00b8:  initobj    ""T""
+  IL_00be:  ldloc.3
+  IL_00bf:  box        ""T""
+  IL_00c4:  brtrue.s   IL_00d1
+  IL_00c6:  ldloc.1
+  IL_00c7:  ldobj      ""T""
+  IL_00cc:  stloc.0
+  IL_00cd:  ldloca.s   V_0
+  IL_00cf:  br.s       IL_00d2
+  IL_00d1:  ldloc.1
+  IL_00d2:  stloc.s    V_4
+  IL_00d4:  ldloc.s    V_4
+  IL_00d6:  ldc.i4.0
+  IL_00d7:  ldloc.s    V_4
+  IL_00d9:  ldc.i4.0
+  IL_00da:  constrained. ""T""
+  IL_00e0:  callvirt   ""int I.this[int].get""
+  IL_00e5:  ldc.i4.2
+  IL_00e6:  add
+  IL_00e7:  constrained. ""T""
+  IL_00ed:  callvirt   ""void I.this[int].set""
+  IL_00f2:  ldstr      ""{0}, {1}""
+  IL_00f7:  ldarga.s   V_0
+  IL_00f9:  constrained. ""T""
+  IL_00ff:  callvirt   ""int I.P.get""
+  IL_0104:  box        ""int""
+  IL_0109:  ldarga.s   V_0
+  IL_010b:  ldc.i4.0
+  IL_010c:  constrained. ""T""
+  IL_0112:  callvirt   ""int I.this[int].get""
+  IL_0117:  box        ""int""
+  IL_011c:  call       ""void System.Console.WriteLine(string, object, object)""
+  IL_0121:  ret
 }
 ");
             compilation.VerifyIL("B.M2<T>(T)",
@@ -4629,53 +4664,60 @@ class B
 {
   // Code size      172 (0xac)
   .maxstack  4
-  .locals init (int V_0,
-                T& V_1)
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  dup
-  IL_0003:  constrained. ""T""
-  IL_0009:  callvirt   ""int I.P.get""
-  IL_000e:  stloc.0
-  IL_000f:  ldloc.0
-  IL_0010:  ldc.i4.1
-  IL_0011:  add
-  IL_0012:  constrained. ""T""
-  IL_0018:  callvirt   ""void I.P.set""
-  IL_001d:  ldarga.s   V_0
-  IL_001f:  dup
-  IL_0020:  ldc.i4.0
-  IL_0021:  constrained. ""T""
-  IL_0027:  callvirt   ""int I.this[int].get""
-  IL_002c:  stloc.0
-  IL_002d:  ldc.i4.0
-  IL_002e:  ldloc.0
-  IL_002f:  ldc.i4.1
-  IL_0030:  add
-  IL_0031:  constrained. ""T""
-  IL_0037:  callvirt   ""void I.this[int].set""
-  IL_003c:  ldarga.s   V_0
-  IL_003e:  stloc.1
-  IL_003f:  ldloc.1
-  IL_0040:  ldobj      ""T""
-  IL_0045:  box        ""T""
-  IL_004a:  ldloc.1
-  IL_004b:  constrained. ""T""
-  IL_0051:  callvirt   ""int I.P.get""
-  IL_0056:  ldc.i4.2
-  IL_0057:  add
-  IL_0058:  callvirt   ""void I.P.set""
-  IL_005d:  ldarga.s   V_0
-  IL_005f:  stloc.1
-  IL_0060:  ldloc.1
-  IL_0061:  ldobj      ""T""
-  IL_0066:  box        ""T""
-  IL_006b:  ldc.i4.0
-  IL_006c:  ldloc.1
-  IL_006d:  ldc.i4.0
-  IL_006e:  constrained. ""T""
-  IL_0074:  callvirt   ""int I.this[int].get""
-  IL_0079:  ldc.i4.2
-  IL_007a:  add
+  .locals init (T V_0,
+                int V_1,
+                T& V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  dup
+  IL_0005:  constrained. ""T""
+  IL_000b:  callvirt   ""int I.P.get""
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.1
+  IL_0012:  ldc.i4.1
+  IL_0013:  add
+  IL_0014:  constrained. ""T""
+  IL_001a:  callvirt   ""void I.P.set""
+  IL_001f:  ldarg.0
+  IL_0020:  stloc.0
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  dup
+  IL_0024:  ldc.i4.0
+  IL_0025:  constrained. ""T""
+  IL_002b:  callvirt   ""int I.this[int].get""
+  IL_0030:  stloc.1
+  IL_0031:  ldc.i4.0
+  IL_0032:  ldloc.1
+  IL_0033:  ldc.i4.1
+  IL_0034:  add
+  IL_0035:  constrained. ""T""
+  IL_003b:  callvirt   ""void I.this[int].set""
+  IL_0040:  ldarg.0
+  IL_0041:  stloc.0
+  IL_0042:  ldloca.s   V_0
+  IL_0044:  stloc.2
+  IL_0045:  ldloc.2
+  IL_0046:  ldloc.2
+  IL_0047:  constrained. ""T""
+  IL_004d:  callvirt   ""int I.P.get""
+  IL_0052:  ldc.i4.2
+  IL_0053:  add
+  IL_0054:  constrained. ""T""
+  IL_005a:  callvirt   ""void I.P.set""
+  IL_005f:  ldarg.0
+  IL_0060:  stloc.0
+  IL_0061:  ldloca.s   V_0
+  IL_0063:  stloc.2
+  IL_0064:  ldloc.2
+  IL_0065:  ldc.i4.0
+  IL_0066:  ldloc.2
+  IL_0067:  ldc.i4.0
+  IL_0068:  constrained. ""T""
+  IL_006e:  callvirt   ""int I.this[int].get""
+  IL_0073:  ldc.i4.2
+  IL_0074:  add
+  IL_0075:  constrained. ""T""
   IL_007b:  callvirt   ""void I.this[int].set""
   IL_0080:  ldstr      ""{0}, {1}""
   IL_0085:  ldarg.0
@@ -6679,8 +6721,9 @@ class D2 : C<B<object>, A<object>>
     }
 }";
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
-                // (18,9): error CS1061: 'X' does not contain a definition for 'E1' and no extension method 'E1' accepting a first argument of type 'X' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "E1").WithArguments("X", "E1").WithLocation(18, 11));
+                // (18,11): error CS0411: The type arguments for method 'M.E1<T>(IA<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         o.E1();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "E1").WithArguments("M.E1<T>(IA<T>)").WithLocation(18, 11));
         }
 
         [Fact]
@@ -7294,7 +7337,7 @@ public class C : A<C, C.D>
             metadataComp.VerifyDiagnostics();
             var comp = CreateCompilation(@"System.Console.WriteLine(typeof(C.D).FullName);",
                 new[] { metadataComp.EmitToImageReference() },
-                targetFramework: TargetFramework.Mscorlib45);
+                targetFramework: TargetFramework.Mscorlib461);
 
             // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
             DiagnosticDescription expectedDiagnostic = Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "assembly1", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1);
@@ -7417,6 +7460,89 @@ interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
             var nest = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Nest").Single();
             Assert.Null(model.GetAliasInfo(nest));
             Assert.Equal("Base.Nest", model.GetTypeInfo(nest).Type.ToDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
+        public void TypeParameter_BaseType_ReturnsNull()
+        {
+            var source = """
+                abstract class Base
+                {
+                    public abstract void Method();
+                }
+
+                class Derived<T> where T : Base
+                {
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var typeParameter = (ITypeParameterSymbol)comp.GetTypeByMetadataName("Derived`1").TypeParameters[0].GetPublicSymbol();
+            Assert.Null(typeParameter.BaseType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
+        public void MethodTypeParameter_BaseType_ReturnsNull()
+        {
+            var source = """
+                class C
+                {
+                    void M<T>() where T : class
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var typeParameter = (ITypeParameterSymbol)comp.GetTypeByMetadataName("C").GetMethod("M").TypeParameters[0].GetPublicSymbol();
+            Assert.Null(typeParameter.BaseType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
+        public void ObjectType_BaseType_ReturnsNull()
+        {
+            var comp = CreateCompilation("");
+            comp.VerifyDiagnostics();
+
+            var objectType = (INamedTypeSymbol)comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+            Assert.Null(objectType.BaseType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
+        public void InterfaceType_BaseType_ReturnsNull()
+        {
+            var source = """
+                interface IMyInterface
+                {
+                    void Method();
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var interfaceType = (INamedTypeSymbol)comp.GetTypeByMetadataName("IMyInterface").GetPublicSymbol();
+            Assert.Null(interfaceType.BaseType);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41733")]
+        public void PointerType_BaseType_ReturnsNull()
+        {
+            var source = """
+                unsafe class C
+                {
+                    int* ptr;
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (3,10): warning CS0169: The field 'C.ptr' is never used
+                //     int* ptr;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "ptr").WithArguments("C.ptr").WithLocation(3, 10));
+
+            var pointerType = (IPointerTypeSymbol)comp.GetTypeByMetadataName("C").GetField("ptr").Type.GetPublicSymbol();
+            Assert.Null(pointerType.BaseType);
         }
     }
 }

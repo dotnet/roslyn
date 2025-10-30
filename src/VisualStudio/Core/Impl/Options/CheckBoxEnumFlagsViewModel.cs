@@ -7,80 +7,79 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+
+internal sealed class CheckBoxEnumFlagsOptionViewModel<TOptionValue> : AbstractCheckBoxViewModel
+    where TOptionValue : struct, Enum
 {
-    internal sealed class CheckBoxEnumFlagsOptionViewModel<TOptionValue> : AbstractCheckBoxViewModel
-        where TOptionValue : struct, Enum
+    private readonly int _flag;
+    private readonly Conversions<TOptionValue, int> _conversions;
+
+    /// <summary>
+    /// Stores the latest value of the flags.
+    /// Shared accross all instances of <see cref="CheckBoxEnumFlagsOptionViewModel{TFlags}"/> that represent bits of the same flags enum.
+    /// </summary>
+    private readonly StrongBox<TOptionValue> _valueStorage;
+
+    public CheckBoxEnumFlagsOptionViewModel(
+        IOption2 option,
+        int flag,
+        string description,
+        string preview,
+        AbstractOptionPreviewViewModel info,
+        OptionStore optionStore,
+        StrongBox<TOptionValue> valueStorage,
+        Conversions<TOptionValue, int> conversions)
+        : this(option, flag, description, preview, preview, info, optionStore, valueStorage, conversions)
     {
-        private readonly int _flag;
-        private readonly Conversions<TOptionValue, int> _conversions;
+    }
 
-        /// <summary>
-        /// Stores the latest value of the flags.
-        /// Shared accross all instances of <see cref="CheckBoxEnumFlagsOptionViewModel{TFlags}"/> that represent bits of the same flags enum.
-        /// </summary>
-        private readonly StrongBox<TOptionValue> _valueStorage;
+    public CheckBoxEnumFlagsOptionViewModel(
+        IOption2 option,
+        int flag,
+        string description,
+        string falsePreview,
+        string truePreview,
+        AbstractOptionPreviewViewModel info,
+        OptionStore optionStore,
+        StrongBox<TOptionValue> valueStorage,
+        Conversions<TOptionValue, int> conversions)
+        : base(option, description, truePreview, falsePreview, info)
+    {
+        _valueStorage = valueStorage;
+        _flag = flag;
+        _conversions = conversions;
 
-        public CheckBoxEnumFlagsOptionViewModel(
-            IOption2 option,
-            int flag,
-            string description,
-            string preview,
-            AbstractOptionPreviewViewModel info,
-            OptionStore optionStore,
-            StrongBox<TOptionValue> valueStorage,
-            Conversions<TOptionValue, int> conversions)
-            : this(option, flag, description, preview, preview, info, optionStore, valueStorage, conversions)
+        var flags = optionStore.GetOption<TOptionValue>(option, option.IsPerLanguage ? info.Language : null);
+        _valueStorage.Value = flags;
+
+        SetProperty(ref _isChecked, (conversions.To(flags) & flag) == flag);
+    }
+
+    public override bool IsChecked
+    {
+        get
         {
+            return _isChecked;
         }
 
-        public CheckBoxEnumFlagsOptionViewModel(
-            IOption2 option,
-            int flag,
-            string description,
-            string falsePreview,
-            string truePreview,
-            AbstractOptionPreviewViewModel info,
-            OptionStore optionStore,
-            StrongBox<TOptionValue> valueStorage,
-            Conversions<TOptionValue, int> conversions)
-            : base(option, description, truePreview, falsePreview, info)
+        set
         {
-            _valueStorage = valueStorage;
-            _flag = flag;
-            _conversions = conversions;
+            SetProperty(ref _isChecked, value);
 
-            var flags = optionStore.GetOption<TOptionValue>(option, option.IsPerLanguage ? info.Language : null);
-            _valueStorage.Value = flags;
-
-            SetProperty(ref _isChecked, (conversions.To(flags) & flag) == flag);
-        }
-
-        public override bool IsChecked
-        {
-            get
+            var flags = _conversions.To(_valueStorage.Value);
+            if (value)
             {
-                return _isChecked;
+                flags |= _flag;
+            }
+            else
+            {
+                flags &= ~_flag;
             }
 
-            set
-            {
-                SetProperty(ref _isChecked, value);
+            _valueStorage.Value = _conversions.From(flags);
 
-                var flags = _conversions.To(_valueStorage.Value);
-                if (value)
-                {
-                    flags |= _flag;
-                }
-                else
-                {
-                    flags &= ~_flag;
-                }
-
-                _valueStorage.Value = _conversions.From(flags);
-
-                Info.SetOptionAndUpdatePreview(_valueStorage.Value, Option, GetPreview());
-            }
+            Info.SetOptionAndUpdatePreview(_valueStorage.Value, Option, GetPreview());
         }
     }
 }

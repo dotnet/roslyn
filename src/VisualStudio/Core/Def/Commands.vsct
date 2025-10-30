@@ -19,6 +19,10 @@
       <Group guid="guidRoslynGrpId" id="grpAnalyzerFolderContextMenu" priority="0x000">
         <Parent guid="guidRoslynGrpId" id="cmdidAnalyzerFolderContextMenu"/>
       </Group>
+      
+      <Group guid="guidRoslynGrpId" id="grpSolutionExplorerSymbolItemContextMenu" priority="0x000">
+        <Parent guid="guidRoslynGrpId" id="cmdidSolutionExplorerSymbolItemContextMenu"/>
+      </Group>
 
       <Group guid="guidRoslynGrpId" id="grpErrorListContextMenu" priority="0x0A01">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ERRORLIST"/>
@@ -50,10 +54,6 @@
 
       <Group guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" priority="0x000">
         <Parent guid="guidRoslynGrpId" id="cmdidSetSeveritySubMenu"/>
-      </Group>
-
-      <Group guid="guidRoslynGrpId" id="grpAnalysisScopeItems" priority="0x000">
-        <Parent guid="guidRoslynGrpId" id="cmdidAnalysisScopeSubMenu"/>
       </Group>
 
       <Group guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" priority="0x000">
@@ -286,58 +286,6 @@
           <CommandName>ErrorListSetSeverityNone</CommandName>
         </Strings>
       </Button>
-      <!-- Buttons to set analysis scope for solution -->
-      <Button guid="guidRoslynGrpId" id="cmdidAnalysisScopeDefault" priority="100" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpAnalysisScopeItems" />
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <CommandFlag>TextChanges</CommandFlag>
-        <Strings>
-          <ButtonText>&amp;Default</ButtonText>
-          <CanonicalName>Default</CanonicalName>
-          <LocCanonicalName>Default</LocCanonicalName>
-          <CommandName>AnalysisScopeDefault</CommandName>
-        </Strings>
-      </Button>
-      <Button guid="guidRoslynGrpId" id="cmdidAnalysisScopeCurrentFile" priority="200" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpAnalysisScopeItems" />
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <Strings>
-          <ButtonText>&amp;Current Document</ButtonText>
-          <CanonicalName>Current Document</CanonicalName>
-          <LocCanonicalName>Current Document</LocCanonicalName>
-          <CommandName>AnalysisScopeCurrentDocument</CommandName>
-        </Strings>
-      </Button>
-      <Button guid="guidRoslynGrpId" id="cmdidAnalysisScopeOpenFiles" priority="300" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpAnalysisScopeItems" />
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <Strings>
-          <ButtonText>&amp;Open Documents</ButtonText>
-          <CanonicalName>Open Documents</CanonicalName>
-          <LocCanonicalName>Open Documents</LocCanonicalName>
-          <CommandName>AnalysisScopeOpenDocuments</CommandName>
-        </Strings>
-      </Button>
-      <Button guid="guidRoslynGrpId" id="cmdidAnalysisScopeEntireSolution" priority="400" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpAnalysisScopeItems" />
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <Strings>
-          <ButtonText>&amp;Entire Solution</ButtonText>
-          <CanonicalName>Entire Solution</CanonicalName>
-          <LocCanonicalName>Entire Solution</LocCanonicalName>
-          <CommandName>AnalysisScopeEntireSolution</CommandName>
-        </Strings>
-      </Button>
-      <Button guid="guidRoslynGrpId" id="cmdidAnalysisScopeNone" priority="500" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpAnalysisScopeItems" />
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <Strings>
-          <ButtonText>&amp;None</ButtonText>
-          <CanonicalName>None</CanonicalName>
-          <LocCanonicalName>None</LocCanonicalName>
-          <CommandName>AnalysisScopeNone</CommandName>
-        </Strings>
-      </Button>
       <!-- Button to open the diagnostic help link -->
       <Button guid="guidRoslynGrpId" id="cmdidOpenDiagnosticHelpLink" priority="100" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticProperties" />
@@ -433,6 +381,33 @@
           <LocCanonicalName>ResetVisualBasicInteractiveFromProject</LocCanonicalName>
         </Strings>
       </Button>
+      
+      <!-- Solution Explorer Symbol Item commands -->
+
+      <Button guid="guidRoslynGrpId" id="cmdidSolutionExplorerSymbolItemGoToBase" priority="100" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpSolutionExplorerSymbolItemContextMenu" />
+        <Strings>
+          <ButtonText>Go To Base</ButtonText>
+          <CanonicalName>GoToBase</CanonicalName>
+          <LocCanonicalName>GoToBase</LocCanonicalName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidSolutionExplorerSymbolItemGoToImplementation" priority="200" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpSolutionExplorerSymbolItemContextMenu" />
+        <Strings>
+          <ButtonText>Go To Implementation</ButtonText>
+          <CanonicalName>GoToImplementation</CanonicalName>
+          <LocCanonicalName>GoToImplementation</LocCanonicalName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidSolutionExplorerSymbolItemFindAllReferences" priority="300" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpSolutionExplorerSymbolItemContextMenu" />
+        <Strings>
+          <ButtonText>Find All References</ButtonText>
+          <CanonicalName>FindAllReferences</CanonicalName>
+          <LocCanonicalName>FindAllReferences</LocCanonicalName>
+        </Strings>
+      </Button>
 
       <!-- Run code analysis commands -->
 
@@ -503,7 +478,6 @@
       <Button guid="guidStackTraceExplorer" id="cmdIdShowStackTraceExplorer" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
         <Icon guid="ImageCatalogGuid" id="CallStackWindow" />
-        <CommandFlag>DefaultDisabled</CommandFlag>
         <CommandFlag>IconAndText</CommandFlag>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
@@ -532,7 +506,7 @@
         <CommandFlag>IconAndText</CommandFlag>
         <Strings>
           <ButtonText>Clear</ButtonText>
-          <CommandName>CleearStackTraceExplorerCommandName</CommandName>
+          <CommandName>ClearStackTraceExplorerCommandName</CommandName>
           <CanonicalName>ClearStackTraceExplorer</CanonicalName>
           <LocCanonicalName>ClearStackTraceExplorer</LocCanonicalName>
         </Strings>
@@ -613,7 +587,6 @@
           <LocCanonicalName>Analyzer</LocCanonicalName>
         </Strings>
       </Menu>
-
       <Menu guid="guidRoslynGrpId" id="cmdidAnalyzerFolderContextMenu" priority="100" type="Context">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_SOLNEXPL_ALL" />
         <Strings>
@@ -639,16 +612,6 @@
           <CommandName>Set severity</CommandName>
           <CanonicalName>Set severity</CanonicalName>
           <LocCanonicalName>Set severity</LocCanonicalName>
-        </Strings>
-      </Menu>
-
-      <Menu guid="guidRoslynGrpId" id="cmdidAnalysisScopeSubMenu" priority="0x510" type="Menu">
-        <Parent guid="guidEditorCommands" id="IDG_CTX_CODECLEANUP_CONFIGURE_SOLUTION" />
-        <Strings>
-          <ButtonText>Set Analysis Scope</ButtonText>
-          <CommandName>Set Analysis Scope</CommandName>
-          <CanonicalName>Set Analysis Scope</CanonicalName>
-          <LocCanonicalName>SetAnalysisScope</LocCanonicalName>
         </Strings>
       </Menu>
 
@@ -685,6 +648,13 @@
         <Strings>
           <MenuText>StackTrace Explorer</MenuText>
           <ButtonText>StackTrace Explorer</ButtonText>
+        </Strings>
+      </Menu>
+
+      <Menu guid="guidRoslynGrpId" id="cmdidSolutionExplorerSymbolItemContextMenu" type="Context">
+        <Strings>
+          <MenuText>Solution Explorer Symbol Tree</MenuText>
+          <ButtonText>Solution Explorer Symbol Tree</ButtonText>
         </Strings>
       </Menu>
 
@@ -839,25 +809,11 @@
       <IDSymbol name="cmdidErrorListSetSeverityDefault"        value="0x0129" />
       <IDSymbol name="grpErrorListDiagnosticSeverityItems"     value="0x012a" />
 
-      <!-- Analyze and Code Cleanup menu IDs -->
-      <IDSymbol name="cmdidAnalysisScopeSubMenu" value="0x0130" />
-      <IDSymbol name="cmdidAnalysisScopeDefault" value="0x0131" />
-      <IDSymbol name="cmdidAnalysisScopeCurrentFile" value="0x0132" />
-      <IDSymbol name="cmdidAnalysisScopeOpenFiles" value="0x0133" />
-      <IDSymbol name="cmdidAnalysisScopeEntireSolution" value="0x0134" />
-      <IDSymbol name="grpAnalysisScope" value="0x0135" />
-      <IDSymbol name="grpAnalysisScopeItems" value="0x0136" />
-      <IDSymbol name="cmdidAnalysisScopeNone" value="0x0137" />
-
       <IDSymbol name="cmdidGoToImplementation"        value="0x0200" />
-
-      <IDSymbol name="cmdidRunCodeAnalysisForProject"  value="0x0201" />
-
-      <IDSymbol name="cmdidRemoveUnusedReferences" value="0x202" />
-
-      <IDSymbol name="cmdidshowValueTracking"  value="0x0203" />
-
-      <IDSymbol name="cmdidSyncNamespaces" value="0x204" />
+      <IDSymbol name="cmdidRunCodeAnalysisForProject" value="0x0201" />
+      <IDSymbol name="cmdidRemoveUnusedReferences"    value="0x0202" />
+      <IDSymbol name="cmdidshowValueTracking"         value="0x0203" />
+      <IDSymbol name="cmdidSyncNamespaces"            value="0x0204" />
 
       <IDSymbol name="cmdidDocumentOutlineToolbar" value="0x300" />
       <IDSymbol name="cmdidDocumentOutlineExpandAll" value="0x311"/>
@@ -866,10 +822,12 @@
       <IDSymbol name="cmdidDocumentOutlineSortByOrder" value="0x314"/>
       <IDSymbol name="cmdidDocumentOutlineSortByType" value="0x315"/>
       <IDSymbol name="cmdidDocumentOutlineToolbarGroup" value="0x350" />
-    </GuidSymbol>
 
-    <GuidSymbol name="guidEditorCommands" value="{160961B3-909D-4B28-9353-A1BEF587B4A6}">
-      <IDSymbol name="IDG_CTX_CODECLEANUP_CONFIGURE_SOLUTION" value="0x0028" />
+      <IDSymbol name="grpSolutionExplorerSymbolItemContextMenu"           value="0x0400" />
+      <IDSymbol name="cmdidSolutionExplorerSymbolItemContextMenu"         value="0x0401" />
+      <IDSymbol name="cmdidSolutionExplorerSymbolItemGoToBase"            value="0x0402" />
+      <IDSymbol name="cmdidSolutionExplorerSymbolItemGoToImplementation"  value="0x0403" />
+      <IDSymbol name="cmdidSolutionExplorerSymbolItemFindAllReferences"   value="0x0404" />
     </GuidSymbol>
 
     <GuidSymbol name="guidCSharpInteractiveCommandSet" value="{1492db0a-85a2-4e43-bf0d-ce55b89a8cc6}">

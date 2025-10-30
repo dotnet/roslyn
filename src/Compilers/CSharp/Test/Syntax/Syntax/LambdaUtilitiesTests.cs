@@ -40,7 +40,7 @@ class C
             Assert.NotNull(span);
 
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree }, new[] { SystemCoreRef });
             compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
 

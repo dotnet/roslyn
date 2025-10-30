@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable CS1574 // XML comment has cref attribute that could not be resolved
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -648,7 +650,7 @@ internal static partial class SyntaxNodeExtensions
         result.Add(currentGroup);
 
         // Now, filter out any empty groups.
-        result = result.Where(group => !group.IsEmpty()).ToList();
+        result = [.. result.Where(group => !group.IsEmpty())];
         return result;
     }
 
@@ -757,15 +759,29 @@ internal static partial class SyntaxNodeExtensions
             _ => null,
         };
 
-    public static IEnumerable<MemberDeclarationSyntax> GetMembers(this SyntaxNode? node)
-        => node switch
+    public static void ForEachMember<TArg>(this SyntaxNode? node, Action<MemberDeclarationSyntax, TArg> callback, TArg arg)
+    {
+        // Separated out to allow for struct-based enumeration.
+        switch (node)
         {
-            CompilationUnitSyntax compilation => compilation.Members,
-            BaseNamespaceDeclarationSyntax @namespace => @namespace.Members,
-            TypeDeclarationSyntax type => type.Members,
-            EnumDeclarationSyntax @enum => @enum.Members,
-            _ => [],
-        };
+            case CompilationUnitSyntax compilation:
+                foreach (var member in compilation.Members)
+                    callback(member, arg);
+                break;
+            case BaseNamespaceDeclarationSyntax @namespace:
+                foreach (var member in @namespace.Members)
+                    callback(member, arg);
+                break;
+            case TypeDeclarationSyntax type:
+                foreach (var member in type.Members)
+                    callback(member, arg);
+                break;
+            case EnumDeclarationSyntax @enum:
+                foreach (var member in @enum.Members)
+                    callback(member, arg);
+                break;
+        }
+    }
 
     public static bool IsInExpressionTree(
         [NotNullWhen(true)] this SyntaxNode? node,
@@ -807,9 +823,8 @@ internal static partial class SyntaxNodeExtensions
         {
             foreach (var symbol in info.GetAllSymbols())
             {
-                if (symbol is IMethodSymbol method &&
-                    method.Parameters.Length > 0 &&
-                    expressionType.Equals(method.Parameters[0].Type?.OriginalDefinition))
+                if (symbol is IMethodSymbol { Parameters: [{ Type.OriginalDefinition: var parameterType }, ..] } &&
+                    expressionType.Equals(parameterType))
                 {
                     return true;
                 }

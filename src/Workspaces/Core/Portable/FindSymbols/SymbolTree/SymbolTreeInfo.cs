@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 /// will still incur a heavy cost (for example, getting the <see cref="IAssemblySymbol"/> root symbol for a
 /// particular project).
 /// </summary>
-internal partial class SymbolTreeInfo
+internal sealed partial class SymbolTreeInfo
 {
     private static readonly StringComparer s_caseInsensitiveComparer =
         CaseInsensitiveComparison.Comparer;

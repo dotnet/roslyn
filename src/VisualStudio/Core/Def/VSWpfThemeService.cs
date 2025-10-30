@@ -3,24 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices;
 
 [Export(typeof(IWpfThemeService)), Shared]
-internal class VSWpfThemeService : IWpfThemeService
+internal sealed class VSWpfThemeService : IWpfThemeService
 {
     private readonly ResourceDictionary _themeDictionary = [];
 

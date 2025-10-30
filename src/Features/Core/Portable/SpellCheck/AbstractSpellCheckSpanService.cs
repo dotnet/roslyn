@@ -37,7 +37,7 @@ internal abstract class AbstractSpellCheckSpanService(char? escapeCharacter) : I
             var worker = new Worker(this, syntaxFacts, classifier, virtualCharService, spans);
             worker.Recurse(root, cancellationToken);
 
-            return spans.ToImmutable();
+            return spans.ToImmutableAndClear();
         }
     }
 
@@ -68,10 +68,8 @@ internal abstract class AbstractSpellCheckSpanService(char? escapeCharacter) : I
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
             stack.Push(root);
 
-            while (stack.Count > 0)
+            while (stack.TryPop(out var current))
             {
-                var current = stack.Pop();
-
                 if (current.IsToken)
                 {
                     ProcessToken(current.AsToken(), cancellationToken);
@@ -144,7 +142,7 @@ internal abstract class AbstractSpellCheckSpanService(char? escapeCharacter) : I
         private void AddStringSubSpans(SyntaxToken token)
         {
             var virtualChars = _virtualCharService.TryConvertToVirtualChars(token);
-            if (virtualChars.IsDefaultOrEmpty)
+            if (virtualChars.IsDefaultOrEmpty())
                 return;
 
             // find the sequences of letters in a row that should be spell checked. if any part of that sequence is
@@ -195,7 +193,7 @@ internal abstract class AbstractSpellCheckSpanService(char? escapeCharacter) : I
 
             static bool IsWordPart(VirtualChar ch)
             {
-                if (ch.IsLetter)
+                if (char.IsLetter(ch))
                     return true;
 
                 // Add more cases here as necessary.
@@ -264,9 +262,8 @@ internal abstract class AbstractSpellCheckSpanService(char? escapeCharacter) : I
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
             stack.Push(node);
 
-            while (stack.Count > 0)
+            while (stack.TryPop(out var current))
             {
-                var current = stack.Pop();
                 if (current.IsToken)
                 {
                     var token = current.AsToken();

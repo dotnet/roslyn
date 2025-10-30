@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -33,15 +32,14 @@ internal sealed partial class FixAllState : CommonFixAllState<CodeFixProvider, F
         FixAllScope scope,
         string? codeActionEquivalenceKey,
         IEnumerable<string> diagnosticIds,
-        FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
-        CodeActionOptionsProvider codeActionOptionsProvider)
-        : base(fixAllProvider, document, project, codeFixProvider, codeActionOptionsProvider, scope, codeActionEquivalenceKey)
+        FixAllContext.DiagnosticProvider fixAllDiagnosticProvider)
+        : base(fixAllProvider, document, project, codeFixProvider, scope, codeActionEquivalenceKey)
     {
         // We need the trigger diagnostic span for span based fix all scopes, i.e. FixAllScope.ContainingMember and FixAllScope.ContainingType
-        Debug.Assert(diagnosticSpan.HasValue || scope is not FixAllScope.ContainingMember or FixAllScope.ContainingType);
+        Debug.Assert(diagnosticSpan.HasValue || scope is not (FixAllScope.ContainingMember or FixAllScope.ContainingType));
 
         DiagnosticSpan = diagnosticSpan;
-        DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
+        DiagnosticIds = [.. diagnosticIds];
         DiagnosticProvider = fixAllDiagnosticProvider;
     }
 
@@ -57,8 +55,7 @@ internal sealed partial class FixAllState : CommonFixAllState<CodeFixProvider, F
             scope,
             codeActionEquivalenceKey,
             DiagnosticIds,
-            DiagnosticProvider,
-            CodeActionOptionsProvider);
+            DiagnosticProvider);
 
     #region FixMultiple
 
@@ -66,8 +63,7 @@ internal sealed partial class FixAllState : CommonFixAllState<CodeFixProvider, F
         FixAllProvider fixAllProvider,
         ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,
         CodeFixProvider codeFixProvider,
-        string? codeActionEquivalenceKey,
-        CodeActionOptionsProvider codeActionOptionsProvider)
+        string? codeActionEquivalenceKey)
     {
         var triggerDocument = diagnosticsToFix.First().Key;
         var diagnosticSpan = diagnosticsToFix.First().Value.FirstOrDefault()?.Location.SourceSpan;
@@ -82,16 +78,14 @@ internal sealed partial class FixAllState : CommonFixAllState<CodeFixProvider, F
             FixAllScope.Custom,
             codeActionEquivalenceKey,
             diagnosticIds,
-            diagnosticProvider,
-            codeActionOptionsProvider);
+            diagnosticProvider);
     }
 
     internal static FixAllState Create(
         FixAllProvider fixAllProvider,
         ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsToFix,
         CodeFixProvider codeFixProvider,
-        string? codeActionEquivalenceKey,
-        CodeActionOptionsProvider codeActionOptionsProvider)
+        string? codeActionEquivalenceKey)
     {
         var triggerProject = diagnosticsToFix.First().Key;
         var diagnosticIds = GetDiagnosticsIds(diagnosticsToFix.Values);
@@ -105,8 +99,7 @@ internal sealed partial class FixAllState : CommonFixAllState<CodeFixProvider, F
             FixAllScope.Custom,
             codeActionEquivalenceKey,
             diagnosticIds,
-            diagnosticProvider,
-            codeActionOptionsProvider);
+            diagnosticProvider);
     }
 
     private static ImmutableHashSet<string> GetDiagnosticsIds(IEnumerable<ImmutableArray<Diagnostic>> diagnosticsCollection)

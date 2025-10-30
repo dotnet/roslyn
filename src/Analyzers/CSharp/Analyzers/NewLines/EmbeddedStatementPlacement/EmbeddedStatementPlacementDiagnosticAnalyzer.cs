@@ -7,24 +7,21 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class EmbeddedStatementPlacementDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class EmbeddedStatementPlacementDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.EmbeddedStatementPlacementDiagnosticId,
+        EnforceOnBuildValues.EmbeddedStatementPlacement,
+        CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine,
+        new LocalizableResourceString(
+            nameof(CSharpAnalyzersResources.Embedded_statements_must_be_on_their_own_line), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public EmbeddedStatementPlacementDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.EmbeddedStatementPlacementDiagnosticId,
-               EnforceOnBuildValues.EmbeddedStatementPlacement,
-               CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine,
-               new LocalizableResourceString(
-                   nameof(CSharpAnalyzersResources.Embedded_statements_must_be_on_their_own_line), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
@@ -63,8 +60,8 @@ internal sealed class EmbeddedStatementPlacementDiagnosticAnalyzer : AbstractBui
             if (!context.ShouldAnalyzeSpan(child.Span))
                 continue;
 
-            if (child.IsNode)
-                Recurse(context, notificationOption, child.AsNode()!);
+            if (child.AsNode(out var childNode))
+                Recurse(context, notificationOption, childNode);
         }
     }
 
@@ -90,7 +87,7 @@ internal sealed class EmbeddedStatementPlacementDiagnosticAnalyzer : AbstractBui
         var parent = statement.Parent;
         var parentIsElseClause = parent.IsKind(SyntaxKind.ElseClause);
 
-        if (!(parent is StatementSyntax || parentIsElseClause))
+        if (parent is not StatementSyntax && !parentIsElseClause)
             return false;
 
         // `else if` is always allowed.
@@ -111,9 +108,7 @@ internal sealed class EmbeddedStatementPlacementDiagnosticAnalyzer : AbstractBui
             // Blocks can be on a single line if parented by a member/accessor/lambda.
             // And if they only contain a single statement at most within them.
             var blockParent = parent.Parent;
-            if (blockParent is MemberDeclarationSyntax or
-                AccessorDeclarationSyntax or
-                AnonymousFunctionExpressionSyntax)
+            if (blockParent is MemberDeclarationSyntax or AccessorDeclarationSyntax or AnonymousFunctionExpressionSyntax)
             {
                 if (parent.DescendantNodes().OfType<StatementSyntax>().Count() <= 1)
                     return false;

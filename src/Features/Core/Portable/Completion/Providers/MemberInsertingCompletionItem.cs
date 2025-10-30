@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -11,7 +10,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal class MemberInsertionCompletionItem
+internal sealed class MemberInsertionCompletionItem
 {
     public static CompletionItem Create(
         string displayText,
@@ -23,17 +22,15 @@ internal class MemberInsertionCompletionItem
         int descriptionPosition,
         CompletionItemRules rules)
     {
-        var props = ImmutableArray.Create(
-            new KeyValuePair<string, string>("Line", line.ToString()),
-            new KeyValuePair<string, string>("Modifiers", modifiers.ToString()),
-            new KeyValuePair<string, string>("TokenSpanEnd", token.Span.End.ToString()));
-
         return SymbolCompletionItem.CreateWithSymbolId(
             displayText: displayText,
             displayTextSuffix: displayTextSuffix,
-            symbols: ImmutableArray.Create(symbol),
+            symbols: [symbol],
             contextPosition: descriptionPosition,
-            properties: props,
+            properties: [
+                KeyValuePair.Create("Line", line.ToString()),
+                KeyValuePair.Create("Modifiers", modifiers.ToString()),
+                KeyValuePair.Create("TokenSpanEnd", token.Span.End.ToString())],
             rules: rules,
             isComplexTextEdit: true);
     }

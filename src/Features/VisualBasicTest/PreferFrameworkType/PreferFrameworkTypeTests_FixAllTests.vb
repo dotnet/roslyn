@@ -93,7 +93,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, options:=FrameworkTypeEverywhere)
+            Await TestInRegularAndScriptAsync(input, expected, New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact>
@@ -183,7 +183,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, options:=FrameworkTypeEverywhere)
+            Await TestInRegularAndScriptAsync(input, expected, New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact>
@@ -273,7 +273,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, options:=FrameworkTypeEverywhere)
+            Await TestInRegularAndScriptAsync(input, expected, New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
 
         <Fact>
@@ -405,7 +405,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, options:=FrameworkTypeEverywhere)
+            Await TestInRegularAndScriptAsync(input, expected, New TestParameters(options:=FrameworkTypeEverywhere))
         End Function
     End Class
 End Namespace

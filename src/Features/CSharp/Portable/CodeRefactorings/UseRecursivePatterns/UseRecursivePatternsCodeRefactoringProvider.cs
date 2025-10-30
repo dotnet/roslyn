@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -42,7 +41,7 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
     {
     }
 
-    protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
+    protected override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes => AllRefactorAllScopes;
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -401,7 +400,7 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
     private static SubpatternSyntax Subpattern(IdentifierNameSyntax name, PatternSyntax pattern)
         => SyntaxFactory.Subpattern(NameColon(name), pattern);
 
-    private static RecursivePatternSyntax RecursivePattern(params SubpatternSyntax[] subpatterns)
+    private static RecursivePatternSyntax RecursivePattern(params ReadOnlySpan<SubpatternSyntax> subpatterns)
         => SyntaxFactory.RecursivePattern(type: null, positionalPatternClause: null, PropertyPatternClause([.. subpatterns]), designation: null);
 
     private static RecursivePatternSyntax RecursivePattern(TypeSyntax? type, SubpatternSyntax subpattern, VariableDesignationSyntax? designation)
@@ -580,11 +579,10 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
         }
     }
 
-    protected override async Task FixAllAsync(
+    protected override async Task RefactorAllAsync(
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
-        CodeActionOptionsProvider optionsProvider,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {

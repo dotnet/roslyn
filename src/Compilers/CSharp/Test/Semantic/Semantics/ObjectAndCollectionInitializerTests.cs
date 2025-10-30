@@ -6,6 +6,8 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -1004,18 +1006,21 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  z = null }')
+  IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  z = null }')
   Arguments(0)
-  Initializer: 
+  Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ z = null }')
       Initializers(1):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: D, IsInvalid) (Syntax: 'z = null')
-            Left: 
+            Left:
               IEventReferenceOperation: event D MemberInitializerTest.z (OperationKind.EventReference, Type: D, IsInvalid) (Syntax: 'z')
-                Instance Receiver: 
+                Instance Receiver:
                   IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'z')
-            Right: 
-              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+            Right:
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: D, Constant: null, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                Operand:
+                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0070: The event 'MemberInitializerTest.z' can only appear on the left hand side of += or -= (except when used from within the type 'MemberInitializerTest')
@@ -1816,16 +1821,19 @@ class MemberInitializerTest
             string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: X..ctor()) (OperationKind.ObjectCreation, Type: X, IsInvalid) (Syntax: 'new X() { x = 0 }')
   Arguments(0)
-  Initializer: 
+  Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: X, IsInvalid) (Syntax: '{ x = 0 }')
       Initializers(1):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: X, IsInvalid) (Syntax: 'x = 0')
-            Left: 
+            Left:
               IFieldReferenceOperation: X.x (Static) (OperationKind.FieldReference, Type: X, IsInvalid) (Syntax: 'x')
-                Instance Receiver: 
+                Instance Receiver:
                   null
-            Right: 
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+            Right:
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: X, Constant: 0, IsImplicit) (Syntax: '0')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand:
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1914: Static field or property 'X.x' cannot be assigned in an object initializer
@@ -1855,22 +1863,22 @@ class MemberInitializerTest
             string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  Prop = 1 }')
   Arguments(0)
-  Initializer: 
+  Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1, Prop = 1 }')
       Initializers(2):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'x = 1')
-            Left: 
+            Left:
               IFieldReferenceOperation: System.Int32 MemberInitializerTest.x (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
-                Instance Receiver: 
+                Instance Receiver:
                   null
-            Right: 
+            Right:
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'Prop = 1')
-            Left: 
+            Left:
               IPropertyReferenceOperation: System.Int32 MemberInitializerTest.Prop { get; set; } (Static) (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'Prop')
-                Instance Receiver: 
+                Instance Receiver:
                   null
-            Right: 
+            Right:
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -2839,8 +2847,16 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
               Children(2):
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s"", IsInvalid) (Syntax: '""s""')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'var')
-              Children(0)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'var')
+              Left:
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'var')
+                  Children(1):
+                      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'var')
+                        Children(1):
+                            IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Dictionary<System.Object, System.Object>, IsInvalid, IsImplicit) (Syntax: 'Dictionary< ... ct, object>')
+              Right:
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'var')
+                  Children(0)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'x = 1')
               Left:
                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x')
@@ -2870,9 +2886,6 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
                 // (8,13): error CS0747: Invalid initializer member declarator
                 //             {"s", 1 },
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"{""s"", 1 }").WithLocation(8, 13),
-                // (9,9): error CS0103: The name 'var' does not exist in the current context
-                //         var x = 1;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(9, 9),
                 // (9,9): error CS0747: Invalid initializer member declarator
                 //         var x = 1;
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var").WithLocation(9, 9)
@@ -4178,13 +4191,118 @@ interface I : IEnumerable<int>
                 """;
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,15): error CS1922: Cannot initialize type 'S' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                // (5,11): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
                 // S s = new S() { d };
-                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ d }").WithArguments("S").WithLocation(5, 15),
-                // (7,16): error CS8343: 'S': ref structs cannot implement interfaces
-                // ref struct S : IEnumerable<int>
-                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable<int>").WithArguments("S").WithLocation(7, 16)
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "S").WithArguments("S").WithLocation(5, 11)
             );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72916")]
+        public void RefReturning_Indexer()
+        {
+            var source = """
+                public class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C() { [1] = 2 };
+                        System.Console.WriteLine(c[1]);        
+                    }
+
+                    int _test1 = 0;    
+                    ref int this[int x]
+                    {
+                        get => ref _test1;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
+
+            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
+            var symbolInfo = model.GetSymbolInfo(elementAccess);
+            AssertEx.Equal("ref System.Int32 C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(elementAccess);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
+            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            Assert.Equal(typeInfo.Type, propertyRef.Type);
+
+            var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
+            typeInfo = model.GetTypeInfo(assignment);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IAssignmentOperation)model.GetOperation(assignment);
+            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+
+            var right = assignment.Right;
+            typeInfo = model.GetTypeInfo(right);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72916")]
+        public void RefReturning_Property()
+        {
+            var source = """
+                public class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C() { P = 2 };
+                        System.Console.WriteLine(c.P);        
+                    }
+
+                    int _test1 = 0;    
+                    ref int P
+                    {
+                        get => ref _test1;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
+
+            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var propertyAccess = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First().Left;
+            var symbolInfo = model.GetSymbolInfo(propertyAccess);
+            AssertEx.Equal("ref System.Int32 C.P { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(propertyAccess);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(propertyAccess);
+            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            Assert.Equal(typeInfo.Type, propertyRef.Type);
+
+            var assignment = (AssignmentExpressionSyntax)propertyAccess.Parent;
+            typeInfo = model.GetTypeInfo(assignment);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var operation = (IAssignmentOperation)model.GetOperation(assignment);
+            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+
+            var right = assignment.Right;
+            typeInfo = model.GetTypeInfo(right);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
         }
     }
 }

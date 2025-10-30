@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern;
@@ -12,772 +11,707 @@ using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyPropertyPattern;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    CSharpSimplifyPropertyPatternDiagnosticAnalyzer,
+    CSharpSimplifyPropertyPatternCodeFixProvider>;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
+public sealed class SimplifyPropertyPatternTests
 {
-    using VerifyCS = CSharpCodeFixVerifier<
-        CSharpSimplifyPropertyPatternDiagnosticAnalyzer,
-        CSharpSimplifyPropertyPatternCodeFixProvider>;
-
-    [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
-    public class SimplifyPropertyPatternTests
-    {
-        [Fact]
-        public async Task NotInCSharp9()
+    [Fact]
+    public Task NotInCSharp9()
+        => new VerifyCS.Test
         {
-            var code = """
-                using System;
-                using System.Reflection;
+            TestCode = """
+            using System;
+            using System.Reflection;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly: { EntryPoint: { CallingConvention: CallingConventions.Any } } })
                     {
-                        if (t is { Assembly: { EntryPoint: { CallingConvention: CallingConventions.Any } } })
-                        {
 
-                        }
                     }
                 }
-                """;
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task InCSharp10()
+    [Fact]
+    public Task InCSharp10()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            using System;
+            using System.Reflection;
+
+            class C
             {
-                TestCode = """
-                using System;
-                using System.Reflection;
-
-                class C
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
                     {
-                        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
-                        {
 
-                        }
                     }
                 }
-                """,
-                FixedCode = """
-                using System;
-                using System.Reflection;
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Reflection;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
                     {
-                        if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
-                        {
 
-                        }
                     }
                 }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNotWithoutPropertyPattern1()
+    [Fact]
+    public Task TestNotWithoutPropertyPattern1()
+        => new VerifyCS.Test
         {
-            var testCode = """
-                using System;
-                using System.Reflection;
+            TestCode = """
+            using System;
+            using System.Reflection;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly: not null })
                     {
-                        if (t is { Assembly: not null })
-                        {
 
-                        }
                     }
                 }
-                """;
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-            await new VerifyCS.Test
-            {
-                TestCode = testCode,
-                FixedCode = testCode,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestNotWithoutPropertyPattern2()
+    [Fact]
+    public Task TestNotWithoutPropertyPattern2()
+        => new VerifyCS.Test
         {
-            var testCode = """
-                using System;
-                using System.Reflection;
+            TestCode = """
+            using System;
+            using System.Reflection;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly.EntryPoint: not null })
                     {
-                        if (t is { Assembly.EntryPoint: not null })
-                        {
 
-                        }
                     }
                 }
-                """;
-            await new VerifyCS.Test
-            {
-                TestCode = testCode,
-                FixedCode = testCode,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNotWithTypePatterm()
+    [Fact]
+    public Task TestNotWithTypePatterm()
+        => new VerifyCS.Test
         {
-            var testCode = """
-                using System;
-                using System.Reflection;
+            TestCode = """
+            using System;
+            using System.Reflection;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly: Assembly { EntryPoint: not null } })
                     {
-                        if (t is { Assembly: Assembly { EntryPoint: not null } })
-                        {
 
-                        }
                     }
                 }
-                """;
-            await new VerifyCS.Test
-            {
-                TestCode = testCode,
-                FixedCode = testCode,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNotWithOuterDesignation()
+    [Fact]
+    public Task TestNotWithOuterDesignation()
+        => new VerifyCS.Test
         {
-            var testCode = """
-                using System;
-                using System.Reflection;
+            TestCode = """
+            using System;
+            using System.Reflection;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly: { EntryPoint: not null } A })
                     {
-                        if (t is { Assembly: { EntryPoint: not null } A })
-                        {
 
-                        }
                     }
                 }
-                """;
-            await new VerifyCS.Test
-            {
-                TestCode = testCode,
-                FixedCode = testCode,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNotWithoutInnerSubpatterns()
+    [Fact]
+    public Task TestNotWithoutInnerSubpatterns()
+        => new VerifyCS.Test
         {
-            var testCode = """
-                using System;
-                using System.Reflection;
+            TestCode = """
+            using System;
+            using System.Reflection;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly: { } })
                     {
-                        if (t is { Assembly: { } })
-                        {
 
-                        }
                     }
                 }
-                """;
-            await new VerifyCS.Test
-            {
-                TestCode = testCode,
-                FixedCode = testCode,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNotWithMultipleInnerSubpatterns()
+    [Fact]
+    public Task TestNotWithMultipleInnerSubpatterns()
+        => new VerifyCS.Test
         {
-            var testCode = """
-                using System;
-                using System.Reflection;
+            TestCode = """
+            using System;
+            using System.Reflection;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly: { EntryPoint: { }, Location: { } } })
                     {
-                        if (t is { Assembly: { EntryPoint: { }, Location: { } } })
-                        {
 
-                        }
                     }
                 }
-                """;
-            await new VerifyCS.Test
-            {
-                TestCode = testCode,
-                FixedCode = testCode,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestWithInnerDesignation()
+    [Fact]
+    public Task TestWithInnerDesignation()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            using System;
+            using System.Reflection;
+
+            class C
             {
-                TestCode = """
-                using System;
-                using System.Reflection;
-
-                class C
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { [|Assembly:|] { EntryPoint: { } E } })
                     {
-                        if (t is { [|Assembly:|] { EntryPoint: { } E } })
-                        {
 
-                        }
                     }
                 }
-                """,
-                FixedCode = """
-                using System;
-                using System.Reflection;
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Reflection;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly.EntryPoint: { } E })
                     {
-                        if (t is { Assembly.EntryPoint: { } E })
-                        {
 
-                        }
                     }
                 }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task Test_Permutation1()
+    [Fact]
+    public Task Test_Permutation1()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            using System;
+
+            class C
             {
-                TestCode = """
-                using System;
-
-                class C
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { [|Assembly:|] { [|EntryPoint:|] { [|DeclaringType:|] { Name: "" } } } })
                     {
-                        if (t is { [|Assembly:|] { [|EntryPoint:|] { [|DeclaringType:|] { Name: "" } } } })
-                        {
 
-                        }
                     }
                 }
-                """,
-                FixedCode = """
-                using System;
+            }
+            """,
+            FixedCode = """
+            using System;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
                     {
-                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
-                        {
 
-                        }
                     }
                 }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task Test_Permutation2()
+    [Fact]
+    public Task Test_Permutation2()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            using System;
+
+            class C
             {
-                TestCode = """
-                using System;
-
-                class C
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { [|Assembly:|] { [|EntryPoint:|] { DeclaringType.Name: "" } } })
                     {
-                        if (t is { [|Assembly:|] { [|EntryPoint:|] { DeclaringType.Name: "" } } })
-                        {
 
-                        }
                     }
                 }
-                """,
-                FixedCode = """
-                using System;
+            }
+            """,
+            FixedCode = """
+            using System;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
                     {
-                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
-                        {
 
-                        }
                     }
                 }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task Test_Permutation3()
+    [Fact]
+    public Task Test_Permutation3()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            using System;
+
+            class C
             {
-                TestCode = """
-                using System;
-
-                class C
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { [|Assembly:|] { [|EntryPoint.DeclaringType:|] { Name: "" } } })
                     {
-                        if (t is { [|Assembly:|] { [|EntryPoint.DeclaringType:|] { Name: "" } } })
-                        {
 
-                        }
                     }
                 }
-                """,
-                FixedCode = """
-                using System;
+            }
+            """,
+            FixedCode = """
+            using System;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
                     {
-                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
-                        {
 
-                        }
                     }
                 }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task Test_Permutation4()
+    [Fact]
+    public Task Test_Permutation4()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            using System;
+
+            class C
             {
-                TestCode = """
-                using System;
-
-                class C
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { [|Assembly:|] { EntryPoint.DeclaringType.Name: "" } })
                     {
-                        if (t is { [|Assembly:|] { EntryPoint.DeclaringType.Name: "" } })
-                        {
 
-                        }
                     }
                 }
-                """,
-                FixedCode = """
-                using System;
+            }
+            """,
+            FixedCode = """
+            using System;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
                     {
-                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
-                        {
 
-                        }
                     }
                 }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task Test_Permutation5()
+    [Fact]
+    public Task Test_Permutation5()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            using System;
+
+            class C
             {
-                TestCode = """
-                using System;
-
-                class C
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { [|Assembly.EntryPoint:|] { [|DeclaringType:|] { Name: "" } } })
                     {
-                        if (t is { [|Assembly.EntryPoint:|] { [|DeclaringType:|] { Name: "" } } })
-                        {
 
-                        }
                     }
                 }
-                """,
-                FixedCode = """
-                using System;
+            }
+            """,
+            FixedCode = """
+            using System;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
                     {
-                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
-                        {
 
-                        }
                     }
                 }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task Test_Permutation6()
+    [Fact]
+    public Task Test_Permutation6()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            using System;
+
+            class C
             {
-                TestCode = """
-                using System;
-
-                class C
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { [|Assembly.EntryPoint:|] { DeclaringType.Name: "" } })
                     {
-                        if (t is { [|Assembly.EntryPoint:|] { DeclaringType.Name: "" } })
-                        {
 
-                        }
                     }
                 }
-                """,
-                FixedCode = """
-                using System;
+            }
+            """,
+            FixedCode = """
+            using System;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
                     {
-                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
-                        {
 
-                        }
                     }
                 }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task Test_Permutation7()
+    [Fact]
+    public Task Test_Permutation7()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            using System;
+
+            class C
             {
-                TestCode = """
-                using System;
-
-                class C
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { [|Assembly.EntryPoint.DeclaringType:|] { Name: "" } })
                     {
-                        if (t is { [|Assembly.EntryPoint.DeclaringType:|] { Name: "" } })
-                        {
 
-                        }
                     }
                 }
-                """,
-                FixedCode = """
-                using System;
+            }
+            """,
+            FixedCode = """
+            using System;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
                     {
-                        if (t is { Assembly.EntryPoint.DeclaringType.Name: "" })
-                        {
 
-                        }
                     }
                 }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestMultiLine1()
+    [Fact]
+    public Task TestMultiLine1()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = """
-                using System;
-                using System.Reflection;
+            TestCode = """
+            using System;
+            using System.Reflection;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
-                    {
-                        if (t is
+                    if (t is
+                        {
+                            [|Assembly:|]
                             {
-                                [|Assembly:|]
-                                {
-                                    EntryPoint:
-                                    { }
-                                }
-                            })
-                        {
-
-                        }
-                    }
-                }
-                """,
-                FixedCode = """
-                using System;
-                using System.Reflection;
-
-                class C
-                {
-                    void S(Type t)
-                    {
-                        if (t is
-                            {
-                                Assembly.EntryPoint:
+                                EntryPoint:
                                 { }
-                            })
-                        {
+                            }
+                        })
+                    {
 
-                        }
                     }
                 }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Reflection;
 
-        [Fact]
-        public async Task TestFixAll1()
-        {
-            await new VerifyCS.Test
+            class C
             {
-                TestCode = """
-                using System;
-                using System.Reflection;
-
-                class C
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is
+                        {
+                            Assembly.EntryPoint:
+                            { }
+                        })
                     {
-                        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
-                        {
 
-                        }
-
-                        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
-                        {
-
-                        }
                     }
                 }
-                """,
-                FixedCode = """
-                using System;
-                using System.Reflection;
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-                class C
-                {
-                    void S(Type t)
-                    {
-                        if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
-                        {
-
-                        }
-
-                        if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
-                        {
-
-                        }
-                    }
-                }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestOuterDiagnostic()
+    [Fact]
+    public Task TestFixAll1()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            using System;
+            using System.Reflection;
+
+            class C
             {
-                TestCode = """
-                using System;
-                using System.Reflection;
-
-                class C
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
                     {
-                        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
-                        {
 
-                        }
+                    }
+
+                    if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
+                    {
+
                     }
                 }
-                """,
-                FixedCode = """
-                using System;
-                using System.Reflection;
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Reflection;
 
-                class C
+            class C
+            {
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
                     {
-                        if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
-                        {
 
-                        }
+                    }
+
+                    if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
+                    {
+
                     }
                 }
-                """,
-                LanguageVersion = LanguageVersion.CSharp10,
-                CodeFixTestBehaviors = Testing.CodeFixTestBehaviors.FixOne,
-                DiagnosticSelector = ds => ds[0],
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestInnerDiagnostic()
+    [Fact]
+    public Task TestOuterDiagnostic()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            using System;
+            using System.Reflection;
+
+            class C
             {
-                TestCode = """
-                using System;
-                using System.Reflection;
-
-                class C
+                void S(Type t)
                 {
-                    void S(Type t)
+                    if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
                     {
-                        if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
-                        {
 
-                        }
                     }
                 }
-                """,
-                FixedState =
-                {
-                    Sources =
-                    {
-                        """
-                        using System;
-                        using System.Reflection;
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Reflection;
 
-                        class C
+            class C
+            {
+                void S(Type t)
+                {
+                    if (t is { Assembly.EntryPoint.CallingConvention: CallingConventions.Any })
+                    {
+
+                    }
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            CodeFixTestBehaviors = Testing.CodeFixTestBehaviors.FixOne,
+            DiagnosticSelector = ds => ds[0],
+        }.RunAsync();
+
+    [Fact]
+    public Task TestInnerDiagnostic()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Reflection;
+
+            class C
+            {
+                void S(Type t)
+                {
+                    if (t is { [|Assembly:|] { [|EntryPoint:|] { CallingConvention: CallingConventions.Any } } })
+                    {
+
+                    }
+                }
+            }
+            """,
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    using System;
+                    using System.Reflection;
+
+                    class C
+                    {
+                        void S(Type t)
                         {
-                            void S(Type t)
+                            if (t is { Assembly: { EntryPoint.CallingConvention: CallingConventions.Any } })
                             {
-                                if (t is { Assembly: { EntryPoint.CallingConvention: CallingConventions.Any } })
-                                {
 
-                                }
                             }
                         }
-                        """,
-                    },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(8,20): info IDE0170: Simplify property pattern
-                        VerifyCS.Diagnostic("IDE0170").WithSpan(8, 20, 8, 29).WithSpan(8, 20, 8, 86).WithSeverity(DiagnosticSeverity.Info),
                     }
+                    """,
                 },
-                LanguageVersion = LanguageVersion.CSharp10,
-                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllCheck,
-                DiagnosticSelector = ds => ds[1],
-            }.RunAsync();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57674")]
-        public async Task TestTuplePattern()
-        {
-            var testCode = """
-                record R(int Prop);
-
-                class C
+                ExpectedDiagnostics =
                 {
-                    void S(R r)
-                    {
-                        _ = (A: r, r) is (A: { Prop: { } }, _);
-                    }
+                    // /0/Test0.cs(8,20): info IDE0170: Simplify property pattern
+                    VerifyCS.Diagnostic("IDE0170").WithSpan(8, 20, 8, 29).WithSpan(8, 20, 8, 86).WithSeverity(DiagnosticSeverity.Info),
                 }
-                """;
-            await new VerifyCS.Test
-            {
-                TestCode = testCode,
-                FixedCode = testCode,
-                LanguageVersion = LanguageVersion.CSharp10,
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
-            }.RunAsync();
-        }
+            },
+            LanguageVersion = LanguageVersion.CSharp10,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllCheck,
+            DiagnosticSelector = ds => ds[1],
+        }.RunAsync();
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57674")]
-        public async Task TestPositionalPattern()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57674")]
+    public Task TestTuplePattern()
+        => new VerifyCS.Test
         {
-            var testCode = """
-                record R(R Child, int Value);
+            TestCode = """
+            record R(int Prop);
 
-                class C
-                {
-                    void S(R r)
-                    {
-                        _ = r is R(Child: { Child: { } }, _);
-                    }
-                }
-                """;
-            await new VerifyCS.Test
+            class C
             {
-                TestCode = testCode,
-                FixedCode = testCode,
-                LanguageVersion = LanguageVersion.CSharp10,
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
-            }.RunAsync();
-        }
-    }
+                void S(R r)
+                {
+                    _ = (A: r, r) is (A: { Prop: { } }, _);
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57674")]
+    public Task TestPositionalPattern()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            record R(R Child, int Value);
+
+            class C
+            {
+                void S(R r)
+                {
+                    _ = r is R(Child: { Child: { } }, _);
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+        }.RunAsync();
 }

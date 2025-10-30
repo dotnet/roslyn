@@ -4,11 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Search.Data;
@@ -42,7 +40,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 searchResult,
                 new HighlightedText(
                     searchResult.NavigableItem.DisplayTaggedParts.JoinText(),
-                    searchResult.NameMatchSpans.NullToEmpty().Select(m => m.ToSpan()).ToArray()),
+                    [.. searchResult.NameMatchSpans.NullToEmpty().Select(m => m.ToSpan())]),
                 new HighlightedText(
                     searchResult.AdditionalInformation,
                     []),
@@ -50,7 +48,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
         }
 
         public Task<IReadOnlyList<SearchResultPreviewPanelBase>> GetPreviewPanelsAsync(SearchResult result, SearchResultViewBase searchResultView)
-            => Task.FromResult(GetPreviewPanels(result, searchResultView) ?? Array.Empty<SearchResultPreviewPanelBase>());
+            => Task.FromResult(GetPreviewPanels(result, searchResultView) ?? []);
 
         private IReadOnlyList<SearchResultPreviewPanelBase>? GetPreviewPanels(SearchResult result, SearchResultViewBase searchResultView)
         {
@@ -66,9 +64,9 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 return null;
 
             Uri? absoluteUri;
-            if (document.IsSourceGeneratedDocument)
+            if (document.SourceGeneratedDocumentIdentity is not null)
             {
-                absoluteUri = ProtocolConversions.CreateUriFromSourceGeneratedFilePath(filePath);
+                absoluteUri = SourceGeneratedDocumentUri.Create(document.SourceGeneratedDocumentIdentity.Value).GetRequiredParsedUri();
             }
             else
             {
@@ -91,6 +89,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             {
                 new RoslynSearchResultPreviewPanel(
                     _provider,
+                    // Editor APIs require a parseable System.Uri instance
                     absoluteUri,
                     projectGuid,
                     roslynResult.SearchResult.NavigableItem.SourceSpan.ToSpan(),

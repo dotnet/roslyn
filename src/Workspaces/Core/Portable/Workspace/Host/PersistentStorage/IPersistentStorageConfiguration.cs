@@ -10,7 +10,6 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Storage;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -37,7 +36,7 @@ internal sealed class DefaultPersistentStorageConfiguration : IPersistentStorage
     /// path.  For example, Base64 encoding will use <c>/</c> which is something that we definitely do not want
     /// errantly added to a path.
     /// </summary>
-    private static readonly ImmutableArray<char> s_invalidPathChars = Path.GetInvalidPathChars().Concat('/').ToImmutableArray();
+    private static readonly ImmutableArray<char> s_invalidPathChars = [.. Path.GetInvalidPathChars(), '/'];
 
     private static readonly string s_cacheDirectory;
     private static readonly string s_moduleFileName;
@@ -93,7 +92,7 @@ internal sealed class DefaultPersistentStorageConfiguration : IPersistentStorage
 
     private static string StripInvalidPathChars(string val)
     {
-        val = new string(val.Where(c => !s_invalidPathChars.Contains(c)).ToArray());
+        val = new string([.. val.Where(c => !s_invalidPathChars.Contains(c))]);
 
         return string.IsNullOrWhiteSpace(val) ? "None" : val;
     }

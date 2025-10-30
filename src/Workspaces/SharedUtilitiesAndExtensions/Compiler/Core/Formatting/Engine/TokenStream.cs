@@ -7,11 +7,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 /// It will maintain information changed compared to original token information. and answers
 /// information about tokens.
 /// </summary>
-internal partial class TokenStream
+internal sealed partial class TokenStream
 {
     // number to guess number of tokens in a formatting span
     private const int MagicTextLengthToTokensRatio = 10;

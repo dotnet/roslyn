@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ConstantValue? constantValue = boundCall.ConstantValueOpt;
             bool isImplicit = boundCall.WasCompilerGenerated;
 
-            if (!boundCall.OriginalMethodsOpt.IsDefault || IsMethodInvalid(boundCall.ResultKind, targetMethod))
+            if (boundCall.IsErroneousNode)
             {
                 ImmutableArray<IOperation> children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundCall).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -881,7 +881,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         // In nested member initializers, the property is not actually set. Instead, it is retrieved for a series of Add method calls or nested property setter calls,
                         // so we need to use the getter for this property
-                        MethodSymbol? accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
+                        MethodSymbol? accessor = isObjectOrCollectionInitializer || property.RefKind != RefKind.None
+                            ? property.GetOwnOrInheritedGetMethod()
+                            : property.GetOwnOrInheritedSetMethod();
                         if (accessor == null || boundObjectInitializerMember.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor.OriginalDefinition is ErrorMethodSymbol)
                         {
                             var children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundObjectInitializerMember).InvalidNodeChildren);
@@ -1505,29 +1507,20 @@ namespace Microsoft.CodeAnalysis.Operations
         private IBinaryOperation CreateBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator, IOperation left, IOperation right)
         {
             BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
-            IMethodSymbol? operatorMethod = boundBinaryOperator.Method.GetPublicSymbol();
-            IMethodSymbol? unaryOperatorMethod = null;
-
-            // For dynamic logical operator MethodOpt is actually the unary true/false operator
-            if (boundBinaryOperator.Type.IsDynamic() &&
-                (operatorKind == BinaryOperatorKind.ConditionalAnd || operatorKind == BinaryOperatorKind.ConditionalOr) &&
-                operatorMethod?.Parameters.Length == 1)
-            {
-                unaryOperatorMethod = operatorMethod;
-                operatorMethod = null;
-            }
+            MethodSymbol? binaryOperatorMethod = boundBinaryOperator.BinaryOperatorMethod;
+            MethodSymbol? unaryOperatorMethod = boundBinaryOperator.LeftTruthOperatorMethod;
 
             SyntaxNode syntax = boundBinaryOperator.Syntax;
             ITypeSymbol? type = boundBinaryOperator.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundBinaryOperator.ConstantValueOpt;
             bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
-            bool isChecked = boundBinaryOperator.OperatorKind.IsChecked() || (boundBinaryOperator.Method is not null && SyntaxFacts.IsCheckedOperator(boundBinaryOperator.Method.Name));
+            bool isChecked = boundBinaryOperator.OperatorKind.IsChecked() || (binaryOperatorMethod is not null && SyntaxFacts.IsCheckedOperator(binaryOperatorMethod.Name));
             bool isCompareText = false;
             bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
             return new BinaryOperation(operatorKind, left, right, isLifted, isChecked, isCompareText,
-                                       operatorMethod,
-                                       GetConstrainedToTypeForOperator(boundBinaryOperator.Method, boundBinaryOperator.ConstrainedToType).GetPublicSymbol(),
-                                       unaryOperatorMethod,
+                                       binaryOperatorMethod.GetPublicSymbol(),
+                                       GetConstrainedToTypeForOperator(binaryOperatorMethod, boundBinaryOperator.ConstrainedToType).GetPublicSymbol(),
+                                       unaryOperatorMethod.GetPublicSymbol(),
                                        _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -1799,15 +1792,44 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IConditionalOperation CreateBoundIfStatementOperation(BoundIfStatement boundIfStatement)
         {
-            IOperation condition = Create(boundIfStatement.Condition);
-            IOperation whenTrue = Create(boundIfStatement.Consequence);
-            IOperation? whenFalse = Create(boundIfStatement.AlternativeOpt);
-            bool isRef = false;
-            SyntaxNode syntax = boundIfStatement.Syntax;
-            ITypeSymbol? type = null;
-            ConstantValue? constantValue = null;
-            bool isImplicit = boundIfStatement.WasCompilerGenerated;
-            return new ConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
+            var stack = ArrayBuilder<BoundIfStatement>.GetInstance();
+
+            IOperation? whenFalse;
+            while (true)
+            {
+                stack.Push(boundIfStatement);
+
+                var alternative = boundIfStatement.AlternativeOpt;
+
+                if (alternative is BoundIfStatement elseIfStatement)
+                {
+                    boundIfStatement = elseIfStatement;
+                }
+                else
+                {
+                    whenFalse = Create(alternative);
+                    break;
+                }
+            }
+
+            ConditionalOperation result;
+            do
+            {
+                boundIfStatement = stack.Pop();
+                IOperation condition = Create(boundIfStatement.Condition);
+                IOperation whenTrue = Create(boundIfStatement.Consequence);
+                bool isRef = false;
+                SyntaxNode syntax = boundIfStatement.Syntax;
+                ITypeSymbol? type = null;
+                ConstantValue? constantValue = null;
+                bool isImplicit = boundIfStatement.WasCompilerGenerated;
+                result = new ConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
+                whenFalse = result;
+            }
+            while (stack.Any());
+
+            stack.Free();
+            return result;
         }
 
         private IWhileLoopOperation CreateBoundWhileStatementOperation(BoundWhileStatement boundWhileStatement)
@@ -1877,9 +1899,10 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     needsDispose: enumeratorInfoOpt.NeedsDisposal,
                                                     knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal ?
                                                                                      compilation.Conversions.
-                                                                                         ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorInfo.Method.ReturnType,
+                                                                                         HasImplicitConversionToOrImplementsVarianceCompatibleInterface(enumeratorInfoOpt.GetEnumeratorInfo.Method.ReturnType,
                                                                                                                             iDisposable,
-                                                                                                                            ref discardedUseSiteInfo).IsImplicit :
+                                                                                                                            ref discardedUseSiteInfo,
+                                                                                                                            needSupportForRefStructInterfaces: out _) :
                                                                                      false,
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),
@@ -1956,7 +1979,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ILabelSymbol exitLabel = boundForEachStatement.BreakLabel.GetPublicSymbol();
             SyntaxNode syntax = boundForEachStatement.Syntax;
             bool isImplicit = boundForEachStatement.WasCompilerGenerated;
-            bool isAsynchronous = boundForEachStatement.AwaitOpt != null;
+            bool isAsynchronous = boundForEachStatement.EnumeratorInfoOpt is { MoveNextAwaitableInfo: not null };
             return new ForEachLoopOperation(loopControlVariable, collection, nextVariables, info, isAsynchronous, body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit);
         }
 
@@ -2221,8 +2244,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IInterpolatedStringOperation CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>? positionInfo = null)
         {
-            Debug.Assert(positionInfo == null || boundInterpolatedString.InterpolationData == null);
-            ImmutableArray<IInterpolatedStringContentOperation> parts = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts, positionInfo ?? boundInterpolatedString.InterpolationData?.PositionInfo[0]);
+            Debug.Assert(positionInfo == null || boundInterpolatedString.InterpolationData is null or { BuilderType: null });
+
+            if (positionInfo is null && boundInterpolatedString.InterpolationData is { BuilderType: not null, PositionInfo: var info })
+            {
+                positionInfo = info[0];
+            }
+
+            ImmutableArray<IInterpolatedStringContentOperation> parts = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts, positionInfo);
             SyntaxNode syntax = boundInterpolatedString.Syntax;
             ITypeSymbol? type = boundInterpolatedString.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundInterpolatedString.ConstantValueOpt;
@@ -2456,7 +2485,7 @@ namespace Microsoft.CodeAnalysis.Operations
             var (placeholderKind, argumentIndex) = placeholder.ArgumentIndex switch
             {
                 >= 0 and var index => (InterpolatedStringArgumentPlaceholderKind.CallsiteArgument, index),
-                BoundInterpolatedStringArgumentPlaceholder.InstanceParameter => (InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver, NonArgumentIndex),
+                BoundInterpolatedStringArgumentPlaceholder.InstanceParameter or BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver => (InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver, NonArgumentIndex),
                 BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter => (InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument, NonArgumentIndex),
                 _ => throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex)
             };
@@ -2604,15 +2633,43 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundBinaryPatternOperation(BoundBinaryPattern boundBinaryPattern)
         {
-            return new BinaryPatternOperation(
-                boundBinaryPattern.Disjunction ? BinaryOperatorKind.Or : BinaryOperatorKind.And,
-                (IPatternOperation)Create(boundBinaryPattern.Left),
-                (IPatternOperation)Create(boundBinaryPattern.Right),
-                boundBinaryPattern.InputType.GetPublicSymbol(),
-                boundBinaryPattern.NarrowedType.GetPublicSymbol(),
-                _semanticModel,
-                boundBinaryPattern.Syntax,
-                isImplicit: boundBinaryPattern.WasCompilerGenerated);
+            if (boundBinaryPattern.Left is not BoundBinaryPattern)
+            {
+                return createOperation(this, boundBinaryPattern, left: (IPatternOperation)Create(boundBinaryPattern.Left));
+            }
+
+            // Use a manual stack to avoid overflowing on deeply-nested binary patterns
+            var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+            BoundBinaryPattern? current = boundBinaryPattern;
+
+            do
+            {
+                stack.Push(current);
+                current = current.Left as BoundBinaryPattern;
+            } while (current != null);
+
+            current = stack.Pop();
+            var result = (IPatternOperation)Create(current.Left);
+            do
+            {
+                result = createOperation(this, current, result);
+            } while (stack.TryPop(out current));
+
+            stack.Free();
+            return result;
+
+            static BinaryPatternOperation createOperation(CSharpOperationFactory @this, BoundBinaryPattern boundBinaryPattern, IPatternOperation left)
+            {
+                return new BinaryPatternOperation(
+                            boundBinaryPattern.Disjunction ? BinaryOperatorKind.Or : BinaryOperatorKind.And,
+                            left,
+                            (IPatternOperation)@this.Create(boundBinaryPattern.Right),
+                            boundBinaryPattern.InputType.GetPublicSymbol(),
+                            boundBinaryPattern.NarrowedType.GetPublicSymbol(),
+                            @this._semanticModel,
+                            boundBinaryPattern.Syntax,
+                            isImplicit: boundBinaryPattern.WasCompilerGenerated);
+            }
         }
 
         private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)

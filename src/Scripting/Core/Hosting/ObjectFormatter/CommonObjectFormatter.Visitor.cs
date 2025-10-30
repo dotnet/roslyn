@@ -11,9 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Microsoft.Cci;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
@@ -697,7 +695,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     string _;
                     FormatObjectRecursive(result, array.GetValue(indices), isRoot: false, debuggerDisplayName: out _);
 
-                    indices[indices.Length - 1]++;
+                    indices[^1]++;
                     flatIndex++;
                 }
             }

@@ -46,11 +46,15 @@ public abstract class CSharpSquigglesCommon : AbstractEditorTest
             }
             """, HangMitigatingCancellationToken);
 
-        var usingsErrorTags = SupportsGlobalUsings ? ("suggestion", TextSpan.FromBounds(0, 68), @"using System;
-using System.Collections.Generic;
-using System.Text;", "IDE0005: Using directive is unnecessary.")
-            : ("suggestion", TextSpan.FromBounds(15, 68), @"using System.Collections.Generic;
-using System.Text;", "IDE0005: Using directive is unnecessary.");
+        var usingsErrorTags = SupportsGlobalUsings ? ("suggestion", TextSpan.FromBounds(0, 68), """
+            using System;
+            using System.Collections.Generic;
+            using System.Text;
+            """, "IDE0005: Using directive is unnecessary.")
+            : ("suggestion", TextSpan.FromBounds(15, 68), """
+            using System.Collections.Generic;
+            using System.Text;
+            """, "IDE0005: Using directive is unnecessary.");
 
         await TestServices.EditorVerifier.ErrorTagsAsync(
           [

@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
@@ -54,7 +53,7 @@ public sealed class ApplyChangesOperation(Solution changedSolution) : CodeAction
         var currentSolution = workspace.CurrentSolution;
 
         // if there was no intermediary edit, just apply the change fully.
-        if (changedSolution.WorkspaceVersion == currentSolution.WorkspaceVersion)
+        if (changedSolution.SolutionStateContentVersion == currentSolution.SolutionStateContentVersion)
         {
             var result = workspace.TryApplyChanges(changedSolution, progressTracker);
 

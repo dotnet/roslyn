@@ -3,16 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal partial class VisualStudioWorkspaceImpl
 {
-    private class AddProjectReferenceUndoUnit : AbstractAddRemoveUndoUnit
+    private sealed class AddProjectReferenceUndoUnit : AbstractAddRemoveUndoUnit
     {
         private readonly ProjectId _toProjectId;
 

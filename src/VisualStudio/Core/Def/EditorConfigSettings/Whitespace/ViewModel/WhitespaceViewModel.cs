@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 
-internal partial class WhitespaceViewModel : SettingsViewModelBase<
+internal sealed partial class WhitespaceViewModel : SettingsViewModelBase<
     Setting,
     WhitespaceViewModel.SettingsSnapshotFactory,
     WhitespaceViewModel.SettingsEntriesSnapshot>
@@ -38,11 +38,10 @@ internal partial class WhitespaceViewModel : SettingsViewModelBase<
         };
 
     protected override string[] GetFixedColumns()
-        => new[]
-        {
+        => [
             ColumnDefinitions.Whitespace.Category,
             ColumnDefinitions.Whitespace.Description,
             ColumnDefinitions.Whitespace.Value,
             ColumnDefinitions.Whitespace.Location
-        };
+        ];
 }

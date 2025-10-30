@@ -17,7 +17,7 @@ internal static class TextEditApplication
         var oldSnapshot = buffer.CurrentSnapshot;
         var oldText = oldSnapshot.AsText();
         var changes = newText.GetTextChanges(oldText);
-        UpdateText(changes.ToImmutableArray(), buffer, oldSnapshot, oldText, options);
+        UpdateText([.. changes], buffer, oldSnapshot, oldText, options);
     }
 
     public static void UpdateText(ImmutableArray<TextChange> textChanges, ITextBuffer buffer, EditOptions options)

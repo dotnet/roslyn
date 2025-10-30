@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,7 +15,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -45,8 +43,10 @@ internal sealed class CSharpToggleBlockCommentCommandHandler(
     {
         var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
         // Only search for block comments intersecting the lines in the selections.
-        return root.DescendantTrivia(linesContainingSelections)
-            .Where(trivia => trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.MultiLineDocumentationCommentTrivia)
-            .SelectAsArray(blockCommentTrivia => blockCommentTrivia.Span);
+        return root
+            .DescendantTrivia(linesContainingSelections)
+            .SelectAsArray(
+                predicate: trivia => trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.MultiLineDocumentationCommentTrivia,
+                selector: blockCommentTrivia => blockCommentTrivia.Span);
     }
 }

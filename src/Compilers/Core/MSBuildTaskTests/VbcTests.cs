@@ -554,5 +554,66 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
 
             TaskTestUtil.AssertCommandLine(vbc, engine, "/optionstrict:custom", "/out:test.dll", "/target:library", "test.vb", "blah.vb");
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+        public void StdLib()
+        {
+            var vbc = new Vbc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("test.vb"),
+            };
+
+            AssertEx.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        public void SourceFileInRootDirectoryOnUnix()
+        {
+            // On Unix, a source file path starting with "/" without another "/" 
+            // should be prefixed with "./" to avoid being misinterpreted as a command-line switch
+            var vbc = new Vbc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("/Program.vb"),
+            };
+
+            var responseFileContents = vbc.GenerateResponseFileContents();
+            Assert.Contains("/./Program.vb", responseFileContents);
+            Assert.DoesNotContain(" /Program.vb", responseFileContents);
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        public void MultipleSourceFilesWithRootDirectoryOnUnix()
+        {
+            // Test multiple files where some are in root and some are not
+            // Also test that /dir/file.vb is NOT transformed (has second '/')
+            var vbc = new Vbc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("/Program.vb", "src/Test.vb", "/App.vb", "/dir/File.vb"),
+            };
+
+            var responseFileContents = vbc.GenerateResponseFileContents();
+            Assert.Contains("/./Program.vb", responseFileContents);
+            Assert.Contains("/./App.vb", responseFileContents);
+            Assert.Contains(" src/Test.vb", responseFileContents);
+            // /dir/File.vb should NOT be transformed (contains second '/')
+            Assert.Contains(" /dir/File.vb", responseFileContents);
+            Assert.DoesNotContain("/./dir/File.vb", responseFileContents);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/80865")]
+        public void SourceFilePathsOnWindows()
+        {
+            // On Windows, paths should not be transformed even if they start with "/"
+            var vbc = new Vbc
+            {
+                Sources = MSBuildUtil.CreateTaskItems("test.vb", "/test.vb"),
+            };
+
+            var responseFileContents = vbc.GenerateResponseFileContents();
+            Assert.Contains(" test.vb", responseFileContents);
+            // On Windows, /test.vb should NOT be transformed
+            Assert.Contains(" /test.vb", responseFileContents);
+            Assert.DoesNotContain("/./test.vb", responseFileContents);
+        }
     }
 }

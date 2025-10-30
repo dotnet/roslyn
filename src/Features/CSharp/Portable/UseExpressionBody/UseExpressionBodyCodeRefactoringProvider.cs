@@ -28,18 +28,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseExpressionBody), Shared]
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.ExtractClass)]
-internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class UseExpressionBodyCodeRefactoringProvider() : SyntaxEditorBasedCodeRefactoringProvider
 {
     private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
     private static readonly BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> s_equivalenceKeyMap
         = CreateEquivalanceKeyMap(UseExpressionBodyHelper.Helpers);
 
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public UseExpressionBodyCodeRefactoringProvider()
-    {
-    }
+    protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
 
     private static BidirectionalMap<(UseExpressionBodyHelper helper, bool useExpressionBody), string> CreateEquivalanceKeyMap(
         ImmutableArray<UseExpressionBodyHelper> helpers)
@@ -51,23 +49,21 @@ internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeR
         {
             foreach (var helper in helpers)
             {
-                yield return KeyValuePairUtil.Create((helper, useExpressionBody: true), helper.GetType().Name + "_UseExpressionBody");
-                yield return KeyValuePairUtil.Create((helper, useExpressionBody: false), helper.GetType().Name + "_UseBlockBody");
+                yield return KeyValuePair.Create((helper, useExpressionBody: true), helper.GetType().Name + "_UseExpressionBody");
+                yield return KeyValuePair.Create((helper, useExpressionBody: false), helper.GetType().Name + "_UseBlockBody");
             }
         }
     }
 
-    protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
+    protected override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes => AllRefactorAllScopes;
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, textSpan, cancellationToken) = context;
-        if (textSpan.Length > 0)
-            return;
 
         var position = textSpan.Start;
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var node = root.FindToken(position).Parent!;
+        var node = root.FindNode(textSpan);
 
         var containingLambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
         if (containingLambda != null &&
@@ -80,7 +76,7 @@ internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeR
         }
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var helper in _helpers)
         {
@@ -127,9 +123,9 @@ internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeR
             context.RegisterRefactoring(
                 CodeAction.Create(
                     helper.UseExpressionBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(
+                    cancellationToken => UpdateDocumentAsync(
                         document, root, declaration, helper,
-                        useExpressionBody: true, cancellationToken: c),
+                        useExpressionBody: true, cancellationToken),
                     s_equivalenceKeyMap[(helper, useExpressionBody: true)]),
                 declaration.Span);
             succeeded = true;
@@ -140,9 +136,9 @@ internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeR
             context.RegisterRefactoring(
                 CodeAction.Create(
                     helper.UseBlockBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(
+                    cancellationToken => UpdateDocumentAsync(
                         document, root, declaration, helper,
-                        useExpressionBody: false, cancellationToken: c),
+                        useExpressionBody: false, cancellationToken),
                     s_equivalenceKeyMap[(helper, useExpressionBody: false)]),
                 declaration.Span);
             succeeded = true;
@@ -188,11 +184,10 @@ internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeR
         return root.ReplaceNode(parent, updatedParent);
     }
 
-    protected override async Task FixAllAsync(
+    protected override async Task RefactorAllAsync(
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
-        CodeActionOptionsProvider optionsProvider,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {
@@ -200,9 +195,9 @@ internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeR
         var (helper, useExpressionBody) = s_equivalenceKeyMap[equivalenceKey];
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
         var declarationsToFix = GetDeclarationsToFix(fixAllSpans, root, helper, useExpressionBody, options, cancellationToken);
-        await FixDeclarationsAsync(document, editor, root, declarationsToFix.ToImmutableArray(), helper, useExpressionBody, cancellationToken).ConfigureAwait(false);
+        await FixDeclarationsAsync(document, editor, root, [.. declarationsToFix], helper, useExpressionBody, cancellationToken).ConfigureAwait(false);
         return;
 
         // Local functions.

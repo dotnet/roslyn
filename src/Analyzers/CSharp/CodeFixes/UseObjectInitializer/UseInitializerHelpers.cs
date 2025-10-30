@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class UseInitializerHelpers
@@ -57,7 +58,7 @@ internal static class UseInitializerHelpers
             var last = nodesAndTokens.Last();
             nodesAndTokens.RemoveLast();
             nodesAndTokens.Add(last.WithTrailingTrivia());
-            nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithTrailingTrivia(last.GetTrailingTrivia()));
+            nodesAndTokens.Add(CommaToken.WithTrailingTrivia(last.GetTrailingTrivia()));
         }
     }
 }

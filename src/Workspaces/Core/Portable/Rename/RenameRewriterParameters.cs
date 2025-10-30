@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
@@ -11,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename;
 
-internal class RenameRewriterParameters(
+internal sealed class RenameRewriterParameters(
     RenameAnnotation renamedSymbolDeclarationAnnotation,
     Document document,
     SemanticModel semanticModel,

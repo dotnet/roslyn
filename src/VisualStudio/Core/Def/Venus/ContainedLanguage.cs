@@ -7,19 +7,15 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 
@@ -84,7 +80,7 @@ internal partial class ContainedLanguage
         Workspace = workspace;
 
         _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-        _diagnosticAnalyzerService = componentModel.GetService<IDiagnosticAnalyzerService>();
+        _diagnosticAnalyzerService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         // Get the ITextBuffer for the secondary buffer
         Marshal.ThrowExceptionForHR(bufferCoordinator.GetSecondaryBuffer(out var secondaryTextLines));
@@ -126,7 +122,6 @@ internal partial class ContainedLanguage
         }
 
         ContainedDocument = new ContainedDocument(
-            ComponentModel.GetService<IThreadingContext>(),
             documentId,
             subjectBuffer: SubjectBuffer,
             dataBuffer: DataBuffer,
@@ -142,8 +137,6 @@ internal partial class ContainedLanguage
         // TODO: Can contained documents be linked or shared?
         this.DataBuffer.Changed += OnDataBufferChanged;
     }
-
-    public IGlobalOptionService GlobalOptions => _diagnosticAnalyzerService.GlobalOptions;
 
     private void OnDisconnect()
     {

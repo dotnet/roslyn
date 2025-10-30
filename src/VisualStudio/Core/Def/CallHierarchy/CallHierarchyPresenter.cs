@@ -6,18 +6,16 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.CallHierarchy.Package.Definitions;
-using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CallHierarchy;
 
 [Export(typeof(ICallHierarchyPresenter))]
-internal class CallHierarchyPresenter : ICallHierarchyPresenter
+internal sealed class CallHierarchyPresenter : ICallHierarchyPresenter
 {
     private readonly IServiceProvider _serviceProvider;
 

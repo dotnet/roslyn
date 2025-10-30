@@ -3404,6 +3404,54 @@ IVariableDeclaratorOperation (Symbol: System.ReadOnlySpan<System.Char> span) (Op
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ConversionExpression_Implicit_ArrayToSpan()
+        {
+            var source = """
+                class C
+                {
+                    System.Span<int> F(int[] arg)
+                    {
+                        System.Span<int> /*<bind>*/span = arg/*</bind>*/;
+                        return span;
+                    }
+                }
+                """;
+
+            var expectedOperationTree = """
+                IVariableDeclaratorOperation (Symbol: System.Span<System.Int32> span) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'span = arg')
+                  Initializer:
+                    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= arg')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'arg')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand:
+                        IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'arg')
+                """;
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilationWithSpan(source);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(comp, expectedOperationTree, expectedDiagnostics,
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+
+            // In C# 12, the conversion is user-defined unlike above:
+
+            expectedOperationTree = """
+                IVariableDeclaratorOperation (Symbol: System.Span<System.Int32> span) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'span = arg')
+                  Initializer:
+                    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= arg')
+                      IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Span<System.Int32> System.Span<System.Int32>.op_Implicit(System.Int32[] array)) (OperationKind.Conversion, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'arg')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Span<System.Int32> System.Span<System.Int32>.op_Implicit(System.Int32[] array))
+                        Operand:
+                          IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'arg')
+                """;
+
+            comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(comp, expectedOperationTree, expectedDiagnostics,
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
         #endregion
 
         #region Explicit Conversion

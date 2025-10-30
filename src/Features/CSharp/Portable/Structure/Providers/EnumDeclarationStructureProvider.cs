@@ -4,21 +4,21 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal class EnumDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<EnumDeclarationSyntax>
+internal sealed class EnumDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<EnumDeclarationSyntax>
 {
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,
         EnumDeclarationSyntax enumDeclaration,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {
-        CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, ref spans, options);
+        CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, spans, options);
 
         if (!enumDeclaration.OpenBraceToken.IsMissing &&
             !enumDeclaration.CloseBraceToken.IsMissing)
@@ -45,7 +45,7 @@ internal class EnumDeclarationStructureProvider : AbstractSyntaxNodeStructurePro
         if (!enumDeclaration.CloseBraceToken.IsMissing)
         {
             var leadingTrivia = enumDeclaration.CloseBraceToken.LeadingTrivia;
-            CSharpStructureHelpers.CollectCommentBlockSpans(leadingTrivia, ref spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(leadingTrivia, spans);
         }
     }
 }

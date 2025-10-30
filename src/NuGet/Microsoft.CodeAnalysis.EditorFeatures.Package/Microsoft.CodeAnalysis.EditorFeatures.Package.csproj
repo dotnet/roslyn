@@ -5,7 +5,7 @@
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <PackageId>Microsoft.CodeAnalysis.EditorFeatures</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <PackageDescription>

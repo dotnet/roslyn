@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 
 internal interface IRegexNodeVisitor
@@ -15,7 +13,6 @@ internal interface IRegexNodeVisitor
     void Visit(RegexNegatedCharacterClassNode node);
     void Visit(RegexCharacterClassRangeNode node);
     void Visit(RegexCharacterClassSubtractionNode node);
-    void Visit(RegexPosixPropertyNode node);
     void Visit(RegexWildcardNode node);
     void Visit(RegexZeroOrMoreQuantifierNode node);
     void Visit(RegexOneOrMoreQuantifierNode node);

@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 using static TestResources.NetFX.ValueTuple;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -775,7 +775,7 @@ val: -2
 .assembly extern System.ValueTuple
 {
   .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
-  .ver 4:0:1:0
+  .ver 4:0:3:0
 }
 
 .class public auto ansi C
@@ -871,7 +871,7 @@ val: -2
 .assembly extern System.ValueTuple
 {
   .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
-  .ver 4:0:1:0
+  .ver 4:0:3:0
 }
 
 .class public auto ansi C
@@ -969,7 +969,7 @@ val: -2
 .assembly extern System.ValueTuple
 {
   .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
-  .ver 4:0:1:0
+  .ver 4:0:3:0
 }
 
 .class public auto ansi beforefieldinit Base`1<T>
@@ -3550,8 +3550,7 @@ static class C
 ";
 
             CompileAndVerify(source,
-                targetFramework: TargetFramework.Mscorlib45,
-                references: new[] { Net451.System, Net451.SystemCore, Net451.SystemRuntime, ValueTupleRef },
+                targetFramework: TargetFramework.NetFramework,
                 expectedOutput: @"42 Alice");
         }
 
@@ -3856,7 +3855,7 @@ public static class Extensions
     public static string a(this (int, int) self) { return ""hello""; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { Net451.System, Net451.SystemCore, Net451.SystemRuntime, ValueTupleRef }, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetFramework, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (8,32): error CS8305: Tuple element name 'a' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
                 //         System.Console.Write(t.a);
@@ -4321,7 +4320,7 @@ class C3
             comp.VerifyDiagnostics(
                 // (6,17): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         var x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 17)
                 );
         }
 
@@ -4344,10 +4343,10 @@ class C3
             comp.VerifyDiagnostics(
                 // (6,9): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         (int, int) x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(int, int)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "(int, int)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9),
                 // (6,24): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         (int, int) x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 24)
                 );
         }
 
@@ -4369,7 +4368,7 @@ class C3
             comp.VerifyDiagnostics(
                 // (4,19): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //     public void M((int, int) x) { }
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(int, int)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 19)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "(int, int)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 19)
                 );
         }
 
@@ -5526,7 +5525,7 @@ class C3
             comp.VerifyDiagnostics(
                 // (7,14): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         x.M1((1, 1));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 14)
                 );
 
             comp = CreateCompilationWithMscorlib40(source,
@@ -10360,7 +10359,7 @@ class C
         (int, int) t1 = t0;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (14,33): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //     static void Main((int, int) p)
@@ -10390,7 +10389,7 @@ class Program
         ValueTuple<int, int*> t3 = t2;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, references: s_valueTupleRefs,
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, references: s_valueTupleRefs,
                options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (5,31): error CS0306: The type 'int*' may not be used as a type argument
@@ -10441,7 +10440,7 @@ class C<T>
         return default((U, U));
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (15,12): error CS0452: The type 'U' must be a reference type in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //     (U, U) M<U>(U x)
@@ -10482,7 +10481,7 @@ class C<T> where T : class
         return default((U, U));
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (17,24): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C<T>'
                 //         var t0 = new C<int>();
@@ -10520,7 +10519,7 @@ class C<T> where T : class
         return default((U, U));
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (15,12): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //     (U, U) M<U>(U x) where U : class
@@ -10593,7 +10592,7 @@ class C
         (int, int, int, int, int, int, int, int) t1 = t0;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (42,53): error CS0452: The type 'ValueTuple<int>' must be a reference type in order to use it as parameter 'TRest' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'
                 //     void M((int, int, int, int, int, int, int, int) p)
@@ -10639,7 +10638,7 @@ class Program
         var v2 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, (int*)null);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, references: s_valueTupleRefs,
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, references: s_valueTupleRefs,
                options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (15,102): error CS0306: The type 'int*' may not be used as a type argument
@@ -13914,7 +13913,7 @@ public class Test
                                                      options: TestOptions.ReleaseDll);
 
             var comp2CompilationRef = comp2.ToMetadataReference();
-            var comp3 = CreateCompilationWithMscorlib45(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, comp2CompilationRef },
+            var comp3 = CreateCompilationWithMscorlib461(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, comp2CompilationRef },
                                                      options: TestOptions.ReleaseExe);
 
             Assert.NotSame(comp2.Assembly, (AssemblySymbol)comp3.GetAssemblyOrModuleSymbol(comp2CompilationRef)); // We are interested in retargeting scenario
@@ -14079,7 +14078,7 @@ public class Test
                                                      options: TestOptions.ReleaseDll);
 
             var comp2CompilationRef = comp2.ToMetadataReference();
-            var comp3 = CreateCompilationWithMscorlib45(source1, references: (new[] { comp2CompilationRef }).Concat(s_valueTupleRefs),
+            var comp3 = CreateCompilationWithMscorlib461(source1, references: (new[] { comp2CompilationRef }).Concat(s_valueTupleRefs),
                                                      options: TestOptions.ReleaseExe);
 
             Assert.NotSame(comp2.Assembly, (AssemblySymbol)comp3.GetAssemblyOrModuleSymbol(comp2CompilationRef)); // We are interested in retargeting scenario
@@ -16797,7 +16796,7 @@ class C3
             comp.VerifyDiagnostics(
                 // (6,17): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         var x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 17)
                 );
 
             comp = CreateCompilationWithMscorlib40(source,
@@ -16808,7 +16807,7 @@ class C3
             comp.VerifyDiagnostics(
                 // (6,17): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         var x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, 1)").WithArguments("System.ValueTuple`2", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "(1, 1)").WithArguments("System.ValueTuple`2", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 17)
                 );
 
             comp = CreateCompilationWithMscorlib40(source,
@@ -16859,7 +16858,7 @@ class C3
             comp.VerifyDiagnostics(
                 // (6,16): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         "x".M1((1, null));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, null)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "(1, null)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 16)
                 );
 
             comp = CreateCompilationWithMscorlib40(source3,
@@ -16931,10 +16930,10 @@ class C3
             comp.VerifyDiagnostics(
                 // (6,16): error CS8356: Predefined type 'System.ValueTuple`3' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         "x".M1((1, null, 1, null, 1, null, 1, null, 1, null));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`3", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`3", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 16),
                 // (6,16): error CS8356: Predefined type 'System.ValueTuple`8' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         "x".M1((1, null, 1, null, 1, null, 1, null, 1, null));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`8", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`8", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 16)
                 );
 
             comp = CreateCompilationWithMscorlib40(source3,
@@ -19057,7 +19056,7 @@ class C {
             var tupleComp1 = CreateCompilationWithMscorlib40(trivial2uple + trivial3uple + trivialRemainingTuples);
 
             var tree = Parse(text);
-            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.mscorlib, tupleComp1.ToMetadataReference() });
+            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.References.mscorlib, tupleComp1.ToMetadataReference() });
 
             var model = comp.GetSemanticModel(tree);
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);
@@ -19096,7 +19095,7 @@ class C {
             var tupleComp1 = CreateCompilationWithMscorlib40(trivial2uple + trivial3uple + trivialRemainingTuples);
 
             var tree = Parse(text);
-            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.mscorlib, tupleComp1.ToMetadataReference() });
+            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.References.mscorlib, tupleComp1.ToMetadataReference() });
 
             var model = comp.GetSemanticModel(tree);
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);
@@ -19766,7 +19765,7 @@ class Derived : Base
             var comp1 = CreateCompilation(source1 + trivial2uple + source2);
             comp1.VerifyDiagnostics();
 
-            var comp2 = CreateCompilationWithMscorlib45(source1 + trivial2uple);
+            var comp2 = CreateCompilationWithMscorlib461(source1 + trivial2uple);
             comp2.VerifyDiagnostics();
 
             // Retargeting (different version of mscorlib)
@@ -19774,7 +19773,7 @@ class Derived : Base
             comp3.VerifyDiagnostics();
 
             // Metadata
-            var comp4 = CreateCompilationWithMscorlib45(source2, references: new[] { comp2.EmitToImageReference() });
+            var comp4 = CreateCompilationWithMscorlib461(source2, references: new[] { comp2.EmitToImageReference() });
             comp4.VerifyDiagnostics();
         }
 
@@ -21007,15 +21006,15 @@ public partial class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,18): error CS8142: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
+                // (10,18): error CS8142: Both partial member declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
                 //     partial void M1((int notA, int notB) y) { }
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(10, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(10, 18),
                 // (10,18): warning CS8826: Partial method declarations 'void C.M1((int a, int b) x)' and 'void C.M1((int notA, int notB) y)' have signature differences.
                 //     partial void M1((int notA, int notB) y) { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void C.M1((int a, int b) x)", "void C.M1((int notA, int notB) y)").WithLocation(10, 18),
-                // (11,18): error CS8142: Both partial method declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
+                // (11,18): error CS8142: Both partial member declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
                 //     partial void M2((int, int) y) { }
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(11, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(11, 18),
                 // (11,18): warning CS8826: Partial method declarations 'void C.M2((int a, int b) x)' and 'void C.M2((int, int) y)' have signature differences.
                 //     partial void M2((int, int) y) { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("void C.M2((int a, int b) x)", "void C.M2((int, int) y)").WithLocation(11, 18),
@@ -21206,7 +21205,7 @@ public class D
 .assembly extern System.ValueTuple
 {
   .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
-  .ver 4:0:1:0
+  .ver 4:0:3:0
 }
 
 .class public auto ansi beforefieldinit Base
@@ -22274,9 +22273,9 @@ public class B
 
             var comp = CreateCompilationWithMscorlib40(source, references: new[] { lib.ToMetadataReference() });
             comp.VerifyDiagnostics(
-                // (4,24): error CS0012: The type '(, )' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
+                // (4,24): error CS0012: The type '(, )' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
                 //     void M2() { return A.M(); }
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("(, )", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("(, )", "System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
                 );
 
             var methodM = comp.GetMember<MethodSymbol>("A.M");
@@ -22314,9 +22313,9 @@ public class B
 
             var comp = CreateCompilationWithMscorlib40(source, references: new[] { lib.ToMetadataReference() });
             comp.VerifyDiagnostics(
-                // (4,24): error CS0012: The type '(, )' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
+                // (4,24): error CS0012: The type '(, )' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
                 //     void M2() { return A.M(); }
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("(, )", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("(, )", "System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
                 );
 
             var methodM = comp.GetMember<MethodSymbol>("A.M");
@@ -22399,7 +22398,7 @@ class C3
             comp.VerifyDiagnostics(
                 // (7,14): error CS8356: Predefined type 'System.ValueTuple`2' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         x.M1((1, 1));
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "(1, 1)").WithArguments("System.ValueTuple`2", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 14)
                 );
         }
 
@@ -23146,7 +23145,7 @@ namespace System
 {
     ((int, int), (int, int)) F();
 }";
-            var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef });
+            var comp = CreateCompilationWithMscorlib40(source, references: [ValueTupleLegacyRef]);
             comp.VerifyEmitDiagnostics(
                 // (3,6): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
                 //     ((int, int), (int, int)) F();
@@ -23417,7 +23416,7 @@ namespace ClassLibrary1
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib45AndCSharp(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var libComp = CreateCompilationWithMscorlib461AndCSharp(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             libComp.VerifyDiagnostics();
 
             var source = @"
@@ -23471,7 +23470,7 @@ namespace ClassLibrary1
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib45AndCSharp(lib, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var libComp = CreateCompilationWithMscorlib461AndCSharp(lib, options: TestOptions.DebugDll, references: s_valueTupleRefs);
             libComp.VerifyDiagnostics();
 
             var source = @"
@@ -23767,7 +23766,7 @@ implicit operator AA
 .assembly extern System.ValueTuple
 {
   .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )                         // .{...-.Q
-  .ver 4:0:1:0
+  .ver 4:0:3:0
 }
 
 // =============== CLASS MEMBERS DECLARATION ===================
@@ -23844,7 +23843,7 @@ namespace ConsoleApplication5
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, references: (new[] { libCompRef }).Concat(s_valueTupleRefs).ToArray(), options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, references: (new[] { libCompRef }).Concat(s_valueTupleRefs).ToArray(), options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: "42qq", verify: Verification.Fails);
 
@@ -23873,7 +23872,7 @@ namespace ClassLibrary1
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib45AndCSharp(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var libComp = CreateCompilationWithMscorlib461AndCSharp(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             libComp.VerifyDiagnostics();
 
             var source = @"
@@ -23924,16 +23923,14 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source,
-                references: new[] { ValueTupleRef });
+            var compilation = CreateCompilationWithMscorlib40(source, references: [ValueTupleLegacyRef]);
 
             Assert.Equal(TypeKind.Class, compilation.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind);
 
             compilation.VerifyDiagnostics(
-                // (6,17): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
-                //         var o = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(1, 2)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(6, 17)
-                );
+                    // (6,17): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                    //         var o = (1, 2);
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "(1, 2)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(6, 17));
         }
 
         [Fact]
@@ -23970,7 +23967,6 @@ public class C
         public void Iterator_02()
         {
             var source = @"
-using System;
 using System.Collections.Generic;
 
 public class C
@@ -23982,17 +23978,14 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source,
-                references: new[] { ValueTupleRef });
-
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleLegacyRef });
             compilation.VerifyEmitDiagnostics(
-                // (7,24): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                // (6,24): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
                 //     public IEnumerable<(int, int)> entries()
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int, int)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(7, 24),
-                // (9,22): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int, int)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(6, 24),
+                // (8,22): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
                 //         yield return (1, 2);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(1, 2)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(9, 22)
-                );
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(1, 2)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(8, 22));
         }
 
         [Fact]
@@ -24079,7 +24072,7 @@ public class C
 }
 public struct S { }
 ";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, references: s_valueTupleRefs, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, references: s_valueTupleRefs, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (13,18): error CS0306: The type 'int*' may not be used as a type argument
                 //                 (int*, int*) t1 = (p, p); // converted tuple literal with a pointer type
@@ -25455,7 +25448,7 @@ class P
                 );
         }
 
-        [Fact]
+        [Fact, CompilerTrait(CompilerFeature.Patterns)]
         [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
         public void NullableTupleInIsOperator()
         {
@@ -27620,7 +27613,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeDebugExe);
             CompileAndVerify(compilation, expectedOutput:
                 "MessageType x MessageType").VerifyDiagnostics();
         }
@@ -27925,7 +27918,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461);
             var type = (SourceNamedTypeSymbol)comp.GetMember("System.ValueTuple");
             var field = (SourceMemberFieldSymbolFromDeclarator)type.GetMember("Item1");
             var underlyingField = field.TupleUnderlyingField;
@@ -28513,7 +28506,7 @@ namespace System
             }
         }
 
-        [Fact]
+        [Fact, CompilerTrait(CompilerFeature.Patterns)]
         public void SwitchWithNamedTuple()
         {
             var source = @"
@@ -28536,7 +28529,19 @@ class C
 " + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (10,40): hidden CS9335: The pattern is redundant.
+                //             (message: null, isColInit: false) => 43,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(10, 40),
+                // (11,23): hidden CS9335: The pattern is redundant.
+                //             (message: { }, isColInit: true) => 44,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(11, 23),
+                // (12,23): hidden CS9335: The pattern is redundant.
+                //             (message: { }, isColInit: false) => 45,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(12, 23),
+                // (12,39): hidden CS9335: The pattern is redundant.
+                //             (message: { }, isColInit: false) => 45,
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(12, 39));
         }
 
         [Fact]
@@ -28553,7 +28558,7 @@ class C
         public T1 Rest;
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
 

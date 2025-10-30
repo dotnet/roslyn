@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
 
-internal partial class AbstractSymbolDisplayService
+internal abstract partial class AbstractSymbolDisplayService
 {
     protected abstract partial class AbstractSymbolDescriptionBuilder
     {
@@ -110,6 +111,7 @@ internal partial class AbstractSymbolDisplayService
         protected abstract Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
         protected abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format);
         protected abstract string? GetNavigationHint(ISymbol? symbol);
+        protected abstract string GetCommentText(SyntaxTrivia trivia);
 
         protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
         protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
@@ -147,13 +149,16 @@ internal partial class AbstractSymbolDisplayService
         protected Compilation Compilation
             => _semanticModel.Compilation;
 
+        protected virtual ImmutableArray<SymbolDisplayPart> WrapConstraints(ISymbol symbol, ImmutableArray<SymbolDisplayPart> displayParts)
+            => displayParts;
+
         private async Task AddPartsAsync(ImmutableArray<ISymbol> symbols)
         {
             var firstSymbol = symbols[0];
 
             // Grab the doc comment once as computing it for each portion we're concatenating can be expensive for
             // LSIF (which does this for every symbol in an entire solution).
-            var firstSymbolDocumentationComment = firstSymbol.GetAppropriateDocumentationComment(Compilation, CancellationToken);
+            var firstSymbolDocumentationComment = GetAppropriateDocumentationComment(firstSymbol, Compilation, CancellationToken);
 
             await AddDescriptionPartAsync(firstSymbol).ConfigureAwait(false);
 
@@ -163,6 +168,82 @@ internal partial class AbstractSymbolDisplayService
             AddCaptures(firstSymbol);
 
             AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment);
+        }
+
+        private DocumentationComment GetAppropriateDocumentationComment(ISymbol firstSymbol, Compilation compilation, CancellationToken cancellationToken)
+        {
+            // For locals, we synthesize the documentation comment from the leading trivia of the local declaration.
+            return firstSymbol is ILocalSymbol localSymbol
+                ? SynthesizeDocumentationCommentForLocal(localSymbol, cancellationToken)
+                : firstSymbol.GetAppropriateDocumentationComment(compilation, cancellationToken);
+        }
+
+        private DocumentationComment SynthesizeDocumentationCommentForLocal(
+            ILocalSymbol localSymbol, CancellationToken cancellationToken)
+        {
+            if (localSymbol.DeclaringSyntaxReferences is not [var reference])
+                return DocumentationComment.Empty;
+
+            var node = reference.GetSyntax(cancellationToken);
+
+            var syntaxFacts = LanguageServices.GetRequiredService<ISyntaxFactsService>();
+            var statement = node.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsStatement);
+            if (statement is null)
+                return DocumentationComment.Empty;
+
+            var leadingTrivia = statement.GetLeadingTrivia();
+
+            var startIndex = leadingTrivia.Count;
+
+            // Consume any directly leading contiguous comments right before the statement.
+            using var _1 = ArrayBuilder<SyntaxTrivia>.GetInstance(out var commentsAndNewLines);
+            while (true)
+            {
+                // Skip indentation if present.
+                if (syntaxFacts.IsWhitespaceTrivia(GetTrivia(startIndex - 1)))
+                    startIndex--;
+
+                if (!syntaxFacts.IsEndOfLineTrivia(GetTrivia(--startIndex)) ||
+                    !syntaxFacts.IsSingleLineCommentTrivia(GetTrivia(--startIndex)))
+                {
+                    break;
+                }
+
+                commentsAndNewLines.Add(GetTrivia(startIndex));
+                commentsAndNewLines.Add(GetTrivia(startIndex + 1));
+            }
+
+            if (commentsAndNewLines.Count == 0)
+                return DocumentationComment.Empty;
+
+            // Remove the last trivia, as it's always an end of line trivia.  Then reverse the array since we placed
+            // the elements in reverse order as we walked backwards.
+            commentsAndNewLines.Count--;
+            commentsAndNewLines.ReverseContents();
+
+            // Concatenate the comment text and new lines into a single string.
+            // The even items are the comments, and the odd items are the new lines.
+            var text = commentsAndNewLines.Select((t, i) => i % 2 == 0 ? GetCommentText(t) : t.ToFullString()).Join("");
+
+            // Try seeing if the text is actually just an real xml doc comment written by the user.
+            var docComment = DocumentationComment.FromXmlFragment(text);
+            if (docComment.SummaryText != null)
+                return docComment;
+
+            // Otherwise, try wrapping with <summary> tags to make it a valid doc comment.
+            docComment = DocumentationComment.FromXmlFragment($"<summary>{text}</summary>");
+            if (docComment.SummaryText != null)
+                return docComment;
+
+            // Try one final time, this type escaping `<` and `>` characters so that they don't cause XML parse errors.
+            docComment = DocumentationComment.FromXmlFragment($"<summary>{text.Replace("<", "&lt;").Replace(">", "&gt;")}</summary>");
+            if (docComment.SummaryText != null)
+                return docComment;
+
+            return DocumentationComment.Empty;
+
+            SyntaxTrivia GetTrivia(int index)
+                => index < 0 || index >= leadingTrivia.Count ? default : leadingTrivia[index];
         }
 
         private void AddDocumentationContent(ISymbol symbol, DocumentationComment documentationComment)
@@ -420,7 +501,7 @@ internal partial class AbstractSymbolDisplayService
             }
         }
 
-        private IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
+        private Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
         {
             var includeNavigationHints = Options.QuickInfoOptions.IncludeNavigationHintsInQuickInfo;
 
@@ -459,14 +540,33 @@ internal partial class AbstractSymbolDisplayService
                 AddAwaitablePrefix();
             }
 
-            AddSymbolDescription(symbol);
+            if (symbol.TypeKind == TypeKind.Delegate)
+            {
+                var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+                // Under the covers anonymous delegates are represented with generic types.  However, we don't want
+                // to see the unbound form of that generic.  We want to see the fully instantiated signature.
+                var displayParts = symbol.IsAnonymousDelegateType()
+                    ? symbol.ToDisplayParts(style)
+                    : symbol.OriginalDefinition.ToDisplayParts(style);
+
+                AddToGroup(SymbolDescriptionGroups.MainDescription, WrapConstraints(symbol, displayParts));
+            }
+            else
+            {
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    WrapConstraints(symbol.OriginalDefinition, symbol.OriginalDefinition.ToDisplayParts(s_descriptionStyle)));
+            }
+
+            if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
+                AddToGroup(SymbolDescriptionGroups.MainDescription, new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "?"));
 
             if (!symbol.IsUnboundGenericType &&
                 !TypeArgumentsAndParametersAreSame(symbol) &&
                 !symbol.IsAnonymousDelegateType())
             {
-                var allTypeParameters = symbol.GetAllTypeParameters().ToList();
-                var allTypeArguments = symbol.GetAllTypeArguments().ToList();
+                var allTypeParameters = symbol.GetAllTypeParameters();
+                var allTypeArguments = symbol.GetAllTypeArguments();
 
                 AddTypeParameterMapPart(allTypeParameters, allTypeArguments);
             }
@@ -479,34 +579,12 @@ internal partial class AbstractSymbolDisplayService
             }
         }
 
-        private void AddSymbolDescription(INamedTypeSymbol symbol)
-        {
-            if (symbol.TypeKind == TypeKind.Delegate)
-            {
-                var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-                // Under the covers anonymous delegates are represented with generic types.  However, we don't want
-                // to see the unbound form of that generic.  We want to see the fully instantiated signature.
-                AddToGroup(SymbolDescriptionGroups.MainDescription, symbol.IsAnonymousDelegateType()
-                    ? symbol.ToDisplayParts(style)
-                    : symbol.OriginalDefinition.ToDisplayParts(style));
-            }
-            else
-            {
-                AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    symbol.OriginalDefinition.ToDisplayParts(s_descriptionStyle));
-            }
-
-            if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
-                AddToGroup(SymbolDescriptionGroups.MainDescription, new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "?"));
-        }
-
         private static bool TypeArgumentsAndParametersAreSame(INamedTypeSymbol symbol)
         {
-            var typeArguments = symbol.GetAllTypeArguments().ToList();
-            var typeParameters = symbol.GetAllTypeParameters().ToList();
+            var typeArguments = symbol.GetAllTypeArguments();
+            var typeParameters = symbol.GetAllTypeParameters();
 
-            for (var i = 0; i < typeArguments.Count; i++)
+            for (var i = 0; i < typeArguments.Length; i++)
             {
                 var typeArgument = typeArguments[i];
                 var typeParameter = typeParameters[i];
@@ -726,12 +804,12 @@ internal partial class AbstractSymbolDisplayService
         }
 
         protected void AddTypeParameterMapPart(
-            List<ITypeParameterSymbol> typeParameters,
-            List<ITypeSymbol> typeArguments)
+            ImmutableArray<ITypeParameterSymbol> typeParameters,
+            ImmutableArray<ITypeSymbol> typeArguments)
         {
-            var parts = new List<SymbolDisplayPart>();
+            using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
 
-            var count = typeParameters.Count;
+            var count = typeParameters.Length;
             for (var i = 0; i < count; i++)
             {
                 parts.AddRange(TypeParameterName(typeParameters[i].Name));
@@ -747,8 +825,7 @@ internal partial class AbstractSymbolDisplayService
                 }
             }
 
-            AddToGroup(SymbolDescriptionGroups.TypeParameterMap,
-                parts);
+            AddToGroup(SymbolDescriptionGroups.TypeParameterMap, parts);
         }
 
         protected void AddToGroup(SymbolDescriptionGroups group, params SymbolDisplayPart[] partsArray)
@@ -771,10 +848,13 @@ internal partial class AbstractSymbolDisplayService
 
         private static IEnumerable<SymbolDisplayPart> Description(string description)
         {
-            return Punctuation("(")
-                .Concat(PlainText(description))
-                .Concat(Punctuation(")"))
-                .Concat(Space());
+            return
+            [
+                .. Punctuation("("),
+                .. PlainText(description),
+                .. Punctuation(")"),
+                .. Space(),
+            ];
         }
 
         protected static IEnumerable<SymbolDisplayPart> Keyword(string text)

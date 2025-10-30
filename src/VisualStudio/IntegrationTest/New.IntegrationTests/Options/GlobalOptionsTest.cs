@@ -5,19 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Options;
-using Microsoft.VisualStudio.Settings;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
@@ -31,12 +24,12 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
     {
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/79886")]
     public async Task ValidateAllOptions()
     {
         var globalOptions = (GlobalOptionService)await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         var provider = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioOptionPersisterProvider>(HangMitigatingCancellationToken);
-        var vsSettingsPersister = (VisualStudioOptionPersister)await provider.GetOrCreatePersisterAsync(HangMitigatingCancellationToken);
+        var vsSettingsPersister = (VisualStudioOptionPersister)provider.GetOrCreatePersister();
 
         var optionsInfo = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(GlobalOptionsTest).Assembly.Location!));
         var allLanguages = new[] { LanguageNames.CSharp, LanguageNames.VisualBasic };

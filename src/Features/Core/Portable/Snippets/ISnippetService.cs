@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
@@ -15,7 +14,7 @@ internal interface ISnippetService : ILanguageService
     /// <summary>
     /// Retrieves all possible types of snippets for a particular position
     /// </summary>
-    Task<ImmutableArray<SnippetData>> GetSnippetsAsync(SnippetContext context, CancellationToken cancellationToken);
+    ImmutableArray<SnippetData> GetSnippets(SnippetContext context, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets the corresponding provider from a snippet identifier.

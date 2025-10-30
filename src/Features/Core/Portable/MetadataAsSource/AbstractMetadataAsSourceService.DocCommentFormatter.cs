@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -14,9 +13,9 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal partial class AbstractMetadataAsSourceService
+internal abstract partial class AbstractMetadataAsSourceService
 {
-    internal class DocCommentFormatter
+    internal sealed class DocCommentFormatter
     {
         private const int s_indentSize = 2;
         private const int s_wrapLength = 80;
@@ -29,7 +28,7 @@ internal partial class AbstractMetadataAsSourceService
         private static readonly string s_typeParameterHeader = FeaturesResources.Type_parameters_colon;
         private static readonly string s_returnsHeader = FeaturesResources.Returns_colon;
         private static readonly string s_valueHeader = FeaturesResources.Value_colon;
-        private static readonly string s_exceptionsHeader = FeaturesResources.Exceptions_colon;
+        private static readonly string s_exceptionsHeader = WorkspacesResources.Exceptions_colon;
         private static readonly string s_remarksHeader = FeaturesResources.Remarks_colon;
 
         internal static ImmutableArray<string> Format(IDocumentationCommentFormattingService docCommentFormattingService, DocumentationComment docComment)
@@ -140,7 +139,7 @@ internal partial class AbstractMetadataAsSourceService
             while (formattedCommentLinesBuilder is [.., { Length: 0 }])
                 formattedCommentLinesBuilder.RemoveAt(formattedCommentLinesBuilder.Count - 1);
 
-            return formattedCommentLinesBuilder.ToImmutable();
+            return formattedCommentLinesBuilder.ToImmutableAndClear();
         }
 
         private static void AddWrappedTextFromRawText(

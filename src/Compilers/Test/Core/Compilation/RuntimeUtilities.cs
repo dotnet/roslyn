@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public static partial class RuntimeUtilities
     {
+        private static readonly object s_outputGuard = new();
+
         internal static bool IsDesktopRuntime =>
 #if NET472
             true;
@@ -27,19 +29,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #endif
         internal static bool IsCoreClrRuntime => !IsDesktopRuntime;
 
+        private static int? CoreClrRuntimeVersion { get; } = IsDesktopRuntime
+            ? null
+            : typeof(object).Assembly.GetName()!.Version!.Major;
+
         internal static bool IsCoreClr6Runtime
             => IsCoreClrRuntime && RuntimeInformation.FrameworkDescription.StartsWith(".NET 6.", StringComparison.Ordinal);
 
         internal static bool IsCoreClr8OrHigherRuntime
-            => IsCoreClrRuntime && RuntimeInformation.FrameworkDescription.StartsWith(".NET 8.", StringComparison.Ordinal);
+            => CoreClrRuntimeVersion is { } v && v >= 8;
 
         internal static bool IsCoreClr9OrHigherRuntime
-            => IsCoreClrRuntime && RuntimeInformation.FrameworkDescription.StartsWith(".NET 9.", StringComparison.Ordinal);
-#if NET9_0_OR_GREATER
-#error Make the above check be an #if NET9_OR_GREATER when we add net8 support to build
-#endif
+            => CoreClrRuntimeVersion is { } v && v >= 9;
 
-        internal static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null, string tempDirectory = null)
+        internal static BuildPaths CreateBuildPaths(string workingDirectory, string? sdkDirectory = null, string? tempDirectory = null)
         {
             tempDirectory ??= Path.GetTempPath();
 #if NET472
@@ -57,12 +60,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #endif
         }
 
-        internal static IRuntimeEnvironmentFactory GetRuntimeEnvironmentFactory()
+        internal static IRuntimeEnvironment CreateRuntimeEnvironment(ModuleData mainModule, ImmutableArray<ModuleData> modules = default)
         {
 #if NET472
-            return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
+            return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironment(mainModule, modules);
 #elif NETCOREAPP
-            return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
+            return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironment(mainModule, modules);
 #else
 #error Unsupported configuration
 #endif
@@ -74,6 +77,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static string GetAssemblyLocation(Type type)
         {
             return type.GetTypeInfo().Assembly.Location;
+        }
+
+        public static (string Output, string ErrorOutput) CaptureOutput(Action action, IFormatProvider? formatProvider = null)
+        {
+            lock (s_outputGuard)
+            {
+                var savedConsoleOut = Console.Out;
+                var savedConsoleError = Console.Error;
+
+                using var outputWriter = new StringWriter(formatProvider);
+                using var errorWriter = new StringWriter(formatProvider);
+                try
+                {
+                    Console.SetOut(outputWriter);
+                    Console.SetError(errorWriter);
+                    action();
+                }
+                finally
+                {
+                    Console.SetOut(savedConsoleOut);
+                    Console.SetError(savedConsoleError);
+                }
+
+                var output = outputWriter.ToString();
+                var errorOutput = errorWriter.ToString();
+                return (output, errorOutput);
+            }
         }
     }
 }

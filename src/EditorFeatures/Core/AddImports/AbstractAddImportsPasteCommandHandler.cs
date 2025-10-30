@@ -6,11 +6,10 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.AddMissingImports;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Progress;
@@ -22,7 +21,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport;
 
@@ -136,12 +134,9 @@ internal abstract class AbstractAddImportsPasteCommandHandler(
         _threadingContext.ThrowIfNotOnUIThread();
 
         var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+
         using var backgroundWorkContext = indicatorFactory.Create(
-            textView,
-            snapshotSpan,
-            DialogText,
-            cancelOnEdit: true,
-            cancelOnFocusLost: true);
+            textView, snapshotSpan, DialogText, cancelOnEdit: true, cancelOnFocusLost: true);
 
         var cancellationToken = backgroundWorkContext.UserCancellationToken;
 
@@ -152,16 +147,10 @@ internal abstract class AbstractAddImportsPasteCommandHandler(
         await TaskScheduler.Default;
 
         var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
-
-        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
-
-        var options = new AddMissingImportsOptions(
-            CleanupOptions: cleanupOptions,
-            HideAdvancedMembers: _globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, document.Project.Language));
-
         var textSpan = snapshotSpan.Span.ToTextSpan();
+
         var updatedDocument = await addMissingImportsService.AddMissingImportsAsync(
-            document, textSpan, options, backgroundWorkContext.GetCodeAnalysisProgress(), cancellationToken).ConfigureAwait(false);
+            document, textSpan, backgroundWorkContext.GetCodeAnalysisProgress(), cancellationToken).ConfigureAwait(false);
 
         if (updatedDocument is null)
         {

@@ -8,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,36 +16,29 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 /// <summary>
 /// Helper class that allows us to share lots of logic between the diagnostic analyzer and the
 /// code refactoring provider.  Those can't share a common base class due to their own inheritance
 /// requirements with <see cref="DiagnosticAnalyzer"/> and "CodeRefactoringProvider".
 /// </summary>
-internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBodyHelper
+internal abstract class UseExpressionBodyHelper<TDeclaration>(
+    string diagnosticId,
+    EnforceOnBuild enforceOnBuild,
+    LocalizableString useExpressionBodyTitle,
+    LocalizableString useBlockBodyTitle,
+    Option2<CodeStyleOption2<ExpressionBodyPreference>> option,
+    ImmutableArray<SyntaxKind> syntaxKinds) : UseExpressionBodyHelper
     where TDeclaration : SyntaxNode
 {
-    public override Option2<CodeStyleOption2<ExpressionBodyPreference>> Option { get; }
-    public override LocalizableString UseExpressionBodyTitle { get; }
-    public override LocalizableString UseBlockBodyTitle { get; }
-    public override string DiagnosticId { get; }
-    public override EnforceOnBuild EnforceOnBuild { get; }
-    public override ImmutableArray<SyntaxKind> SyntaxKinds { get; }
-
-    protected UseExpressionBodyHelper(
-        string diagnosticId,
-        EnforceOnBuild enforceOnBuild,
-        LocalizableString useExpressionBodyTitle,
-        LocalizableString useBlockBodyTitle,
-        Option2<CodeStyleOption2<ExpressionBodyPreference>> option,
-        ImmutableArray<SyntaxKind> syntaxKinds)
-    {
-        DiagnosticId = diagnosticId;
-        EnforceOnBuild = enforceOnBuild;
-        Option = option;
-        UseExpressionBodyTitle = useExpressionBodyTitle;
-        UseBlockBodyTitle = useBlockBodyTitle;
-        SyntaxKinds = syntaxKinds;
-    }
+    public override Option2<CodeStyleOption2<ExpressionBodyPreference>> Option { get; } = option;
+    public override LocalizableString UseExpressionBodyTitle { get; } = useExpressionBodyTitle;
+    public override LocalizableString UseBlockBodyTitle { get; } = useBlockBodyTitle;
+    public override string DiagnosticId { get; } = diagnosticId;
+    public override EnforceOnBuild EnforceOnBuild { get; } = enforceOnBuild;
+    public override ImmutableArray<SyntaxKind> SyntaxKinds { get; } = syntaxKinds;
 
     protected static AccessorDeclarationSyntax? GetSingleGetAccessor(AccessorListSyntax? accessorList)
     {
@@ -151,16 +143,21 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
         [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpression,
         out SyntaxToken semicolonToken)
     {
+        arrowExpression = null;
+        semicolonToken = default;
+
+        // If we have `X Prop { ... } = ...;` we can't convert this as expr-bodied properties can't have initializers.
+        if (declaration is PropertyDeclarationSyntax { Initializer: not null })
+            return false;
+
         if (TryConvertToExpressionBodyWorker(declaration, conversionPreference, cancellationToken, out arrowExpression, out semicolonToken))
-        {
             return true;
-        }
 
         var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
         if (getAccessor?.ExpressionBody != null &&
             BlockSyntaxExtensions.MatchesPreference(getAccessor.ExpressionBody.Expression, conversionPreference))
         {
-            arrowExpression = SyntaxFactory.ArrowExpressionClause(getAccessor.ExpressionBody.Expression);
+            arrowExpression = ArrowExpressionClause(getAccessor.ExpressionBody.Expression);
             semicolonToken = getAccessor.SemicolonToken;
             return true;
         }
@@ -180,7 +177,7 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
 
         expressionBody = GetExpressionBody(declaration);
         if (expressionBody?.TryConvertToBlock(
-            SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, block: out _) != true)
+            SemicolonToken, false, block: out _) != true)
         {
             fixesError = false;
             return false;
@@ -189,7 +186,7 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
         var languageVersion = declaration.GetLanguageVersion();
         if (languageVersion < LanguageVersion.CSharp7)
         {
-            if (expressionBody!.Expression.IsKind(SyntaxKind.ThrowExpression))
+            if (expressionBody.Expression.IsKind(SyntaxKind.ThrowExpression))
             {
                 // If they're using a throw expression in a declaration and it's prior to C# 7
                 // then always mark this as something that can be fixed by the analyzer.  This way
@@ -224,7 +221,8 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
         return userPrefersBlockBodies == forAnalyzer || (!forAnalyzer && analyzerDisabled);
     }
 
-    public TDeclaration Update(SemanticModel semanticModel, TDeclaration declaration, bool useExpressionBody, CancellationToken cancellationToken)
+    public TDeclaration Update(
+        SemanticModel semanticModel, TDeclaration declaration, bool useExpressionBody, CancellationToken cancellationToken)
     {
         if (useExpressionBody)
         {
@@ -235,27 +233,54 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
                                                .Concat(declaration.GetTrailingTrivia());
             semicolonToken = semicolonToken.WithTrailingTrivia(trailingTrivia);
 
-            return WithSemicolonToken(
-                       WithExpressionBody(
-                           WithBody(declaration, body: null),
-                           expressionBody),
-                       semicolonToken);
+            var updateDeclaration = WithSemicolonToken(
+                WithExpressionBody(
+                    WithBody(declaration, body: null),
+                    expressionBody),
+                semicolonToken);
+
+            return TransferTrailingCommentsToAfterExpressionBody(updateDeclaration);
         }
         else
         {
             return WithSemicolonToken(
-                       WithExpressionBody(
-                           WithGenerateBody(semanticModel, declaration),
-                           expressionBody: null),
-                       default);
+                WithExpressionBody(
+                    WithGenerateBody(semanticModel, declaration, cancellationToken),
+                    expressionBody: null),
+                default);
         }
+    }
+
+    private TDeclaration TransferTrailingCommentsToAfterExpressionBody(TDeclaration declaration)
+    {
+        var expressionBody = GetExpressionBody(declaration);
+
+        // Don't need to transfer if we don't have an expression body, or it already has leading trivia (like comments).
+        // Those will already be formatted and placed properly.   We only want to transfer comments that were conceptually
+        // at the end of the property/method/etc. header before and should stay that way after becoming single line.
+        if (expressionBody == null)
+            return declaration;
+
+        if (expressionBody.GetLeadingTrivia().Any(t => t.IsRegularComment()))
+            return declaration;
+
+        var previousToken = expressionBody.GetFirstToken().GetPreviousToken();
+        var trailingTrivia = previousToken.TrailingTrivia;
+        var lastComment = trailingTrivia.LastOrDefault(t => t.IsRegularComment());
+        if (lastComment == default)
+            return declaration;
+
+        return declaration
+            .ReplaceToken(previousToken, previousToken.WithTrailingTrivia(Space))
+            .WithTrailingTrivia(trailingTrivia.Take(trailingTrivia.IndexOf(lastComment) + 1).Concat(declaration.GetTrailingTrivia()));
     }
 
     protected abstract BlockSyntax? GetBody(TDeclaration declaration);
 
     protected abstract ArrowExpressionClauseSyntax? GetExpressionBody(TDeclaration declaration);
 
-    protected abstract bool CreateReturnStatementForExpression(SemanticModel semanticModel, TDeclaration declaration);
+    protected abstract bool CreateReturnStatementForExpression(
+        SemanticModel semanticModel, TDeclaration declaration, CancellationToken cancellationToken);
 
     protected abstract SyntaxToken GetSemicolonToken(TDeclaration declaration);
 
@@ -263,13 +288,14 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
     protected abstract TDeclaration WithExpressionBody(TDeclaration declaration, ArrowExpressionClauseSyntax? expressionBody);
     protected abstract TDeclaration WithBody(TDeclaration declaration, BlockSyntax? body);
 
-    protected virtual TDeclaration WithGenerateBody(SemanticModel semanticModel, TDeclaration declaration)
+    protected virtual TDeclaration WithGenerateBody(
+        SemanticModel semanticModel, TDeclaration declaration, CancellationToken cancellationToken)
     {
         var expressionBody = GetExpressionBody(declaration);
 
         if (expressionBody.TryConvertToBlock(
                 GetSemicolonToken(declaration),
-                CreateReturnStatementForExpression(semanticModel, declaration),
+                CreateReturnStatementForExpression(semanticModel, declaration, cancellationToken),
                 out var block))
         {
             return WithBody(declaration, block);
@@ -278,7 +304,8 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
         return declaration;
     }
 
-    protected TDeclaration WithAccessorList(SemanticModel semanticModel, TDeclaration declaration)
+    protected TDeclaration WithAccessorList(
+        SemanticModel semanticModel, TDeclaration declaration, CancellationToken cancellationToken)
     {
         var expressionBody = GetExpressionBody(declaration);
         var semicolonToken = GetSemicolonToken(declaration);
@@ -293,16 +320,16 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
 
         expressionBody.TryConvertToBlock(
             GetSemicolonToken(declaration),
-            CreateReturnStatementForExpression(semanticModel, declaration),
+            CreateReturnStatementForExpression(semanticModel, declaration, cancellationToken),
             out var block);
 
-        var accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration);
+        var accessor = AccessorDeclaration(SyntaxKind.GetAccessorDeclaration);
         accessor = block != null
             ? accessor.WithBody(block)
             : accessor.WithExpressionBody(expressionBody)
                       .WithSemicolonToken(semicolonToken);
 
-        return WithAccessorList(declaration, SyntaxFactory.AccessorList([accessor]));
+        return WithAccessorList(declaration, AccessorList([accessor]));
     }
 
     protected virtual TDeclaration WithAccessorList(TDeclaration declaration, AccessorListSyntax accessorListSyntax)

@@ -7,16 +7,19 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InitializeParameter;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddParameterCheck), Shared]
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.ChangeSignature)]
-internal sealed class CSharpAddParameterCheckCodeRefactoringProvider :
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpAddParameterCheckCodeRefactoringProvider() :
     AbstractAddParameterCheckCodeRefactoringProvider<
         BaseTypeDeclarationSyntax,
         ParameterSyntax,
@@ -25,20 +28,11 @@ internal sealed class CSharpAddParameterCheckCodeRefactoringProvider :
         BinaryExpressionSyntax,
         CSharpSimplifierOptions>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpAddParameterCheckCodeRefactoringProvider()
-    {
-    }
-
     protected override bool IsFunctionDeclaration(SyntaxNode node)
         => InitializeParameterHelpers.IsFunctionDeclaration(node);
 
     protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
         => InitializeParameterHelpers.GetBody(functionDeclaration);
-
-    protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfter, StatementSyntax statement)
-        => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, returnsVoid, statementToAddAfter, statement);
 
     protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
         => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);
@@ -48,7 +42,7 @@ internal sealed class CSharpAddParameterCheckCodeRefactoringProvider :
         if (InitializeParameterHelpers.IsExpressionBody(body))
         {
             return InitializeParameterHelpers.TryConvertExpressionBodyToStatement(body,
-                semicolonToken: Token(SyntaxKind.SemicolonToken),
+                semicolonToken: SemicolonToken,
                 createReturnStatementForExpression: false,
                 statement: out var _);
         }
@@ -66,7 +60,7 @@ internal sealed class CSharpAddParameterCheckCodeRefactoringProvider :
     {
         var withBlock = options.PreferBraces.Value == CodeAnalysis.CodeStyle.PreferBracesPreference.Always;
         var singleLine = options.AllowEmbeddedStatementsOnSameLine.Value;
-        var closeParenToken = Token(SyntaxKind.CloseParenToken);
+        var closeParenToken = CloseParenToken;
         if (withBlock)
         {
             ifTrueStatement = Block(ifTrueStatement);
@@ -82,8 +76,8 @@ internal sealed class CSharpAddParameterCheckCodeRefactoringProvider :
 
         return IfStatement(
             attributeLists: default,
-            ifKeyword: Token(SyntaxKind.IfKeyword),
-            openParenToken: Token(SyntaxKind.OpenParenToken),
+            ifKeyword: IfKeyword,
+            openParenToken: OpenParenToken,
             condition: condition,
             closeParenToken: closeParenToken,
             statement: ifTrueStatement,

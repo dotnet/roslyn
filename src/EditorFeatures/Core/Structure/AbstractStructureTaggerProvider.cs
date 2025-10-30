@@ -9,19 +9,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
@@ -40,31 +36,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 /// persist them to the SUO file to persist this data across sessions.
 /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
-internal abstract partial class AbstractStructureTaggerProvider : AsynchronousTaggerProvider<IContainerStructureTag>
+internal abstract partial class AbstractStructureTaggerProvider(
+    TaggerHost taggerHost,
+    EditorOptionsService editorOptionsService,
+    IProjectionBufferFactoryService projectionBufferFactoryService)
+    : AsynchronousTaggerProvider<IContainerStructureTag>(taggerHost, FeatureAttribute.Outlining)
 {
     private const string RegionDirective = "#region";
     private const string UsingDirective = "using";
     private const string ExternDeclaration = "extern";
     private const string ImportsStatement = "Imports";
 
-    protected readonly EditorOptionsService EditorOptionsService;
-    protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
+    protected readonly EditorOptionsService EditorOptionsService = editorOptionsService;
+    protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService = projectionBufferFactoryService;
 
-    protected AbstractStructureTaggerProvider(
-        IThreadingContext threadingContext,
-        EditorOptionsService editorOptionsService,
-        IProjectionBufferFactoryService projectionBufferFactoryService,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListenerProvider listenerProvider)
-        : base(threadingContext, editorOptionsService.GlobalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Outlining))
-    {
-        EditorOptionsService = editorOptionsService;
-        ProjectionBufferFactoryService = projectionBufferFactoryService;
-    }
+    protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 
-    protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
-
-    protected override bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer)
+    protected sealed override bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer)
     {
         // If we can't find this doc, or outlining is not enabled for it, no need to computed anything synchronously.
 
@@ -168,14 +156,15 @@ internal abstract partial class AbstractStructureTaggerProvider : AsynchronousTa
             TaggerEventSources.OnTextChanged(subjectBuffer),
             TaggerEventSources.OnParseOptionChanged(subjectBuffer),
             TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions));
+            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, static option =>
+                option.Equals(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions) ||
+                option.Equals(BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions) ||
+                option.Equals(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions) ||
+                option.Equals(BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions)));
     }
 
     protected sealed override async Task ProduceTagsAsync(
@@ -216,32 +205,57 @@ internal abstract partial class AbstractStructureTaggerProvider : AsynchronousTa
         ImmutableArray<BlockSpan> spans)
     {
         var snapshot = snapshotSpan.Snapshot;
-        spans = GetMultiLineRegions(outliningService, spans, snapshot);
 
-        foreach (var span in spans)
+        // Use the returned enumerable directly instead of allocating into an array. The returned
+        // enumeration can contain a fairly large number of items for large files, so even
+        // using an ArrayBuilder could result in allocation issues without using a custom pool.
+        var multiLineSpans = GetMultiLineRegions(outliningService, spans, snapshot);
+
+        foreach (var span in multiLineSpans)
         {
             var tag = new StructureTag(this, span, snapshot);
             context.AddTag(new TagSpan<IContainerStructureTag>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
         }
     }
 
-    protected override bool TagEquals(IContainerStructureTag tag1, IContainerStructureTag tag2)
+    protected sealed override bool TagEquals(IContainerStructureTag latestTag, IContainerStructureTag previousTag)
     {
-        Contract.ThrowIfFalse(tag1 is StructureTag);
-        Contract.ThrowIfFalse(tag2 is StructureTag);
-        return tag1.Equals(tag2);
+        if (latestTag is not StructureTag latestStructureTag || previousTag is not StructureTag previousStructureTag)
+        {
+            Contract.Fail("Tags were the wrong type");
+            return latestTag == previousTag;
+        }
+
+        var latestSnapshot = latestStructureTag.Snapshot;
+        var previousSnapshot = previousStructureTag.Snapshot;
+
+        var previousStructureStart = new SnapshotPoint(previousSnapshot, previousStructureTag.HeaderSpan.Start);
+        if (previousStructureStart.TranslateTo(latestSnapshot, PointTrackingMode.Negative) !=
+            previousStructureStart.TranslateTo(latestSnapshot, PointTrackingMode.Positive))
+        {
+            // We can't know that how we think this block moved is actually how the editor actually moved it.
+            // Specifically, the tracking mode is an implementation detail.  As such, we don't want to reuse this tag as
+            // its stale data (as mapped by the editor) may not be where we'd expect the new block's data to be.  This
+            // can happen when the user types right at the start of a structure tag, causing it to move inwards
+            // undesirably.
+
+            // Only consider these tags the same if they are the same object in memory.  Otherwise, consider them
+            // different so that we remove the old one and add the new one.
+            return latestTag == previousTag;
+        }
+
+        return latestTag.Equals(previousTag);
     }
 
     internal abstract object? GetCollapsedHintForm(StructureTag structureTag);
 
     private static bool s_exceptionReported = false;
 
-    private static ImmutableArray<BlockSpan> GetMultiLineRegions(
+    private static IEnumerable<BlockSpan> GetMultiLineRegions(
         BlockStructureService service,
         ImmutableArray<BlockSpan> regions, ITextSnapshot snapshot)
     {
         // Remove any spans that aren't multiline.
-        var multiLineRegions = ArrayBuilder<BlockSpan>.GetInstance();
         foreach (var region in regions)
         {
             if (region.TextSpan.Length > 0)
@@ -272,12 +286,10 @@ internal abstract partial class AbstractStructureTaggerProvider : AsynchronousTa
                 var endLine = snapshot.GetLineNumberFromPosition(region.TextSpan.End);
                 if (startLine != endLine)
                 {
-                    multiLineRegions.Add(region);
+                    yield return region;
                 }
             }
         }
-
-        return multiLineRegions.ToImmutableAndFree();
     }
 
     #region Creating Preview Buffers

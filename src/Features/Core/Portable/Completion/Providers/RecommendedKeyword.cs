@@ -40,6 +40,6 @@ internal sealed class RecommendedKeyword(
             textContentBuilder.AddText(toolTip);
         }
 
-        return textContentBuilder.ToImmutableArray();
+        return [.. textContentBuilder];
     }
 }

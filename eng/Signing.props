@@ -17,6 +17,7 @@
   -->
   <ItemGroup>
     <ItemsToSign Include="$(ArtifactsPackagesDir)**\*.tgz" />
+    <ItemsToSign Include="$(VisualStudioSetupOutputPath)**\*.zip" />
 
     <!-- Expression Compiler dependencies that run in remote debugger must be signed with Microsoft101240624 certificate in order to work on Windows 10S -->
 
@@ -60,4 +61,13 @@
     <FileSignInfo Include="Microsoft.VisualStudio.Threading.dll" CertificateName="MicrosoftSHA2" />
     <FileSignInfo Include="StreamJsonRpc.dll" CertificateName="MicrosoftSHA2" />
   </ItemGroup>
+
+  <!--
+    VS cloudbuild fails to restore when using test signed nuget packages due to certificate errors.
+    To avoid this issue, we sign the package contents, but skip signing the actual package file.
+  -->
+  <ItemGroup Condition="'$(PreReleaseVersionLabel)' == 'pr-validation' And '$(DotNetSignType)' == 'test'">
+    <FileExtensionSignInfo Update=".nupkg" CertificateName="None" />
+  </ItemGroup>
+
 </Project>

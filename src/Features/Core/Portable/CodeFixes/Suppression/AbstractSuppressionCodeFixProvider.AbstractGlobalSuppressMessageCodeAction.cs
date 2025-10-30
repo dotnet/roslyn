@@ -8,10 +8,12 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
@@ -104,7 +106,8 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                     else
                     {
                         // Create an empty global suppressions file.
-                        suppressionsDoc = _project.AddDocument(suppressionsFileName, string.Empty);
+                        var emptyText = SourceText.From("", Encoding.UTF8, SourceHashAlgorithms.Default);
+                        suppressionsDoc = _project.AddDocument(suppressionsFileName, emptyText, filePath: suppressionsFilePath);
                     }
                 }
             }

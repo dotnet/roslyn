@@ -10,7 +10,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -90,7 +89,10 @@ internal abstract class AbstractRenameTagger<T> : ITagger<T>, IDisposable where 
 
     public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
-    public IEnumerable<ITagSpan<T>> GetTags(NormalizedSnapshotSpanCollection spans)
+    IEnumerable<ITagSpan<T>> ITagger<T>.GetTags(NormalizedSnapshotSpanCollection spans)
+        => GetTags(spans);
+
+    public IEnumerable<TagSpan<T>> GetTags(NormalizedSnapshotSpanCollection spans)
     {
         if (_renameService.ActiveSession == null)
         {

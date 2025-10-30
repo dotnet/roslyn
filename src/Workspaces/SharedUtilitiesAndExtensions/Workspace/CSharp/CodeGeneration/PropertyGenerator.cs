@@ -14,10 +14,12 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
-using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
-
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+
+using static CodeGenerationHelpers;
+using static CSharpCodeGenerationHelpers;
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 internal static class PropertyGenerator
 {
@@ -92,12 +94,13 @@ internal static class PropertyGenerator
     {
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(property.ExplicitInterfaceImplementations);
 
-        var declaration = SyntaxFactory.IndexerDeclaration(
-                attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), info),
+        var isExplicit = explicitInterfaceSpecifier is not null;
+        var declaration = IndexerDeclaration(
+                attributeLists: GenerateAttributes(property, isExplicit, info),
                 modifiers: GenerateModifiers(property, destination, info),
                 type: GenerateTypeSyntax(property),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
-                parameterList: ParameterGenerator.GenerateBracketedParameterList(property.Parameters, explicitInterfaceSpecifier != null, info),
+                parameterList: ParameterGenerator.GenerateBracketedParameterList(property.Parameters, isExplicit: isExplicit, info),
                 accessorList: GenerateAccessorList(property, destination, info, cancellationToken));
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
@@ -105,20 +108,21 @@ internal static class PropertyGenerator
             AddAnnotationsTo(property, declaration));
     }
 
-    private static MemberDeclarationSyntax GeneratePropertyDeclaration(
+    private static PropertyDeclarationSyntax GeneratePropertyDeclaration(
        IPropertySymbol property, CodeGenerationDestination destination,
        CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
     {
         var initializer = CodeGenerationPropertyInfo.GetInitializer(property) is ExpressionSyntax initializerNode
-            ? SyntaxFactory.EqualsValueClause(initializerNode)
+            ? EqualsValueClause(initializerNode)
             : null;
 
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(property.ExplicitInterfaceImplementations);
 
+        var isExplicit = explicitInterfaceSpecifier is not null;
         var accessorList = GenerateAccessorList(property, destination, info, cancellationToken);
 
-        var propertyDeclaration = SyntaxFactory.PropertyDeclaration(
-            attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), info),
+        var propertyDeclaration = PropertyDeclaration(
+            attributeLists: GenerateAttributes(property, isExplicit, info),
             modifiers: GenerateModifiers(property, destination, info),
             type: GenerateTypeSyntax(property),
             explicitInterfaceSpecifier: explicitInterfaceSpecifier,
@@ -126,12 +130,29 @@ internal static class PropertyGenerator
             accessorList: accessorList,
             expressionBody: null,
             initializer: initializer,
-            semicolonToken: initializer is null ? default : SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            semicolonToken: initializer is null ? default : SemicolonToken);
 
         propertyDeclaration = UseExpressionBodyIfDesired(info, propertyDeclaration, cancellationToken);
 
         return AddFormatterAndCodeGeneratorAnnotationsTo(
             AddAnnotationsTo(property, propertyDeclaration));
+    }
+
+    private static SyntaxList<AttributeListSyntax> GenerateAttributes(
+        IPropertySymbol property, bool isExplicit, CSharpCodeGenerationContextInfo info)
+    {
+        if (isExplicit)
+        {
+            return default;
+        }
+
+        var attributes = property.GetAttributes();
+        if (attributes.Length == 0)
+        {
+            return default;
+        }
+
+        return AttributeGenerator.GenerateAttributeLists(attributes, info);
     }
 
     private static TypeSyntax GenerateTypeSyntax(IPropertySymbol property)
@@ -177,19 +198,15 @@ internal static class PropertyGenerator
     private static PropertyDeclarationSyntax UseExpressionBodyIfDesired(
         CSharpCodeGenerationContextInfo info, PropertyDeclarationSyntax declaration, CancellationToken cancellationToken)
     {
-        if (declaration.ExpressionBody == null)
+        if (declaration.ExpressionBody == null &&
+            declaration.Initializer == null &&
+            TryGetExpressionBody(
+                declaration, info.LanguageVersion, info.Options.PreferExpressionBodiedProperties.Value, cancellationToken,
+                out var expressionBody, out var semicolonToken))
         {
-            if (declaration.Initializer == null)
-            {
-                if (TryGetExpressionBody(
-                        declaration, info.LanguageVersion, info.Options.PreferExpressionBodiedProperties.Value, cancellationToken,
-                        out var expressionBody, out var semicolonToken))
-                {
-                    declaration = declaration.WithAccessorList(null)
-                                             .WithExpressionBody(expressionBody)
-                                             .WithSemicolonToken(semicolonToken);
-                }
-            }
+            declaration = declaration.WithAccessorList(null)
+                                     .WithExpressionBody(expressionBody)
+                                     .WithSemicolonToken(semicolonToken);
         }
 
         return declaration;
@@ -268,7 +285,7 @@ internal static class PropertyGenerator
 
         return accessors[0] == null && accessors[1] == null
             ? null
-            : SyntaxFactory.AccessorList([.. accessors.WhereNotNull()]);
+            : AccessorList([.. accessors.WhereNotNull()]);
     }
 
     private static AccessorDeclarationSyntax? GenerateAccessorDeclaration(
@@ -293,10 +310,10 @@ internal static class PropertyGenerator
         CSharpCodeGenerationContextInfo info,
         CancellationToken cancellationToken)
     {
-        var declaration = SyntaxFactory.AccessorDeclaration(kind)
+        var declaration = AccessorDeclaration(kind)
                                        .WithModifiers(GenerateAccessorModifiers(property, accessor, info))
                                        .WithBody(hasBody ? GenerateBlock(accessor) : null)
-                                       .WithSemicolonToken(hasBody ? default : SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                                       .WithSemicolonToken(hasBody ? default : SemicolonToken);
 
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
@@ -305,7 +322,7 @@ internal static class PropertyGenerator
 
     private static BlockSyntax GenerateBlock(IMethodSymbol accessor)
     {
-        return SyntaxFactory.Block(
+        return Block(
             StatementGenerator.GenerateStatements(CodeGenerationMethodInfo.GetStatements(accessor)));
     }
 
@@ -325,21 +342,19 @@ internal static class PropertyGenerator
         IMethodSymbol accessor,
         CSharpCodeGenerationContextInfo info)
     {
-        var modifiers = ArrayBuilder<SyntaxToken>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var modifiers);
 
         if (accessor.DeclaredAccessibility != Accessibility.NotApplicable &&
             accessor.DeclaredAccessibility != property.DeclaredAccessibility)
         {
-            CSharpCodeGenerationHelpers.AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, info, property.DeclaredAccessibility);
+            AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, info, property.DeclaredAccessibility);
         }
 
         var hasNonReadOnlyAccessor = property.GetMethod?.IsReadOnly == false || property.SetMethod?.IsReadOnly == false;
         if (hasNonReadOnlyAccessor && accessor.IsReadOnly)
-        {
-            modifiers.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
-        }
+            modifiers.Add(ReadOnlyKeyword);
 
-        return modifiers.ToSyntaxTokenListAndFree();
+        return [.. modifiers];
     }
 
     private static SyntaxTokenList GenerateModifiers(
@@ -351,7 +366,7 @@ internal static class PropertyGenerator
         if (property.ExplicitInterfaceImplementations.Any())
         {
             if (property.IsStatic)
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                tokens.Add(StaticKeyword);
         }
         else
         {
@@ -360,18 +375,18 @@ internal static class PropertyGenerator
             {
                 if (property.IsStatic)
                 {
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(StaticKeyword);
 
                     if (property.IsAbstract)
-                        tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                        tokens.Add(AbstractKeyword);
                 }
             }
             else if (destination is not CodeGenerationDestination.CompilationUnit)
             {
-                CSharpCodeGenerationHelpers.AddAccessibilityModifiers(property.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                AddAccessibilityModifiers(property.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (property.IsStatic)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(StaticKeyword);
 
                 // note: explicit interface impls are allowed to be 'readonly' but it never actually affects callers
                 // because of the boxing requirement in order to call the method.
@@ -380,28 +395,28 @@ internal static class PropertyGenerator
 
                 // Don't show the readonly modifier if the containing type is already readonly
                 if (hasAllReadOnlyAccessors && !property.ContainingType.IsReadOnly)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+                    tokens.Add(ReadOnlyKeyword);
 
                 if (property.IsSealed)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
+                    tokens.Add(SealedKeyword);
 
                 if (property.IsOverride)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.OverrideKeyword));
+                    tokens.Add(OverrideKeyword);
 
                 if (property.IsVirtual)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.VirtualKeyword));
+                    tokens.Add(VirtualKeyword);
 
                 if (property.IsAbstract)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                    tokens.Add(AbstractKeyword);
 
                 if (property.IsRequired)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.RequiredKeyword));
+                    tokens.Add(RequiredKeyword);
             }
         }
 
         if (CodeGenerationPropertyInfo.GetIsUnsafe(property))
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+            tokens.Add(UnsafeKeyword);
 
-        return tokens.ToSyntaxTokenList();
+        return [.. tokens];
     }
 }

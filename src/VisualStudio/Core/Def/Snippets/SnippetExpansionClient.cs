@@ -47,7 +47,7 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 
-internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsExpansionClient
+internal class SnippetExpansionClient : IVsExpansionClient
 {
     /// <summary>
     /// The name of a snippet field created for caret placement in Full Method Call snippet sessions when the
@@ -60,6 +60,7 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
     /// </summary>
     private static readonly string s_fullMethodCallDescriptionSentinel = Guid.NewGuid().ToString("N");
 
+    private readonly IThreadingContext _threadingContext;
     private readonly ISnippetExpansionLanguageHelper _languageHelper;
     private readonly SignatureHelpControllerProvider _signatureHelpControllerProvider;
     private readonly IEditorCommandHandlerServiceFactory _editorCommandHandlerServiceFactory;
@@ -97,8 +98,8 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
         IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
         ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
         EditorOptionsService editorOptionsService)
-        : base(threadingContext)
     {
+        _threadingContext = threadingContext;
         _languageHelper = languageHelper;
         TextView = textView;
         SubjectBuffer = subjectBuffer;
@@ -117,14 +118,12 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
 
     public ImmutableArray<ArgumentProvider> GetArgumentProviders(Workspace workspace)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         // TODO: Move this to ArgumentProviderService: https://github.com/dotnet/roslyn/issues/50897
         if (_argumentProviders.IsDefault)
         {
-            _argumentProviders = workspace.Services.SolutionServices
-                .SelectMatchingExtensionValues(ExtensionOrderer.Order(_allArgumentProviders), SubjectBuffer.ContentType)
-                .ToImmutableArray();
+            _argumentProviders = [.. workspace.Services.SolutionServices.SelectMatchingExtensionValues(ExtensionOrderer.Order(_allArgumentProviders), SubjectBuffer.ContentType)];
         }
 
         return _argumentProviders;
@@ -141,13 +140,13 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
         switch (snippetFunctionName)
         {
             case "SimpleTypeName":
-                pFunc = new SnippetFunctionSimpleTypeName(this, SubjectBuffer, bstrFieldName, param, ThreadingContext);
+                pFunc = new SnippetFunctionSimpleTypeName(this, SubjectBuffer, bstrFieldName, param, _threadingContext);
                 return VSConstants.S_OK;
             case "ClassName":
-                pFunc = new SnippetFunctionClassName(this, SubjectBuffer, bstrFieldName, ThreadingContext);
+                pFunc = new SnippetFunctionClassName(this, SubjectBuffer, bstrFieldName, _threadingContext);
                 return VSConstants.S_OK;
             case "GenerateSwitchCases":
-                pFunc = new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, bstrFieldName, param, ThreadingContext);
+                pFunc = new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, bstrFieldName, param, _threadingContext);
                 return VSConstants.S_OK;
             default:
                 pFunc = null;
@@ -157,7 +156,7 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
 
     public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (ExpansionSession == null)
         {
@@ -229,8 +228,8 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
             // snippet xml will be available, and changing the buffer during OnAfterInsertion can
             // cause the underlying tracking spans to get out of sync.
             var currentStartPosition = snippetTrackingSpan.GetStartPoint(SubjectBuffer.CurrentSnapshot).Position;
-            AddReferencesAndImports(
-                ExpansionSession, currentStartPosition, cancellationToken);
+            _threadingContext.JoinableTaskFactory.Run(() => AddReferencesAndImportsAsync(
+                ExpansionSession, currentStartPosition, cancellationToken));
 
             SetNewEndPosition(endPositionTrackingSpan);
         }
@@ -544,14 +543,14 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
             return false;
         }
 
-        var symbols = ThreadingContext.JoinableTaskFactory.Run(() => GetReferencedSymbolsToLeftOfCaretAsync(document, caretPosition: triggerSpan.End, cancellationToken));
+        var symbols = _threadingContext.JoinableTaskFactory.Run(() => GetReferencedSymbolsToLeftOfCaretAsync(document, caretPosition: triggerSpan.End, cancellationToken));
 
         var methodSymbols = symbols.OfType<IMethodSymbol>().ToImmutableArray();
         if (methodSymbols.Any())
         {
             // This is the method name as it appears in source text
             var methodName = dataBufferSpan.GetText();
-            var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty);
+            var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, [], ImmutableDictionary<string, string>.Empty);
 
             var doc = (DOMDocument)new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
@@ -585,7 +584,7 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
         static void EnsureRegisteredForModelUpdatedEvents(SnippetExpansionClient client, Controller controller)
         {
             // Access to _registeredForSignatureHelpEvents is synchronized on the main thread
-            client.ThreadingContext.ThrowIfNotOnUIThread();
+            client._threadingContext.ThrowIfNotOnUIThread();
 
             if (!client._registeredForSignatureHelpEvents)
             {
@@ -703,9 +702,14 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
 
     private void OnModelUpdated(object sender, ModelUpdatedEventsArgs e)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
+        _threadingContext.JoinableTaskFactory.Run(() => OnModelUpdatedAsync(e.NewModel, CancellationToken.None));
+    }
 
-        if (e.NewModel is null)
+    private async Task OnModelUpdatedAsync(
+        Model? newModel, CancellationToken cancellationToken)
+    {
+        if (newModel is null)
         {
             // Signature Help was dismissed, but it's possible for a user to bring it back with Ctrl+Shift+Space.
             // Leave the snippet session (if any) in its current state to allow it to process either a subsequent
@@ -720,7 +724,7 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
             return;
         }
 
-        if (!e.NewModel.UserSelected && _state._method is not null)
+        if (!newModel.UserSelected && _state._method is not null)
         {
             // This was an implicit signature change which was not triggered by user pressing up/down, and we are
             // already showing an initialized argument completion snippet session, so avoid switching sessions.
@@ -738,13 +742,17 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
         // TODO: The following blocks the UI thread without cancellation, but it only occurs when an argument value
         // completion session is active, which is behind an experimental feature flag.
         // https://github.com/dotnet/roslyn/issues/50634
-        var compilation = ThreadingContext.JoinableTaskFactory.Run(() => document.Project.GetRequiredCompilationAsync(CancellationToken.None));
-        var newSymbolKey = (e.NewModel.SelectedItem as AbstractSignatureHelpProvider.SymbolKeySignatureHelpItem)?.SymbolKey ?? default;
-        var newSymbol = newSymbolKey.Resolve(compilation, cancellationToken: CancellationToken.None).GetAnySymbol();
+        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(true);
+        var newSymbolKey = (newModel.SelectedItem as AbstractSignatureHelpProvider.SymbolKeySignatureHelpItem)?.SymbolKey ?? default;
+        var newSymbol = newSymbolKey.Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol();
         if (newSymbol is not IMethodSymbol method)
             return;
 
-        MoveToSpecificMethod(method, CancellationToken.None);
+        await MoveToSpecificMethodAsync(
+            document, method, cancellationToken).ConfigureAwait(true);
+
+        // Don't let the compilation drop as MoveToSpecificMethodAsync wants to get the semantic model for the document.
+        GC.KeepAlive(compilation);
     }
 
     private static async Task<ImmutableArray<ISymbol>> GetReferencedSymbolsToLeftOfCaretAsync(
@@ -758,7 +766,7 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
         if (token.RawKind == 0)
         {
             // There is no touching word, so return empty immediately
-            return ImmutableArray<ISymbol>.Empty;
+            return [];
         }
 
         var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Services, cancellationToken);
@@ -770,10 +778,12 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
     /// </summary>
     /// <param name="method">The currently-selected method in Signature Help.</param>
     /// <param name="cancellationToken">A cancellation token the operation may observe.</param>
-    public void MoveToSpecificMethod(IMethodSymbol method, CancellationToken cancellationToken)
+    public async Task MoveToSpecificMethodAsync(
+        Document document,
+        IMethodSymbol method,
+        CancellationToken cancellationToken)
     {
-        AssertIsForeground();
-
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         if (ExpansionSession is null)
         {
             return;
@@ -800,14 +810,6 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
         if (_state._method is null && method.Parameters.Length == 0)
         {
             _state._method = method;
-            return;
-        }
-
-        var document = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-        if (document is null)
-        {
-            // Couldn't identify the current document
-            ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
             return;
         }
 
@@ -892,7 +894,7 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
         }
 
         // Now compute the new arguments for the new call
-        var semanticModel = document.GetRequiredSemanticModelAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(true);
         var position = SubjectBuffer.CurrentSnapshot.GetPosition(adjustedTextSpan.iStartLine, adjustedTextSpan.iStartIndex);
 
         foreach (var parameter in method.Parameters)
@@ -902,7 +904,7 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
             foreach (var provider in GetArgumentProviders(document.Project.Solution.Workspace))
             {
                 var context = new ArgumentContext(provider, semanticModel, position, parameter, value, cancellationToken);
-                ThreadingContext.JoinableTaskFactory.Run(() => provider.ProvideArgumentAsync(context));
+                await provider.ProvideArgumentAsync(context).ConfigureAwait(true);
 
                 if (context.DefaultValue is not null)
                 {
@@ -1045,7 +1047,7 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
         }
     }
 
-    private void AddReferencesAndImports(
+    private async Task AddReferencesAndImportsAsync(
         IVsExpansionSession pSession,
         int position,
         CancellationToken cancellationToken)
@@ -1062,10 +1064,12 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
         }
 
         var languageServices = documentWithImports.Project.Services;
-        var addImportOptions = SubjectBuffer.GetAddImportPlacementOptions(EditorOptionsService, languageServices, documentWithImports.AllowImportsInHiddenRegions());
-        var formattingOptions = SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, languageServices, explicitFormat: false);
+        var fallbackOptions = documentWithImports.Project.GetFallbackAnalyzerOptions();
+        var addImportOptions = SubjectBuffer.GetAddImportPlacementOptions(EditorOptionsService, fallbackOptions, languageServices, documentWithImports.AllowImportsInHiddenRegions());
+        var formattingOptions = SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, fallbackOptions, languageServices, explicitFormat: false);
 
-        documentWithImports = _languageHelper.AddImports(documentWithImports, addImportOptions, formattingOptions, position, snippetNode, cancellationToken);
+        documentWithImports = await _languageHelper.AddImportsAsync(
+            documentWithImports, addImportOptions, formattingOptions, position, snippetNode, cancellationToken).ConfigureAwait(true);
         AddReferences(documentWithImports.Project, snippetNode);
     }
 
@@ -1187,7 +1191,7 @@ internal class SnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsEx
     }
 
     internal TestAccessor GetTestAccessor()
-        => new TestAccessor(this);
+        => new(this);
 
     internal readonly struct TestAccessor(SnippetExpansionClient instance)
     {

@@ -7,7 +7,7 @@
     <NuspecPackageId>Microsoft.Net.Compilers.Toolset.Framework</NuspecPackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <PackageDescription>
       .NET Framework Compilers Toolset Package
 
@@ -28,12 +28,13 @@
     <ProjectReference Include="..\..\..\Compilers\CSharp\csc\AnyCpu\csc.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\vbc\AnyCpu\vbc.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\MSBuild\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Compilers\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj" PrivateAssets="All"/>
   </ItemGroup>
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
     <ItemGroup>
+      <!-- IMPORTANT: Package Microsoft.Net.Sdk.Compilers.Toolset built in the SDK relies on the layout (`tasks/net472`). -->
       <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
       <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="build" />

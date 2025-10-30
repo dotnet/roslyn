@@ -8,7 +8,6 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(PreprocessorCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(ExternAliasCompletionProvider))]
 [Shared]
-internal class PreprocessorCompletionProvider : AbstractPreprocessorCompletionProvider
+internal sealed class PreprocessorCompletionProvider : AbstractPreprocessorCompletionProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

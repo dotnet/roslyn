@@ -5,13 +5,14 @@
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
-Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
@@ -46,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
             Return False
         End Function
 
-        Protected Overrides Sub ModifySelectedNode(args As AutomaticLineEnderCommandArgs, document As ParsedDocument, selectedNode As SyntaxNode, addBrace As Boolean, caretPosition As Integer, cancellationToken As CancellationToken)
+        Protected Overrides Sub ModifySelectedNode(args As AutomaticLineEnderCommandArgs, document As ParsedDocument, selectedNode As SyntaxNode, addBrace As Boolean, caretPosition As Integer, fallbackOptions As StructuredAnalyzerConfigOptions, cancellationToken As CancellationToken)
         End Sub
 
         Protected Overrides Function GetValidNodeToModifyBraces(document As ParsedDocument, caretPosition As Integer, cancellationToken As CancellationToken) As (SyntaxNode, Boolean)?

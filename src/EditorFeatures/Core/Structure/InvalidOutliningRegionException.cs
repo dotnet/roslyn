@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 
-internal class InvalidOutliningRegionException(BlockStructureService service, ITextSnapshot snapshot, Span snapshotSpan, Span regionSpan) : Exception(GetExceptionMessage(service, snapshotSpan, regionSpan))
+internal sealed class InvalidOutliningRegionException(BlockStructureService service, ITextSnapshot snapshot, Span snapshotSpan, Span regionSpan) : Exception(GetExceptionMessage(service, snapshotSpan, regionSpan))
 {
 #pragma warning disable IDE0052 // Remove unread private members
     private readonly BlockStructureService _service = service;

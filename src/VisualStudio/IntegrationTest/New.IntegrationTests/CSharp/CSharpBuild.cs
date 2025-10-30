@@ -14,63 +14,64 @@ using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
-{
-    [Trait(Traits.Feature, Traits.Features.Build)]
-    public class CSharpBuild : AbstractIntegrationTest
-    {
-        public override async Task InitializeAsync()
-        {
-            await base.InitializeAsync().ConfigureAwait(true);
-            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CSharpBuild), HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp, HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
-        }
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
-        [IdeFact]
-        public async Task BuildProject()
-        {
-            var editorText = @"using System;
-
-class Program
+[Trait(Traits.Feature, Traits.Features.Build)]
+public class CSharpBuild : AbstractIntegrationTest
 {
-    static void Main(string[] args)
+    public override async Task InitializeAsync()
     {
-        Console.WriteLine(""Hello, World!"");
+        await base.InitializeAsync().ConfigureAwait(true);
+        await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CSharpBuild), HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddProjectAsync("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
     }
-}";
 
-            await TestServices.Editor.SetTextAsync(editorText, HangMitigatingCancellationToken);
+    [IdeFact]
+    public async Task BuildProject()
+    {
+        await TestServices.Editor.SetTextAsync("""
+            using System;
 
-            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
-            Assert.Equal("========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Console.WriteLine("Hello, World!");
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
-            await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
+        var succeed = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
+        Assert.True(succeed);
 
-            var errors = await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken);
-            AssertEx.EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
-        }
+        await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
-        [IdeFact]
-        public async Task BuildWithCommandLine()
-        {
-            await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
+        var errors = await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
+    }
 
-            var pathToDevenv = Process.GetCurrentProcess().MainModule.FileName;
-            Assert.Equal("devenv.exe", Path.GetFileName(pathToDevenv));
-            var (_, pathToSolution, _) = await TestServices.SolutionExplorer.GetSolutionInfoAsync(HangMitigatingCancellationToken);
-            var logFileName = pathToSolution + ".log";
+    [IdeFact]
+    public async Task BuildWithCommandLine()
+    {
+        await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
 
-            File.Delete(logFileName);
+        var pathToDevenv = Process.GetCurrentProcess().MainModule.FileName;
+        Assert.Equal("devenv.exe", Path.GetFileName(pathToDevenv));
+        var (_, pathToSolution, _) = await TestServices.SolutionExplorer.GetSolutionInfoAsync(HangMitigatingCancellationToken);
+        var logFileName = pathToSolution + ".log";
 
-            var commandLine = $"\"{pathToSolution}\" /Rebuild Debug /Out \"{logFileName}\" /rootsuffix RoslynDev /log";
+        File.Delete(logFileName);
 
-            var process = Process.Start(pathToDevenv, commandLine);
-            Assert.Equal(0, await process.WaitForExitAsync(HangMitigatingCancellationToken));
+        var commandLine = $"""
+            "{pathToSolution}" /Rebuild Debug /Out "{logFileName}" /rootsuffix RoslynDev /log
+            """;
 
-            Assert.Contains("Rebuild All: 1 succeeded, 0 failed, 0 skipped", File.ReadAllText(logFileName));
+        var process = Process.Start(pathToDevenv, commandLine);
+        var exitCode = await process.WaitForExitAsync(HangMitigatingCancellationToken);
 
-            Assert.Equal(0, process.ExitCode);
-        }
+        Assert.Contains("Rebuild All: 1 succeeded, 0 failed, 0 skipped", File.ReadAllText(logFileName));
+        Assert.Equal(0, exitCode);
+        Assert.Equal(0, process.ExitCode);
     }
 }

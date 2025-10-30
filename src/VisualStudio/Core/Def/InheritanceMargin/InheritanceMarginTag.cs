@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -16,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin;
 
-internal class InheritanceMarginTag : IGlyphTag, IEquatable<InheritanceMarginTag>
+internal sealed class InheritanceMarginTag : IGlyphTag, IEquatable<InheritanceMarginTag>
 {
     /// <summary>
     /// Margin moniker.

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class FindReferencesSearchEngine
+internal sealed partial class FindReferencesSearchEngine
 {
     /// <summary>
     /// A symbol set used when the find refs caller does not want cascading.  This is a trivial impl that basically
@@ -16,7 +16,7 @@ internal partial class FindReferencesSearchEngine
     /// </summary>
     private sealed class NonCascadingSymbolSet(FindReferencesSearchEngine engine, MetadataUnifyingSymbolHashSet searchSymbols) : SymbolSet(engine)
     {
-        private readonly ImmutableArray<ISymbol> _symbols = searchSymbols.ToImmutableArray();
+        private readonly ImmutableArray<ISymbol> _symbols = [.. searchSymbols];
 
         public override ImmutableArray<ISymbol> GetAllSymbols()
             => _symbols;

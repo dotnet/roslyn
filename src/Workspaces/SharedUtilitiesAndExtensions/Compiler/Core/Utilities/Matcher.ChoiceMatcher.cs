@@ -6,9 +6,9 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-internal partial class Matcher<T>
+internal abstract partial class Matcher<T>
 {
-    private class ChoiceMatcher(params Matcher<T>[] matchers) : Matcher<T>
+    private sealed class ChoiceMatcher(params Matcher<T>[] matchers) : Matcher<T>
     {
         private readonly IEnumerable<Matcher<T>> _matchers = matchers;
 

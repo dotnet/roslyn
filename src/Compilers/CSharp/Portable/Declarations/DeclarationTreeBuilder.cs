@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeclarationKind.ImplicitClass or
                 DeclarationKind.Record or
                 DeclarationKind.RecordStruct => true,
+                DeclarationKind.Extension => true,
 
                 _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind)
             };
@@ -680,6 +681,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitTypeDeclaration(node, declarationKind);
         }
 
+        public override SingleNamespaceOrTypeDeclaration VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node)
+        {
+            return VisitTypeDeclaration(node, DeclarationKind.Extension);
+        }
+
         private SingleTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
             var declFlags = node.AttributeLists.Any()
@@ -766,14 +772,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            bool isExtension = kind == DeclarationKind.Extension;
             return new SingleTypeDeclaration(
                 kind: kind,
-                name: node.Identifier.ValueText,
+                name: isExtension ? "" : node.Identifier.ValueText,
                 arity: node.Arity,
                 modifiers: modifiers,
                 declFlags: declFlags,
                 syntaxReference: _syntaxTree.GetReference(node),
-                nameLocation: new SourceLocation(node.Identifier),
+                nameLocation: new SourceLocation(isExtension ? node.Keyword : node.Identifier),
                 memberNames: memberNames,
                 children: VisitTypeChildren(node),
                 diagnostics: diagnostics.ToReadOnlyAndFree(),
@@ -917,6 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasPrimaryCtor = false)
         {
             bool anyMethodHadExtensionSyntax = false;
+            bool anyExtensionDeclarationSyntax = false;
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
             bool anyRequiredMembers = false;
@@ -936,6 +944,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     anyMethodHadExtensionSyntax = true;
                 }
 
+                if (!anyExtensionDeclarationSyntax && member.Kind == SyntaxKind.ExtensionBlockDeclaration)
+                {
+                    anyExtensionDeclarationSyntax = true;
+                }
+
                 if (!anyMemberHasAttributes && CheckMemberForAttributes(member))
                 {
                     anyMemberHasAttributes = true;
@@ -947,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Break early if we've hit all sorts of members.
-                if (anyNonTypeMembers && anyMethodHadExtensionSyntax && anyMemberHasAttributes && anyRequiredMembers)
+                if (anyNonTypeMembers && anyMethodHadExtensionSyntax && anyExtensionDeclarationSyntax && anyMemberHasAttributes && anyRequiredMembers)
                 {
                     break;
                 }
@@ -956,6 +969,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (anyMethodHadExtensionSyntax)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasExtensionMethodSyntax;
+            }
+
+            if (anyExtensionDeclarationSyntax)
+            {
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyExtensionDeclarationSyntax;
             }
 
             if (anyMemberHasAttributes)
@@ -1089,6 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.ExtensionBlockDeclaration:
                     return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
 
                 case SyntaxKind.DelegateDeclaration:

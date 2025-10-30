@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules;
 
@@ -20,7 +20,7 @@ internal abstract class AbstractFormattingRule
     /// Returns SuppressWrappingIfOnSingleLineOperations under a node either by itself or by
     /// filtering/replacing operations returned by NextOperation
     /// </summary>
-    public virtual void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+    public virtual void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         => nextOperation.Invoke();
 
     /// <summary>

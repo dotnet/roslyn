@@ -52,17 +52,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics);
 
             // Report subsumption errors, but ignore the input's constant value for that.
-            CheckSwitchErrors(ref switchSections, decisionDag, diagnostics);
+            CheckSwitchErrors(ref switchSections, decisionDag, out bool wasReported, diagnostics);
 
             // When the input is constant, we use that to reshape the decision dag that is returned
             // so that flow analysis will see that some of the cases may be unreachable.
             decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(boundSwitchGoverningExpression);
 
+            if (!wasReported && diagnostics.AccumulatesDiagnostics && DecisionDagBuilder.EnableRedundantPatternsCheck(this.Compilation))
+            {
+                DecisionDagBuilder.CheckRedundantPatternsForSwitchStatement(this.Compilation, syntax: node, boundSwitchGoverningExpression, switchSections, diagnostics);
+            }
+
             return new BoundSwitchStatement(
                 syntax: node,
                 expression: boundSwitchGoverningExpression,
                 innerLocals: locals,
-                innerLocalFunctions: functions,
+                innerLocalFunctions: ImmutableArray<MethodSymbol>.CastUp(functions),
                 switchSections: switchSections,
                 defaultLabel: defaultLabel,
                 breakLabel: this.BreakLabel,
@@ -72,8 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckSwitchErrors(
             ref ImmutableArray<BoundSwitchSection> switchSections,
             BoundDecisionDag decisionDag,
+            out bool wasReported,
             BindingDiagnosticBag diagnostics)
         {
+            wasReported = false;
             var reachableLabels = decisionDag.ReachableLabels;
             static bool isSubsumed(BoundSwitchLabel switchLabel, ImmutableHashSet<LabelSymbol> reachableLabels)
             {
@@ -103,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (!p.Pattern.HasErrors && !anyPreviousErrors)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Pattern.Location);
+                                    wasReported = true;
                                 }
                                 break;
                             case CaseSwitchLabelSyntax p:
@@ -110,10 +118,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     // We use the traditional diagnostic when possible
                                     diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, syntax.Location, cp.ConstantValue.GetValueToDisplay());
+                                    wasReported = true;
                                 }
                                 else if (!label.Pattern.HasErrors && !anyPreviousErrors)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Value.Location);
+                                    wasReported = true;
                                 }
                                 break;
                             default:

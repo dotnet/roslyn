@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -759,8 +760,8 @@ internal static partial class SyntaxTreeExtensions
                 position,
                 context: null,
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                canBePartial: false,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
+                canBePartial: true,
                 cancellationToken: cancellationToken) ||
             syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
     }
@@ -1061,7 +1062,8 @@ internal static partial class SyntaxTreeExtensions
         previousModifier = SyntaxKind.None;
 
         if (token.IsKind(SyntaxKind.OpenParenToken) &&
-            token.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
+            token.Parent is ParameterListSyntax parameterList1 &&
+            IsSuitableParameterList(parameterList1, includeOperators))
         {
             parameterIndex = 0;
             return true;
@@ -1074,10 +1076,10 @@ internal static partial class SyntaxTreeExtensions
         }
 
         if (token.IsKind(SyntaxKind.CommaToken) &&
-            token.Parent is ParameterListSyntax parameterList &&
-            parameterList.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
+            token.Parent is ParameterListSyntax parameterList2 &&
+            IsSuitableParameterList(parameterList2, includeOperators))
         {
-            var commaIndex = parameterList.Parameters.GetWithSeparators().IndexOf(token);
+            var commaIndex = parameterList2.Parameters.GetWithSeparators().IndexOf(token);
 
             parameterIndex = commaIndex / 2 + 1;
             return true;
@@ -1094,34 +1096,42 @@ internal static partial class SyntaxTreeExtensions
 
         if (token.IsKind(SyntaxKind.CloseBracketToken) &&
             token.Parent.IsKind(SyntaxKind.AttributeList) &&
-            token.Parent.Parent is ParameterSyntax parameter2 &&
-            parameter2.Parent is ParameterListSyntax parameterList2 &&
-            parameterList2.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
-        {
-            parameterIndex = parameterList2.Parameters.IndexOf(parameter2);
-            return true;
-        }
-
-        ParameterSyntax? parameter3 = null;
-        if (token.Kind() is SyntaxKind.RefKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword or SyntaxKind.OutKeyword or SyntaxKind.ThisKeyword or SyntaxKind.ParamsKeyword or SyntaxKind.ScopedKeyword)
-        {
-            parameter3 = token.Parent as ParameterSyntax;
-            previousModifier = token.Kind();
-        }
-        else if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent is IdentifierNameSyntax scopedIdentifierName)
-        {
-            parameter3 = scopedIdentifierName.Parent as ParameterSyntax;
-            previousModifier = SyntaxKind.ScopedKeyword;
-        }
-
-        if (parameter3 is { Parent: ParameterListSyntax parameterList3 } &&
-            parameterList3.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
+            token.Parent.Parent is ParameterSyntax parameter3 &&
+            parameter3.Parent is ParameterListSyntax parameterList3 &&
+            IsSuitableParameterList(parameterList3, includeOperators))
         {
             parameterIndex = parameterList3.Parameters.IndexOf(parameter3);
             return true;
         }
 
+        ParameterSyntax? parameter4 = null;
+        if (token.Kind() is SyntaxKind.RefKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword or SyntaxKind.OutKeyword or SyntaxKind.ThisKeyword or SyntaxKind.ParamsKeyword or SyntaxKind.ScopedKeyword)
+        {
+            parameter4 = token.Parent as ParameterSyntax;
+            previousModifier = token.Kind();
+        }
+        else if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent is IdentifierNameSyntax scopedIdentifierName)
+        {
+            parameter4 = scopedIdentifierName.Parent as ParameterSyntax;
+            previousModifier = SyntaxKind.ScopedKeyword;
+        }
+
+        if (parameter4 is { Parent: ParameterListSyntax parameterList4 } &&
+            IsSuitableParameterList(parameterList4, includeOperators))
+        {
+            parameterIndex = parameterList4.Parameters.IndexOf(parameter4);
+            return true;
+        }
+
         return false;
+
+        static bool IsSuitableParameterList(ParameterListSyntax parameterList, bool includeOperators)
+            => parameterList.Parent switch
+            {
+                MethodDeclarationSyntax or LocalFunctionStatementSyntax or ConstructorDeclarationSyntax or DelegateDeclarationSyntax or TypeDeclarationSyntax => true,
+                OperatorDeclarationSyntax or ConversionOperatorDeclarationSyntax when includeOperators => true,
+                _ => false,
+            };
     }
 
     public static bool IsParamsModifierContext(
@@ -1185,11 +1195,8 @@ internal static partial class SyntaxTreeExtensions
     public static bool IsParameterTypeContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
     {
         var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
-
         if (syntaxTree.IsParameterModifierContext(position, tokenOnLeftOfPosition, includeOperators: true, out _, out _))
-        {
             return true;
-        }
 
         // int this[ |
         // int this[int i, |
@@ -1862,7 +1869,7 @@ internal static partial class SyntaxTreeExtensions
         }
 
         // scoped v|
-        if (token.IsKind(SyntaxKind.ScopedKeyword) && token.Parent is IncompleteMemberSyntax)
+        if (token.IsKind(SyntaxKind.ScopedKeyword) && token.Parent is IncompleteMemberSyntax or ScopedTypeSyntax)
         {
             return true;
         }
@@ -2824,12 +2831,14 @@ internal static partial class SyntaxTreeExtensions
         // is/as/with are valid after expressions.
         if (token.IsLastTokenOfNode<ExpressionSyntax>(out var expression))
         {
-            // 'is/as/with' not allowed after a anonymous-method/lambda/method-group.
+            // 'is/as/with/switch' not allowed after a anonymous-method/lambda.
             if (expression is AnonymousFunctionExpressionSyntax)
                 return false;
 
+            // is/as/with/switch also not allowed after a naked method group reference (e.g. `this.ToString is`).
+            // They are allowed after a method invocation (e.g. `this.ToString() is`).
             var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol && expression is not InvocationExpressionSyntax)
                 return false;
 
             // However, many names look like expressions.  For example:
@@ -2977,6 +2986,19 @@ internal static partial class SyntaxTreeExtensions
         }
 
         return false;
+    }
+
+    public static bool IsBaseListContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
+    {
+        // Options:
+        //  class E : |
+        //  class E : i|
+        //  class E : i, |
+        //  class E : i, j|
+
+        return
+            targetToken is (kind: SyntaxKind.ColonToken or SyntaxKind.CommaToken) &&
+            targetToken.Parent is BaseListSyntax { Parent: TypeDeclarationSyntax };
     }
 
     public static bool IsEnumBaseListContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)

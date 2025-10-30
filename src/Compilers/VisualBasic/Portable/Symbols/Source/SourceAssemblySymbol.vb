@@ -7,6 +7,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -516,12 +517,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function GetNetModuleAttributesBag() As CustomAttributesBag(Of VisualBasicAttributeData)
             EnsureNetModuleAttributesAreBound()
             Return _lazyNetModuleAttributesBag
-        End Function
-
-        Private Function GetNetModuleAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Dim attributesBag = Me.GetNetModuleAttributesBag()
-            Debug.Assert(attributesBag.IsSealed)
-            Return attributesBag.Attributes
         End Function
 
         Friend Function GetNetModuleDecodedWellKnownAttributeData() As CommonAssemblyWellKnownAttributeData
@@ -1042,8 +1037,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim verString = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 Dim version As Version = Nothing
                 If Not VersionHelper.TryParseAssemblyVersion(verString, allowWildcard:=Not _compilation.IsEmitDeterministic, version:=version) Then
-                    diagnostics.Add(ERRID.ERR_InvalidVersionFormat, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
+                    Dim attributeArgumentSyntaxLocation As Location = GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt)
+                    If _compilation.IsEmitDeterministic AndAlso verString?.Contains("*"c) = True Then
+                        diagnostics.Add(ERRID.ERR_InvalidVersionFormatDeterministic, attributeArgumentSyntaxLocation)
+                    Else
+                        diagnostics.Add(ERRID.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation)
+                    End If
                 End If
+
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyVersionAttributeSetting = version
             ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttribute) Then
                 Dim dummy As Version = Nothing
@@ -1502,7 +1503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return guidString IsNot Nothing
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.Unknown)

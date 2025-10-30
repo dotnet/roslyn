@@ -2,24 +2,44 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../EditorFeaturesResources.resx">
     <body>
-      <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
-        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
-        <target state="translated">Uma sessão de renomeação embutida está ativa para o identificador '{0}'. Invoque a renomeação embutida novamente para acessar opções adicionais. Você pode continuar a editar o identificador que está sendo renomeado a qualquer momento.</target>
-        <note>For screenreaders. {0} is the identifier being renamed.</note>
+      <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
+        <source>An error occurred while generating documentation for this code.</source>
+        <target state="translated">Ocorreu um erro ao gerar a documentação para este código.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">Aplicando mudanças</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">Não é possível navegar para o símbolo sob o cursor.</target>
-        <note />
+      <trans-unit id="Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset">
+        <source>Chat limit reached, [upgrade now] or wait for the limit to reset.</source>
+        <target state="translated">Limite de chat atingido, [upgrade now] ou aguarde até que o limite seja redefinido.</target>
+        <note>The text surrounded by "[" and "]" characters will be hyperlinked. Please ensure the localized text still has "[" and "]" characters.</note>
       </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Computando informações de 'Encapsular Campo'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot">
+        <source>Copilot</source>
+        <target state="translated">Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot_thinking">
+        <source>Copilot thinking...</source>
+        <target state="translated">Copilot pensando...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="translated">Descrever com o Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="translated">'Descrever com o Copilot' está indisponível, pois o documento referido está excluído pela sua organização.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -56,6 +76,11 @@
         <source>Filter</source>
         <target state="translated">Filtrar</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
+      </trans-unit>
+      <trans-unit id="Generate_summary_with_Copilot">
+        <source>Generate summary with Copilot (might be inaccurate)</source>
+        <target state="translated">Gerar resumo com o Copilot (pode ser impreciso)</target>
+        <note />
       </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
@@ -204,7 +229,12 @@
       </trans-unit>
       <trans-unit id="Obsolete_symbol">
         <source>Obsolete symbol</source>
-        <target state="new">Obsolete symbol</target>
+        <target state="translated">Símbolo obsoleto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="On_the_fly_documentation">
+        <source>On-the-fly documentation</source>
+        <target state="translated">Documentação dinâmica</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -299,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Run">
         <source>Run</source>
-        <target state="new">Run</target>
+        <target state="translated">Executar</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_comment">
@@ -602,9 +632,19 @@
         <target state="translated">{0} conflito(s) será(ão) resolvido(s)</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_declarations_and_interceptors">
+        <source>'{0}' declarations and interceptors</source>
+        <target state="translated">'{0}' declarações e interceptores</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
         <target state="translated">'{0}' membros implementados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_intercepted_locations">
+        <source>'{0}' intercepted locations</source>
+        <target state="translated">Locais "{0}" interceptados</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
@@ -750,11 +790,6 @@
       <trans-unit id="Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated">
         <source>Rename operation was not properly completed. Some file might not have been updated.</source>
         <target state="translated">A operação de renomear não foi corretamente concluída. Algum arquivo pode não ter sido atualizado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">Renomear "{0}" para "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">
@@ -942,11 +977,6 @@
         <target state="translated">Localizando a extensão do irmão anterior...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_colon_0">
-        <source>Rename: {0}</source>
-        <target state="translated">Renomear: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">O Mecanismo deve ser anexado a uma Janela Interativa.</target>
@@ -1029,8 +1059,8 @@
       </trans-unit>
       <trans-unit id="Change_Signature">
         <source>Change Signature</source>
-        <target state="translated">Alterar Assinatura</target>
-        <note />
+        <target state="needs-review-translation">Alterar Assinatura</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Preview_Changes_0">
         <source>Preview Changes - {0}</source>
@@ -1062,17 +1092,10 @@
         <target state="translated">Formatação Automática</target>
         <note />
       </trans-unit>
-      <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
-        <source>We can fix the error by not making struct "out/ref" parameter(s).
-Do you want to proceed?</source>
-        <target state="translated">Podemos corrigir o erro ao não fazer struct de parâmetro(s) "out/ref". 
-Deseja continuar?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_Signature_colon">
         <source>Change Signature:</source>
-        <target state="translated">Alterar Assinatura:</target>
-        <note />
+        <target state="needs-review-translation">Alterar Assinatura:</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
@@ -1127,11 +1150,6 @@ Deseja continuar?</target>
       <trans-unit id="Preview_changes1">
         <source>_Preview changes</source>
         <target state="translated">Alterações de _Preview</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply3">
-        <source>Apply</source>
-        <target state="translated">Aplicar</target>
         <note />
       </trans-unit>
       <trans-unit id="Cancel">
@@ -1202,16 +1220,6 @@ Deseja continuar?</target>
       <trans-unit id="Go_To_Implementation">
         <source>Go To Implementation</source>
         <target state="translated">Ir Para Implementação</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_name_colon_0">
-        <source>New name: {0}</source>
-        <target state="translated">Novo nome: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modify_any_highlighted_location_to_begin_renaming">
-        <source>Modify any highlighted location to begin renaming.</source>
-        <target state="translated">Modifique qualquer local realçado para iniciar a renomeação.</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste">

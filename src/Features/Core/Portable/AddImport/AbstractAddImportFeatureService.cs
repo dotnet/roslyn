@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -22,6 +23,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport;
@@ -36,25 +38,26 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     /// </summary>
     private static readonly ConditionalWeakTable<PortableExecutableReference, StrongBox<bool>> s_isInPackagesDirectory = new();
 
+    protected abstract bool IsWithinImport(SyntaxNode node);
     protected abstract bool CanAddImport(SyntaxNode node, bool allowInHiddenRegions, CancellationToken cancellationToken);
-    protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
+    protected abstract bool CanAddImportForMember(string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
     protected abstract bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
     protected abstract bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node);
     protected abstract bool CanAddImportForGetAwaiter(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node);
     protected abstract bool CanAddImportForGetEnumerator(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node);
     protected abstract bool CanAddImportForGetAsyncEnumerator(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node);
     protected abstract bool CanAddImportForQuery(string diagnosticId, SyntaxNode node);
-    protected abstract bool CanAddImportForType(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
+    protected abstract bool CanAddImportForTypeOrNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
 
     protected abstract ISet<INamespaceSymbol> GetImportNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
     protected abstract ITypeSymbol GetDeconstructInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
     protected abstract ITypeSymbol GetQueryClauseInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-    protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
 
     protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, AddImportPlacementOptions options, CancellationToken cancellationToken);
     protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, AddImportPlacementOptions options, CancellationToken cancellationToken);
 
-    protected abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
+    protected abstract bool IsAddMethodContext(
+        SyntaxNode node, SemanticModel semanticModel, [NotNullWhen(true)] out SyntaxNode? objectCreationExpression);
 
     protected abstract string GetDescription(IReadOnlyList<string> nameParts);
     protected abstract (string description, bool hasExistingImport) GetDescription(Document document, AddImportPlacementOptions options, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
@@ -110,50 +113,55 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            var fixData = await reference.TryGetFixDataAsync(document, node, options.CleanupOptions, cancellationToken).ConfigureAwait(false);
+                            var fixData = await reference.TryGetFixDataAsync(
+                                document, node, options.CleanupDocument, options.CleanupOptions, cancellationToken).ConfigureAwait(false);
                             result.AddIfNotNull(fixData);
 
                             if (result.Count > maxResults)
                                 break;
                         }
+
+                        GC.KeepAlive(semanticModel);
                     }
                 }
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async Task<ImmutableArray<Reference>> FindResultsAsync(
-        Document document, SemanticModel semanticModel, string diagnosticId, SyntaxNode node, int maxResults, ISymbolSearchService symbolSearchService,
-        AddImportOptions options, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
+        Document document,
+        SemanticModel semanticModel,
+        string diagnosticId,
+        SyntaxNode node,
+        int maxResults,
+        ISymbolSearchService symbolSearchService,
+        AddImportOptions options,
+        ImmutableArray<PackageSource> packageSources,
+        CancellationToken cancellationToken)
     {
         // Caches so we don't produce the same data multiple times while searching 
         // all over the solution.
         var project = document.Project;
-        var projectToAssembly = new ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>>(concurrencyLevel: 2, capacity: project.Solution.ProjectIds.Count);
+        var projectToAssembly = new ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>>(concurrencyLevel: 2, capacity: project.Solution.ProjectIds.Count);
         var referenceToCompilation = new ConcurrentDictionary<PortableExecutableReference, Compilation>(concurrencyLevel: 2, capacity: project.Solution.Projects.Sum(p => p.MetadataReferences.Count));
 
         var finder = new SymbolReferenceFinder(
-            this, document, semanticModel, diagnosticId, node, symbolSearchService,
-            options, packageSources, cancellationToken);
+            this, document, semanticModel, diagnosticId, node, symbolSearchService, options, packageSources, cancellationToken);
 
         // Look for exact matches first:
-        var exactReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, maxResults, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var exactReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, maxResults, finder, exact: true, cancellationToken).ConfigureAwait(false);
         if (exactReferences.Length > 0)
             return exactReferences;
 
-        // No exact matches found.  Fall back to fuzzy searching.
-        // Only bother doing this for host workspaces.  We don't want this for 
-        // things like the Interactive workspace as this will cause us to 
-        // create expensive bk-trees which we won't even be able to save for 
-        // future use.
+        // No exact matches found.  Fall back to fuzzy searching. Only bother doing this for host workspaces.  We don't
+        // want this for things like the Interactive workspace as this will cause us to create expensive bk-trees which
+        // we won't even be able to save for future use.
         if (!IsHostOrRemoteWorkspace(project))
-        {
             return [];
-        }
 
-        var fuzzyReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, maxResults, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var fuzzyReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, maxResults, finder, exact: false, cancellationToken).ConfigureAwait(false);
         return fuzzyReferences;
     }
 
@@ -161,38 +169,40 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         => project.Solution.WorkspaceKind is WorkspaceKind.Host or WorkspaceKind.RemoteWorkspace;
 
     private async Task<ImmutableArray<Reference>> FindResultsAsync(
-        ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
+        ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
         ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
-        Project project, int maxResults, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+        Project project,
+        int maxResults,
+        SymbolReferenceFinder finder,
+        bool exact,
+        CancellationToken cancellationToken)
     {
         var allReferences = new ConcurrentQueue<Reference>();
 
-        // First search the current project to see if any symbols (source or metadata) match the 
-        // search string.
-        await FindResultsInAllSymbolsInStartingProjectAsync(
-            allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+        // First search the current project to see if any symbols (source or metadata) match the search string.
+        var searchOptions = finder.Options.SearchOptions;
+        if (searchOptions.SearchReferencedProjectSymbols)
+            await FindResultsInAllSymbolsInStartingProjectAsync(allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
 
-        // Only bother doing this for host workspaces.  We don't want this for 
-        // things like the Interactive workspace as we can't even add project
-        // references to the interactive window.  We could consider adding metadata
-        // references with #r in the future.
+        // Only bother doing this for host workspaces.  We don't want this for things like the Interactive workspace as
+        // we can't even add project references to the interactive window.  We could consider adding metadata references
+        // with #r in the future.
         if (IsHostOrRemoteWorkspace(project))
         {
-            // Now search unreferenced projects, and see if they have any source symbols that match
-            // the search string.
-            await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
+            // Now search unreferenced projects, and see if they have any source symbols that match the search string.
+            if (searchOptions.SearchUnreferencedProjectSourceSymbols)
+                await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
 
-            // Finally, check and see if we have any metadata symbols that match the search string.
-            await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
+            // Next, check and see if we have any metadata symbols that match the search string.
+            if (searchOptions.SearchUnreferencedMetadataSymbols)
+                await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
 
-            // We only support searching NuGet in an exact manner currently. 
-            if (exact)
-            {
-                await finder.FindNugetOrReferenceAssemblyReferencesAsync(allReferences, cancellationToken).ConfigureAwait(false);
-            }
+            // Finally, search for nuget or reference assembly symbols that match the search string.
+            if (searchOptions.SearchNuGetPackages || searchOptions.SearchReferenceAssemblies)
+                await finder.FindNugetOrReferenceAssemblyReferencesAsync(allReferences, exact, cancellationToken).ConfigureAwait(false);
         }
 
-        return allReferences.ToImmutableArray();
+        return [.. allReferences];
     }
 
     private static async Task FindResultsInAllSymbolsInStartingProjectAsync(
@@ -204,7 +214,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     }
 
     private static async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
-        ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
+        ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
         Project project, ConcurrentQueue<Reference> allSymbolReferences, int maxResults,
         SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
     {
@@ -215,28 +225,37 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         var viableUnreferencedProjects = GetViableUnreferencedProjects(project);
 
-        // Search all unreferenced projects in parallel.
-        using var _ = ArrayBuilder<Task>.GetInstance(out var findTasks);
-
         // Create another cancellation token so we can both search all projects in parallel,
         // but also stop any searches once we get enough results.
         using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        foreach (var unreferencedProject in viableUnreferencedProjects)
+        try
         {
-            if (!unreferencedProject.SupportsCompilation)
-                continue;
-
-            // Search in this unreferenced project.  But don't search in any of its'
-            // direct references.  i.e. we don't want to search in its metadata references
-            // or in the projects it references itself. We'll be searching those entities
-            // individually.
-            findTasks.Add(ProcessReferencesAsync(
-                allSymbolReferences, maxResults, linkedTokenSource,
-                finder.FindInSourceSymbolsInProjectAsync(projectToAssembly, unreferencedProject, exact, linkedTokenSource.Token)));
+            // Defer to the ProducerConsumer.  We're search the unreferenced projects in parallel. As we get results, we'll
+            // add them to the 'allSymbolReferences' queue.  If we get enough results, we'll cancel all the other work.
+            await ProducerConsumer<ImmutableArray<SymbolReference>>.RunParallelAsync(
+                source: viableUnreferencedProjects,
+                produceItems: static async (project, onItemsFound, args, cancellationToken) =>
+                {
+                    var (projectToAssembly, allSymbolReferences, maxResults, finder, exact, linkedTokenSource) = args;
+                    // Search in this unreferenced project.  But don't search in any of its' direct references.  i.e. we
+                    // don't want to search in its metadata references or in the projects it references itself. We'll be
+                    // searching those entities individually.
+                    var references = await finder.FindInSourceSymbolsInProjectAsync(
+                        projectToAssembly, project, exact, cancellationToken).ConfigureAwait(false);
+                    onItemsFound(references);
+                },
+                consumeItems: static (symbolReferencesEnumerable, args, cancellationToken) =>
+                    ProcessReferencesAsync(args.allSymbolReferences, args.maxResults, symbolReferencesEnumerable, args.linkedTokenSource),
+                args: (projectToAssembly, allSymbolReferences, maxResults, finder, exact, linkedTokenSource),
+                linkedTokenSource.Token).ConfigureAwait(false);
         }
-
-        await Task.WhenAll(findTasks).ConfigureAwait(false);
+        catch (OperationCanceledException ex) when (ex.CancellationToken == linkedTokenSource.Token)
+        {
+            // We'll get cancellation exceptions on our linked token source once we exceed the max results. We don't
+            // want that cancellation to bubble up.  Just because we've found enough results doesn't mean we should
+            // abort the entire operation.
+        }
     }
 
     private async Task FindResultsInUnreferencedMetadataSymbolsAsync(
@@ -246,7 +265,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     {
         // Only do this if none of the project searches produced any results. We may have a 
         // lot of metadata to search through, and it would be good to avoid that if we can.
-        if (allSymbolReferences.Count > 0)
+        if (!allSymbolReferences.IsEmpty)
             return;
 
         // Keep track of the references we've seen (so that we don't process them multiple times
@@ -257,29 +276,43 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         var newReferences = GetUnreferencedMetadataReferences(project, seenReferences);
 
-        // Search all metadata references in parallel.
-        using var _ = ArrayBuilder<Task>.GetInstance(out var findTasks);
-
         // Create another cancellation token so we can both search all projects in parallel,
         // but also stop any searches once we get enough results.
         using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        foreach (var (referenceProject, reference) in newReferences)
+        try
         {
-            var compilation = referenceToCompilation.GetOrAdd(
-                reference, r => CreateCompilation(project, r));
+            // Defer to the ProducerConsumer.  We're search the metadata references in parallel. As we get results, we'll
+            // add them to the 'allSymbolReferences' queue.  If we get enough results, we'll cancel all the other work.
+            await ProducerConsumer<ImmutableArray<SymbolReference>>.RunParallelAsync(
+                source: newReferences,
+                produceItems: static async (tuple, onItemsFound, args, cancellationToken) =>
+                {
+                    var (referenceProject, reference) = tuple;
+                    var (referenceToCompilation, project, allSymbolReferences, maxResults, finder, exact, newReferences, linkedTokenSource) = args;
 
-            // Ignore netmodules.  First, they're incredibly esoteric and barely used.
-            // Second, the SymbolFinder API doesn't even support searching them. 
-            if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
-            {
-                findTasks.Add(ProcessReferencesAsync(
-                    allSymbolReferences, maxResults, linkedTokenSource,
-                    finder.FindInMetadataSymbolsAsync(assembly, referenceProject, reference, exact, linkedTokenSource.Token)));
-            }
+                    var compilation = referenceToCompilation.GetOrAdd(reference, r => CreateCompilation(project, r));
+
+                    // Ignore netmodules.  First, they're incredibly esoteric and barely used.
+                    // Second, the SymbolFinder API doesn't even support searching them. 
+                    if (compilation.GetAssemblyOrModuleSymbol(reference) is not IAssemblySymbol assembly)
+                        return;
+
+                    var references = await finder.FindInMetadataSymbolsAsync(
+                        assembly, referenceProject, reference, exact, cancellationToken).ConfigureAwait(false);
+                    onItemsFound(references);
+                },
+                consumeItems: static (symbolReferencesEnumerable, args, cancellationToken) =>
+                    ProcessReferencesAsync(args.allSymbolReferences, args.maxResults, symbolReferencesEnumerable, args.linkedTokenSource),
+                args: (referenceToCompilation, project, allSymbolReferences, maxResults, finder, exact, newReferences, linkedTokenSource),
+                linkedTokenSource.Token).ConfigureAwait(false);
         }
-
-        await Task.WhenAll(findTasks).ConfigureAwait(false);
+        catch (OperationCanceledException ex) when (ex.CancellationToken == linkedTokenSource.Token)
+        {
+            // We'll get cancellation exceptions on our linked token source once we exceed the max results. We don't
+            // want that cancellation to bubble up.  Just because we've found enough results doesn't mean we should
+            // abort the entire operation.
+        }
     }
 
     /// <summary>
@@ -290,7 +323,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     private static ImmutableArray<(Project, PortableExecutableReference)> GetUnreferencedMetadataReferences(
         Project project, HashSet<PortableExecutableReference> seenReferences)
     {
-        var result = ArrayBuilder<(Project, PortableExecutableReference)>.GetInstance();
+        using var _ = ArrayBuilder<(Project, PortableExecutableReference)>.GetInstance(out var result);
 
         var solution = project.Solution;
         foreach (var p in solution.Projects)
@@ -311,27 +344,31 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
         }
 
-        return result.ToImmutableAndFree();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task ProcessReferencesAsync(
         ConcurrentQueue<Reference> allSymbolReferences,
         int maxResults,
-        CancellationTokenSource linkedTokenSource,
-        Task<ImmutableArray<SymbolReference>> task)
+        IAsyncEnumerable<ImmutableArray<SymbolReference>> reader,
+        CancellationTokenSource linkedTokenSource)
     {
-        AddRange(allSymbolReferences, await task.ConfigureAwait(false));
-
-        // If we've gone over the max amount of items we're looking for, attempt to cancel all existing work that is
-        // still searching.
-        if (allSymbolReferences.Count >= maxResults)
+        await foreach (var symbolReferences in reader.ConfigureAwait(false))
         {
-            try
+            linkedTokenSource.Token.ThrowIfCancellationRequested();
+            AddRange(allSymbolReferences, symbolReferences);
+
+            // If we've gone over the max amount of items we're looking for, attempt to cancel all existing work that is
+            // still searching.
+            if (allSymbolReferences.Count >= maxResults)
             {
-                linkedTokenSource.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
+                try
+                {
+                    linkedTokenSource.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                }
             }
         }
     }
@@ -419,7 +456,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     private static HashSet<Project> GetViableUnreferencedProjects(Project project)
     {
         var solution = project.Solution;
-        var viableProjects = new HashSet<Project>(solution.Projects);
+        var viableProjects = new HashSet<Project>(solution.Projects.Where(p => p.SupportsCompilation));
 
         // Clearly we can't reference ourselves.
         viableProjects.Remove(project);
@@ -442,31 +479,6 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             allSymbolReferences.Enqueue(reference);
     }
 
-    protected static bool IsViableExtensionMethod(IMethodSymbol method, ITypeSymbol receiver)
-    {
-        if (receiver == null || method == null)
-        {
-            return false;
-        }
-
-        // It's possible that the 'method' we're looking at is from a different language than
-        // the language we're currently in.  For example, we might find the extension method
-        // in an unreferenced VB project while we're in C#.  However, in order to 'reduce'
-        // the extension method, the compiler requires both the method and receiver to be 
-        // from the same language.
-        //
-        // So, if they're not from the same language, we simply can't proceed.  Now in this 
-        // case we decide that the method is not viable.  But we could, in the future, decide
-        // to just always consider such methods viable.
-
-        if (receiver.Language != method.Language)
-        {
-            return false;
-        }
-
-        return method.ReduceExtensionMethod(receiver) != null;
-    }
-
     private static bool NotGlobalNamespace(SymbolReference reference)
     {
         var symbol = reference.SymbolResult.Symbol;
@@ -484,7 +496,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         // We might have multiple different diagnostics covering the same span.  Have to
         // process them all as we might produce different fixes for each diagnostic.
 
-        using var _ = ArrayBuilder<(Diagnostic, ImmutableArray<AddImportFixData>)>.GetInstance(out var result);
+        var result = new FixedSizeArrayBuilder<(Diagnostic, ImmutableArray<AddImportFixData>)>(diagnostics.Length);
 
         foreach (var diagnostic in diagnostics)
         {
@@ -496,7 +508,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             result.Add((diagnostic, fixes));
         }
 
-        return result.ToImmutable();
+        return result.MoveToImmutable();
     }
 
     public async Task<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
@@ -536,8 +548,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         // Get the diagnostics that indicate a missing import.
         var diagnostics = semanticModel.GetDiagnostics(span, cancellationToken)
-           .Where(diagnostic => diagnosticIds.Contains(diagnostic.Id))
-           .ToImmutableArray();
+           .WhereAsArray(diagnostic => diagnosticIds.Contains(diagnostic.Id));
 
         var getFixesForDiagnosticsTasks = diagnostics
             .GroupBy(diagnostic => diagnostic.Location.SourceSpan)
@@ -562,7 +573,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
         }
 
-        return fixes.ToImmutable();
+        return fixes.ToImmutableAndClear();
     }
 
     public ImmutableArray<CodeAction> GetCodeActionsForFixes(
@@ -578,7 +589,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 break;
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static CodeAction? TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService? installerService)

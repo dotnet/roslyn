@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis
         /// Type is a function pointer.
         /// </summary>
         FunctionPointer = 13,
+
+        /// <summary>
+        /// Type is an extension container.
+        /// </summary>
+        Extension = 14,
     }
 
     internal static class TypeKindInternal

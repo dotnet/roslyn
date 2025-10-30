@@ -4,20 +4,13 @@
 
 using Microsoft.CodeAnalysis.ExtractMethod;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
-{
-    public partial class AutomationObject
-    {
-        public int ExtractMethod_AllowBestEffort
-        {
-            get { return GetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort); }
-            set { SetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort, value); }
-        }
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
 
-        public int ExtractMethod_DoNotPutOutOrRefOnStruct
-        {
-            get { return GetBooleanOption(ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct); }
-            set { SetBooleanOption(ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct, value); }
-        }
+public partial class AutomationObject
+{
+    public int ExtractMethod_AllowBestEffort
+    {
+        get { return GetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort); }
+        set { SetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort, value); }
     }
 }

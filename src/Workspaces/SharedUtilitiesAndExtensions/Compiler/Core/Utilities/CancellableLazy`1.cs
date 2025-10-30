@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace Roslyn.Utilities;
 
-internal class CancellableLazy<T>
+internal sealed class CancellableLazy<T>
 {
     private NonReentrantLock? _gate;
     private Func<CancellationToken, T>? _valueFactory;

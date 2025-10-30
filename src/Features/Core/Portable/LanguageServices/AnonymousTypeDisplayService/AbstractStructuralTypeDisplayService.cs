@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -32,17 +33,14 @@ internal abstract partial class AbstractStructuralTypeDisplayService : IStructur
         SemanticModel semanticModel,
         int position)
     {
-        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
-
         var invokeMethod = anonymousType.DelegateInvokeMethod ?? throw ExceptionUtilities.Unreachable();
 
-        parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, symbol: null,
-            SyntaxFactsService.GetText(SyntaxFactsService.SyntaxKinds.DelegateKeyword)));
-        parts.AddRange(Space());
-        parts.AddRange(MassageDelegateParts(invokeMethod, invokeMethod.ToMinimalDisplayParts(
-            semanticModel, position, s_delegateDisplay)));
-
-        return parts.ToImmutable();
+        return
+        [
+            new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, symbol: null, SyntaxFactsService.GetText(SyntaxFactsService.SyntaxKinds.DelegateKeyword)),
+            .. Space(),
+            .. MassageDelegateParts(invokeMethod, invokeMethod.ToMinimalDisplayParts(semanticModel, position, s_delegateDisplay))
+        ];
     }
 
     private static ImmutableArray<SymbolDisplayPart> MassageDelegateParts(
@@ -58,7 +56,7 @@ internal abstract partial class AbstractStructuralTypeDisplayService : IStructur
                 result.Add(part);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     public StructuralTypeDisplayInfo GetTypeDisplayInfo(
@@ -151,7 +149,7 @@ internal abstract partial class AbstractStructuralTypeDisplayService : IStructur
     {
         if (symbol is IMethodSymbol method)
         {
-            return structuralTypes.OrderBy(
+            return [.. structuralTypes.OrderBy(
                 (n1, n2) =>
                 {
                     var index1 = method.TypeArguments.IndexOf(n1);
@@ -160,11 +158,11 @@ internal abstract partial class AbstractStructuralTypeDisplayService : IStructur
                     index2 = index2 < 0 ? int.MaxValue : index2;
 
                     return index1 - index2;
-                }).ToImmutableArray();
+                })];
         }
         else if (symbol is IPropertySymbol property)
         {
-            return structuralTypes.OrderBy(
+            return [.. structuralTypes.OrderBy(
                 (n1, n2) =>
                 {
                     if (n1.Equals(property.ContainingType) && !n2.Equals(property.ContainingType))
@@ -179,7 +177,7 @@ internal abstract partial class AbstractStructuralTypeDisplayService : IStructur
                     {
                         return 0;
                     }
-                }).ToImmutableArray();
+                })];
         }
 
         return structuralTypes;
@@ -208,7 +206,7 @@ internal abstract partial class AbstractStructuralTypeDisplayService : IStructur
             result.Add(namedType);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     protected static IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)

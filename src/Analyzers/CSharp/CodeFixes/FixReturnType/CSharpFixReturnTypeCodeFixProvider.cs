@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,19 +23,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType;
 /// Helps fix void-returning methods or local functions to return a correct type.
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FixReturnType), Shared]
-internal class CSharpFixReturnTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpFixReturnTypeCodeFixProvider()
+    : SyntaxEditorBasedCodeFixProvider(supportsFixAll: false)
 {
     // error CS0127: Since 'M()' returns void, a return keyword must not be followed by an object expression
     // error CS1997: Since 'M()' is an async method that returns 'Task', a return keyword must not be followed by an object expression
     // error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     public override ImmutableArray<string> FixableDiagnosticIds => ["CS0127", "CS1997", "CS0201"];
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpFixReturnTypeCodeFixProvider()
-        : base(supportsFixAll: false)
-    {
-    }
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -77,6 +72,7 @@ internal class CSharpFixReturnTypeCodeFixProvider : SyntaxEditorBasedCodeFixProv
         if (declarationTypeToFix is null)
             return default;
 
+        var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var returnedType = semanticModel.GetTypeInfo(returnedValue, cancellationToken).Type;
 
@@ -90,7 +86,8 @@ internal class CSharpFixReturnTypeCodeFixProvider : SyntaxEditorBasedCodeFixProv
 
         returnedType ??= semanticModel.Compilation.ObjectType;
 
-        TypeSyntax fixedDeclaration;
+        var fixedDeclaration = returnedType.GenerateTypeSyntax(allowVar: false);
+
         if (isAsync)
         {
             var previousReturnType = semanticModel.GetTypeInfo(declarationTypeToFix, cancellationToken).Type;
@@ -117,11 +114,8 @@ internal class CSharpFixReturnTypeCodeFixProvider : SyntaxEditorBasedCodeFixProv
             if (taskType is null)
                 return default;
 
-            fixedDeclaration = taskType.Construct(returnedType).GenerateTypeSyntax(allowVar: false);
-        }
-        else
-        {
-            fixedDeclaration = returnedType.GenerateTypeSyntax(allowVar: false);
+            var taskTypeSyntax = taskType.GenerateTypeSyntax(allowVar: false);
+            fixedDeclaration = (TypeSyntax)syntaxGenerator.WithTypeArguments(taskTypeSyntax, fixedDeclaration);
         }
 
         fixedDeclaration = fixedDeclaration.WithAdditionalAnnotations(Simplifier.Annotation).WithTriviaFrom(declarationTypeToFix);
@@ -129,7 +123,7 @@ internal class CSharpFixReturnTypeCodeFixProvider : SyntaxEditorBasedCodeFixProv
         return (declarationTypeToFix, fixedDeclaration);
     }
 
-    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var (declarationTypeToFix, fixedDeclaration) =
             await TryGetOldAndNewReturnTypeAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);

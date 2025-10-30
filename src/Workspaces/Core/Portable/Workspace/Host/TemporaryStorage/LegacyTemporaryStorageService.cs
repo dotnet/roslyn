@@ -7,10 +7,8 @@ using System.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -71,7 +69,7 @@ internal sealed class LegacyTemporaryStorageService : ITemporaryStorageService
         public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
         {
             var newStream = new MemoryStream();
-#if NETCOREAPP
+#if NET
             await stream.CopyToAsync(newStream, cancellationToken).ConfigureAwait(false);
 # else
             await stream.CopyToAsync(newStream).ConfigureAwait(false);

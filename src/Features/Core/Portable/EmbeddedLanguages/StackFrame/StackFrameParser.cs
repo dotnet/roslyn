@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 
 using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
 using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
-using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
 
 /// <summary>
 /// Attempts to parse a stack frame line from given input. StackFrame is generally

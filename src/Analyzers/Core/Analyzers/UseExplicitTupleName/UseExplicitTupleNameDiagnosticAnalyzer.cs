@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis.UseExplicitTupleName;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-internal class UseExplicitTupleNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class UseExplicitTupleNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public const string ElementName = nameof(ElementName);
 
@@ -80,14 +80,11 @@ internal class UseExplicitTupleNameDiagnosticAnalyzer : AbstractBuiltInCodeStyle
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (member.Kind == SymbolKind.Field)
+            if (member is IFieldSymbol fieldSymbol &&
+                unnamedField.Equals(fieldSymbol.CorrespondingTupleField) &&
+                !fieldSymbol.Name.Equals(unnamedField.Name))
             {
-                var fieldSymbol = (IFieldSymbol)member;
-                if (unnamedField.Equals(fieldSymbol.CorrespondingTupleField) &&
-                    !fieldSymbol.Name.Equals(unnamedField.Name))
-                {
-                    return fieldSymbol;
-                }
+                return fieldSymbol;
             }
         }
 

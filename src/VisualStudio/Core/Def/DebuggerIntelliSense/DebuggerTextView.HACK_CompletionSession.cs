@@ -5,12 +5,9 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -18,7 +15,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
 
-internal partial class DebuggerTextView
+internal sealed partial class DebuggerTextView
 {
     // HACK HACK HACK HACK HACK: We'll use this fake ICompletionSession to trick them into
     // routing commands to us for both completion and sighelp
@@ -80,7 +77,7 @@ internal partial class DebuggerTextView
     /// 
     /// See CEditCtlStatementCompletion::HandleKeyDown for more information
     /// </remarks>
-    internal class HACK_CompletionSession : ICompletionSession
+    internal sealed class HACK_CompletionSession : ICompletionSession
     {
         public int Count = 0;
 

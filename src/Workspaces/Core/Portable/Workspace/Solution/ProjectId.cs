@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis;
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
 [DataContract]
-public sealed class ProjectId : IEquatable<ProjectId>
+public sealed class ProjectId : IEquatable<ProjectId>, IComparable<ProjectId>
 {
     /// <summary>
     /// Checksum of this ProjectId, built only from <see cref="Id"/>.
@@ -37,16 +37,16 @@ public sealed class ProjectId : IEquatable<ProjectId>
 
     /// <summary>
     /// An optional name to show <em>only</em> for debugger-display purposes.  This must not be used for any other
-    /// purpose.  Importantly, it must not be part of the equality/hashing contract of this type (including <see
-    /// cref="_lazyChecksum"/>).
+    /// purpose.  Importantly, it must not be part of the equality/hashing/comparable contract of this type (including
+    /// <see cref="_lazyChecksum"/>).
     /// </summary>
     [DataMember(Order = 1)]
-    private readonly string? _debugName;
+    internal string? DebugName { get; }
 
     private ProjectId(Guid guid, string? debugName)
     {
         this.Id = guid;
-        _debugName = debugName;
+        DebugName = debugName;
     }
 
     /// <summary>
@@ -66,10 +66,8 @@ public sealed class ProjectId : IEquatable<ProjectId>
         return new ProjectId(id, debugName);
     }
 
-    internal string? DebugName => _debugName;
-
     private string GetDebuggerDisplay()
-        => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
+        => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, DebugName);
 
     public override string ToString()
         => GetDebuggerDisplay();
@@ -114,4 +112,15 @@ public sealed class ProjectId : IEquatable<ProjectId>
                 writer.WriteString(nameof(ProjectId));
                 writer.WriteGuid(@this.Id);
             }), this);
+
+    internal int CompareTo(ProjectId other)
+        => this.Id.CompareTo(other.Id);
+
+    int IComparable<ProjectId>.CompareTo(ProjectId? other)
+    {
+        if (other is null)
+            return 1;
+
+        return this.CompareTo(other);
+    }
 }

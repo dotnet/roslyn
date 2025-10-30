@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -398,7 +399,7 @@ public interface A {
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
@@ -581,7 +582,7 @@ namespace N1.N2  {
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(new[] { text, text1, text2 });
+            var comp = CreateCompilationWithMscorlib461(new[] { text, text1, text2 });
             Assert.Equal(0, comp.GetDiagnostics().Count());
             var ns = comp.GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol;
             var ns1 = ns.GetMembers("N2").Single() as NamespaceSymbol;
@@ -752,16 +753,16 @@ namespace N1.N2  {
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib45(text);
+            var comp1 = CreateCompilationWithMscorlib461(text);
             var compRef1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilationWithMscorlib45(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
+            var comp2 = CreateCompilationWithMscorlib461(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
             //Compilation.Create(outputName: "Test2", options: CompilationOptions.Default,
             //                    syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text1) },
             //                    references: new MetadataReference[] { compRef1, GetCorlibReference() });
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateCompilationWithMscorlib45(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
+            var comp = CreateCompilationWithMscorlib461(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
             //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
             //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text2) },
             //                        references: new MetadataReference[] { compRef1, compRef2, GetCorlibReference() });
@@ -1748,7 +1749,7 @@ class C : I
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
 
             var globalNamespace = comp.GlobalNamespace;
 
@@ -2110,10 +2111,7 @@ partial class C
     async partial void M() { }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-              // (15,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-              //     async partial void M() { }
-              Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(910100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910100")]
@@ -2176,7 +2174,7 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,16): error CS1547: Keyword 'void' cannot be used in this context
                 //     static ref void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 16)
@@ -2194,7 +2192,7 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,25): error CS1547: Keyword 'void' cannot be used in this context
                 //     static ref readonly void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 25)
@@ -2214,7 +2212,7 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,13): error CS1547: Keyword 'void' cannot be used in this context
                 //         ref void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 13),
@@ -2245,7 +2243,7 @@ static class C
 ";
 
             var parseOptions = TestOptions.Regular;
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,22): error CS1547: Keyword 'void' cannot be used in this context
                 //         ref readonly void M2() {M1(); throw null;}
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(10, 22)
@@ -2262,13 +2260,10 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,18): error CS1073: Unexpected token 'ref'
                 //     static async ref int M() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
-                // (4,26): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async ref int M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 26),
                 // (4,26): error CS0161: 'C.M()': not all code paths return a value
                 //     static async ref int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 26)
@@ -2286,13 +2281,10 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,18): error CS1073: Unexpected token 'ref'
                 //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
-                // (4,35): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async ref readonly int M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 35),
                 // (4,35): error CS0161: 'C.M()': not all code paths return a value
                 //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)
@@ -2458,12 +2450,12 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,18): error CS0751: A partial method must be declared within a partial type
+                // (4,18): error CS0751: A partial member must be declared within a partial type
                 //     partial void M();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(4, 18),
-                // (5,18): error CS0751: A partial method must be declared within a partial type
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(4, 18),
+                // (5,18): error CS0751: A partial member must be declared within a partial type
                 //     partial void M() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(5, 18)
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(5, 18)
             );
             var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
             Assert.True(m.IsPartialDefinition);
@@ -2550,6 +2542,88 @@ public partial class C
 
             Assert.Null(partialDef.PartialDefinitionPart);
             Assert.Null(partialImpl.PartialImplementationPart);
+        }
+
+        [Fact]
+        public void IsPartialDefinition_Constructed()
+        {
+            var source = @"
+public partial class C
+{
+    public partial void M<T>();
+    public partial void M<T>() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+
+            var type = syntax.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            var methods = syntax.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+
+            var classC = model.GetDeclaredSymbol(type);
+            var partialDef = model.GetDeclaredSymbol(methods[0]);
+            var partialDefConstructed = partialDef.Construct(classC); // M<C>()
+
+            Assert.True(partialDef.IsPartialDefinition);
+            Assert.False(partialDefConstructed.IsPartialDefinition);
+
+            var partialImpl = model.GetDeclaredSymbol(methods[1]);
+            var partialImplConstructed = partialImpl.Construct(classC); // M<C>()
+
+            Assert.False(partialImpl.IsPartialDefinition);
+            Assert.False(partialImplConstructed.IsPartialDefinition);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22598")]
+        public void PartialMethodsLocationsAndSyntaxReferences()
+        {
+            var source1 = """
+                namespace N1
+                {
+                    partial class C1
+                    {
+                        partial void PartialM();
+                    }
+                }
+                """;
+
+            var source2 = """
+                namespace N1
+                {
+                    partial class C1
+                    {
+                        partial void PartialM() { }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([(source1, "source1"), (source2, "source2")]);
+            comp.VerifyDiagnostics();
+
+            var method = (IMethodSymbol)comp.GetSymbolsWithName("PartialM").Single();
+
+            // For partial methods, Locations and DeclaringSyntaxReferences contain only one location
+            Assert.Equal(1, method.Locations.Length);
+            Assert.Equal(1, method.DeclaringSyntaxReferences.Length);
+
+            // The single location is the definition part
+            Assert.True(method.IsPartialDefinition);
+            Assert.Null(method.PartialDefinitionPart);
+            Assert.NotNull(method.PartialImplementationPart);
+
+            // To get all locations, you need to use PartialImplementationPart
+            var implementationPart = method.PartialImplementationPart;
+            Assert.Equal(1, implementationPart.Locations.Length);
+            Assert.Equal(1, implementationPart.DeclaringSyntaxReferences.Length);
+
+            // Verify the locations are different
+            Assert.NotEqual(method.Locations[0], implementationPart.Locations[0]);
+
+            Assert.Equal("source1", method.Locations[0].SourceTree.FilePath);
+            Assert.Equal("source2", implementationPart.Locations[0].SourceTree.FilePath);
         }
     }
 }

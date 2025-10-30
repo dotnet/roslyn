@@ -157,11 +157,15 @@ namespace Roslyn.Test.Utilities
         public static bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
         public static bool IsDesktop => RuntimeUtilities.IsDesktopRuntime;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
+        // IsMonoDesktop means https://github.com/mono/mono
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
-        public static bool IsMono => MonoHelpers.IsRunningOnMono();
+        // IsMonoCore means https://github.com/dotnet/runtime/tree/main/src/mono
+        public static bool IsMonoCore => Type.GetType("Mono.RuntimeStructs") != null;
+        public static bool IsAnyMono => IsMonoCore || IsMonoDesktop;
         public static bool IsCoreClr => !IsDesktop;
         public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
-        public static bool IsMonoOrCoreClr => IsMono || IsCoreClr;
+        public static bool IsMonoOrCoreClr => IsMonoDesktop || IsCoreClr;
+        public static bool IsBitness64 => IntPtr.Size == 8;
         public static bool RuntimeSupportsCovariantReturnsOfClasses => Type.GetType("System.Runtime.CompilerServices.RuntimeFeature")?.GetField("CovariantReturnsOfClasses") != null;
 
         private static readonly Lazy<bool> s_operatingSystemRestrictsFileNames = new Lazy<bool>(() =>
@@ -330,6 +334,18 @@ namespace Roslyn.Test.Utilities
     {
         public override bool ShouldSkip => MonoHelpers.IsRunningOnMono();
         public override string SkipReason => "Test not supported on Mono";
+    }
+
+    public class NotOnMonoCore : ExecutionCondition
+    {
+        public override bool ShouldSkip => MonoHelpers.IsRunningOnMonoCore();
+        public override string SkipReason => "Test not supported on Mono Core";
+    }
+
+    public class NotOnAnyMono : ExecutionCondition
+    {
+        public override bool ShouldSkip => ExecutionConditionUtil.IsAnyMono;
+        public override string SkipReason => "Test not supported on Mono core or Mono Desktop";
     }
 
     public class CoreClrOnly : ExecutionCondition

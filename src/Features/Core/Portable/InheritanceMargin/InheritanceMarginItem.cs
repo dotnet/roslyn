@@ -55,6 +55,9 @@ internal readonly struct InheritanceMarginItem(
     public override bool Equals(object? obj)
         => obj is InheritanceMarginItem item && Equals(item);
 
+    public override string ToString()
+        => string.Join("", DisplayTexts.Select(d => d.Text));
+
     public bool Equals(InheritanceMarginItem other)
         => this.LineNumber == other.LineNumber &&
            this.TopLevelDisplayText == other.TopLevelDisplayText &&
@@ -71,5 +74,5 @@ internal readonly struct InheritanceMarginItem(
         => targetItems.IsEmpty ? null : new(lineNumber, topLevelDisplayText, displayTexts, glyph, Order(targetItems));
 
     public static ImmutableArray<InheritanceTargetItem> Order(ImmutableArray<InheritanceTargetItem> targetItems)
-        => targetItems.OrderBy(t => t.DisplayName).ThenByDescending(t => t.LanguageGlyph).ThenBy(t => t.ProjectName ?? "").ToImmutableArray();
+        => [.. targetItems.OrderBy(t => t.DisplayName).ThenByDescending(t => t.LanguageGlyph).ThenBy(t => t.ProjectName ?? "")];
 }

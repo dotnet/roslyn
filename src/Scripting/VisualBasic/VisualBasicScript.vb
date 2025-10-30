@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.Text
@@ -74,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
                                              Optional options As ScriptOptions = Nothing,
                                              Optional globals As Object = Nothing,
                                              Optional cancellationToken As CancellationToken = Nothing) As Task(Of Object)
-            Return EvaluateAsync(Of Object)(code, Nothing, globals, cancellationToken)
+            Return EvaluateAsync(Of Object)(code, options, globals, cancellationToken)
         End Function
     End Class
 

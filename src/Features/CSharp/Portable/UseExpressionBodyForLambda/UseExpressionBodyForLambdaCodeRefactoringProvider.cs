@@ -10,26 +10,22 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.UseExpressionBodyForLambda;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseExpressionBodyForLambda), Shared]
-internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider() : CodeRefactoringProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public UseExpressionBodyForLambdaCodeRefactoringProvider()
-    {
-    }
-
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var document = context.Document;
@@ -168,14 +164,13 @@ internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRe
     {
         var lambdaNode = await document.TryGetRelevantNodeAsync<LambdaExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
         if (lambdaNode == null)
-        {
             return [];
-        }
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        using var resultDisposer = ArrayBuilder<CodeAction>.GetInstance(out var result);
-        if (UseExpressionBodyForLambdaHelpers.CanOfferUseExpressionBody(option, lambdaNode, root.GetLanguageVersion(), cancellationToken))
+        using var result = TemporaryArray<CodeAction>.Empty;
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        if (UseExpressionBodyForLambdaHelpers.CanOfferUseExpressionBody(semanticModel, option, lambdaNode, root.GetLanguageVersion(), cancellationToken))
         {
             var title = UseExpressionBodyForLambdaHelpers.UseExpressionBodyTitle.ToString();
             result.Add(CodeAction.Create(
@@ -184,7 +179,6 @@ internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRe
                 title));
         }
 
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         if (UseExpressionBodyForLambdaHelpers.CanOfferUseBlockBody(semanticModel, option, lambdaNode, cancellationToken))
         {
             var title = UseExpressionBodyForLambdaHelpers.UseBlockBodyTitle.ToString();
@@ -194,7 +188,7 @@ internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRe
                 title));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task<Document> UpdateDocumentAsync(
@@ -202,9 +196,8 @@ internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRe
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        // We're only replacing a single declaration in the refactoring.  So pass 'declaration'
-        // as both the 'original' and 'current' declaration.
-        var updatedDeclaration = UseExpressionBodyForLambdaCodeActionHelpers.Update(semanticModel, declaration, declaration, cancellationToken);
+        var updatedDeclaration = UseExpressionBodyForLambdaCodeActionHelpers.Update(
+            semanticModel, declaration, cancellationToken);
 
         var newRoot = root.ReplaceNode(declaration, updatedDeclaration);
         return document.WithSyntaxRoot(newRoot);

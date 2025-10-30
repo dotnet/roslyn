@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging;
 /// contribute to the 'previous statement'
 /// </summary>
 [ExportLanguageService(typeof(IProximityExpressionsService), LanguageNames.CSharp), Shared]
-internal partial class CSharpProximityExpressionsService : IProximityExpressionsService
+internal sealed partial class CSharpProximityExpressionsService : IProximityExpressionsService
 {
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -101,10 +101,6 @@ internal partial class CSharpProximityExpressionsService : IProximityExpressions
     }
 
     public static IList<string> GetProximityExpressions(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        => new Worker(syntaxTree, position).Do(cancellationToken);
-
-    [Obsolete($"Use {nameof(GetProximityExpressions)}.")]
-    private static IList<string> Do(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         => new Worker(syntaxTree, position).Do(cancellationToken);
 
     private static void AddRelevantExpressions(

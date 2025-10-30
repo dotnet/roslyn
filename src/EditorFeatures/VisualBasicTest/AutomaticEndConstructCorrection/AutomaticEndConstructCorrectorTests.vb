@@ -3,8 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrection
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -212,8 +210,7 @@ End Class</code>.Value
             VerifyContinuousEdits(code, "Shared", Function(s) "Function", removeOriginalContent:=False, split:="Function")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
         Public Sub TestMultiLineLambdaSubToFunction()
             Dim code = <code>Class A
     Public Sub F()
@@ -228,8 +225,7 @@ End Class</code>.Value
             Verify(code, "Function")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
         Public Sub TestMultiLineLambdaFunctionToSub()
             Dim code = <code>Class A
     Public Sub F()
@@ -243,8 +239,7 @@ End Class</code>.Value
             Verify(code, "Sub")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539365")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539365")>
         Public Sub BugFix5290()
             Dim code = <code>Public Class Class1
     Sub M()
@@ -256,8 +251,7 @@ End [|Class|]</code>.Value
             VerifyEnd(code, "Structure", "Class")
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539357")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539357")>
         Public Sub TestBugFix5276()
             Dim code = <code>Class A
     [|Func$$tion|] Test() As Integer
@@ -267,8 +261,7 @@ End Class</code>.Value
             VerifyContinuousEdits(code, "  ", Function(s) "Function", removeOriginalContent:=False)
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539360")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539360")>
         Public Sub TestBugFix5283()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer

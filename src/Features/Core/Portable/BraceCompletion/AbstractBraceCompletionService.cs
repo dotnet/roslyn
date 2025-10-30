@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -38,18 +38,15 @@ internal abstract class AbstractBraceCompletionService : IBraceCompletionService
 
     public abstract bool AllowOverType(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken);
 
-    public Task<bool> HasBraceCompletionAsync(BraceCompletionContext context, Document document, CancellationToken cancellationToken)
+    public ValueTask<bool> HasBraceCompletionAsync(BraceCompletionContext context, Document document, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (!context.HasCompletionForOpeningBrace(OpeningBrace))
-        {
-            return Task.FromResult(false);
-        }
+            return ValueTask.FromResult(false);
 
         var openingToken = context.GetOpeningToken();
         if (!NeedsSemantics)
-        {
-            return Task.FromResult(IsValidOpenBraceTokenAtPosition(context.Document.Text, openingToken, context.OpeningPoint));
-        }
+            return ValueTask.FromResult(IsValidOpenBraceTokenAtPosition(context.Document.Text, openingToken, context.OpeningPoint));
 
         // Pass along a document with frozen partial semantics.  Brace completion is a highly latency sensitive
         // operation.  We don't want to wait on things like source generators to figure things out.
@@ -88,14 +85,14 @@ internal abstract class AbstractBraceCompletionService : IBraceCompletionService
         return !syntaxFactsService.IsInNonUserCode(document.SyntaxTree, openingPosition, cancellationToken);
     }
 
-    public BraceCompletionContext? GetCompletedBraceContext(ParsedDocument document, int caretLocation)
+    public BraceCompletionContext? GetCompletedBraceContext(ParsedDocument document, StructuredAnalyzerConfigOptions fallbackOptions, int caretLocation)
     {
         var leftToken = document.Root.FindTokenOnLeftOfPosition(caretLocation);
         var rightToken = document.Root.FindTokenOnRightOfPosition(caretLocation);
 
         if (IsValidOpeningBraceToken(leftToken) && IsValidClosingBraceToken(rightToken))
         {
-            return new BraceCompletionContext(document, leftToken.GetLocation().SourceSpan.Start, rightToken.GetLocation().SourceSpan.End, caretLocation);
+            return new BraceCompletionContext(document, fallbackOptions, leftToken.GetLocation().SourceSpan.Start, rightToken.GetLocation().SourceSpan.End, caretLocation);
         }
 
         return null;
@@ -104,7 +101,7 @@ internal abstract class AbstractBraceCompletionService : IBraceCompletionService
     /// <summary>
     /// Only called if <see cref="NeedsSemantics"/> returns true;
     /// </summary>
-    protected virtual Task<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
+    protected virtual ValueTask<bool> IsValidOpenBraceTokenAtPositionAsync(Document document, SyntaxToken token, int position, CancellationToken cancellationToken)
     {
         // Subclass should have overridden this.
         throw ExceptionUtilities.Unreachable();

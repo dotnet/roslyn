@@ -22,9 +22,9 @@ internal interface ISolutionAssetProvider
     /// <param name="pipeWriter">The writer to write the assets into.  Implementations of this method must call<see
     /// cref="PipeWriter.Complete"/> on it (in the event of failure or success).  Failing to do so will lead to hangs on
     /// the code that reads from the corresponding <see cref="PipeReader"/> side of this.</param>
-    /// <param name="assetHint">Optional project and document ids to scope the search for checksums down to.  This can
+    /// <param name="assetPath">Optional project and document ids to scope the search for checksums down to.  This can
     /// save substantially on performance by avoiding having to search the full solution tree to find matching items for
     /// a particular checksum.</param>
     ValueTask WriteAssetsAsync(
-        PipeWriter pipeWriter, Checksum solutionChecksum, AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken);
+        PipeWriter pipeWriter, Checksum solutionChecksum, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken);
 }

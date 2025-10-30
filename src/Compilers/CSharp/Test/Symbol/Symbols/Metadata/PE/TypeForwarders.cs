@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarder.dll,
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarderLib.dll,
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarderBase.dll,
-                                        Net40.mscorlib
+                                        Net40.References.mscorlib
                                     });
 
             TestTypeForwarderHelper(assemblies);
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(new SyntaxTree[0]);
 
-            var corlibAssembly = compilation.GetReferencedAssemblySymbol(Net40.mscorlib);
+            var corlibAssembly = compilation.GetReferencedAssemblySymbol(Net40.References.mscorlib);
             Assert.NotNull(corlibAssembly);
-            var systemCoreAssembly = compilation.GetReferencedAssemblySymbol(Net40.SystemCore);
+            var systemCoreAssembly = compilation.GetReferencedAssemblySymbol(Net40.References.SystemCore);
             Assert.NotNull(systemCoreAssembly);
 
             const string funcTypeMetadataName = "System.Func`1";
@@ -1092,7 +1092,9 @@ class Test
                 !ns.StartsWith("System", StringComparison.Ordinal) &&
                 !ns.StartsWith("Windows", StringComparison.Ordinal) &&
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
-                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CppImplementationDetails>", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CrtImplementationDetails>", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "Ns", "Ns.Ms" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1154,7 +1156,9 @@ namespace N1
                 !ns.StartsWith("System", StringComparison.Ordinal) &&
                 !ns.StartsWith("Windows", StringComparison.Ordinal) &&
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
-                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CppImplementationDetails>", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CrtImplementationDetails>", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1216,7 +1220,9 @@ namespace N1
                 !ns.StartsWith("System", StringComparison.Ordinal) &&
                 !ns.StartsWith("Windows", StringComparison.Ordinal) &&
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
-                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CppImplementationDetails>", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CrtImplementationDetails>", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1345,6 +1351,29 @@ namespace NS
 ";
 
             CheckForwarderEmit(source1, source2, "NS.Forwarded", "NS.Forwarded+Inner");
+        }
+
+        [ClrOnlyFact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79894")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78963")]
+        public void Extensions_01()
+        {
+            var source1 = @"
+public static class Extensions
+{
+    extension(int)
+    {
+    }
+}";
+
+            var source2 = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Extensions))]
+";
+
+            // The grouping and marker types should be among the forwarded types since they are public.
+            // They also should be among exported types for library built from source1. Type symbols
+            // representing extensions from the language perspective should not be in either set.
+            CheckForwarderEmit(source1, source2, "Extensions", "Extensions+<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", "Extensions+<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69+<M>$BA41CFE2B5EDAEB8C1B9062F59ED4D69");
         }
 
         [ClrOnlyFact]
@@ -1496,19 +1525,33 @@ namespace NS
                 Assert.Equal(topLevelTypes.OrderBy(s => s), GetNamesOfForwardedTypes(assembly));
             };
 
-            var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator, sourceSymbolValidator: metadataValidator);
+            checkForwarderEmit(comp2);
 
-            using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(verifier2.EmittedAssemblyData))
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.ReleaseDll, assemblyName: "Asm2");
+            checkForwarderEmit(comp2);
+
+            var comp3 = CreateCompilation("public class ForceRetargeting;", options: TestOptions.ReleaseDll);
+            comp1 = comp1.AddReferences(comp3.EmitToImageReference());
+
+            comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.ReleaseDll, assemblyName: "Asm2");
+            checkForwarderEmit(comp2);
+
+            void checkForwarderEmit(CSharpCompilation comp2)
             {
-                var metadataReader = metadata.Module.GetMetadataReader();
+                var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator, sourceSymbolValidator: metadataValidator);
 
-                Assert.Equal(forwardedTypeFullNames.Length, metadataReader.GetTableRowCount(TableIndex.ExportedType));
-
-                int i = 0;
-                foreach (var exportedType in metadataReader.ExportedTypes)
+                using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(verifier2.EmittedAssemblyData))
                 {
-                    ValidateExportedTypeRow(exportedType, metadataReader, forwardedTypeFullNames[i]);
-                    i++;
+                    var metadataReader = metadata.Module.GetMetadataReader();
+
+                    Assert.Equal(forwardedTypeFullNames.Length, metadataReader.GetTableRowCount(TableIndex.ExportedType));
+
+                    int i = 0;
+                    foreach (var exportedType in metadataReader.ExportedTypes)
+                    {
+                        ValidateExportedTypeRow(exportedType, metadataReader, forwardedTypeFullNames[i]);
+                        i++;
+                    }
                 }
             }
         }

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -11,7 +10,6 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers;
 
 internal abstract class AbstractNameSyntaxClassifier : AbstractSyntaxClassifier
 {
-    protected abstract int? GetRightmostNameArity(SyntaxNode node);
     protected abstract bool IsParentAnAttribute(SyntaxNode node);
 
     protected ISymbol? TryGetSymbol(SyntaxNode node, SymbolInfo symbolInfo)
@@ -52,7 +50,7 @@ internal abstract class AbstractNameSyntaxClassifier : AbstractSyntaxClassifier
             return false;
         }
 
-        if (symbol.IsNamespace())
+        if (symbol is INamespaceSymbol)
         {
             // Namespace names are not classified as static since there is no
             // instance equivalent of the concept and they have their own

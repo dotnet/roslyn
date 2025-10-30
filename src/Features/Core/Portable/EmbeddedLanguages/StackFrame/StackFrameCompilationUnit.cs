@@ -9,14 +9,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 
 using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
 using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
-using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
 
 /// <summary>
 /// The root unit for a stackframe. Includes the method declaration for the stack frame and optional file information. 
 /// Any leading "at " is considered trivia of <see cref="MethodDeclaration"/>, and " in " is put as trivia for the <see cref="FileInformationExpression"/>.
 /// Remaining unparsable text is put as leading trivia on the <see cref="EndOfLineToken"/>
 /// </summary>
-internal class StackFrameCompilationUnit(StackFrameMethodDeclarationNode methodDeclaration, StackFrameFileInformationNode? fileInformationExpression, StackFrameToken endOfLineToken) : StackFrameNode(StackFrameKind.CompilationUnit)
+internal sealed class StackFrameCompilationUnit(StackFrameMethodDeclarationNode methodDeclaration, StackFrameFileInformationNode? fileInformationExpression, StackFrameToken endOfLineToken) : StackFrameNode(StackFrameKind.CompilationUnit)
 {
     /// <summary>
     /// Represents the method declaration for a stack frame. Requires at least a member 

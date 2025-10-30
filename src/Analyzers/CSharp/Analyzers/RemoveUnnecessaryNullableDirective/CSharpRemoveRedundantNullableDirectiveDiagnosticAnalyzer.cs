@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
@@ -67,16 +66,15 @@ internal sealed class CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer
 
         stack.Push(root);
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var current))
         {
-            var current = stack.Pop();
             if (!current.ContainsDirectives)
                 continue;
 
-            if (current.IsNode)
+            if (current.AsNode(out var childNode))
             {
                 // Add the nodes in reverse so we continue walking in a depth-first fashion.
-                foreach (var child in current.AsNode()!.ChildNodesAndTokens().Reverse())
+                foreach (var child in childNode.ChildNodesAndTokens().Reverse())
                     stack.Push(child);
             }
             else if (current.IsToken)

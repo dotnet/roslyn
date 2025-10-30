@@ -5,10 +5,6 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Formatting;
 
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.Host;
-#endif
-
 namespace Microsoft.CodeAnalysis.Indentation;
 
 [DataContract]
@@ -19,9 +15,4 @@ internal readonly record struct IndentationOptions(
     [DataMember(Order = 2)] public FormattingOptions2.IndentStyle IndentStyle { get; init; } = DefaultIndentStyle;
 
     public const FormattingOptions2.IndentStyle DefaultIndentStyle = FormattingOptions2.IndentStyle.Smart;
-
-#if !CODE_STYLE
-    public static IndentationOptions GetDefault(LanguageServices languageServices)
-        => new(SyntaxFormattingOptions.GetDefault(languageServices));
-#endif
 }

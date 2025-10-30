@@ -6,11 +6,11 @@
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationNamespaceInfo
+internal sealed class CodeGenerationNamespaceInfo
 {
     private static readonly ConditionalWeakTable<INamespaceSymbol, CodeGenerationNamespaceInfo> s_namespaceToInfoMap = new();
 
@@ -38,8 +38,6 @@ internal class CodeGenerationNamespaceInfo
 
     private static IList<ISymbol> GetImports(CodeGenerationNamespaceInfo info)
     {
-        return info == null
-            ? SpecializedCollections.EmptyList<ISymbol>()
-            : info._imports;
+        return info == null ? [] : info._imports;
     }
 }

@@ -3,16 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.IO
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.SpecialType
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -5764,7 +5761,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, {TestMetadata.Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
@@ -7395,7 +7392,7 @@ End Module
 
 
     ]]></file>
-</compilation>, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
+</compilation>, {Net40.References.SystemCore}, TestOptions.ReleaseExe)
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
@@ -7620,7 +7617,7 @@ End Module
 
 
     ]]></file>
-</compilation>, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
+</compilation>, {Net40.References.SystemCore}, TestOptions.ReleaseExe)
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of GenericNameSyntax)(compilation, "a.vb")
 

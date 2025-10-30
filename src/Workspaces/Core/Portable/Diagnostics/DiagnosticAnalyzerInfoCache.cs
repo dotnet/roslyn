@@ -4,18 +4,14 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionCrawler;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -36,7 +32,7 @@ internal sealed partial class DiagnosticAnalyzerInfoCache
     /// The purpose of this map is to avoid multiple calls to <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> that might return different values
     /// (they should not but we need a guarantee to function correctly).
     /// </remarks>
-    private readonly ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo> _descriptorsInfo;
+    private readonly ConditionalWeakTable<DiagnosticAnalyzer, DiagnosticDescriptorsInfo> _descriptorsInfo = new();
 
     /// <summary>
     /// Supported suppressions of each <see cref="DiagnosticSuppressor"/>. 
@@ -48,13 +44,13 @@ internal sealed partial class DiagnosticAnalyzerInfoCache
     /// The purpose of this map is to avoid multiple calls to <see cref="DiagnosticSuppressor.SupportedSuppressions"/> that might return different values
     /// (they should not but we need a guarantee to function correctly).
     /// </remarks>
-    private readonly ConditionalWeakTable<DiagnosticSuppressor, SuppressionDescriptorsInfo> _suppressionsInfo;
+    private readonly ConditionalWeakTable<DiagnosticSuppressor, SuppressionDescriptorsInfo> _suppressionsInfo = new();
 
     /// <summary>
     /// Lazily populated map from diagnostic IDs to diagnostic descriptor.
     /// If same diagnostic ID is reported by multiple descriptors, a null value is stored in the map for that ID.
     /// </summary>
-    private readonly ConcurrentDictionary<string, DiagnosticDescriptor?> _idToDescriptorsMap;
+    private readonly ConcurrentDictionary<string, DiagnosticDescriptor?> _idToDescriptorsMap = [];
 
     private sealed class DiagnosticDescriptorsInfo(ImmutableArray<DiagnosticDescriptor> supportedDescriptors, bool telemetryAllowed)
     {
@@ -66,25 +62,6 @@ internal sealed partial class DiagnosticAnalyzerInfoCache
     private sealed class SuppressionDescriptorsInfo(ImmutableArray<SuppressionDescriptor> supportedSuppressions)
     {
         public readonly ImmutableArray<SuppressionDescriptor> SupportedSuppressions = supportedSuppressions;
-    }
-
-    [Export, Shared]
-    internal sealed class SharedGlobalCache
-    {
-        public readonly DiagnosticAnalyzerInfoCache AnalyzerInfoCache = new();
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SharedGlobalCache()
-        {
-        }
-    }
-
-    internal DiagnosticAnalyzerInfoCache()
-    {
-        _descriptorsInfo = new();
-        _suppressionsInfo = new();
-        _idToDescriptorsMap = [];
     }
 
     /// <summary>

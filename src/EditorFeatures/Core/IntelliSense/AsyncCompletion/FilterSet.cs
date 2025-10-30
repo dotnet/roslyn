@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
@@ -37,7 +38,7 @@ internal sealed class FilterSet(bool supportExpander)
     // to create a filter list covering a completion session.
     private static readonly ImmutableArray<FilterWithMask> s_filters;
 
-    private BitVector32 _vector = new BitVector32();
+    private BitVector32 _vector = new();
     private static readonly int s_expanderMask;
     private readonly bool _supportExpander = supportExpander;
 
@@ -102,7 +103,7 @@ internal sealed class FilterSet(bool supportExpander)
             accessKey: "a",
             new ImageElement(addImageId, EditorFeaturesResources.Expander_image_element));
 
-        CompletionFilter CreateCompletionFilterAndAddToBuilder(string displayText, char accessKey, params string[] tags)
+        CompletionFilter CreateCompletionFilterAndAddToBuilder(string displayText, char accessKey, params ReadOnlySpan<string> tags)
         {
             var filter = CreateCompletionFilter(displayText, tags, accessKey);
             previousMask = BitVector32.CreateMask(previousMask);
@@ -120,9 +121,9 @@ internal sealed class FilterSet(bool supportExpander)
     }
 
     private static CompletionFilter CreateCompletionFilter(
-        string displayText, string[] tags, char accessKey)
+        string displayText, ReadOnlySpan<string> tags, char accessKey)
     {
-        var imageId = tags.ToImmutableArray().GetFirstGlyph().GetImageId();
+        var imageId = tags.GetFirstGlyph().GetImageId();
         return new CompletionFilter(
             displayText,
             accessKey.ToString(),
@@ -131,7 +132,7 @@ internal sealed class FilterSet(bool supportExpander)
 
     public (ImmutableArray<CompletionFilter> filters, int data) GetFiltersAndAddToSet(RoslynCompletionItem item)
     {
-        var listBuilder = new ArrayBuilder<CompletionFilter>();
+        using var _ = ArrayBuilder<CompletionFilter>.GetInstance(out var listBuilder);
         var vectorForSingleItem = new BitVector32();
 
         if (item.Flags.IsExpanded())
@@ -150,7 +151,7 @@ internal sealed class FilterSet(bool supportExpander)
             }
         }
 
-        return (listBuilder.ToImmutableAndFree(), vectorForSingleItem.Data);
+        return (listBuilder.ToImmutableAndClear(), vectorForSingleItem.Data);
     }
 
     // test only
@@ -191,7 +192,7 @@ internal sealed class FilterSet(bool supportExpander)
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -218,7 +219,7 @@ internal sealed class FilterSet(bool supportExpander)
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
 
         void AddFilterState(ImmutableArray<CompletionFilterWithState> filterStates)
         {

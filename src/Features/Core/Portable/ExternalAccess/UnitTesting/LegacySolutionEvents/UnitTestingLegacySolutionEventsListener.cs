@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.LegacySolutionEvents
 /// for unit testing.
 /// </summary>
 [Export(typeof(ILegacySolutionEventsListener)), Shared]
-internal class UnitTestingLegacySolutionEventsListener : ILegacySolutionEventsListener
+internal sealed class UnitTestingLegacySolutionEventsListener : ILegacySolutionEventsListener
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -49,6 +49,6 @@ internal class UnitTestingLegacySolutionEventsListener : ILegacySolutionEventsLi
     {
         var coordinator = GetCoordinator(args.NewSolution);
         coordinator?.OnWorkspaceChanged(args);
-        return ValueTaskFactory.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }

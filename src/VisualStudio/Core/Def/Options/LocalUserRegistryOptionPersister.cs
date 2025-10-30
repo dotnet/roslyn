@@ -4,11 +4,10 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 

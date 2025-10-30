@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
         End Function
 
         Private Function OptionOn() As OptionsCollection
-            Return [Option](IdeAnalyzerOptionsStorage.ReportInvalidJsonPatterns, True)
+            Return [Option](JsonDetectionOptionsStorage.ReportInvalidJsonPatterns, True)
         End Function
 
         <Fact>
@@ -36,7 +36,7 @@ class Program
         dim r = ""[|new|] Json()""
     end sub     
 end class",
-                globalOptions:=OptionOn(),
+                options:=OptionOn(),
                 diagnosticId:=AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Warning,
                 diagnosticMessage:=String.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed))
@@ -51,7 +51,7 @@ class Program
         dim r = ""[|}|]""
     end sub     
 end class",
-                globalOptions:=OptionOn(),
+                options:=OptionOn(),
                 diagnosticId:=AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Warning,
                 diagnosticMessage:=String.Format(FeaturesResources.JSON_issue_0,
@@ -73,7 +73,7 @@ end class
         </Document>
     </Project>
 </Workspace>",
-                globalOptions:=OptionOn(),
+                options:=OptionOn(),
                 diagnosticId:=AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Warning,
                 diagnosticMessage:=String.Format(FeaturesResources.JSON_issue_0,
@@ -95,7 +95,7 @@ end class
         </Document>
     </Project>
 </Workspace>",
-                globalOptions:=OptionOn(),
+                options:=OptionOn(),
                 diagnosticId:=AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Warning,
                 diagnosticMessage:=String.Format(FeaturesResources.JSON_issue_0,
@@ -151,7 +151,7 @@ end class
         </Document>
     </Project>
 </Workspace>",
-                globalOptions:=OptionOn(),
+                options:=OptionOn(),
                 diagnosticId:=AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Warning,
                 diagnosticMessage:=String.Format(FeaturesResources.JSON_issue_0,
@@ -177,7 +177,7 @@ end class
                 diagnosticSeverity:=DiagnosticSeverity.Warning,
                 diagnosticMessage:=String.Format(FeaturesResources.JSON_issue_0,
                     FeaturesResources.Comments_not_allowed),
-                globalOptions:=OptionOn())
+                options:=OptionOn())
         End Function
 
         <Fact>

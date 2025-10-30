@@ -65,7 +65,7 @@ internal sealed class RemoveUnusedReferencesCommandHandler
         _serviceProvider = (IServiceProvider)serviceProvider;
 
         // Hook up the "Remove Unused References" menu command for CPS based managed projects.
-        var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
+        var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
         if (menuCommandService != null)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -77,9 +77,9 @@ internal sealed class RemoveUnusedReferencesCommandHandler
     {
         var command = (OleMenuCommand)sender;
 
-        // If the option hasn't been expicitly set then fallback to whether this is enabled as part of an experiment.
-        var isOptionEnabled = _globalOptions.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences)
-            ?? _globalOptions.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
+        // If the value is null it means user loads the value from previous build (at that moment it is in experiment)
+        // Since the feature is on by default now, just set it to true
+        var isOptionEnabled = _globalOptions.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences) ?? true;
 
         var isDotNetCpsProject = VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy) &&
             hierarchy.IsCapabilityMatch("CPS") &&
@@ -139,8 +139,7 @@ internal sealed class RemoveUnusedReferencesCommandHandler
             // If we are removing, then that is a change or if we are newly marking a reference as TreatAsUsed,
             // then that is a change.
             var referenceChanges = referenceUpdates
-                .Where(update => update.Action != UpdateAction.TreatAsUsed || !update.ReferenceInfo.TreatAsUsed)
-                .ToImmutableArray();
+                .WhereAsArray(update => update.Action != UpdateAction.TreatAsUsed || !update.ReferenceInfo.TreatAsUsed);
 
             // If there are no changes, then we can return
             if (referenceChanges.IsEmpty)
@@ -170,13 +169,13 @@ internal sealed class RemoveUnusedReferencesCommandHandler
     {
         if (!TryGetPropertyValue(projectHierarchy, ProjectAssetsFilePropertyName, out var projectAssetsFile))
         {
-            return (null, null, ImmutableArray<ReferenceUpdate>.Empty);
+            return (null, null, []);
         }
 
         var projectFilePath = projectHierarchy.TryGetProjectFilePath();
         if (string.IsNullOrEmpty(projectFilePath))
         {
-            return (null, null, ImmutableArray<ReferenceUpdate>.Empty);
+            return (null, null, []);
         }
 
         var solution = _workspace.CurrentSolution;
@@ -196,8 +195,7 @@ internal sealed class RemoveUnusedReferencesCommandHandler
         });
 
         var referenceUpdates = unusedReferences
-            .Select(reference => new ReferenceUpdate(reference.TreatAsUsed ? UpdateAction.TreatAsUsed : UpdateAction.Remove, reference))
-            .ToImmutableArray();
+            .SelectAsArray(reference => new ReferenceUpdate(reference.TreatAsUsed ? UpdateAction.TreatAsUsed : UpdateAction.Remove, reference));
 
         return referenceUpdates;
     }

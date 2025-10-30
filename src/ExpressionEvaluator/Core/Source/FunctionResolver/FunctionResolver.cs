@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -20,6 +19,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     internal abstract class FunctionResolver :
         FunctionResolverBase<DkmProcess, DkmClrModuleInstance, DkmRuntimeFunctionResolutionRequest>,
         IDkmRuntimeFunctionResolver,
+        IDkmMetaDataPointerInvalidatedNotification,
         IDkmModuleInstanceLoadNotification,
         IDkmModuleInstanceUnloadNotification,
         IDkmModuleModifiedNotification,
@@ -50,6 +50,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         void IDkmModuleModifiedNotification.OnModuleModified(DkmModuleInstance moduleInstance)
         {
             // Implementing IDkmModuleModifiedNotification
+            // (with Synchronized="true" in .vsdconfigxml) prevents
+            // caller from modifying modules while binding.
+        }
+
+        void IDkmMetaDataPointerInvalidatedNotification.OnMetaDataPointerInvalidated(DkmClrModuleInstance moduleInstance)
+        {
+            // Implementing IDkmMetaDataPointerInvalidatedNotification
             // (with Synchronized="true" in .vsdconfigxml) prevents
             // caller from modifying modules while binding.
         }

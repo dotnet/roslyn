@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 
@@ -21,7 +20,6 @@ using static RegexHelpers;
 using RegexAlternatingSequenceList = EmbeddedSeparatedSyntaxNodeList<RegexKind, RegexNode, RegexSequenceNode>;
 using RegexNodeOrToken = EmbeddedSyntaxNodeOrToken<RegexKind, RegexNode>;
 using RegexToken = EmbeddedSyntaxToken<RegexKind>;
-using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
 
 /// <summary>
 /// Produces a <see cref="RegexTree"/> from a sequence of <see cref="VirtualChar"/> characters.
@@ -298,12 +296,13 @@ internal partial struct RegexParser
         // We will commonly get tons of text nodes in a row.  For example, the regex `abc` will be three text nodes
         // in a row.  To help save on memory try to merge that into one single text node.
         using var _2 = ArrayBuilder<RegexExpressionNode>.GetInstance(out var sequence);
-        MergeTextNodes(builder, sequence);
+        MergeTextNodes(_lexer.Text, builder, sequence);
 
         return new RegexSequenceNode(sequence.ToImmutable());
     }
 
-    private static void MergeTextNodes(ArrayBuilder<RegexExpressionNode> list, ArrayBuilder<RegexExpressionNode> final)
+    private static void MergeTextNodes(
+        VirtualCharSequence text, ArrayBuilder<RegexExpressionNode> list, ArrayBuilder<RegexExpressionNode> final)
     {
         // Iterate all the nodes in the sequence we have, adding them directly to
         // `final` if they are not text nodes.  If they are text nodes, we attempt
@@ -320,14 +319,15 @@ internal partial struct RegexParser
             }
 
             // Got a text node.  Try to combine it with all following nodes.
-            index = MergeAndAddAdjacentTextNodes(list, final, index);
+            index = MergeAndAddAdjacentTextNodes(text, list, final, index);
         }
 
         return;
 
         // local functions
 
-        static int MergeAndAddAdjacentTextNodes(
+        int MergeAndAddAdjacentTextNodes(
+            VirtualCharSequence text,
             ArrayBuilder<RegexExpressionNode> list,
             ArrayBuilder<RegexExpressionNode> final,
             int index)
@@ -339,6 +339,8 @@ internal partial struct RegexParser
             // merge that text node with the previous text node.
             index++;
             var lastTextNode = startTextNode;
+            var startCharacter = startTextNode.TextToken.VirtualChars[0];
+            var lastCharacter = startTextNode.TextToken.VirtualChars[^1];
             for (; index < list.Count; index++)
             {
                 var currentNode = list[index];
@@ -351,18 +353,35 @@ internal partial struct RegexParser
                 }
 
                 lastTextNode = (RegexTextNode)currentNode;
+                lastCharacter = lastTextNode.TextToken.VirtualChars[^1];
             }
 
-            // If didn't have multiple text nodes in a row.  Just return the
-            // starting node.  Otherwise, create one text node that has a token
-            // that spans from the start of the first node to the end of the last node.
-            final.Add(startTextNode == lastTextNode
-                ? startTextNode
-                : new RegexTextNode(CreateToken(
-                    RegexKind.TextToken, startTextNode.TextToken.LeadingTrivia,
-                    VirtualCharSequence.FromBounds(
-                        startTextNode.TextToken.VirtualChars,
-                        lastTextNode.TextToken.VirtualChars))));
+            if (startTextNode == lastTextNode)
+            {
+                // If didn't have multiple text nodes in a row.  Just return the starting node.  
+                final.Add(startTextNode);
+            }
+            else
+            {
+                // Otherwise, create one text node that has a token that spans from the start of the first node to the
+                // end of the last node.
+
+                var firstCharIndex = text.FindIndex(startCharacter.Span.Start);
+                var lastCharIndex = text.FindIndex(lastCharacter.Span.Start);
+
+                // These cannot be null.  We're looking up in 'text' characters that came from it.  So these must be
+                // findable again.
+                Contract.ThrowIfNull(firstCharIndex);
+                Contract.ThrowIfNull(lastCharIndex);
+
+                Contract.ThrowIfTrue(startCharacter != text[firstCharIndex.Value]);
+                Contract.ThrowIfTrue(lastCharacter != text[lastCharIndex.Value]);
+
+                // Now create a subsequence that spans from the original start of the first char to the end of the last char.
+                var totalText = text[firstCharIndex.Value..(lastCharIndex.Value + 1)];
+                final.Add(new RegexTextNode(CreateToken(
+                    RegexKind.TextToken, startTextNode.TextToken.LeadingTrivia, totalText)));
+            }
 
             return index;
         }
@@ -578,7 +597,7 @@ internal partial struct RegexParser
             RegexKind.DollarToken => ParseEndAnchor(),
             RegexKind.BackslashToken => ParseEscape(_currentToken, allowTriviaAfterEnd: true),
             RegexKind.OpenBracketToken => ParseCharacterClass(),
-            RegexKind.OpenParenToken => ParseGrouping(),
+            RegexKind.OpenParenToken => ParseGrouping(inConditionalExpression: false),
             RegexKind.CloseParenToken => ParseUnexpectedCloseParenToken(),
             RegexKind.OpenBraceToken => ParsePossibleUnexpectedNumericQuantifier(lastExpression),
             RegexKind.AsteriskToken or RegexKind.PlusToken or RegexKind.QuestionToken => ParseUnexpectedQuantifier(lastExpression),
@@ -646,7 +665,7 @@ internal partial struct RegexParser
         return new RegexWildcardNode(ConsumeCurrentToken(allowTrivia: true));
     }
 
-    private RegexGroupingNode ParseGrouping()
+    private RegexGroupingNode ParseGrouping(bool inConditionalExpression)
     {
         var start = _lexer.Position;
 
@@ -657,7 +676,7 @@ internal partial struct RegexParser
         switch (_currentToken.Kind)
         {
             case RegexKind.QuestionToken:
-                return ParseGroupQuestion(openParenToken, _currentToken);
+                return ParseGroupQuestion(openParenToken, _currentToken, inConditionalExpression);
 
             default:
                 // Wasn't (? just parse this as a normal group.
@@ -710,16 +729,19 @@ internal partial struct RegexParser
     private readonly TextSpan GetTokenStartPositionSpan(RegexToken token)
     {
         return token.Kind == RegexKind.EndOfFile
-            ? new TextSpan(_lexer.Text.Last().Span.End, 0)
+            ? new TextSpan(_lexer.Text[^1].Span.End, 0)
             : new TextSpan(token.VirtualChars[0].Span.Start, 0);
     }
 
-    private RegexGroupingNode ParseGroupQuestion(RegexToken openParenToken, RegexToken questionToken)
+    private RegexGroupingNode ParseGroupQuestion(
+        RegexToken openParenToken, RegexToken questionToken, bool inConditionalExpression)
     {
-        var optionsToken = _lexer.TryScanOptions();
-        if (optionsToken != null)
+        // Corresponds to check at: https://github.com/dotnet/runtime/blob/7790117932dc14aaeb2fc82aff6c0dc6c74ce434/src/libraries/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L1003
+        if (!inConditionalExpression)
         {
-            return ParseOptionsGroupingNode(openParenToken, questionToken, optionsToken.Value);
+            var optionsToken = _lexer.TryScanOptions();
+            if (optionsToken != null)
+                return ParseOptionsGroupingNode(openParenToken, questionToken, optionsToken.Value);
         }
 
         var afterQuestionPos = _lexer.Position;
@@ -804,7 +826,7 @@ internal partial struct RegexParser
                 if (!HasCapture((int)capture.Value))
                 {
                     capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        FeaturesResources.Reference_to_undefined_group,
+                        string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, capture.VirtualChars[0]),
                         capture.GetSpan()));
                 }
             }
@@ -812,7 +834,7 @@ internal partial struct RegexParser
             {
                 innerCloseParenToken = CreateMissingToken(RegexKind.CloseParenToken);
                 capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    FeaturesResources.Malformed,
+                    string.Format(FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0, capture.VirtualChars[0]),
                     capture.GetSpan()));
                 MoveBackBeforePreviousScan();
             }
@@ -917,7 +939,7 @@ internal partial struct RegexParser
 
         // Parse out the grouping that starts with the second open paren in (?(
         // this will get us to (?(...)
-        var grouping = ParseGrouping();
+        var grouping = ParseGrouping(inConditionalExpression: true);
 
         // Now parse out the embedded expression that follows that.  this will get us to
         // (?(...)...
@@ -929,7 +951,7 @@ internal partial struct RegexParser
             grouping, result, ParseGroupingCloseParen());
     }
 
-    private RegexExpressionNode ParseConditionalGroupingResult()
+    private RegexAlternationNode ParseConditionalGroupingResult()
     {
         var currentOptions = _options;
         var result = this.ParseAlternatingSequences(consumeCloseParen: false, isConditional: true);
@@ -1037,7 +1059,7 @@ internal partial struct RegexParser
 
         if (_currentToken.Kind == RegexKind.EndOfFile)
         {
-            openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
+            openParenToken = openParenToken.AddDiagnosticIfMissing(new EmbeddedDiagnostic(
                 FeaturesResources.Unrecognized_grouping_construct,
                 GetSpan(openParenToken, openToken)));
         }
@@ -1255,7 +1277,7 @@ internal partial struct RegexParser
         // We will commonly get tons of text nodes in a row.  For example, the regex `[abc]` will be three text
         // nodes in a row.  To help save on memory try to merge that into one single text node.
         using var _2 = ArrayBuilder<RegexExpressionNode>.GetInstance(out var contents);
-        MergeTextNodes(builder, contents);
+        MergeTextNodes(_lexer.Text, builder, contents);
 
         if (closeBracketToken.IsMissing)
         {
@@ -1340,7 +1362,7 @@ internal partial struct RegexParser
         {
             case RegexKind.SimpleEscape:
                 var escapeNode = (RegexSimpleEscapeNode)component;
-                ch = MapEscapeChar(escapeNode.TypeToken.VirtualChars[0]).Value;
+                ch = MapEscapeChar(escapeNode.TypeToken.VirtualChars[0]);
                 return true;
 
             case RegexKind.ControlEscape:
@@ -1369,12 +1391,6 @@ internal partial struct RegexParser
 
             case RegexKind.UnicodeEscape:
                 ch = GetCharValue(((RegexUnicodeEscapeNode)component).HexText, withBase: 16);
-                return true;
-
-            case RegexKind.PosixProperty:
-                // When the native parser sees [:...:] it treats this as if it just saw '[' and skipped the 
-                // rest.
-                ch = '[';
                 return true;
 
             case RegexKind.Text:
@@ -1421,15 +1437,15 @@ internal partial struct RegexParser
         Debug.Assert(RegexLexer.IsHexChar(ch));
         unchecked
         {
-            var temp = ch.Value - '0';
+            var temp = ch - '0';
             if (temp is >= 0 and <= 9)
                 return temp;
 
-            temp = ch.Value - 'a';
+            temp = ch - 'a';
             if (temp is >= 0 and <= 5)
                 return temp + 10;
 
-            temp = ch.Value - 'A';
+            temp = ch - 'A';
             if (temp is >= 0 and <= 5)
                 return temp + 10;
         }
@@ -1537,36 +1553,6 @@ internal partial struct RegexParser
             // trivia is not allowed anywhere in a character class
             return ParseCharacterClassSubtractionNode(
                 ConsumeCurrentToken(allowTrivia: false));
-        }
-
-        // From the .NET regex code:
-        // This is code for Posix style properties - [:Ll:] or [:IsTibetan:].
-        // It currently doesn't do anything other than skip the whole thing!
-        if (!afterRangeMinus && _currentToken.Kind == RegexKind.OpenBracketToken && _lexer.IsAt(":"))
-        {
-            var beforeBracketPos = _lexer.Position - 1;
-            // trivia is not allowed anywhere in a character class
-            ConsumeCurrentToken(allowTrivia: false);
-
-            var captureName = _lexer.TryScanCaptureName();
-            if (captureName.HasValue && _lexer.IsAt(":]"))
-            {
-                _lexer.Position += 2;
-                var textChars = _lexer.GetSubPattern(beforeBracketPos, _lexer.Position);
-                var token = CreateToken(RegexKind.TextToken, [], textChars);
-
-                // trivia is not allowed anywhere in a character class
-                ConsumeCurrentToken(allowTrivia: false);
-                return new RegexPosixPropertyNode(token);
-            }
-            else
-            {
-                // Reset to back where we were.
-                // trivia is not allowed anywhere in a character class
-                _lexer.Position = beforeBracketPos;
-                ConsumeCurrentToken(allowTrivia: false);
-                Debug.Assert(_currentToken.Kind == RegexKind.OpenBracketToken);
-            }
         }
 
         // trivia is not allowed anywhere in a character class
@@ -1706,7 +1692,7 @@ internal partial struct RegexParser
             unchecked
             {
                 capVal *= 10;
-                capVal += (ch.Value - '0');
+                capVal += (ch - '0');
             }
 
             _lexer.Position++;
@@ -2047,12 +2033,12 @@ internal partial struct RegexParser
             current.Kind == RegexKind.SimpleOptionsGrouping)
         {
             token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                FeaturesResources.Quantifier_x_y_following_nothing, token.GetSpan()));
+                string.Format(FeaturesResources.Quantifier_0_following_nothing, token.VirtualChars[0]), token.GetSpan()));
         }
         else if (current is RegexQuantifierNode or RegexLazyQuantifierNode)
         {
             token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                string.Format(FeaturesResources.Nested_quantifier_0, token.VirtualChars.First()), token.GetSpan()));
+                string.Format(FeaturesResources.Nested_quantifier_0, token.VirtualChars[0]), token.GetSpan()));
         }
     }
 }

@@ -333,14 +333,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Select Case opInfo.UnaryOperatorKind
                                 Case UnaryOperatorKind.IsTrue
                                     If diagnosticsOpt IsNot Nothing Then
-                                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OperatorRequiresBoolReturnType1, SyntaxFacts.GetText(SyntaxKind.IsTrueKeyword)), method.Locations(0))
+                                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OperatorRequiresBoolReturnType1, SyntaxFacts.GetText(SyntaxKind.IsTrueKeyword)), method.GetFirstLocation())
                                         result = False
                                     Else
                                         Return False
                                     End If
                                 Case UnaryOperatorKind.IsFalse
                                     If diagnosticsOpt IsNot Nothing Then
-                                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OperatorRequiresBoolReturnType1, SyntaxFacts.GetText(SyntaxKind.IsFalseKeyword)), method.Locations(0))
+                                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OperatorRequiresBoolReturnType1, SyntaxFacts.GetText(SyntaxKind.IsFalseKeyword)), method.GetFirstLocation())
                                         result = False
                                     Else
                                         Return False
@@ -361,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OperatorRequiresIntegerParameter1,
                                                                        SyntaxFacts.GetText(If(opInfo.BinaryOperatorKind = BinaryOperatorKind.LeftShift,
                                                                                               SyntaxKind.LessThanLessThanToken,
-                                                                                              SyntaxKind.GreaterThanGreaterThanToken))), method.Locations(0))
+                                                                                              SyntaxKind.GreaterThanGreaterThanToken))), method.GetFirstLocation())
                                 result = False
                             Else
                                 Return False
@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not targetsContainingType Then
                 If diagnosticsOpt IsNot Nothing Then
-                    diagnosticsOpt.Add(ErrorFactory.ErrorInfo(targetMismatchError, method.ContainingSymbol), method.Locations(0))
+                    diagnosticsOpt.Add(ErrorFactory.ErrorInfo(targetMismatchError, method.ContainingSymbol), method.GetFirstLocation())
                     result = False
                 Else
                     Return False
@@ -400,28 +400,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If sourceType.IsObjectType() Then
                     If diagnosticsOpt IsNot Nothing Then
-                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionFromObject), method.Locations(0))
+                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionFromObject), method.GetFirstLocation())
                         result = False
                     Else
                         Return False
                     End If
                 ElseIf targetType.IsObjectType() Then
                     If diagnosticsOpt IsNot Nothing Then
-                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionToObject), method.Locations(0))
+                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionToObject), method.GetFirstLocation())
                         result = False
                     Else
                         Return False
                     End If
                 ElseIf sourceType.IsInterfaceType() Then
                     If diagnosticsOpt IsNot Nothing Then
-                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionFromInterfaceType), method.Locations(0))
+                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionFromInterfaceType), method.GetFirstLocation())
                         result = False
                     Else
                         Return False
                     End If
                 ElseIf targetType.IsInterfaceType() Then
                     If diagnosticsOpt IsNot Nothing Then
-                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionToInterfaceType), method.Locations(0))
+                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionToInterfaceType), method.GetFirstLocation())
                         result = False
                     Else
                         Return False
@@ -430,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                           sourceType Is targetType,
                           sourceType.GetNullableUnderlyingTypeOrSelf() Is targetType.GetNullableUnderlyingTypeOrSelf()) Then
                     If diagnosticsOpt IsNot Nothing Then
-                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionToSameType), method.Locations(0))
+                        diagnosticsOpt.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ConversionToSameType), method.GetFirstLocation())
                         result = False
                     Else
                         Return False
@@ -441,7 +441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If diagnosticsOpt IsNot Nothing Then
                             diagnosticsOpt.Add(ErrorFactory.ErrorInfo(If(targetType Is method.ContainingSymbol,
                                                                       ERRID.ERR_ConversionFromBaseType,
-                                                                      ERRID.ERR_ConversionToDerivedType)), method.Locations(0))
+                                                                      ERRID.ERR_ConversionToDerivedType)), method.GetFirstLocation())
                             result = False
                         Else
                             Return False
@@ -450,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If diagnosticsOpt IsNot Nothing Then
                             diagnosticsOpt.Add(ErrorFactory.ErrorInfo(If(targetType Is method.ContainingSymbol,
                                                                       ERRID.ERR_ConversionFromDerivedType,
-                                                                      ERRID.ERR_ConversionToBaseType)), method.Locations(0))
+                                                                      ERRID.ERR_ConversionToBaseType)), method.GetFirstLocation())
                             result = False
                         Else
                             Return False
@@ -460,7 +460,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If result AndAlso diagnosticsOpt IsNot Nothing Then
-                diagnosticsOpt.Add(method.Locations(0), useSiteInfo)
+                diagnosticsOpt.Add(method.GetFirstLocation(), useSiteInfo)
             End If
 
             Return result
@@ -3164,6 +3164,8 @@ Next_i:
             Dim liftOperators As Boolean = nullableOfT.GetUseSiteInfo().DiagnosticInfo Is Nothing
 
             Dim candidates = ArrayBuilder(Of CandidateAnalysisResult).GetInstance()
+            Dim someCandidatesHaveOverloadResolutionPriority As Boolean = InternalSyntax.Parser.CheckFeatureAvailability(binder.Compilation.LanguageVersion, InternalSyntax.Feature.OverloadResolutionPriority) AndAlso
+                                                                          opSet.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0)
 
             For Each method In opSet
                 Debug.Assert(method.ParameterCount = If(argument2 Is Nothing, 1, 2))
@@ -3189,7 +3191,10 @@ Next_i:
                     Continue For
                 End If
 
-                CombineCandidates(candidates, New CandidateAnalysisResult(New OperatorCandidate(method)), method.ParameterCount, Nothing, useSiteInfo)
+                CombineCandidates(candidates, New CandidateAnalysisResult(New OperatorCandidate(method)), method.ParameterCount,
+                                  argumentNames:=Nothing,
+                                  someCandidatesHaveOverloadResolutionPriority,
+                                  useSiteInfo)
 
                 If liftOperators Then
                     Dim param1 As ParameterSymbol = method.Parameters(0)
@@ -3230,7 +3235,10 @@ Next_i:
                                                                                                   ImmutableArray.Create(param1),
                                                                                                   ImmutableArray.Create(Of ParameterSymbol)(param1, param2)),
                                                                                               returnType)),
-                                          method.ParameterCount, Nothing, useSiteInfo)
+                                          method.ParameterCount,
+                                          argumentNames:=Nothing,
+                                          someCandidatesHaveOverloadResolutionPriority,
+                                          useSiteInfo)
                     End If
                 End If
             Next
@@ -3242,7 +3250,10 @@ Next_i:
                                                                         If(argument2 Is Nothing,
                                                                            ImmutableArray.Create(argument1),
                                                                            ImmutableArray.Create(Of BoundExpression)(argument1, argument2)),
-                                                                        Nothing, Nothing, lateBindingIsAllowed, binder:=binder,
+                                                                        argumentNames:=Nothing,
+                                                                        someCandidatesHaveOverloadResolutionPriority,
+                                                                        delegateReturnType:=Nothing,
+                                                                        lateBindingIsAllowed, binder:=binder,
                                                                         asyncLambdaSubToFunctionMismatch:=Nothing,
                                                                         callerInfoOpt:=Nothing, forceExpandedForm:=False,
                                                                         useSiteInfo:=useSiteInfo)

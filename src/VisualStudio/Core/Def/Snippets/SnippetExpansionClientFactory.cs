@@ -18,7 +18,6 @@ using Microsoft.VisualStudio.LanguageServices.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 
@@ -39,7 +38,7 @@ internal class SnippetExpansionClientFactory(
     private readonly SignatureHelpControllerProvider _signatureHelpControllerProvider = signatureHelpControllerProvider;
     private readonly IEditorCommandHandlerServiceFactory _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService = editorAdaptersFactoryService;
-    private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders = argumentProviders.ToImmutableArray();
+    private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders = [.. argumentProviders];
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
     public SnippetExpansionClient? TryGetSnippetExpansionClient(ITextView textView)

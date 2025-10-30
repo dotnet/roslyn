@@ -66,7 +66,7 @@ internal partial class SettingsEditorControl : UserControl
             analyzerView
         ];
 
-        _tableControls = _views.SelectAsArray(view => view.TableControl).ToArray();
+        _tableControls = [.. _views.SelectAsArray(view => view.TableControl)];
 
         InitializeComponent();
     }
@@ -82,7 +82,10 @@ internal partial class SettingsEditorControl : UserControl
 
         var solution = _workspace.CurrentSolution;
         var analyzerConfigDocument = solution.Projects
-            .Select(p => p.TryGetExistingAnalyzerConfigDocumentAtPath(_filepath)).FirstOrDefault();
+            .Select(p => p.TryGetExistingAnalyzerConfigDocumentAtPath(_filepath))
+            .WhereNotNull()
+            .FirstOrDefault();
+
         if (analyzerConfigDocument is null)
         {
             return;

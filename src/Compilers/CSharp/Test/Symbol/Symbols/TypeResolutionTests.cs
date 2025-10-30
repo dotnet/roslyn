@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -49,7 +49,7 @@ namespace System
 
             var c1 = CSharpCompilation.Create("Test1",
                 syntaxTrees: new[] { Parse(source1) },
-                references: new[] { Net40.mscorlib });
+                references: new[] { Net40.References.mscorlib });
 
             Assert.Null(c1.GetTypeByMetadataName("DoesntExist"));
             Assert.Null(c1.GetTypeByMetadataName("DoesntExist`1"));
@@ -66,7 +66,7 @@ namespace System
                 references: new MetadataReference[]
                 {
                     new CSharpCompilationReference(c1),
-                    Net40.mscorlib
+                    Net40.References.mscorlib
                 });
 
             NamedTypeSymbol c2TestClass = c2.GetTypeByMetadataName("System.TestClass");
@@ -76,7 +76,7 @@ namespace System
                 references: new MetadataReference[]
                 {
                     new CSharpCompilationReference(c2),
-                    Net40.mscorlib
+                    Net40.References.mscorlib
                 });
 
             NamedTypeSymbol c3TestClass = c3.GetTypeByMetadataName("System.TestClass");
@@ -90,7 +90,7 @@ namespace System
                 {
                     new CSharpCompilationReference(c1),
                     new CSharpCompilationReference(c2),
-                    Net40.mscorlib
+                    Net40.References.mscorlib
                 });
 
             NamedTypeSymbol c4TestClass = c4.GetTypeByMetadataName("System.TestClass");

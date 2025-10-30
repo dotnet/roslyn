@@ -4,11 +4,10 @@
 
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
-internal class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
+internal sealed class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
 {
     public static readonly CSharpFlagsEnumGenerator Instance = new();
 
@@ -16,23 +15,25 @@ internal class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
     {
     }
 
+    protected override SyntaxGeneratorInternal SyntaxGenerator
+        => CSharpSyntaxGeneratorInternal.Instance;
+
     protected override SyntaxNode CreateExplicitlyCastedLiteralValue(
-        SyntaxGenerator generator,
         INamedTypeSymbol enumType,
         SpecialType underlyingSpecialType,
         object constantValue)
     {
         var expression = ExpressionGenerator.GenerateNonEnumValueExpression(
-            generator, enumType.EnumUnderlyingType, constantValue, canUseFieldReference: true);
+            enumType.EnumUnderlyingType, constantValue, canUseFieldReference: true);
 
-        var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
+        var constantValueULong = underlyingSpecialType.ConvertUnderlyingValueToUInt64(constantValue);
         if (constantValueULong == 0)
         {
             // 0 is always convertible to an enum type without needing a cast.
             return expression;
         }
 
-        return generator.CastExpression(enumType, expression);
+        return this.SyntaxGenerator.CastExpression(enumType, expression);
     }
 
     protected override bool IsValidName(INamedTypeSymbol enumType, string name)

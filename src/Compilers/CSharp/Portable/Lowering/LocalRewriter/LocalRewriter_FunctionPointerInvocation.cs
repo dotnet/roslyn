@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol>? temps = null;
             var rewrittenArgs = VisitArgumentsAndCaptureReceiverIfNeeded(
                 rewrittenReceiver: ref discardedReceiver,
-                captureReceiverMode: ReceiverCaptureMode.Default,
+                forceReceiverCapturing: false,
                 node.Arguments,
                 functionPointer,
                 argsToParamsOpt: default,
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(discardedReceiver is null);
 
-            if (node.InterceptableNameSyntax is { } nameSyntax && this._compilation.TryGetInterceptor(nameSyntax.Location) is var (attributeLocation, _))
+            if (node.InterceptableNameSyntax is { } nameSyntax && this._compilation.TryGetInterceptor(nameSyntax) is var (attributeLocation, _))
             {
                 this._diagnostics.Add(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, attributeLocation, nameSyntax.Identifier.ValueText);
             }

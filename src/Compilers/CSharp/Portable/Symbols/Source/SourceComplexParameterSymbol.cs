@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -35,7 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ThreeState _lazyHasOptionalAttribute;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
-        protected ConstantValue _lazyDefaultSyntaxValue;
+#nullable enable
+        protected ConstantValue? _lazyDefaultSyntaxValue;
+#nullable disable
 
         protected SourceComplexParameterSymbolBase(
             Symbol owner,
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyDefaultSyntaxValue = ConstantValue.Unset;
         }
 
-        private Binder WithTypeParametersBinderOpt => (ContainingSymbol as SourceMethodSymbolWithAttributes)?.WithTypeParametersBinder;
+        private Binder WithTypeParametersBinderOpt => (ContainingSymbol as SourceMethodSymbol)?.WithTypeParametersBinder;
 
         internal sealed override SyntaxReference SyntaxReference => _syntaxRef;
 
@@ -87,7 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsDiscard => false;
 
-        internal sealed override ConstantValue ExplicitDefaultConstantValue
+#nullable enable
+        internal sealed override ConstantValue? ExplicitDefaultConstantValue
         {
             get
             {
@@ -105,14 +109,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ConstantValue DefaultValueFromAttributes
+        internal sealed override ConstantValue? DefaultValueFromAttributes
         {
             get
             {
                 ParameterEarlyWellKnownAttributeData data = GetEarlyDecodedWellKnownAttributeData();
-                return (data != null && data.DefaultParameterValue != ConstantValue.Unset) ? data.DefaultParameterValue : ConstantValue.NotAvailable;
+                return (data != null && data.DefaultParameterValue != ConstantValue.Unset) ? data.DefaultParameterValue : null;
             }
         }
+#nullable disable
 
         internal sealed override bool IsIDispatchConstant
             => GetDecodedWellKnownAttributeData()?.HasIDispatchConstantAttribute == true;
@@ -193,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull
             => GetDecodedWellKnownAttributeData()?.NotNullIfParameterNotNull ?? ImmutableHashSet<string>.Empty;
 
-        internal bool HasEnumeratorCancellationAttribute
+        internal override bool HasEnumeratorCancellationAttribute
         {
             get
             {
@@ -210,7 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var scope = CalculateEffectiveScopeIgnoringAttributes();
                 if (scope != ScopedKind.None &&
-                    HasUnscopedRefAttribute)
+                    HasUnscopedRefAttribute &&
+                    UseUpdatedEscapeRules)
                 {
                     return ScopedKind.None;
                 }
@@ -238,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameterEqualsValue;
         }
 
-        private ConstantValue DefaultSyntaxValue
+        private ConstantValue? DefaultSyntaxValue
         {
             get
             {
@@ -262,6 +268,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, valueSyntax, diagnostics.DiagnosticBag);
                         }
+
+                        Debug.Assert(_lazyDefaultSyntaxValue is not null);
                         if (!_lazyDefaultSyntaxValue.IsBad)
                         {
                             VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, parameterEqualsValue.Value.Syntax, diagnostics);
@@ -356,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // This method *must not* depend on attributes on the parameter symbol.
         // Otherwise we will have cycles when binding usage of attributes whose constructors have optional parameters
-        private ConstantValue MakeDefaultExpression(BindingDiagnosticBag diagnostics, out Binder? binder, out BoundParameterEqualsValue? parameterEqualsValue)
+        private ConstantValue? MakeDefaultExpression(BindingDiagnosticBag diagnostics, out Binder? binder, out BoundParameterEqualsValue? parameterEqualsValue)
         {
             binder = null;
             parameterEqualsValue = null;
@@ -364,13 +372,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameterSyntax = this.ParameterSyntax;
             if (parameterSyntax == null)
             {
-                return ConstantValue.NotAvailable;
+                return null;
             }
 
             var defaultSyntax = parameterSyntax.Default;
             if (defaultSyntax == null)
             {
-                return ConstantValue.NotAvailable;
+                return null;
             }
 
             MessageID.IDS_FeatureOptionalParameter.CheckFeatureAvailability(diagnostics, defaultSyntax.EqualsToken);
@@ -454,30 +462,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         /// <summary>
         /// Symbol to copy bound attributes from, or null if the attributes are not shared among multiple source parameter symbols.
         /// </summary>
         /// <remarks>
-        /// Used for parameters of partial implementation. We bind the attributes only on the definition
-        /// part and copy them over to the implementation.
+        /// This is inconsistent with analogous 'BoundAttributesSource' on other symbols.
+        /// Usually the definition part is the source, but for parameters the implementation part is the source.
+        /// This affects the location of diagnostics among other things.
         /// </remarks>
-        private SourceParameterSymbol BoundAttributesSource
+        private SourceParameterSymbol? BoundAttributesSource
+            => PartialImplementationPart;
+
+        protected SourceParameterSymbol? PartialImplementationPart
         {
             get
             {
-                var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
-                if ((object)sourceMethod == null)
+                ImmutableArray<ParameterSymbol> implParameters = this.ContainingSymbol.GetPartialImplementationPart()?.GetParameters() ?? default;
+
+                if (implParameters.IsDefault)
                 {
                     return null;
                 }
 
-                var impl = sourceMethod.SourcePartialImplementation;
-                if ((object)impl == null)
+                Debug.Assert(!this.ContainingSymbol.IsPartialImplementation());
+                return (SourceParameterSymbol)implParameters[this.Ordinal];
+            }
+        }
+
+        protected SourceParameterSymbol? PartialDefinitionPart
+        {
+            get
+            {
+                ImmutableArray<ParameterSymbol> defParameters = this.ContainingSymbol.GetPartialDefinitionPart()?.GetParameters() ?? default;
+
+                if (defParameters.IsDefault)
                 {
                     return null;
                 }
 
-                return (SourceParameterSymbol)impl.Parameters[this.Ordinal];
+                Debug.Assert(!this.ContainingSymbol.IsPartialDefinition());
+                return (SourceParameterSymbol)defParameters[this.Ordinal];
             }
         }
 
@@ -495,44 +520,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            // C# spec:
-            // The attributes on the parameters of the resulting method declaration
-            // are the combined attributes of the corresponding parameters of the defining
-            // and the implementing partial method declaration in unspecified order.
-            // Duplicates are not removed.
+            // Attributes on parameters in partial members are owned by the parameter in the implementation part.
+            // If this symbol has a non-null PartialImplementationPart, we should have accessed this method through that implementation symbol.
+            Debug.Assert(PartialImplementationPart is null);
 
-            SyntaxList<AttributeListSyntax> attributes = AttributeDeclarationList;
-
-            var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
-            if ((object)sourceMethod == null)
+            if (PartialDefinitionPart is { } definitionPart)
             {
-                return OneOrMany.Create(attributes);
-            }
-
-            SyntaxList<AttributeListSyntax> otherAttributes;
-
-            // if this is a definition get the implementation and vice versa
-            SourceOrdinaryMethodSymbol otherPart = sourceMethod.OtherPartOfPartial;
-            if ((object)otherPart != null)
-            {
-                otherAttributes = ((SourceParameterSymbol)otherPart.Parameters[this.Ordinal]).AttributeDeclarationList;
+                return OneOrMany.Create(
+                    AttributeDeclarationList,
+                    definitionPart.AttributeDeclarationList);
             }
             else
             {
-                otherAttributes = default(SyntaxList<AttributeListSyntax>);
+                return OneOrMany.Create(AttributeDeclarationList);
             }
-
-            if (attributes.Equals(default(SyntaxList<AttributeListSyntax>)))
-            {
-                return OneOrMany.Create(otherAttributes);
-            }
-            else if (otherAttributes.Equals(default(SyntaxList<AttributeListSyntax>)))
-            {
-                return OneOrMany.Create(attributes);
-            }
-
-            return OneOrMany.Create(ImmutableArray.Create(attributes, otherAttributes));
         }
+#nullable disable
 
         /// <summary>
         /// Returns data decoded from well-known attributes applied to the symbol or null if there are no applied attributes.
@@ -679,17 +682,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var constructorArguments = attributeData.CommonConstructorArguments;
                         Debug.Assert(constructorArguments.Length == 1);
-                        if (constructorArguments[0].TryDecodeValue(SpecialType.System_String, out string? parameterName))
+                        if (constructorArguments[0].TryDecodeValue(SpecialType.System_String, out string? parameterName)
+                            && parameterName is not null)
                         {
-                            var parameters = ContainingSymbol.GetParameters();
-                            for (int i = 0; i < parameters.Length; i++)
-                            {
-                                if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
-                                {
-                                    index = i;
-                                    break;
-                                }
-                            }
+                            index = GetCallerArgumentExpressionParameterIndex(this, parameterName);
                         }
                     }
 
@@ -698,6 +694,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
+        }
+
+        /// <summary>
+        /// Given a parameter (marked with CallerArgumentExpression attribute) and the parameter name specified in the attribute,
+        /// returns the index of the parameter the attribute refers to, or -1 if no such parameter exists.
+        /// For new non-static extension members, the extension parameter is considered to be at index 0.
+        /// </summary>
+        internal static int GetCallerArgumentExpressionParameterIndex(ParameterSymbol parameter, string parameterName)
+        {
+            int offset = 0;
+            Symbol containingSymbol = parameter.ContainingSymbol;
+            if (containingSymbol.IsExtensionBlockMember() && !containingSymbol.IsStatic)
+            {
+                if (parameter.ContainingType.ExtensionParameter is { } extensionParameter
+                    && extensionParameter.Name.Equals(parameterName, StringComparison.Ordinal))
+                {
+                    return 0;
+                }
+
+                offset = 1;
+            }
+
+            var parameters = containingSymbol.GetParameters();
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
+                {
+                    return i + offset;
+                }
+            }
+
+            return -1;
         }
 
         private (CSharpAttributeData?, BoundAttribute?) EarlyDecodeAttributeForDefaultParameterValue(AttributeDescription description, ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
@@ -814,7 +842,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReservedAttributes.TupleElementNamesAttribute |
                 ReservedAttributes.NullableAttribute |
                 ReservedAttributes.NativeIntegerAttribute |
-                ReservedAttributes.ScopedRefAttribute))
+                ReservedAttributes.ScopedRefAttribute |
+                ReservedAttributes.ExtensionMarkerAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.AllowNullAttribute))
@@ -860,6 +889,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
             {
+                if (!this.UseUpdatedEscapeRules)
+                {
+                    diagnostics.Add(ErrorCode.WRN_UnscopedRefAttributeOldRules, arguments.AttributeSyntaxOpt.Location);
+                }
+
                 if (!this.IsValidUnscopedRefAttributeTarget())
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
@@ -873,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool IsValidUnscopedRefAttributeTarget()
         {
-            return UseUpdatedEscapeRules && (RefKind != RefKind.None || (HasParamsModifier && Type.IsRefLikeType));
+            return RefKind != RefKind.None || (HasParamsModifier && Type.IsRefLikeOrAllowsRefLikeType());
         }
 
         private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(CSharpAttributeData attribute)
@@ -1030,33 +1064,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                     && !ContainingSymbol.IsOperator()
                                                                     && !IsOnPartialImplementation(node);
 
+#nullable enable
         /// <summary>
         /// Is the attribute syntax appearing on a parameter of a partial method implementation part?
         /// Since attributes are merged between the parts of a partial, we need to look at the syntax where the
         /// attribute appeared in the source to see if it corresponds to a partial method implementation part.
         /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
         private bool IsOnPartialImplementation(AttributeSyntax node)
         {
-            var method = ContainingSymbol as MethodSymbol;
-            if ((object)method == null) return false;
-            var impl = method.IsPartialImplementation() ? method : method.PartialImplementationPart;
-            if ((object)impl == null) return false;
-            var paramList =
-                node     // AttributeSyntax
-                .Parent  // AttributeListSyntax
-                .Parent  // ParameterSyntax
-                .Parent as ParameterListSyntax; // ParameterListSyntax
-            if (paramList == null) return false;
-            var methDecl = paramList.Parent as MethodDeclarationSyntax;
-            if (methDecl == null) return false;
-            foreach (var r in impl.DeclaringSyntaxReferences)
+            // If we are asking this, the candidate attribute had better be contained in *some* attribute associated with this parameter syntactically
+            Debug.Assert(this.GetAttributeDeclarations().Any(attrLists => attrLists.Any(attrList => attrList.Contains(node))));
+
+            var implParameter = this.ContainingSymbol.IsPartialImplementation() ? this : PartialImplementationPart;
+            if (implParameter?.AttributeDeclarationList is not { } implParameterAttributeList)
             {
-                if (r.GetSyntax() == methDecl) return true;
+                return false;
             }
-            return false;
+
+            return implParameterAttributeList.Any(attrList => attrList.Attributes.Contains(node));
         }
+#nullable disable
 
         private void ValidateCallerLineNumberAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {
@@ -1205,13 +1232,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS8963: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, node.Name.Location, ParameterSyntax.Identifier.ValueText);
             }
-            else if (GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == Ordinal)
+            else if (GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == getOrdinalIncludingExtensionParameter())
             {
                 // CS8965: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, node.Name.Location, ParameterSyntax.Identifier.ValueText);
             }
 
             diagnostics.Add(node.Name, useSiteInfo);
+            return;
+
+            int getOrdinalIncludingExtensionParameter()
+            {
+                int offset = 0;
+                Symbol containingSymbol = this.ContainingSymbol;
+                if (containingSymbol.IsExtensionBlockMember()
+                    && !containingSymbol.IsStatic)
+                {
+                    // Note: the offset applies to all non-static extension methods,
+                    // even in error scenarios where there is no extension parameter
+                    offset = 1;
+                }
+
+                return this.Ordinal + offset;
+            }
         }
 
         private void ValidateCancellationTokenAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
@@ -1260,15 +1303,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters, arguments.AttributeSyntaxOpt.Location);
             }
 
+            if (ContainingSymbol is SynthesizedExtensionMarker)
+            {
+                // Interpolated string handler arguments are not allowed in this context.
+                diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed, arguments.AttributeSyntaxOpt.Location);
+                setInterpolatedStringHandlerAttributeError(ref arguments);
+                return;
+            }
+
             TypedConstant constructorArgument = arguments.Attribute.CommonConstructorArguments[0];
 
             ImmutableArray<ParameterSymbol> containingSymbolParameters = ContainingSymbol.GetParameters();
+            ParameterSymbol? extensionParameter = ContainingType.ExtensionParameter;
 
             ImmutableArray<int> parameterOrdinals;
-            ArrayBuilder<ParameterSymbol?> parameters;
             if (attributeIndex == 0)
             {
-                if (decodeName(constructorArgument, ref arguments) is not (int ordinal, var parameter))
+                if (decodeName(constructorArgument, ref arguments) is not int ordinal)
                 {
                     // If an error needs to be reported, it will already have been reported by another step.
                     setInterpolatedStringHandlerAttributeError(ref arguments);
@@ -1276,8 +1327,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 parameterOrdinals = ImmutableArray.Create(ordinal);
-                parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(1);
-                parameters.Add(parameter);
             }
             else if (attributeIndex == 1)
             {
@@ -1290,13 +1339,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 bool hadError = false;
-                parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(constructorArgument.Values.Length);
                 var ordinalsBuilder = ArrayBuilder<int>.GetInstance(constructorArgument.Values.Length);
                 foreach (var nestedArgument in constructorArgument.Values)
                 {
-                    if (decodeName(nestedArgument, ref arguments) is (int ordinal, var parameter) && !hadError)
+                    if (decodeName(nestedArgument, ref arguments) is int ordinal && !hadError)
                     {
-                        parameters.Add(parameter);
                         ordinalsBuilder.Add(ordinal);
                     }
                     else
@@ -1307,7 +1354,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (hadError)
                 {
-                    parameters.Free();
                     ordinalsBuilder.Free();
                     setInterpolatedStringHandlerAttributeError(ref arguments);
                     return;
@@ -1323,7 +1369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameterWellKnownAttributeData = arguments.GetOrCreateData<ParameterWellKnownAttributeData>();
             parameterWellKnownAttributeData.InterpolatedStringHandlerArguments = parameterOrdinals;
 
-            (int Ordinal, ParameterSymbol? Parameter)? decodeName(TypedConstant constant, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+            int? decodeName(TypedConstant constant, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             {
                 Debug.Assert(arguments.AttributeSyntaxOpt is not null);
                 if (constant.IsNull)
@@ -1344,14 +1390,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (name == "")
                 {
                     // Name refers to the "this" instance parameter.
-                    if (!ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke or MethodKind.LambdaMethod })
+                    if (!ContainingSymbol.RequiresInstanceReceiver()
+                        || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke or MethodKind.LambdaMethod }
+                        || ContainingSymbol.IsExtensionBlockMember())
                     {
-                        // '{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                        // '{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
                         diagnostics.Add(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, ContainingSymbol);
                         return null;
                     }
 
-                    return (BoundInterpolatedStringArgumentPlaceholder.InstanceParameter, null);
+                    return BoundInterpolatedStringArgumentPlaceholder.InstanceParameter;
+                }
+
+                if (string.Equals(extensionParameter?.Name, name, StringComparison.Ordinal))
+                {
+                    if (!ContainingSymbol.RequiresInstanceReceiver())
+                    {
+                        // '{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
+                        diagnostics.Add(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, ContainingSymbol);
+                        return null;
+                    }
+
+                    return BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver;
                 }
 
                 var parameter = containingSymbolParameters.FirstOrDefault(static (param, name) => string.Equals(param.Name, name, StringComparison.Ordinal), name);
@@ -1377,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, arguments.AttributeSyntaxOpt.Location, parameter.Name, this.Name);
                 }
 
-                return (parameter.Ordinal, parameter);
+                return parameter.Ordinal;
             }
 
             static void setInterpolatedStringHandlerAttributeError(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
@@ -1521,29 +1581,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(filter == null);
             _ = this.GetAttributes();
             _ = this.ExplicitDefaultConstantValue;
-            ValidateParams();
+            DoMiscValidation();
             state.SpinWaitComplete(CompletionPart.ComplexParameterSymbolAll, cancellationToken);
         }
 
 #nullable enable
 
-        private void ValidateParams()
+        private void DoMiscValidation()
         {
-            if (state.NotePartComplete(CompletionPart.StartParamsValidation))
+            if (state.NotePartComplete(CompletionPart.StartMiscValidation))
             {
+                var diagnostics = BindingDiagnosticBag.GetInstance();
+
                 if (IsParams && ParameterSyntax?.Modifiers.Any(SyntaxKind.ParamsKeyword) == true)
                 {
-                    var diagnostics = BindingDiagnosticBag.GetInstance();
                     validateParamsType(diagnostics);
-                    AddDeclarationDiagnostics(diagnostics);
-                    diagnostics.Free();
                 }
 
-                bool completedOnThisThread = state.NotePartComplete(CompletionPart.EndParamsValidation);
+                if (DeclaredScope == ScopedKind.ScopedValue && !Type.IsErrorOrRefLikeOrAllowsRefLikeType())
+                {
+                    Debug.Assert(ParameterSyntax is not null);
+                    diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, ParameterSyntax);
+                }
+
+                AddDeclarationDiagnostics(diagnostics);
+                diagnostics.Free();
+
+                bool completedOnThisThread = state.NotePartComplete(CompletionPart.EndMiscValidation);
                 Debug.Assert(completedOnThisThread);
             }
 
-            state.SpinWaitComplete(CompletionPart.EndParamsValidation, default(CancellationToken));
+            state.SpinWaitComplete(CompletionPart.EndMiscValidation, default(CancellationToken));
 
             void validateParamsType(BindingDiagnosticBag diagnostics)
             {
@@ -1586,9 +1654,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             Debug.Assert(!addMethods.IsDefaultOrEmpty);
 
-                            if (addMethods[0].IsStatic) // No need to check other methods, extensions are never mixed with instance methods
+                            if (addMethods[0].IsExtensionMethod || addMethods[0].IsExtensionBlockMember()) // No need to check other methods, extensions are never mixed with instance methods
                             {
-                                Debug.Assert(addMethods[0].IsExtensionMethod);
                                 diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
                                 return;
                             }

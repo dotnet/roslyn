@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -31,7 +29,6 @@ internal sealed class RemoveRedundantEqualityCodeFixProvider() : ForkingSyntaxEd
     protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         SyntaxNode node,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -49,19 +46,30 @@ internal sealed class RemoveRedundantEqualityCodeFixProvider() : ForkingSyntaxEd
 
         SyntaxNode RewriteNode()
         {
+            if (syntaxFacts.IsBinaryExpression(node))
+            {
+                syntaxFacts.GetPartsOfBinaryExpression(node, out var left, out var right);
+                var rewritten =
+                    properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Right ? left :
+                    properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Left ? right : node;
+
+                if (properties.ContainsKey(RedundantEqualityConstants.Negate))
+                    rewritten = generator.Negate(generatorInternal, rewritten, semanticModel, cancellationToken);
+
+                return rewritten;
+            }
+            else if (syntaxFacts.IsIsPatternExpression(node))
+            {
+                syntaxFacts.GetPartsOfIsPatternExpression(node, out var left, out _, out var right);
+                var rewritten = left;
+                if (properties.ContainsKey(RedundantEqualityConstants.Negate))
+                    rewritten = generator.Negate(generatorInternal, rewritten, semanticModel, cancellationToken);
+
+                return rewritten;
+            }
+
             // This should happen only in error cases.
-            if (!syntaxFacts.IsBinaryExpression(node))
-                return node;
-
-            syntaxFacts.GetPartsOfBinaryExpression(node, out var left, out var right);
-            var rewritten =
-                properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Right ? left :
-                properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Left ? right : node;
-
-            if (properties.ContainsKey(RedundantEqualityConstants.Negate))
-                rewritten = generator.Negate(generatorInternal, rewritten, semanticModel, cancellationToken);
-
-            return rewritten;
+            return node;
         }
 
         static SyntaxNode WithElasticTrailingTrivia(SyntaxNode node)

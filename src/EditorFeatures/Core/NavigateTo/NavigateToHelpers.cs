@@ -4,11 +4,11 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.NavigateTo;
 
@@ -36,6 +36,7 @@ internal static class NavigateToHelpers
             return;
 
         var workspace = document.Workspace;
+        Contract.ThrowIfNull(workspace, "Workspace is null, which should only happen in OOP where navigation is not possible anyway.");
         var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
         // Document tabs opened by NavigateTo are carefully created as preview or regular tabs

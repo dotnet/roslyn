@@ -8,11 +8,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2;
 
-internal partial class SQLitePersistentStorage
+internal sealed partial class SQLitePersistentStorage
 {
     private readonly ConcurrentDictionary<string, int> _stringToIdMap = [];
 
@@ -47,8 +46,8 @@ internal partial class SQLitePersistentStorage
     {
         // We're reading or writing.  This can be under either of our schedulers.
         Contract.ThrowIfFalse(
-            TaskScheduler.Current == _connectionPoolService.Scheduler.ExclusiveScheduler ||
-            TaskScheduler.Current == _connectionPoolService.Scheduler.ConcurrentScheduler);
+            TaskScheduler.Current == this.Scheduler.ExclusiveScheduler ||
+            TaskScheduler.Current == this.Scheduler.ConcurrentScheduler);
 
         // First, check if we can find that string in the string table.
         var stringId = TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: true);
@@ -65,7 +64,7 @@ internal partial class SQLitePersistentStorage
             return null;
 
         // We're writing.  This better always be under the exclusive scheduler.
-        Contract.ThrowIfFalse(TaskScheduler.Current == _connectionPoolService.Scheduler.ExclusiveScheduler);
+        Contract.ThrowIfFalse(TaskScheduler.Current == this.Scheduler.ExclusiveScheduler);
 
         // The string wasn't in the db string table.  Add it.  Note: this may fail if some
         // other thread/process beats us there as this table has a 'unique' constraint on the

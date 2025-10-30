@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Roslyn.Utilities
 {
@@ -12,12 +16,22 @@ namespace Roslyn.Utilities
     {
         /// <inheritdoc cref="Debug.Assert(bool)"/>
         [Conditional("DEBUG")]
-        public static void Assert([DoesNotReturnIf(false)] bool b) => Debug.Assert(b);
+        public static void Assert([DoesNotReturnIf(false)] bool condition) => Debug.Assert(condition);
 
         /// <inheritdoc cref="Debug.Assert(bool, string)"/>
         [Conditional("DEBUG")]
-        public static void Assert([DoesNotReturnIf(false)] bool b, string message)
-            => Debug.Assert(b, message);
+        public static void Assert([DoesNotReturnIf(false)] bool condition, string message)
+            => Debug.Assert(condition, message);
+
+        /// <inheritdoc cref="Debug.Assert(bool, string)"/>
+        [Conditional("DEBUG")]
+        public static void Assert([DoesNotReturnIf(false)] bool condition, [InterpolatedStringHandlerArgument(nameof(condition))] ref AssertInterpolatedStringHandler message)
+        {
+            if (!condition)
+            {
+                Debug.Fail(message.ToStringAndClear());
+            }
+        }
 
         [Conditional("DEBUG")]
         public static void AssertNotNull<T>([NotNull] T value)
@@ -61,6 +75,29 @@ namespace Roslyn.Utilities
                 }
             }
 #endif
+        }
+
+        [InterpolatedStringHandler]
+        public struct AssertInterpolatedStringHandler
+        {
+            private readonly StringBuilder? _builder;
+
+            public AssertInterpolatedStringHandler(int literalLength, int formattedCount, bool condition, out bool shouldAppend)
+            {
+                shouldAppend = !condition;
+                if (shouldAppend)
+                {
+                    _builder = new StringBuilder(literalLength + formattedCount);
+                }
+            }
+
+            internal string ToStringAndClear() => _builder!.ToString();
+
+            public void AppendLiteral(string value) => _builder!.Append(value);
+
+            public void AppendFormatted<T>(T value) => _builder!.Append(value);
+
+            public void AppendFormatted(ReadOnlySpan<char> value) => _builder!.Append(value.ToString());
         }
     }
 }

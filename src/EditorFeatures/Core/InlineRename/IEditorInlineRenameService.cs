@@ -2,19 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor;
 
@@ -164,7 +160,7 @@ internal interface IInlineRenameInfo
     /// Provides the reason that can be displayed to the user if the entity at the selected 
     /// location cannot be renamed.
     /// </summary>
-    string LocalizedErrorMessage { get; }
+    string? LocalizedErrorMessage { get; }
 
     /// <summary>
     /// The span of the entity that is being renamed.
@@ -254,5 +250,25 @@ internal interface IInlineRenameInfo
 /// </summary>
 internal interface IEditorInlineRenameService : ILanguageService
 {
+    /// <summary>
+    /// Returns true if the service is currently enabled for the language (e.g. the value
+    /// might depend on a feature flag.)
+    /// </summary>
+    bool IsEnabled { get; }
+
+    /// <summary>
+    /// Returns <see cref="IInlineRenameInfo"/> necessary to establish the inline rename session.
+    /// </summary>
     Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns optional context used in Copilot addition to inline rename feature.
+    /// </summary>
+    /// <param name="inlineRenameInfo"></param>
+    /// <param name="inlineRenameLocationSet"></param>
+    /// <param name="cancellationToken"></param>
+    Task<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>> GetRenameContextAsync(
+        IInlineRenameInfo inlineRenameInfo,
+        IInlineRenameLocationSet inlineRenameLocationSet,
+        CancellationToken cancellationToken);
 }

@@ -9,8 +9,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
+
+using static UseCollectionExpressionHelpers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnosticAnalyzer
@@ -117,7 +120,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
 
-    public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
+    public static ImmutableArray<CollectionMatch<StatementSyntax>> TryGetMatches(
         SemanticModel semanticModel,
         StackAllocArrayCreationExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
@@ -127,6 +130,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         return UseCollectionExpressionHelpers.TryGetMatches(
             semanticModel,
             expression,
+            CreateReplacementCollectionExpressionForAnalysis(expression.Initializer),
             expressionType,
             isSingletonInstance: false,
             allowSemanticsChange,

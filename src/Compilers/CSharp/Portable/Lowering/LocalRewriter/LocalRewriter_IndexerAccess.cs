@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
+            Debug.Assert(node.AccessorKind != AccessorKind.Unknown);
             Debug.Assert(node.Indexer.IsIndexer || node.Indexer.IsIndexedProperty);
             Debug.Assert((object?)node.Indexer.GetOwnOrInheritedGetMethod() != null);
 
@@ -76,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             PropertySymbol indexer = node.Indexer;
             Debug.Assert(indexer.IsIndexer || indexer.IsIndexedProperty);
+            Debug.Assert(node.AccessorKind != AccessorKind.Unknown);
+            Debug.Assert(isLeftOfAssignment || (node.AccessorKind != AccessorKind.Set));
 
             // Rewrite the receiver.
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
@@ -91,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Expanded,
                 node.ArgsToParamsOpt,
                 node.DefaultArguments,
-                node.Type,
                 node,
                 isLeftOfAssignment);
         }
@@ -106,18 +108,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
-            TypeSymbol type,
-            BoundIndexerAccess? oldNodeOpt,
+            BoundExpression oldNode,
             bool isLeftOfAssignment)
         {
+            Debug.Assert(oldNode is BoundIndexerAccess or BoundObjectInitializerMember);
+            Debug.Assert(arguments.Length != 0);
+            Debug.Assert(rewrittenReceiver is { });
+
             if (isLeftOfAssignment && indexer.RefKind == RefKind.None)
             {
-                // This is an indexer set access. We return a BoundIndexerAccess node here.
-                // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
+                TypeSymbol type = indexer.Type;
+                Debug.Assert(oldNode.Type is not null);
+                Debug.Assert(oldNode.Type.Equals(type, TypeCompareKind.ConsiderEverything));
 
-                return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
-                    new BoundIndexerAccess(syntax, rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
+                // This is an indexer access. We return a BoundIndexerAccess node here. This node will be rewritten
+                // with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
+                return oldNode switch
+                {
+                    BoundIndexerAccess indexerExpr => indexerExpr.Update(
+                        rewrittenReceiver,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                        indexer,
+                        arguments,
+                        argumentNamesOpt,
+                        argumentRefKindsOpt,
+                        expanded,
+                        indexerExpr.AccessorKind,
+                        argsToParamsOpt,
+                        defaultArguments,
+                        type),
+                    BoundObjectInitializerMember member => new BoundIndexerAccess(
+                        syntax,
+                        rewrittenReceiver,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                        indexer,
+                        arguments,
+                        argumentNamesOpt,
+                        argumentRefKindsOpt,
+                        expanded,
+                        member.AccessorKind,
+                        argsToParamsOpt,
+                        defaultArguments,
+                        type),
+                    _ => throw ExceptionUtilities.UnexpectedValue(oldNode)
+                };
             }
             else
             {
@@ -125,28 +159,67 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(getMethod is not null);
 
                 ArrayBuilder<LocalSymbol>? temps = null;
+                bool needSpecialExtensionPropertyReceiverReadOrder = false;
+                ArrayBuilder<BoundExpression>? storesOpt = null;
+
+                if (IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(rewrittenReceiver, indexer))
+                {
+                    // The receiver has location, but extension indexer takes receiver by value.
+                    // This means that we need to ensure that the receiver value is read after
+                    // any side-effecting arguments are evaluated, so that the
+                    // setter receives the last value of the receiver, not the value before the
+                    // arguments were evaluated. Receiver side effects should be evaluated at
+                    // the very beginning, of course.
+
+                    needSpecialExtensionPropertyReceiverReadOrder = true;
+                    storesOpt = ArrayBuilder<BoundExpression>.GetInstance();
+                }
+
+#if DEBUG
+                BoundExpression? rewrittenReceiverBeforePossibleCapture = rewrittenReceiver;
+#endif
                 ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                     ref rewrittenReceiver,
-                    captureReceiverMode: ReceiverCaptureMode.Default,
+                    forceReceiverCapturing: needSpecialExtensionPropertyReceiverReadOrder,
                     arguments,
                     indexer,
                     argsToParamsOpt,
                     argumentRefKindsOpt,
-                    storesOpt: null,
+                    storesOpt,
                     ref temps);
 
-                rewrittenArguments = MakeArguments(
-                    rewrittenArguments,
-                    indexer,
-                    expanded,
-                    argsToParamsOpt,
-                    ref argumentRefKindsOpt,
-                    ref temps);
+                if (needSpecialExtensionPropertyReceiverReadOrder)
+                {
+#if DEBUG
+                    Debug.Assert(rewrittenReceiverBeforePossibleCapture != (object?)rewrittenReceiver);
+#endif
+                    Debug.Assert(storesOpt is { });
+                    Debug.Assert(storesOpt.Count != 0);
+                    Debug.Assert(temps is not null);
 
+                    // Store everything that is non-trivial into a temporary; record the
+                    // stores in storesToTemps and make the actual argument a reference to the temp.
+                    rewrittenArguments = ExtractSideEffectsFromArguments(rewrittenArguments, indexer, expanded, argsToParamsOpt, ref argumentRefKindsOpt, storesOpt, temps);
+                }
+                else
+                {
+                    rewrittenArguments = MakeArguments(
+                        rewrittenArguments,
+                        indexer,
+                        expanded,
+                        argsToParamsOpt,
+                        ref argumentRefKindsOpt,
+                        ref temps);
+                }
+
+                var sideEffects = storesOpt is null ? [] : storesOpt.ToImmutableAndFree();
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentRefKindsOpt, getMethod);
+
+                Debug.Assert(call.Type is not null);
 
                 if (temps.Count == 0)
                 {
+                    Debug.Assert(sideEffects.IsEmpty);
                     temps.Free();
                     return call;
                 }
@@ -155,9 +228,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundSequence(
                         syntax,
                         temps.ToImmutableAndFree(),
-                        ImmutableArray<BoundExpression>.Empty,
+                        sideEffects,
                         call,
-                        type);
+                        call.Type);
                 }
             }
         }
@@ -424,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rewrittenIndexerAccess = GetUnderlyingIndexerOrSliceAccess(
                 node, isLeftOfAssignment,
-                isRegularAssignmentOrRegularCompoundAssignment: isLeftOfAssignment,
+                isRegularAssignment: isLeftOfAssignment,
                 cacheAllArgumentsOnly: false,
                 sideeffects, locals);
 
@@ -437,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression GetUnderlyingIndexerOrSliceAccess(
             BoundImplicitIndexerAccess node,
             bool isLeftOfAssignment,
-            bool isRegularAssignmentOrRegularCompoundAssignment,
+            bool isRegularAssignment,
             bool cacheAllArgumentsOnly,
             ArrayBuilder<BoundExpression> sideeffects,
             ArrayBuilder<LocalSymbol> locals)
@@ -474,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (receiverLocal.LocalSymbol.IsRef &&
                         CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal) &&
                         !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
-                        ((isLeftOfAssignment && !isRegularAssignmentOrRegularCompoundAssignment) ||
+                        ((isLeftOfAssignment && !isRegularAssignment) ||
                          !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray.Create(makeOffsetInput))))
                     {
                         BoundAssignmentOperator? extraRefInitialization;
@@ -539,9 +612,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // callers do the caching instead
                     // Tracked by https://github.com/dotnet/roslyn/issues/71056
                     AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
+                    // https://github.com/dotnet/roslyn/issues/78829 - Do we need to do something special for recievers of extension indexers here?
                     ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                         ref receiver,
-                        captureReceiverMode: ReceiverCaptureMode.Default,
+                        forceReceiverCapturing: false,
                         indexerAccess.Arguments,
                         indexerAccess.Indexer,
                         indexerAccess.ArgsToParamsOpt,
@@ -555,6 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexerAccess.Indexer, rewrittenArguments,
                         indexerAccess.ArgumentNamesOpt, indexerAccess.ArgumentRefKindsOpt,
                         indexerAccess.Expanded,
+                        indexerAccess.AccessorKind,
                         indexerAccess.ArgsToParamsOpt,
                         indexerAccess.DefaultArguments,
                         indexerAccess.Type);

@@ -4,8 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
@@ -37,7 +35,7 @@ Friend Class MockVisualBasicCompiler
     End Sub
 
     Public Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), Optional analyzers As DiagnosticAnalyzer() = Nothing, Optional generators As ISourceGenerator() = Nothing, Optional additionalReferences As MetadataReference() = Nothing)
-        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), New DefaultAnalyzerAssemblyLoader())
+        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), New AnalyzerAssemblyLoader())
 
         _analyzers = analyzers.AsImmutableOrEmpty()
         _generators = generators.AsImmutableOrEmpty()

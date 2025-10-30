@@ -3,23 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.DataProvider
-{
-    public partial class DataProviderTests
-    {
-        private class TestViewModel : ISettingsEditorViewModel
-        {
-            public void NotifyOfUpdate() { }
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.DataProvider;
 
-            Task<SourceText> ISettingsEditorViewModel.UpdateEditorConfigAsync(SourceText sourceText)
-            {
-                throw new NotImplementedException();
-            }
+public sealed partial class DataProviderTests
+{
+    private sealed class TestViewModel : ISettingsEditorViewModel
+    {
+        public void NotifyOfUpdate() { }
+
+        Task<SourceText> ISettingsEditorViewModel.UpdateEditorConfigAsync(SourceText sourceText)
+        {
+            throw new NotImplementedException();
         }
     }
 }

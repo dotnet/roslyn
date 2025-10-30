@@ -56,7 +56,7 @@ internal sealed class SimpleAggregateTagger<TTag>(ImmutableArray<EfficientTagger
     : AbstractAggregateTagger<TTag>(taggers)
     where TTag : ITag
 {
-    public override void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<TTag>> tags)
+    public override void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<TagSpan<TTag>> tags)
     {
         foreach (var tagger in this.Taggers)
             tagger.AddTags(spans, tags);

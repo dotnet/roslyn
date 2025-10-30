@@ -10,11 +10,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SyncNamespaces;
@@ -32,7 +30,6 @@ internal sealed class SyncNamespacesCommandHandler
 {
     private readonly VisualStudioWorkspace _workspace;
     private readonly IUIThreadOperationExecutor _threadOperationExecutor;
-    private readonly IGlobalOptionService _globalOptions;
     private readonly IThreadingContext _threadingContext;
     private IServiceProvider? _serviceProvider;
 
@@ -41,12 +38,10 @@ internal sealed class SyncNamespacesCommandHandler
     public SyncNamespacesCommandHandler(
         IUIThreadOperationExecutor threadOperationExecutor,
         VisualStudioWorkspace workspace,
-        IGlobalOptionService globalOptions,
         IThreadingContext threadingContext)
     {
         _threadOperationExecutor = threadOperationExecutor;
         _workspace = workspace;
-        _globalOptions = globalOptions;
         _threadingContext = threadingContext;
     }
 
@@ -57,7 +52,7 @@ internal sealed class SyncNamespacesCommandHandler
         _serviceProvider = (IServiceProvider)serviceProvider;
 
         // Hook up the "Remove Unused References" menu command for CPS based managed projects.
-        var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
+        var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
         if (menuCommandService != null)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -109,8 +104,7 @@ internal sealed class SyncNamespacesCommandHandler
         {
             // The solution node is selected, so collect all the C# projects for update.
             var projects = _workspace.CurrentSolution.Projects
-                .Where(project => project.Language.Equals(LanguageNames.CSharp, StringComparison.OrdinalIgnoreCase))
-                .ToImmutableArray();
+                .WhereAsArray(project => project.Language.Equals(LanguageNames.CSharp, StringComparison.OrdinalIgnoreCase));
 
             SyncNamespaces(projects);
         }
@@ -134,7 +128,6 @@ internal sealed class SyncNamespacesCommandHandler
         }
 
         var syncService = projects[0].GetRequiredLanguageService<ISyncNamespacesService>();
-        var options = _globalOptions.GetCodeActionOptionsProvider();
 
         Solution? solution = null;
         var status = _threadOperationExecutor.Execute(
@@ -142,7 +135,7 @@ internal sealed class SyncNamespacesCommandHandler
             operationContext =>
             {
                 solution = _threadingContext.JoinableTaskFactory.Run(
-                    () => syncService.SyncNamespacesAsync(projects, options, operationContext.GetCodeAnalysisProgress(), operationContext.UserCancellationToken));
+                    () => syncService.SyncNamespacesAsync(projects, operationContext.GetCodeAnalysisProgress(), operationContext.UserCancellationToken));
             });
 
         if (status != UIThreadOperationStatus.Canceled && solution is not null)

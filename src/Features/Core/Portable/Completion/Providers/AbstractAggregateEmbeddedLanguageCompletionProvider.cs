@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -34,11 +33,10 @@ internal abstract class AbstractAggregateEmbeddedLanguageCompletionProvider : LS
     protected AbstractAggregateEmbeddedLanguageCompletionProvider(IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices, string languageName)
     {
         var embeddedLanguageServiceType = typeof(IEmbeddedLanguagesProvider).AssemblyQualifiedName;
-        TriggerCharacters = languageServices
+        TriggerCharacters = [.. languageServices
             .Where(lazyLanguageService => IsEmbeddedLanguageProvider(lazyLanguageService, languageName, embeddedLanguageServiceType))
             .SelectMany(lazyLanguageService => ((IEmbeddedLanguagesProvider)lazyLanguageService.Value).Languages)
-            .SelectMany(GetTriggerCharactersForEmbeddedLanguage)
-            .ToImmutableHashSet();
+            .SelectMany(GetTriggerCharactersForEmbeddedLanguage)];
     }
 
     private static ImmutableHashSet<char> GetTriggerCharactersForEmbeddedLanguage(IEmbeddedLanguage language)

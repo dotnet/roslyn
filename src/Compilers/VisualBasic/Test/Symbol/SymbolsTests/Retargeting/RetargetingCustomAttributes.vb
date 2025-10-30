@@ -2,21 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.[Text]
-Imports System.Collections.Generic
-Imports System.Linq
 Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 #If Not Retargeting Then
@@ -151,13 +141,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 
         Private Shared ReadOnly Property OldMsCorLib As MetadataReference
             Get
-                Return TestMetadata.Net40.mscorlib
+                Return Net40.References.mscorlib
             End Get
         End Property
 
         Private Shared ReadOnly Property NewMsCorLib As MetadataReference
             Get
-                Return TestMetadata.Net451.mscorlib
+                Return NetFramework.mscorlib
             End Get
         End Property
 

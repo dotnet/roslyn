@@ -13,1095 +13,1024 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceVariable
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceVariable;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+public sealed partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
-    public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeActionTest_NoEditor
-    {
-        private static readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
-        private static readonly CodeStyleOption2<bool> offWithInfo = new(false, NotificationOption2.Suggestion);
+    private static readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
+    private static readonly CodeStyleOption2<bool> offWithInfo = new(false, NotificationOption2.Suggestion);
 
-        private OptionsCollection ImplicitTypeEverywhere()
-            => new(GetLanguage())
+    private OptionsCollection ImplicitTypeEverywhere()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+        };
+
+    private OptionsCollection ImplicitTypeForIntrinsics()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+        };
+
+    private OptionsCollection ImplicitTypeForApparent()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+        };
+
+    private OptionsCollection ImplicitTypeForApparentAndBuiltIn()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+        };
+
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new CSharpIntroduceLocalForExpressionCodeRefactoringProvider();
+
+    [Fact]
+    public Task IntroduceLocal_NoSemicolon()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
             {
-                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
-                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
-                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
-            };
+                void M()
+                {
+                    new DateTime()[||]
+                }
+            }
+            """,
+            """
+            using System;
 
-        private OptionsCollection ImplicitTypeForIntrinsics()
-            => new(GetLanguage())
+            class C
             {
-                { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
-                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
-                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
-            };
+                void M()
+                {
+                    DateTime {|Rename:dateTime|} = new DateTime();
+                }
+            }
+            """);
 
-        private OptionsCollection ImplicitTypeForApparent()
-            => new(GetLanguage())
+    [Fact]
+    public Task IntroduceLocal_NoSemicolon_BlankLineAfter()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
             {
-                { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
-                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
-                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
-            };
+                void M()
+                {
+                    new DateTime()[||]
 
-        private OptionsCollection ImplicitTypeForApparentAndBuiltIn()
-            => new(GetLanguage())
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
             {
-                { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
-                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
-                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
-            };
+                void M()
+                {
+                    DateTime {|Rename:dateTime|} = new DateTime();
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
-            => new CSharpIntroduceLocalForExpressionCodeRefactoringProvider();
+                }
+            }
+            """);
 
-        [Fact]
-        public async Task IntroduceLocal_NoSemicolon()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact]
+    public Task IntroduceLocal_NoSemicolon_SelectExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        new DateTime()[||]
-                    }
+                    [|new DateTime()|]
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        DateTime {|Rename:dateTime|} = new DateTime();
-                    }
+                    DateTime {|Rename:dateTime|} = new DateTime();
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task IntroduceLocal_NoSemicolon_BlankLineAfter()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
+    public Task IntroduceLocal_Inside_Expression()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        new DateTime()[||]
+                    new TimeSpan() +[||] new TimeSpan();
+                }
+            }
+            """,
+            """
+            using System;
 
-                    }
+            class C
+            {
+                void M()
+                {
+                    TimeSpan {|Rename:timeSpan|} = new TimeSpan() + new TimeSpan();
                 }
-                """,
-                """
-                using System;
+            }
+            """);
+
+    [Fact]
+    public Task IntroduceLocal_Semicolon()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        DateTime {|Rename:dateTime|} = new DateTime();
+                    new DateTime();[||]
+                }
+            }
+            """,
+            """
+            using System;
 
-                    }
+            class C
+            {
+                void M()
+                {
+                    DateTime {|Rename:dateTime|} = new DateTime();
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task IntroduceLocal_NoSemicolon_SelectExpression()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact]
+    public Task IntroduceLocal_Semicolon_BlankLineAfter()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        [|new DateTime()|]
-                    }
+                    new DateTime();[||]
+
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        DateTime {|Rename:dateTime|} = new DateTime();
-                    }
+                    DateTime {|Rename:dateTime|} = new DateTime();
+
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task IntroduceLocal_Inside_Expression()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact]
+    public Task IntroduceLocal_Semicolon_SelectExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        new TimeSpan() +[||] new TimeSpan();
-                    }
+                    [|new DateTime()|];
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        TimeSpan {|Rename:timeSpan|} = new TimeSpan() + new TimeSpan();
-                    }
+                    DateTime {|Rename:dateTime|} = new DateTime();
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task IntroduceLocal_Semicolon()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact]
+    public Task IntroduceLocal_Semicolon_SelectStatement()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        new DateTime();[||]
-                    }
+                    [|new DateTime();|]
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        DateTime {|Rename:dateTime|} = new DateTime();
-                    }
+                    DateTime {|Rename:dateTime|} = new DateTime();
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task IntroduceLocal_Semicolon_BlankLineAfter()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact]
+    public Task MissingOnAssignmentExpressionStatement()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        new DateTime();[||]
-
-                    }
+                    int a = 42;
+                    [||]a = 42;
                 }
-                """,
-                """
-                using System;
+            }
+            """);
 
-                class C
+    [Fact]
+    public Task IntroduceLocal_Space()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        DateTime {|Rename:dateTime|} = new DateTime();
+                    new DateTime(); [||]
+                }
+            }
+            """,
+            """
+            using System;
 
-                    }
+            class C
+            {
+                void M()
+                {
+                    DateTime {|Rename:dateTime|} = new DateTime(); 
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task IntroduceLocal_Semicolon_SelectExpression()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact]
+    public Task IntroduceLocal_LeadingTrivia()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        [|new DateTime()|];
-                    }
+                    // Comment
+                    new DateTime();[||]
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        DateTime {|Rename:dateTime|} = new DateTime();
-                    }
+                    // Comment
+                    DateTime {|Rename:dateTime|} = new DateTime();
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task IntroduceLocal_Semicolon_SelectStatement()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact]
+    public Task IntroduceLocal_PreferVar()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        [|new DateTime();|]
-                    }
+                    new DateTime();[||]
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        DateTime {|Rename:dateTime|} = new DateTime();
-                    }
+                    var {|Rename:dateTime|} = new DateTime();
                 }
-                """);
-        }
+            }
+            """, new(options: new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOption2.TrueWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement },
+            }));
 
-        [Fact]
-        public async Task MissingOnAssignmentExpressionStatement()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact]
+    public Task MissingOnVoidCall()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        int a = 42;
-                        [||]a = 42;
-                    }
-                }
-                """);
-        }
+                    Console.WriteLine();[||]
+                }
+            }
+            """);
 
-        [Fact]
-        public async Task IntroduceLocal_Space()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact]
+    public Task MissingOnDeclaration()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        new DateTime(); [||]
-                    }
-                }
-                """,
-                """
-                using System;
-
-                class C
-                {
-                    void M()
-                    {
-                        DateTime {|Rename:dateTime|} = new DateTime(); 
-                    }
+                    var v = new DateTime()[||]
                 }
-                """);
-        }
-
-        [Fact]
-        public async Task IntroduceLocal_LeadingTrivia()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            }
+            """);
 
-                class C
-                {
-                    void M()
-                    {
-                        // Comment
-                        new DateTime();[||]
-                    }
-                }
-                """,
-                """
-                using System;
+    [Fact]
+    public Task IntroduceLocal_ArithmeticExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
-                {
-                    void M()
-                    {
-                        // Comment
-                        DateTime {|Rename:dateTime|} = new DateTime();
-                    }
+            class C
+            {
+                void M()
+                {
+                    1 + 1[||]
                 }
-                """);
-        }
-
-        [Fact]
-        public async Task IntroduceLocal_PreferVar()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        new DateTime();[||]
-                    }
-                }
-                """,
-                """
-                using System;
+                    int {|Rename:v|} = 1 + 1;
+                }
+            }
+            """);
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction1_A()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                (string someString, int someInt) X() => default;
+
+                void M()
                 {
-                    void M()
-                    {
-                        var {|Rename:dateTime|} = new DateTime();
-                    }
+                    X()[||]
                 }
-                """, options: new OptionsCollection(GetLanguage())
-    {
-        { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOption2.TrueWithSuggestionEnforcement },
-        { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement },
-    });
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact]
-        public async Task MissingOnVoidCall()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                class C
+                void M()
                 {
-                    void M()
-                    {
-                        Console.WriteLine();[||]
-                    }
+                    (string someString, int someInt) = X();
                 }
-                """);
-        }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction1_B()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-        [Fact]
-        public async Task MissingOnDeclaration()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                class C
+                void M()
                 {
-                    void M()
-                    {
-                        var v = new DateTime()[||]
-                    }
+                    X()[||]
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact]
-        public async Task IntroduceLocal_ArithmeticExpression()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                class C
+                void M()
                 {
-                    void M()
-                    {
-                        1 + 1[||]
-                    }
+                    (string someString, int someInt) {|Rename:value|} = X();
                 }
-                """,
-                """
-                using System;
+            }
+            """, index: 1);
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction1_C()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                (string someString, int someInt) X() => default;
+
+                void M()
                 {
-                    void M()
-                    {
-                        int {|Rename:v|} = 1 + 1;
-                    }
+                    X()[||]
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction1_A()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                class C
+                void M()
                 {
-                    (string someString, int someInt) X() => default;
-
-                    void M()
-                    {
-                        X()[||]
-                    }
+                    var (someString, someInt) = X();
                 }
-                """,
-                """
-                using System;
+            }
+            """, new(options: ImplicitTypeEverywhere()));
 
-                class C
-                {
-                    (string someString, int someInt) X() => default;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction2_A()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                    void M()
-                    {
-                        (string someString, int someInt) = X();
-                    }
+                void M()
+                {
+                    X();[||]
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction1_B()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                class C
+                void M()
                 {
-                    (string someString, int someInt) X() => default;
-
-                    void M()
-                    {
-                        X()[||]
-                    }
+                    (string someString, int someInt) = X();
                 }
-                """,
-                """
-                using System;
+            }
+            """);
 
-                class C
-                {
-                    (string someString, int someInt) X() => default;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction2_B()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                    void M()
-                    {
-                        (string someString, int someInt) {|Rename:value|} = X();
-                    }
+            class C
+            {
+                (string someString, int someInt) X() => default;
+
+                void M()
+                {
+                    X();[||]
                 }
-                """, index: 1);
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction1_C()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                class C
+                void M()
                 {
-                    (string someString, int someInt) X() => default;
-
-                    void M()
-                    {
-                        X()[||]
-                    }
+                    (string someString, int someInt) {|Rename:value|} = X();
                 }
-                """,
-                """
-                using System;
+            }
+            """, index: 1);
 
-                class C
-                {
-                    (string someString, int someInt) X() => default;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction2_C()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                    void M()
-                    {
-                        var (someString, someInt) = X();
-                    }
+                void M()
+                {
+                    X();[||]
                 }
-                """, options: ImplicitTypeEverywhere());
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction2_A()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                class C
+                void M()
                 {
-                    (string someString, int someInt) X() => default;
-
-                    void M()
-                    {
-                        X();[||]
-                    }
+                    var (someString, someInt) = X();
                 }
-                """,
-                """
-                using System;
+            }
+            """, new(options: ImplicitTypeEverywhere()));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction3_A()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                (string someString, int someInt) X() => default;
+
+                void M()
                 {
-                    (string someString, int someInt) X() => default;
+                    X()[||]
 
-                    void M()
-                    {
-                        (string someString, int someInt) = X();
-                    }
+                    string someString;
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction2_B()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                class C
+                void M()
                 {
-                    (string someString, int someInt) X() => default;
+                    (string someString1, int someInt) = X();
 
-                    void M()
-                    {
-                        X();[||]
-                    }
+                    string someString;
                 }
-                """,
-                """
-                using System;
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction3_B()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                class C
+                void M()
                 {
-                    (string someString, int someInt) X() => default;
+                    X()[||]
 
-                    void M()
-                    {
-                        (string someString, int someInt) {|Rename:value|} = X();
-                    }
+                    string someString;
                 }
-                """, index: 1);
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction2_C()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                class C
+                void M()
                 {
-                    (string someString, int someInt) X() => default;
+                    (string someString, int someInt) {|Rename:value|} = X();
 
-                    void M()
-                    {
-                        X();[||]
-                    }
+                    string someString;
                 }
-                """,
-                """
-                using System;
+            }
+            """, index: 1);
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction3_C()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                (string someString, int someInt) X() => default;
+
+                void M()
                 {
-                    (string someString, int someInt) X() => default;
+                    X()[||]
 
-                    void M()
-                    {
-                        var (someString, someInt) = X();
-                    }
+                    string someString;
                 }
-                """, options: ImplicitTypeEverywhere());
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction3_A()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                class C
+                void M()
                 {
-                    (string someString, int someInt) X() => default;
-
-                    void M()
-                    {
-                        X()[||]
+                    var (someString1, someInt) = X();
 
-                        string someString;
-                    }
+                    string someString;
                 }
-                """,
-                """
-                using System;
+            }
+            """, new(options: ImplicitTypeEverywhere()));
 
-                class C
-                {
-                    (string someString, int someInt) X() => default;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction4_A()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                    void M()
-                    {
-                        (string someString1, int someInt) = X();
+            class C
+            {
+                ValueTuple<string, int> X() => default;
 
-                        string someString;
-                    }
+                void M()
+                {
+                    X()[||]
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction3_B()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                ValueTuple<string, int> X() => default;
 
-                class C
+                void M()
                 {
-                    (string someString, int someInt) X() => default;
-
-                    void M()
-                    {
-                        X()[||]
-
-                        string someString;
-                    }
+                    (string item1, int item2) = X();
                 }
-                """,
-                """
-                using System;
+            }
+            """);
 
-                class C
-                {
-                    (string someString, int someInt) X() => default;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction4_B()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                    void M()
-                    {
-                        (string someString, int someInt) {|Rename:value|} = X();
+            class C
+            {
+                ValueTuple<string, int> X() => default;
 
-                        string someString;
-                    }
+                void M()
+                {
+                    X()[||]
                 }
-                """, index: 1);
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction3_C()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                ValueTuple<string, int> X() => default;
 
-                class C
+                void M()
                 {
-                    (string someString, int someInt) X() => default;
-
-                    void M()
-                    {
-                        X()[||]
-
-                        string someString;
-                    }
+                    (string, int) {|Rename:value|} = X();
                 }
-                """,
-                """
-                using System;
+            }
+            """, index: 1);
 
-                class C
-                {
-                    (string someString, int someInt) X() => default;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction4_C()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                    void M()
-                    {
-                        var (someString1, someInt) = X();
+            class C
+            {
+                ValueTuple<string, int> X() => default;
 
-                        string someString;
-                    }
+                void M()
+                {
+                    X()[||]
                 }
-                """, options: ImplicitTypeEverywhere());
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction4_A()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                ValueTuple<string, int> X() => default;
 
-                class C
+                void M()
                 {
-                    ValueTuple<string, int> X() => default;
-
-                    void M()
-                    {
-                        X()[||]
-                    }
+                    var (item1, item2) = X();
                 }
-                """,
-                """
-                using System;
-
-                class C
-                {
-                    ValueTuple<string, int> X() => default;
+            }
+            """, new(options: ImplicitTypeEverywhere()));
 
-                    void M()
-                    {
-                        (string item1, int item2) = X();
-                    }
-                }
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction5_A()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction4_B()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string, int) X() => default;
 
-                class C
+                void M()
                 {
-                    ValueTuple<string, int> X() => default;
-
-                    void M()
-                    {
-                        X()[||]
-                    }
+                    X()[||]
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
-                {
-                    ValueTuple<string, int> X() => default;
+            class C
+            {
+                (string, int) X() => default;
 
-                    void M()
-                    {
-                        (string, int) {|Rename:value|} = X();
-                    }
+                void M()
+                {
+                    (string item1, int item2) = X();
                 }
-                """, index: 1);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction4_C()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            }
+            """);
 
-                class C
-                {
-                    ValueTuple<string, int> X() => default;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction5_B()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                    void M()
-                    {
-                        X()[||]
-                    }
-                }
-                """,
-                """
-                using System;
+            class C
+            {
+                (string, int) X() => default;
 
-                class C
+                void M()
                 {
-                    ValueTuple<string, int> X() => default;
-
-                    void M()
-                    {
-                        var (item1, item2) = X();
-                    }
+                    X()[||]
                 }
-                """, options: ImplicitTypeEverywhere());
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction5_A()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string, int) X() => default;
 
-                class C
+                void M()
                 {
-                    (string, int) X() => default;
-
-                    void M()
-                    {
-                        X()[||]
-                    }
+                    (string, int) {|Rename:value|} = X();
                 }
-                """,
-                """
-                using System;
-
-                class C
-                {
-                    (string, int) X() => default;
+            }
+            """, index: 1);
 
-                    void M()
-                    {
-                        (string item1, int item2) = X();
-                    }
-                }
-                """);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction5_C()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction5_B()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string, int) X() => default;
 
-                class C
+                void M()
                 {
-                    (string, int) X() => default;
-
-                    void M()
-                    {
-                        X()[||]
-                    }
+                    X()[||]
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
-                {
-                    (string, int) X() => default;
+            class C
+            {
+                (string, int) X() => default;
 
-                    void M()
-                    {
-                        (string, int) {|Rename:value|} = X();
-                    }
+                void M()
+                {
+                    var (item1, item2) = X();
                 }
-                """, index: 1);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction5_C()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            }
+            """, new(options: ImplicitTypeEverywhere()));
 
-                class C
-                {
-                    (string, int) X() => default;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction_ImplicitTypeForIntrinsics1()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                    void M()
-                    {
-                        X()[||]
-                    }
-                }
-                """,
-                """
-                using System;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                class C
+                void M()
                 {
-                    (string, int) X() => default;
-
-                    void M()
-                    {
-                        var (item1, item2) = X();
-                    }
+                    X()[||]
                 }
-                """, options: ImplicitTypeEverywhere());
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction_ImplicitTypeForIntrinsics1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                class C
+                void M()
                 {
-                    (string someString, int someInt) X() => default;
-
-                    void M()
-                    {
-                        X()[||]
-                    }
+                    var (someString, someInt) = X();
                 }
-                """,
-                """
-                using System;
-
-                class C
-                {
-                    (string someString, int someInt) X() => default;
+            }
+            """, new(options: ImplicitTypeForIntrinsics()));
 
-                    void M()
-                    {
-                        var (someString, someInt) = X();
-                    }
-                }
-                """, options: ImplicitTypeForIntrinsics());
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction_ImplicitTypeForIntrinsics2()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction_ImplicitTypeForIntrinsics2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class C
+            {
+                (string someString, C c) X() => default;
 
-                class C
+                void M()
                 {
-                    (string someString, C c) X() => default;
-
-                    void M()
-                    {
-                        // don't use `var (...)` here as not all the individual types will be 'var'
-                        X()[||]
-                    }
+                    // don't use `var (...)` here as not all the individual types will be 'var'
+                    X()[||]
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
-                {
-                    (string someString, C c) X() => default;
+            class C
+            {
+                (string someString, C c) X() => default;
 
-                    void M()
-                    {
-                        // don't use `var (...)` here as not all the individual types will be 'var'
-                        (var someString, C c) = X();
-                    }
+                void M()
+                {
+                    // don't use `var (...)` here as not all the individual types will be 'var'
+                    (var someString, C c) = X();
                 }
-                """, options: ImplicitTypeForIntrinsics());
-        }
+            }
+            """, new(options: ImplicitTypeForIntrinsics()));
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction_ImplicitTypeWhenApparent1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction_ImplicitTypeWhenApparent1()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
-                {
-                    (string someString, int someInt) X() => default;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                    void M()
-                    {
-                        X()[||]
-                    }
+                void M()
+                {
+                    X()[||]
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
-                {
-                    (string someString, int someInt) X() => default;
+            class C
+            {
+                (string someString, int someInt) X() => default;
 
-                    void M()
-                    {
-                        (string someString, int someInt) = X();
-                    }
+                void M()
+                {
+                    (string someString, int someInt) = X();
                 }
-                """, options: ImplicitTypeForApparent());
-        }
+            }
+            """, new(options: ImplicitTypeForApparent()));
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction_ImplicitTypeWhenApparent2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction_ImplicitTypeWhenApparent2()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        // literal is not apparent (it is builtin). default(...) is both apparent
-                        (someString: "", someC: default(C))[||]
-                    }
+                    // literal is not apparent (it is builtin). default(...) is both apparent
+                    (someString: "", someC: default(C))[||]
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        // literal is not apparent (it is builtin). default(...) is both apparent
-                        (string someString, C someC) = (someString: "", someC: default(C));
-                    }
+                    // literal is not apparent (it is builtin). default(...) is both apparent
+                    (string someString, C someC) = (someString: "", someC: default(C));
                 }
-                """, options: ImplicitTypeForApparent());
-        }
+            }
+            """, new(options: ImplicitTypeForApparent()));
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
-        public async Task IntroduceDeconstruction_ImplicitTypeWhenApparentAndBuiltIn1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39537")]
+    public Task IntroduceDeconstruction_ImplicitTypeWhenApparentAndBuiltIn1()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        // literal is is builtin, as is default(...)
-                        (someString: "", someC: default(C))[||]
-                    }
+                    // literal is is builtin, as is default(...)
+                    (someString: "", someC: default(C))[||]
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        // literal is is builtin, as is default(...)
-                        var (someString, someC) = (someString: "", someC: default(C));
-                    }
+                    // literal is is builtin, as is default(...)
+                    var (someString, someC) = (someString: "", someC: default(C));
                 }
-                """, options: ImplicitTypeForApparentAndBuiltIn());
-        }
-    }
+            }
+            """, new(options: ImplicitTypeForApparentAndBuiltIn()));
 }

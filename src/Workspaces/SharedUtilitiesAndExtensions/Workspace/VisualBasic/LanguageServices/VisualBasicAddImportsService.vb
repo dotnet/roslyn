@@ -7,7 +7,6 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
@@ -66,9 +65,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                                                FirstOrDefault()?.Alias
         End Function
 
-        Public Overrides Function GetUsingDirectivePlacementCodeStyleOption(configOptions As IOptionsReader, fallbackValue As CodeStyleOption2(Of AddImportPlacement)) As CodeStyleOption2(Of AddImportPlacement)
+        Public Overrides Function GetUsingDirectivePlacementCodeStyleOption(configOptions As IOptionsReader) As CodeStyleOption2(Of AddImportPlacement)
             ' Visual Basic doesn't support imports inside namespaces
-            Return fallbackValue
+            Return AddImportPlacementOptions.Default.UsingDirectivePlacement
         End Function
 
         Protected Overrides Function IsStaticUsing(usingOrAlias As ImportsStatementSyntax) As Boolean

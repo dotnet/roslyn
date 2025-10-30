@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If aliasImportsOpt IsNot Nothing Then
                 For Each aliasImport In aliasImportsOpt.Values
                     ValidateImportsClause(compilation, clauseDiagnostics, aliasImport.Alias.Target,
-                                          aliasImport.Dependencies, aliasImport.Alias.Locations(0),
+                                          aliasImport.Dependencies, aliasImport.Alias.GetFirstLocation(),
                                           aliasImport.ImportsClausePosition, diagnostics)
                 Next
             End If
@@ -360,7 +360,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim type = TryCast(namespaceOrType, TypeSymbol)
             If type IsNot Nothing Then
                 clauseDiagnostics.Clear()
-                type.CheckAllConstraints(location, clauseDiagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, compilation.Assembly))
+                type.CheckAllConstraints(
+                    compilation.LanguageVersion,
+                    location, clauseDiagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, compilation.Assembly))
                 diagnostics.AddRange(clauseDiagnostics.DiagnosticBag)
 
                 If VisualBasicCompilation.ReportUnusedImportsInTree(location.PossiblyEmbeddedOrMySourceTree) Then

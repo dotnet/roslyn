@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.SQLite.Interop;
 
-internal class SqlException(Result result, string message) : Exception(message)
+internal sealed class SqlException(Result result, string message) : Exception(message)
 {
     public readonly Result Result = result;
 }

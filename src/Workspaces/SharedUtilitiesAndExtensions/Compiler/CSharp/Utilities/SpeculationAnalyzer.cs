@@ -9,10 +9,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Xml.Serialization;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities;
 /// It uses the original tree's semantic model to create a speculative semantic model and verifies that
 /// the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
 /// </summary>
-internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
+internal sealed class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
     ExpressionSyntax,
     TypeSyntax,
     AttributeSyntax,
@@ -71,10 +72,22 @@ internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
     {
         Debug.Assert(expression != null);
 
-        var parentNodeToSpeculate = expression
-            .AncestorsAndSelf(ascendOutOfTrivia: false)
-            .Where(CanSpeculateOnNode)
-            .LastOrDefault();
+        SyntaxNode previousNode = null;
+        SyntaxNode parentNodeToSpeculate = null;
+        foreach (var node in expression.AncestorsAndSelf(ascendOutOfTrivia: false))
+        {
+            if (CanSpeculateOnNode(node))
+            {
+                // Only speculate on PrimaryConstructorBaseTypeSyntax if we are inside the argument list
+                if (node.Kind() is not SyntaxKind.PrimaryConstructorBaseType ||
+                    previousNode.Kind() is SyntaxKind.ArgumentList)
+                {
+                    parentNodeToSpeculate = node;
+                }
+            }
+
+            previousNode = node;
+        }
 
         return parentNodeToSpeculate ?? expression;
     }
@@ -639,13 +652,18 @@ internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
         => throwStatement.Expression;
 
     protected override bool IsForEachTypeInferred(CommonForEachStatementSyntax forEachStatement, SemanticModel semanticModel)
-        => forEachStatement.IsTypeInferred(semanticModel);
+        => forEachStatement switch
+        {
+            ForEachStatementSyntax foreachStatement => foreachStatement.Type.IsTypeInferred(semanticModel),
+            ForEachVariableStatementSyntax { Variable: DeclarationExpressionSyntax declarationExpression } => declarationExpression.Type.IsTypeInferred(semanticModel),
+            _ => false,
+        };
 
     protected override bool IsParenthesizedExpression(SyntaxNode node)
         => node.IsKind(SyntaxKind.ParenthesizedExpression);
 
     protected override bool IsNamedArgument(ArgumentSyntax argument)
-        => argument.NameColon != null && !argument.NameColon.IsMissing;
+        => argument.NameColon is { IsMissing: false };
 
     protected override string GetNamedArgumentIdentifierValueText(ArgumentSyntax argument)
         => argument.NameColon.Name.Identifier.ValueText;
@@ -864,11 +882,50 @@ internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
             && ConversionsAreCompatible(originalInfo.ElementConversion, newInfo.ElementConversion);
     }
 
-    protected override void GetForEachSymbols(SemanticModel model, CommonForEachStatementSyntax forEach, out IMethodSymbol getEnumeratorMethod, out ITypeSymbol elementType)
+    protected override void GetForEachSymbols(
+        SemanticModel model,
+        CommonForEachStatementSyntax forEach,
+        out IMethodSymbol getEnumeratorMethod,
+        out ITypeSymbol elementType,
+        out ImmutableArray<ILocalSymbol> localVariables)
     {
         var info = model.GetForEachStatementInfo(forEach);
         getEnumeratorMethod = info.GetEnumeratorMethod;
         elementType = info.ElementType;
+
+        if (forEach is ForEachStatementSyntax foreachStatement)
+        {
+            localVariables = [(ILocalSymbol)model.GetRequiredDeclaredSymbol(foreachStatement, this.CancellationToken)];
+        }
+        else if (forEach is ForEachVariableStatementSyntax { Variable: DeclarationExpressionSyntax declarationExpression })
+        {
+            using var variables = TemporaryArray<ILocalSymbol>.Empty;
+            AddVariables(declarationExpression.Designation, ref variables.AsRef());
+
+            localVariables = variables.ToImmutableAndClear();
+        }
+        else
+        {
+            localVariables = [];
+        }
+
+        return;
+
+        void AddVariables(VariableDesignationSyntax designation, ref TemporaryArray<ILocalSymbol> variables)
+        {
+            switch (designation)
+            {
+                case SingleVariableDesignationSyntax singleVariableDesignation:
+                    variables.Add((ILocalSymbol)model.GetRequiredDeclaredSymbol(singleVariableDesignation, CancellationToken));
+                    break;
+
+                case ParenthesizedVariableDesignationSyntax parenthesizedVariableDesignation:
+                    foreach (var child in parenthesizedVariableDesignation.Variables)
+                        AddVariables(child, ref variables);
+
+                    break;
+            }
+        }
     }
 
     protected override bool IsReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)

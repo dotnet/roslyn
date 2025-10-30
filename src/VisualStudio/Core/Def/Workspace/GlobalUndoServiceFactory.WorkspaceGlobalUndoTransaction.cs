@@ -2,30 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 using Workspace = Microsoft.CodeAnalysis.Workspace;
 
-internal partial class GlobalUndoServiceFactory
+internal sealed partial class GlobalUndoServiceFactory
 {
-    private class WorkspaceUndoTransaction : ForegroundThreadAffinitizedObject, IWorkspaceGlobalUndoTransaction
+    private sealed class WorkspaceUndoTransaction : IWorkspaceGlobalUndoTransaction
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IVsLinkedUndoTransactionManager _undoManager;
         private readonly Workspace _workspace;
@@ -42,13 +39,15 @@ internal partial class GlobalUndoServiceFactory
             Workspace workspace,
             string description,
             GlobalUndoService service)
-            : base(threadingContext, assertIsForeground: true)
         {
+            _threadingContext = threadingContext;
             _undoHistoryRegistry = undoHistoryRegistry;
             _undoManager = undoManager;
             _workspace = workspace;
             _description = description;
             _service = service;
+
+            _threadingContext.ThrowIfNotOnUIThread();
 
             Marshal.ThrowExceptionForHR(_undoManager.OpenLinkedUndo((uint)LinkedTransactionFlags2.mdtGlobal, _description));
             _transactionAlive = true;
@@ -89,7 +88,7 @@ internal partial class GlobalUndoServiceFactory
 
         public void Commit()
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // once either commit or disposed is called, don't do finalizer check
             GC.SuppressFinalize(this);
@@ -113,7 +112,7 @@ internal partial class GlobalUndoServiceFactory
 
         public void Dispose()
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // once either commit or disposed is called, don't do finalizer check
             GC.SuppressFinalize(this);

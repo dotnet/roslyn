@@ -2,13 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Runtime.CompilerServices
-Imports CompilationCreationTestHelpers
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
@@ -17,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub Test1()
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestMetadata.ResourcesNet40.mscorlib)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(Net40.Resources.mscorlib)
 
             TestTypeKindHelper(assembly)
         End Sub
@@ -85,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         <WorkItem(546314, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546314")>
         Public Sub Bug15562()
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestMetadata.ResourcesNet40.mscorlib)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(Net40.Resources.mscorlib)
             Dim module0 = assembly.Modules(0)
             Dim system = (From n In module0.GlobalNamespace.GetMembers()
                           Where n.Name.Equals("System")).Cast(Of NamespaceSymbol)().Single()

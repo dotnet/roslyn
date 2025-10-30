@@ -14,22 +14,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyThisOrMe), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)]
-internal partial class CSharpSimplifyThisOrMeCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpSimplifyThisOrMeCodeFixProvider()
     : AbstractSimplifyThisOrMeCodeFixProvider<MemberAccessExpressionSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpSimplifyThisOrMeCodeFixProvider()
-    {
-    }
-
     protected override string GetTitle()
         => CSharpFeaturesResources.Remove_this_qualification;
 
     protected override SyntaxNode Rewrite(SyntaxNode root, ISet<MemberAccessExpressionSyntax> memberAccessNodes)
         => new Rewriter(memberAccessNodes).Visit(root);
 
-    private class Rewriter(ISet<MemberAccessExpressionSyntax> memberAccessNodes) : CSharpSyntaxRewriter
+    private sealed class Rewriter(ISet<MemberAccessExpressionSyntax> memberAccessNodes) : CSharpSyntaxRewriter
     {
         private readonly ISet<MemberAccessExpressionSyntax> _memberAccessNodes = memberAccessNodes;
 

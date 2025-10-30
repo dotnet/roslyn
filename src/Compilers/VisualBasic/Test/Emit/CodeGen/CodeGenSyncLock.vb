@@ -2,10 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
+Imports Basic.Reference.Assemblies
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -87,7 +84,7 @@ End Class
 </compilation>
 
             Dim allReferences As MetadataReference() = {
-                            TestMetadata.Net20.mscorlib,
+                            Net20.References.mscorlib,
                             SystemRef,
                             MsvbRef}
 

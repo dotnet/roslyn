@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -178,7 +177,7 @@ internal static partial class ValueTracker
         CancellationToken cancellationToken)
     {
         var containingSymbol = parameterSymbol.ContainingSymbol;
-        var findReferenceProgressCollector = new FindReferencesProgress(collector);
+        var findReferenceProgressCollector = new FindReferencesProgress(collector, parameterSymbol);
         await SymbolFinder.FindReferencesAsync(
             containingSymbol,
             collector.Solution,
@@ -274,7 +273,7 @@ internal static partial class ValueTracker
             // the symbol for that identifier
             if (syntaxFacts.IsArgument(selectedNode))
             {
-                selectedNode = syntaxFacts.GetExpressionOfArgument(selectedNode)!;
+                selectedNode = syntaxFacts.GetExpressionOfArgument(selectedNode);
                 selectedSymbol = semanticModel.GetSymbolInfo(selectedNode, cancellationToken).Symbol;
             }
         }

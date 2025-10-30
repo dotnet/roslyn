@@ -101,7 +101,7 @@ internal sealed class RegexClassifier : IEmbeddedLanguageClassifier
         }
     }
 
-    private class Visitor : IRegexNodeVisitor
+    private sealed class Visitor : IRegexNodeVisitor
     {
         public EmbeddedLanguageClassificationContext Context;
 
@@ -303,16 +303,6 @@ internal sealed class RegexClassifier : IEmbeddedLanguageClassifier
 
         public void Visit(RegexTextNode node)
             => AddClassification(node.TextToken, ClassificationTypeNames.RegexText);
-
-        public void Visit(RegexPosixPropertyNode node)
-        {
-            // The .NET parser just interprets the [ of the node, and skips the rest. So
-            // classify the end part as a comment.
-            Context.AddClassification(ClassificationTypeNames.RegexText, node.TextToken.VirtualChars[0].Span);
-            Context.AddClassification(
-                ClassificationTypeNames.RegexComment,
-                GetSpan(node.TextToken.VirtualChars[1], node.TextToken.VirtualChars.Last()));
-        }
 
         public void Visit(RegexAlternationNode node)
         {

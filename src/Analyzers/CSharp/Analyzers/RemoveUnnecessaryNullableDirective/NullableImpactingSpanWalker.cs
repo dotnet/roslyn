@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
 internal sealed class NullableImpactingSpanWalker(
     SemanticModel semanticModel,
     int positionOfFirstReducingNullableDirective,
-    TextSpanIntervalTree? ignoredSpans,
+    TextSpanMutableIntervalTree? ignoredSpans,
     CancellationToken cancellationToken) : CSharpSyntaxWalker(SyntaxWalkerDepth.StructuredTrivia), IDisposable
 {
     private readonly SemanticModel _semanticModel = semanticModel;
     private readonly int _positionOfFirstReducingNullableDirective = positionOfFirstReducingNullableDirective;
-    private readonly TextSpanIntervalTree? _ignoredSpans = ignoredSpans;
+    private readonly TextSpanMutableIntervalTree? _ignoredSpans = ignoredSpans;
     private readonly CancellationToken _cancellationToken = cancellationToken;
 
     private ImmutableArray<TextSpan>.Builder? _spans;
@@ -96,6 +96,10 @@ internal sealed class NullableImpactingSpanWalker(
             //         ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^
             return true;
         }
+
+        // An attribute name cannot itself be nullable.  `[CLSCompliant?]` is not a thing.
+        if (node.IsParentKind(SyntaxKind.Attribute))
+            return true;
 
         return false;
 

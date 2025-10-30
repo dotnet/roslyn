@@ -4,21 +4,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SemanticModelReuse;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Options;
 
 #if DEBUG
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 #endif
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
@@ -41,6 +39,21 @@ internal static partial class DocumentExtensions
         return semanticModel ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
     }
 
+#if WORKSPACE
+
+    public static async ValueTask<SemanticModel> GetRequiredNullableDisabledSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+    {
+        if (document.TryGetNullableDisabledSemanticModel(out var semanticModel))
+            return semanticModel;
+
+#pragma warning disable RSEXPERIMENTAL001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        semanticModel = await document.GetSemanticModelAsync(SemanticModelOptions.DisableNullableAnalysis, cancellationToken).ConfigureAwait(false);
+#pragma warning restore RSEXPERIMENTAL001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        return semanticModel ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+    }
+
+#endif
+
     public static async ValueTask<SyntaxTree> GetRequiredSyntaxTreeAsync(this Document document, CancellationToken cancellationToken)
     {
         if (document.TryGetSyntaxTree(out var syntaxTree))
@@ -50,7 +63,7 @@ internal static partial class DocumentExtensions
         return syntaxTree ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
     }
 
-#if !CODE_STYLE
+#if WORKSPACE
     public static SyntaxTree GetRequiredSyntaxTreeSynchronously(this Document document, CancellationToken cancellationToken)
     {
         var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
@@ -67,7 +80,7 @@ internal static partial class DocumentExtensions
         return root ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
     }
 
-#if !CODE_STYLE
+#if WORKSPACE
     public static SyntaxNode GetRequiredSyntaxRootSynchronously(this Document document, CancellationToken cancellationToken)
     {
         var root = document.GetSyntaxRootSynchronously(cancellationToken);
@@ -181,7 +194,7 @@ internal static partial class DocumentExtensions
     }
 #endif
 
-#if !CODE_STYLE
+#if WORKSPACE
     public static bool IsGeneratedCode(this Document document, CancellationToken cancellationToken)
     {
         var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
@@ -206,11 +219,14 @@ internal static partial class DocumentExtensions
         }
     }
 
-#if CODE_STYLE
-    public static async ValueTask<AnalyzerConfigOptions> GetAnalyzerConfigOptionsAsync(this Document document, CancellationToken cancellationToken)
+#if !WORKSPACE
+    public static async ValueTask<IOptionsReader> GetHostAnalyzerConfigOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        return document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+
+        // Code style layer (which is always NuGet-installed) does not use host options, but we keep the method name to
+        // reduce the number of instances where code needs to be conditionally included.
+        return document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader();
     }
 #endif
 }

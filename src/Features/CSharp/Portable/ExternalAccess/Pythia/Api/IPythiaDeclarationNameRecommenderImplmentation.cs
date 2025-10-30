@@ -5,9 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api;
 
@@ -16,7 +14,7 @@ internal interface IPythiaDeclarationNameRecommenderImplementation
     /// <summary>
     /// Order of returned recommendation decides the order of those items in completion list
     /// </summary>
-    public Task<ImmutableArray<string>> ProvideRecommendationsAsync(PythiaDeclarationNameContext context, CancellationToken cancellationToken);
+    Task<ImmutableArray<string>> ProvideRecommendationsAsync(PythiaDeclarationNameContext context, CancellationToken cancellationToken);
 }
 
 internal readonly struct PythiaDeclarationNameContext(CSharpSyntaxContext context)

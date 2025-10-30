@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -35,12 +34,7 @@ internal abstract class AbstractJsonDetectionCodeFixProvider : SyntaxEditorBased
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                FeaturesResources.Enable_all_JSON_editor_features,
-                GetDocumentUpdater(context),
-                nameof(FeaturesResources.Enable_all_JSON_editor_features)),
-            context.Diagnostics);
+        RegisterCodeFix(context, FeaturesResources.Enable_all_JSON_editor_features, nameof(FeaturesResources.Enable_all_JSON_editor_features));
         return Task.CompletedTask;
     }
 
@@ -58,7 +52,7 @@ internal abstract class AbstractJsonDetectionCodeFixProvider : SyntaxEditorBased
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
             Fix(editor, diagnostic, cancellationToken);

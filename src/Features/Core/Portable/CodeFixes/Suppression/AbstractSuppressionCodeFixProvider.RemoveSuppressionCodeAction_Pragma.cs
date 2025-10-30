@@ -22,7 +22,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         /// <summary>
         /// Code action to edit/remove/add the pragma directives for removing diagnostic suppression.
         /// </summary>
-        private class PragmaRemoveAction : RemoveSuppressionCodeAction, IPragmaBasedCodeAction
+        private sealed class PragmaRemoveAction : RemoveSuppressionCodeAction, IPragmaBasedCodeAction
         {
             private readonly Document _document;
             private readonly SyntaxFormattingOptions _options;
@@ -210,7 +210,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                     length: 1);
                 var locationToCheck = Location.Create(tree, spanToCheck);
                 var dummyDiagnosticWithLocationToCheck = Diagnostic.Create(_diagnostic.Descriptor, locationToCheck);
-                var effectiveDiagnostic = CompilationWithAnalyzers.GetEffectiveDiagnostics(new[] { dummyDiagnosticWithLocationToCheck }, model.Compilation).FirstOrDefault();
+                var effectiveDiagnostic = CompilationWithAnalyzers.GetEffectiveDiagnostics([dummyDiagnosticWithLocationToCheck], model.Compilation).FirstOrDefault();
                 return effectiveDiagnostic == null || effectiveDiagnostic.IsSuppressed;
             }
 

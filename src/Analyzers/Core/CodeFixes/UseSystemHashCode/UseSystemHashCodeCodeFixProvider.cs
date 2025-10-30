@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode;
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseSystemHashCode), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseSystemHashCode];
@@ -34,7 +33,7 @@ internal class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCodeFixProv
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
         var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
@@ -71,7 +70,7 @@ internal class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCodeFixProv
 
                 // Only if there was a base.GetHashCode() do we pass in the ContainingType
                 // so that we generate the same.
-                var containingType = accessesBase ? method!.ContainingType : null;
+                var containingType = accessesBase ? method.ContainingType : null;
                 var components = generator.GetGetHashCodeComponents(
                     generatorInternal, semanticModel.Compilation, containingType, members, justMemberReference: true);
 

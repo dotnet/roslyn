@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -114,7 +113,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim openDocument = subjectDocument.GetOpenTextContainer()
                 Dim sourceGeneratedDocumentId = workspace.GetDocumentIdInCurrentContext(openDocument)
                 Dim document = Assert.IsType(Of SourceGeneratedDocument)(Await workspace.CurrentSolution.GetDocumentAsync(sourceGeneratedDocumentId, includeSourceGenerated:=True))
-                Dim documentServices = document.State.Services
+                Dim documentServices = document.State.DocumentServiceProvider
                 Dim documentOperations = documentServices.GetService(Of IDocumentOperationService)()
 
                 Assert.False(documentOperations.CanApplyChange)

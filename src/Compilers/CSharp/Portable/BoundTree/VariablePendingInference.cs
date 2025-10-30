@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (inferenceFailed)
             {
-                type = TypeWithAnnotations.Create(binderOpt!.CreateErrorType("var"));
+                type = TypeWithAnnotations.Create(binderOpt!.Compilation.ImplicitlyTypedVariableInferenceFailedType);
             }
 
             switch (this.VariableSymbol.Kind)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             Binder.CheckRestrictedTypeInAsyncMethod(localSymbol.ContainingSymbol, type.Type, diagnosticsOpt, typeOrDesignationSyntax);
 
-                            if (localSymbol.Scope == ScopedKind.ScopedValue && !type.Type.IsErrorTypeOrRefLikeType())
+                            if (localSymbol.Scope == ScopedKind.ScopedValue && !type.Type.IsErrorOrRefLikeOrAllowsRefLikeType())
                             {
                                 diagnosticsOpt.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly,
                                                    (typeOrDesignationSyntax is TypeSyntax typeSyntax ? typeSyntax.SkipScoped(out _).SkipRef() : typeOrDesignationSyntax).Location);

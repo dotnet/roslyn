@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,5 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 /// </summary>
 internal abstract class VSTypeScriptEditorInlineRenameServiceImplementation
 {
+    public virtual bool IsEnabled() => true;
+
     public abstract Task<VSTypeScriptInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
 }

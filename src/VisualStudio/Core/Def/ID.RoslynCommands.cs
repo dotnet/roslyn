@@ -31,26 +31,6 @@ internal static partial class ID
         public const int SetActiveRuleSet = 0x0118;
         public const int SetSeverityDefault = 0x011b;
 
-        // Error list context menu command IDs for suppressions and setting severity
-        public const int AddSuppressions = 0x011d;
-        public const int AddSuppressionsInSource = 0x011f;
-        public const int AddSuppressionsInSuppressionFile = 0x0120;
-        public const int RemoveSuppressions = 0x0121;
-        public const int ErrorListSetSeveritySubMenu = 0x0122;
-        public const int ErrorListSetSeverityError = 0x0124;
-        public const int ErrorListSetSeverityWarning = 0x0125;
-        public const int ErrorListSetSeverityInfo = 0x0126;
-        public const int ErrorListSetSeverityHidden = 0x0127;
-        public const int ErrorListSetSeverityNone = 0x0128;
-        public const int ErrorListSetSeverityDefault = 0x0129;
-
-        // Analyze and Code Cleanup menu IDs
-        public const int AnalysisScopeDefault = 0x0131;
-        public const int AnalysisScopeCurrentDocument = 0x0132;
-        public const int AnalysisScopeOpenDocuments = 0x0133;
-        public const int AnalysisScopeEntireSolution = 0x0134;
-        public const int AnalysisScopeNone = 0x0137;
-
         public const int GoToImplementation = 0x0200;
 
         public const int RunCodeAnalysisForProject = 0x0201;
@@ -66,5 +46,10 @@ internal static partial class ID
         public const int DocumentOutlineSortByOrder = 0x314;
         public const int DocumentOutlineSortByType = 0x315;
         public const int DocumentOutlineToolbarGroup = 0x350;
+
+        public const int SolutionExplorerSymbolItemContextMenu = 0x401;
+        public const int SolutionExplorerSymbolItemGoToBase = 0x402;
+        public const int SolutionExplorerSymbolItemGoToImplementation = 0x403;
+        public const int SolutionExplorerSymbolItemFindAllReferences = 0x404;
     }
 }

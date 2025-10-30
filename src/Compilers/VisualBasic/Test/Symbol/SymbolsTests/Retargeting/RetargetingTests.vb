@@ -3,11 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
@@ -1963,7 +1962,7 @@ MethodOverload(Base)
 
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/79350")>
         Public Sub Retarget_Events()
             'The test involves compilation with/without retargeting and ensuring same behavior at runtime
             'same diagnostics (or lack off) as compile time
@@ -3143,12 +3142,12 @@ End Namespace
                 Else
                     'Retarget to use v2.0 assemblies
                     If AssembliesToRetarget = 1 Then
-                        NewCompilation = C.ReplaceReference(oldReference:=OldReference, newReference:=TestMetadata.Net20.mscorlib)
+                        NewCompilation = C.ReplaceReference(oldReference:=OldReference, newReference:=Net20.References.mscorlib)
                     ElseIf AssembliesToRetarget = 2 Then
-                        NewCompilation = C.ReplaceReference(oldReference:=OldVBReference, newReference:=TestMetadata.Net20.MicrosoftVisualBasic)
+                        NewCompilation = C.ReplaceReference(oldReference:=OldVBReference, newReference:=Net20.References.MicrosoftVisualBasic)
                     ElseIf AssembliesToRetarget = 3 Then
-                        NewCompilation = C.ReplaceReference(oldReference:=OldReference, newReference:=TestMetadata.Net20.mscorlib).
-                            ReplaceReference(oldReference:=OldVBReference, newReference:=TestMetadata.Net20.MicrosoftVisualBasic)
+                        NewCompilation = C.ReplaceReference(oldReference:=OldReference, newReference:=Net20.References.mscorlib).
+                            ReplaceReference(oldReference:=OldVBReference, newReference:=Net20.References.MicrosoftVisualBasic)
                     End If
                 End If
             Else

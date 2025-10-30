@@ -11,10 +11,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
     <ExportLanguageService(GetType(IEmbeddedLanguagesProvider), LanguageNames.VisualBasic, ServiceLayer.Default), [Shared]>
-    Friend Class VisualBasicEmbeddedLanguagesProvider
+    Friend NotInheritable Class VisualBasicEmbeddedLanguagesProvider
         Inherits AbstractEmbeddedLanguagesProvider
 
         Public Shared ReadOnly Info As New EmbeddedLanguageInfo(
+            VisualBasicBlockFacts.Instance,
             VisualBasicSyntaxFacts.Instance,
             VisualBasicSemanticFactsService.Instance,
             VisualBasicVirtualCharService.Instance)

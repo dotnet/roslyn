@@ -10,27 +10,22 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser;
+
+internal sealed class ObjectBrowserLibraryManager(
+    IServiceProvider serviceProvider,
+    IComponentModel componentModel,
+    VisualStudioWorkspace workspace) : AbstractObjectBrowserLibraryManager(
+        LanguageNames.CSharp, Guids.CSharpLibraryId, serviceProvider, componentModel, workspace)
 {
-    internal class ObjectBrowserLibraryManager : AbstractObjectBrowserLibraryManager
+    internal override AbstractDescriptionBuilder CreateDescriptionBuilder(
+        IVsObjectBrowserDescription3 description,
+        ObjectListItem listItem,
+        Project project)
     {
-        public ObjectBrowserLibraryManager(
-            IServiceProvider serviceProvider,
-            IComponentModel componentModel,
-            VisualStudioWorkspace workspace)
-            : base(LanguageNames.CSharp, Guids.CSharpLibraryId, serviceProvider, componentModel, workspace)
-        {
-        }
-
-        internal override AbstractDescriptionBuilder CreateDescriptionBuilder(
-            IVsObjectBrowserDescription3 description,
-            ObjectListItem listItem,
-            Project project)
-        {
-            return new DescriptionBuilder(description, this, listItem, project);
-        }
-
-        internal override AbstractListItemFactory CreateListItemFactory()
-            => new ListItemFactory();
+        return new DescriptionBuilder(description, this, listItem, project);
     }
+
+    internal override AbstractListItemFactory CreateListItemFactory()
+        => new ListItemFactory();
 }

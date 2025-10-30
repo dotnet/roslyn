@@ -48,16 +48,11 @@ internal abstract class AbstractRemoveUnusedVariableCodeFixProvider<TLocalDeclar
 
         if (ShouldOfferFixForLocalDeclaration(blockFacts, node))
         {
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    FeaturesResources.Remove_unused_variable,
-                    GetDocumentUpdater(context),
-                    nameof(FeaturesResources.Remove_unused_variable)),
-                diagnostic);
+            RegisterCodeFix(context, FeaturesResources.Remove_unused_variable, nameof(FeaturesResources.Remove_unused_variable));
         }
     }
 
-    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CancellationToken cancellationToken)
     {
         var nodesToRemove = new HashSet<SyntaxNode>();
 
@@ -140,8 +135,8 @@ internal abstract class AbstractRemoveUnusedVariableCodeFixProvider<TLocalDeclar
             }
             else
             {
-                var statementParent = localDeclaration.Parent;
-                if (blockFacts.IsExecutableBlock(statementParent))
+                var statementParent = blockFacts.GetImmediateParentExecutableBlockForStatement(localDeclaration);
+                if (statementParent != null)
                 {
                     var siblings = blockFacts.GetExecutableBlockStatements(statementParent);
                     var localDeclarationIndex = siblings.IndexOf(localDeclaration);

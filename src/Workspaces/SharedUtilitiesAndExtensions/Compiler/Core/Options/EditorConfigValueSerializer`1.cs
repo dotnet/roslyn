@@ -19,6 +19,10 @@ internal sealed class EditorConfigValueSerializer<T>(
     public static readonly EditorConfigValueSerializer<T> Unsupported = new(
         parseValue: _ => throw new NotSupportedException("Option does not support serialization to editorconfig format"),
         serializeValue: _ => throw new NotSupportedException("Option does not support serialization to editorconfig format"));
+
+    public readonly Func<string, Optional<T>> ParseValue = parseValue;
+    public readonly Func<T, string> SerializeValue = serializeValue;
+
     private readonly ConcurrentDictionary<string, Optional<T>> _cachedValues = [];
 
     bool IEditorConfigValueSerializer.TryParse(string value, out object? result)
@@ -35,7 +39,7 @@ internal sealed class EditorConfigValueSerializer<T>(
 
     internal bool TryParseValue(string value, [MaybeNullWhen(false)] out T result)
     {
-        var optionalValue = _cachedValues.GetOrAdd(value, parseValue);
+        var optionalValue = _cachedValues.GetOrAdd(value, ParseValue);
         if (optionalValue.HasValue)
         {
             result = optionalValue.Value;
@@ -43,17 +47,20 @@ internal sealed class EditorConfigValueSerializer<T>(
         }
         else
         {
-            result = default!;
+            result = default;
             return false;
         }
     }
 
     public string GetEditorConfigStringValue(T value)
     {
-        var editorConfigStringForValue = serializeValue(value);
+        var editorConfigStringForValue = SerializeValue(value);
         Contract.ThrowIfTrue(RoslynString.IsNullOrEmpty(editorConfigStringForValue));
         return editorConfigStringForValue;
     }
+
+    public string Serialize(T value)
+        => SerializeValue(value);
 
     string IEditorConfigValueSerializer.Serialize(object? value)
         => GetEditorConfigStringValue((T)value!);

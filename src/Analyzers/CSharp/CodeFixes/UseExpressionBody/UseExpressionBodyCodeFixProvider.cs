@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,21 +16,21 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExpressionBody), Shared]
-internal partial class UseExpressionBodyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class UseExpressionBodyCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
+    private static readonly ImmutableArray<UseExpressionBodyHelper> s_helpers = UseExpressionBodyHelper.Helpers;
 
-    private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
+    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = s_helpers.SelectAsArray(h => h.DiagnosticId);
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public UseExpressionBodyCodeFixProvider()
-        => FixableDiagnosticIds = _helpers.SelectAsArray(h => h.DiagnosticId);
+#if WORKSPACE
+    protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
+#endif
 
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => !diagnostic.IsSuppressed ||
@@ -54,9 +52,9 @@ internal partial class UseExpressionBodyCodeFixProvider : SyntaxEditorBasedCodeF
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var accessorLists = new HashSet<AccessorListSyntax>();
         foreach (var diagnostic in diagnostics)
@@ -80,7 +78,7 @@ internal partial class UseExpressionBodyCodeFixProvider : SyntaxEditorBasedCodeF
         CancellationToken cancellationToken)
     {
         var declarationLocation = diagnostic.AdditionalLocations[0];
-        var helper = _helpers.Single(h => h.DiagnosticId == diagnostic.Id);
+        var helper = s_helpers.Single(h => h.DiagnosticId == diagnostic.Id);
         var declaration = declarationLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
         var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
 

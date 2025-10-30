@@ -8,19 +8,14 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UpgradeProject;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UpgradeProject), Shared]
-internal class CSharpUpgradeProjectCodeFixProvider : AbstractUpgradeProjectCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpUpgradeProjectCodeFixProvider() : AbstractUpgradeProjectCodeFixProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpUpgradeProjectCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
     [
         "CS8022",
@@ -60,6 +55,8 @@ internal class CSharpUpgradeProjectCodeFixProvider : AbstractUpgradeProjectCodeF
         "CS9058",
         "CS9194",
         "CS9202",
+        "CS9260",
+        "CS9327"
     ];
 
     public override string UpgradeThisProjectResource => CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0;

@@ -7,6 +7,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 // TELEMETRY: DO NOT MODIFY ANY ENUM VALUES OF THIS ENUM.
 // IT WILL BREAK OUR SQM VARIABLE MAPPINGS.
 
+/// <summary>
+/// Diagnostics reported by <see cref="AbstractEditAndContinueAnalyzer"/>.
+/// </summary>
 internal enum RudeEditKind : ushort
 {
     None = 0,
@@ -41,8 +44,8 @@ internal enum RudeEditKind : ushort
     // InsertNonPublicConstructor = 27,
     // InsertGenericMethod = 28,
     InsertDllImport = 29,
-    InsertIntoStruct = 30,
-    InsertIntoClassWithLayout = 31,
+    InsertOrMoveStructMember = 30,
+    InsertOrMoveTypeWithLayoutMember = 31,
     Move = 32,
     Delete = 33,
     // MethodBodyAdd = 34,
@@ -67,13 +70,13 @@ internal enum RudeEditKind : ushort
     // DeletingCapturedVariable = 50,
     ChangingCapturedVariableType = 51,
     ChangingCapturedVariableScope = 52,
-    ChangingLambdaParameters = 53,
-    ChangingLambdaReturnType = 54,
+    ChangingLambdaParameters = 53, // runtime rude edit
+    ChangingLambdaReturnType = 54, // runtime rude edit
     // AccessingCapturedVariableInLambda = 55,
     // NotAccessingCapturedVariableInLambda = 56,
     // InsertLambdaWithMultiScopeCapture = 57,
     // DeleteLambdaWithMultiScopeCapture = 58,
-    ChangingQueryLambdaType = 59,
+    ChangingQueryLambdaType = 59, // runtime rude edit
 
     InsertAroundActiveStatement = 60,
     DeleteAroundActiveStatement = 61,
@@ -85,7 +88,7 @@ internal enum RudeEditKind : ushort
     UpdateStaticLocal = 67,
 
     InsertConstructorToTypeWithInitializersWithLambdas = 68,
-    RenamingCapturedVariable = 69,
+    RenamingCapturedVariable = 69, // runtime rude edit
 
     InsertHandlesClause = 70,
     InsertFile = 71,
@@ -94,7 +97,7 @@ internal enum RudeEditKind : ushort
     UpdatingStateMachineMethodAroundActiveStatement = 74,
     UpdatingStateMachineMethodMissingAttribute = 75,
 
-    SwitchBetweenLambdaAndLocalFunction = 76,
+    SwitchBetweenLambdaAndLocalFunction = 76, // runtime rude edit
     //RefStruct = 77,
     //ReadOnlyStruct = 78,
     //ReadOnlyReferences = 79,
@@ -128,7 +131,7 @@ internal enum RudeEditKind : ushort
     ChangingAttributesNotSupportedByRuntime = 101,
     ChangeImplicitMainReturnType = 102,
     ChangingParameterTypes = 103,
-    ChangingTypeParameters = 104,
+    ChangingTypeParameters = 104, // runtime rude edit for lambdas
     ChangingConstraints = 105,
     ChangingReloadableTypeNotSupportedByRuntime = 106,
     RenamingNotSupportedByRuntime = 107,
@@ -142,4 +145,7 @@ internal enum RudeEditKind : ushort
     NotCapturingPrimaryConstructorParameter = 115,
     ChangingAttribute = 116,
     ChangingNameOrSignatureOfActiveMember = 117,
+    UpdateMightNotHaveAnyEffect = 118,
+    TypeUpdateAroundActiveStatement = 119,
+    InsertOrMoveComInterfaceMember = 120,
 }

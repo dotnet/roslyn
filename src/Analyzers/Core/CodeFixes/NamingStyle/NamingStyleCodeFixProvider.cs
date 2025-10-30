@@ -12,13 +12,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 #if !CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 removing dependency on WorkspaceServices.
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
@@ -108,7 +108,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
             cancellationToken).ConfigureAwait(false);
     }
 
-    private class FixNameCodeAction : CodeAction
+    private sealed class FixNameCodeAction : CodeAction
     {
 #if !CODE_STYLE
         private readonly Solution _startingSolution;
@@ -148,10 +148,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-        {
-            return SpecializedCollections.SingletonEnumerable(
-                new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false)));
-        }
+            => [new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false))];
 
         protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {

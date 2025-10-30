@@ -3,13 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.ReplacePropertyWithMethods
     <Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
-    Public Class ReplacePropertyWithMethodsTests
+    Public NotInheritable Class ReplacePropertyWithMethodsTests
         Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
@@ -698,6 +697,25 @@ Class C
 
     End Sub
 End Class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78642")>
+        Public Async Function TestPropertyNameReferencedInAsClause() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    property [||]Goo as Goo
+end class",
+"class C
+    Private _Goo As Goo
+
+    Public Function GetGoo() As Goo
+        Return _Goo
+    End Function
+
+    Public Sub SetGoo(AutoPropertyValue As Goo)
+        _Goo = AutoPropertyValue
+    End Sub
+end class")
         End Function
     End Class
 End Namespace

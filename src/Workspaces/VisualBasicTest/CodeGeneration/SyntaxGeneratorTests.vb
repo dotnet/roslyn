@@ -4,6 +4,7 @@
 
 Imports System.Globalization
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
     Public Class SyntaxGeneratorTests
         Private _g As SyntaxGenerator
 
-        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestMetadata.Net451.mscorlib, TestMetadata.Net451.System})
+        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={NetFramework.mscorlib, NetFramework.System})
 
         Private ReadOnly _ienumerableInt As INamedTypeSymbol
 
@@ -35,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
         End Property
 
         Public Shared Function Compile(code As String) As Compilation
-            Return VisualBasicCompilation.Create("test").AddReferences(TestMetadata.Net451.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
+            Return VisualBasicCompilation.Create("test").AddReferences(NetFramework.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
         End Function
 
         Private Shared Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
@@ -296,35 +297,35 @@ End Class
 
         <Fact>
         Public Sub TestMathAndLogicExpressions()
-            VerifySyntax(Of UnaryExpressionSyntax)(Generator.NegateExpression(Generator.IdentifierName("x")), "-(x)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) + (y)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.SubtractExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) - (y)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.MultiplyExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) * (y)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.DivideExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) / (y)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ModuloExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) Mod (y)")
+            VerifySyntax(Of UnaryExpressionSyntax)(Generator.NegateExpression(Generator.IdentifierName("x")), "-x")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x + y")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.SubtractExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x - y")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.MultiplyExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x * y")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.DivideExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x / y")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ModuloExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x Mod y")
 
-            VerifySyntax(Of UnaryExpressionSyntax)(Generator.BitwiseNotExpression(Generator.IdentifierName("x")), "Not(x)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.BitwiseAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) And (y)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.BitwiseOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) Or (y)")
+            VerifySyntax(Of UnaryExpressionSyntax)(Generator.BitwiseNotExpression(Generator.IdentifierName("x")), "Not x")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.BitwiseAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x And y")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.BitwiseOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x Or y")
 
-            VerifySyntax(Of UnaryExpressionSyntax)(Generator.LogicalNotExpression(Generator.IdentifierName("x")), "Not(x)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.LogicalAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) AndAlso (y)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.LogicalOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) OrElse (y)")
+            VerifySyntax(Of UnaryExpressionSyntax)(Generator.LogicalNotExpression(Generator.IdentifierName("x")), "Not x")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.LogicalAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x AndAlso y")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.LogicalOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x OrElse y")
         End Sub
 
         <Fact>
         Public Sub TestEqualityAndInequalityExpressions()
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ReferenceEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) Is (y)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ValueEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) = (y)")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ReferenceEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x Is y")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ValueEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x = y")
 
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ReferenceNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) IsNot (y)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ValueNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) <> (y)")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ReferenceNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x IsNot y")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.ValueNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x <> y")
 
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.LessThanExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) < (y)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.LessThanOrEqualExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) <= (y)")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.LessThanExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x < y")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.LessThanOrEqualExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x <= y")
 
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.GreaterThanExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) > (y)")
-            VerifySyntax(Of BinaryExpressionSyntax)(Generator.GreaterThanOrEqualExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) >= (y)")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.GreaterThanExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x > y")
+            VerifySyntax(Of BinaryExpressionSyntax)(Generator.GreaterThanOrEqualExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x >= y")
         End Sub
 
         <Fact>
@@ -340,8 +341,8 @@ End Class
             VerifySyntax(Of MemberAccessExpressionSyntax)(Generator.MemberAccessExpression(Generator.MemberAccessExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")), "x.y.z")
             VerifySyntax(Of MemberAccessExpressionSyntax)(Generator.MemberAccessExpression(Generator.InvocationExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")), "x(y).z")
             VerifySyntax(Of MemberAccessExpressionSyntax)(Generator.MemberAccessExpression(Generator.ElementAccessExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")), "x(y).z")
-            VerifySyntax(Of MemberAccessExpressionSyntax)(Generator.MemberAccessExpression(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")), "((x) + (y)).z")
-            VerifySyntax(Of MemberAccessExpressionSyntax)(Generator.MemberAccessExpression(Generator.NegateExpression(Generator.IdentifierName("x")), Generator.IdentifierName("y")), "(-(x)).y")
+            VerifySyntax(Of MemberAccessExpressionSyntax)(Generator.MemberAccessExpression(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")), "(x + y).z")
+            VerifySyntax(Of MemberAccessExpressionSyntax)(Generator.MemberAccessExpression(Generator.NegateExpression(Generator.IdentifierName("x")), Generator.IdentifierName("y")), "(-x).y")
         End Sub
 
         <Fact>
@@ -398,7 +399,7 @@ End Class
 
             VerifySyntax(Of InvocationExpressionSyntax)(
                 Generator.ElementAccessExpression(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")),
-                "((x) + (y))(z)")
+                "(x + y)(z)")
         End Sub
 
         <Fact>
@@ -409,7 +410,7 @@ End Class
 
         <Fact>
         Public Sub TestIsAndAsExpressions()
-            VerifySyntax(Of TypeOfExpressionSyntax)(Generator.IsTypeExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "TypeOf(x) Is y")
+            VerifySyntax(Of TypeOfExpressionSyntax)(Generator.IsTypeExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "TypeOf x Is y")
             VerifySyntax(Of TryCastExpressionSyntax)(Generator.TryCastExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "TryCast(x, y)")
             VerifySyntax(Of GetTypeExpressionSyntax)(Generator.TypeOfExpression(Generator.IdentifierName("x")), "GetType(x)")
         End Sub
@@ -429,7 +430,7 @@ End Class
             VerifySyntax(Of InvocationExpressionSyntax)(Generator.InvocationExpression(Generator.MemberAccessExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"))), "x.y()")
             VerifySyntax(Of InvocationExpressionSyntax)(Generator.InvocationExpression(Generator.ElementAccessExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"))), "x(y)()")
             VerifySyntax(Of InvocationExpressionSyntax)(Generator.InvocationExpression(Generator.InvocationExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"))), "x(y)()")
-            VerifySyntax(Of InvocationExpressionSyntax)(Generator.InvocationExpression(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"))), "((x) + (y))()")
+            VerifySyntax(Of InvocationExpressionSyntax)(Generator.InvocationExpression(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"))), "(x + y)()")
         End Sub
 
         <Fact>
@@ -1077,6 +1078,23 @@ End Operator")
             VerifySyntax(Of OperatorBlockSyntax)(
                 Generator.Declaration(Conversion),
 "Public Shared Widening Operator CType(value As System.Byte) As System.Decimal
+End Operator")
+        End Sub
+
+        <Fact>
+        Public Sub TestOperatorDeclarationSymbolOverload()
+            Dim tree = VisualBasicSyntaxTree.ParseText(
+"
+Public Class C
+    Shared Operator +(c1 As C, c2 As C) As C
+    End Operator
+End Class")
+            Dim compilation = VisualBasicCompilation.Create("AssemblyName", syntaxTrees:={tree})
+
+            Dim additionOperatorSymbol = DirectCast(compilation.GetTypeByMetadataName("C").GetMembers(WellKnownMemberNames.AdditionOperatorName).Single(), IMethodSymbol)
+            VerifySyntax(Of OperatorBlockSyntax)(
+                Generator.OperatorDeclaration(additionOperatorSymbol),
+"Public Shared Operator +(c1 As Global.C, c2 As Global.C) As Global.C
 End Operator")
         End Sub
 
@@ -2268,7 +2286,7 @@ End Class
 
         Private Sub CheckAddRemoveAttribute(declaration As SyntaxNode)
             Dim initialAttributes = Generator.GetAttributes(declaration)
-            Assert.Equal(0, initialAttributes.Count)
+            Assert.Empty(initialAttributes)
 
             Dim withAttribute = Generator.AddAttributes(declaration, Generator.Attribute("a"))
             Dim attrsAdded = Generator.GetAttributes(withAttribute)
@@ -2276,7 +2294,7 @@ End Class
 
             Dim withoutAttribute = Generator.RemoveNode(withAttribute, attrsAdded(0))
             Dim attrsRemoved = Generator.GetAttributes(withoutAttribute)
-            Assert.Equal(0, attrsRemoved.Count)
+            Assert.Empty(attrsRemoved)
         End Sub
 
         <Fact>
@@ -2456,6 +2474,22 @@ End Class"))
 
             VerifySyntax(Of FieldDeclarationSyntax)(Generator.Declaration(field),
                 "Public Const MaxValue As System.UInt32 = 4294967295UI")
+        End Sub
+
+        <Fact>
+        Public Sub TestExtensionBlock_01()
+            Dim code = "
+static class E
+{
+    extension(int)
+    {
+        public void M() { }
+    }
+}
+"
+            Dim compilation = CSharpCompilation.Create("test").AddReferences(NetFramework.mscorlib).AddSyntaxTrees(CSharp.SyntaxFactory.ParseSyntaxTree(code))
+            Dim e = compilation.GlobalNamespace.GetTypeMembers("E").Single()
+            Assert.Throws(Of NotSupportedException)(Sub() Generator.Declaration(e))
         End Sub
 
 #End Region
@@ -3209,7 +3243,7 @@ End Class").Members(0)
 
             Dim baseListN = Generator.GetBaseAndInterfaceTypes(classN)
             Assert.NotNull(baseListN)
-            Assert.Equal(0, baseListN.Count)
+            Assert.Empty(baseListN)
         End Sub
 
         <Fact>

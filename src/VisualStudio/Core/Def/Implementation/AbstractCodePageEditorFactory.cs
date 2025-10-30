@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 

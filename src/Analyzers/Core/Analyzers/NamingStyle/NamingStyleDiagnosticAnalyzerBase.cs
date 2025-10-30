@@ -6,11 +6,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -69,8 +67,7 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
                 symbolContext.Symbol,
                 sourceTree,
                 symbolContext.Options,
-                idToCachedResult,
-                symbolContext.CancellationToken);
+                idToCachedResult);
 
             if (diagnostic != null)
             {
@@ -97,8 +94,7 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
                 symbol,
                 sourceTree,
                 syntaxContext.Options,
-                idToCachedResult,
-                syntaxContext.CancellationToken);
+                idToCachedResult);
 
             if (diagnostic != null)
             {
@@ -115,8 +111,7 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
         ISymbol symbol,
         SyntaxTree sourceTree,
         AnalyzerOptions options,
-        ConcurrentDictionary<Guid, ConcurrentDictionary<string, string?>> idToCachedResult,
-        CancellationToken cancellationToken)
+        ConcurrentDictionary<Guid, ConcurrentDictionary<string, string?>> idToCachedResult)
     {
         if (string.IsNullOrEmpty(symbol.Name))
         {

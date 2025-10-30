@@ -4,9 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
@@ -145,7 +143,7 @@ End Class
                     </Submission>
                 </Workspace>,
                 workspaceKind:=WorkspaceKind.Interactive,
-                composition:=EditorTestCompositions.EditorFeaturesWpf)
+                composition:=EditorTestCompositions.EditorFeatures)
 
                 ' Force initialization.
                 workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
@@ -155,7 +153,6 @@ End Class
                 Dim handler = New EncapsulateFieldCommandHandler(
                     workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of ITextBufferUndoManagerProvider),
-                    workspace.GlobalOptions,
                     workspace.GetService(Of IAsynchronousOperationListenerProvider)())
 
                 Dim state = handler.GetCommandState(New EncapsulateFieldCommandArgs(textView, textView.TextBuffer))

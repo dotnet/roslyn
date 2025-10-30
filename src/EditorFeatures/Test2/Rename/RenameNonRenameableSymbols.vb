@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Navigation
-Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.VisualStudio.Text
 
@@ -75,8 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameSpecialNames(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -97,8 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameTrivia(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -114,9 +111,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End Using
         End Sub
 
-        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
-        <CombinatorialData>
-        Public Sub CannotRenameCandidateSymbol(host As RenameTestHost)
+        <WpfTheory, CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883263")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/10914")>
+        Public Sub CanRenameCandidateSymbol(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -132,12 +130,11 @@ class Program
                         </Project>
                     </Workspace>, host)
 
-                AssertTokenNotRenamable(workspace)
+                AssertTokenRenamable(workspace)
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameSyntheticDefinition(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -158,8 +155,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameXmlLiteralProperty(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -176,8 +172,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameSymbolDefinedInMetaData(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -198,8 +193,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameSymbolInReadOnlyBuffer(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -227,8 +221,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         Public Sub CannotRenameSymbolThatBindsToErrorType(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -249,8 +242,7 @@ class Program
             End Using
         End Sub
 
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543018")>
         Public Sub CannotRenameSynthesizedParameters(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -366,8 +358,7 @@ class Program
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543969")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543969")>
         <CombinatorialData>
         Public Sub CannotRenameElementFromPreviousSubmission(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -384,8 +375,7 @@ class Program
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689002")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689002")>
         <CombinatorialData>
         Public Sub CannotRenameHiddenElement(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -405,8 +395,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
         <CombinatorialData>
         Public Sub CannotRenameConstructorInVb(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -434,8 +423,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
         <CombinatorialData>
         Public Sub CannotRenameConstructorInVb2(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -457,8 +445,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
         <CombinatorialData>
         Public Sub CannotRenameConstructorInVb3(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -485,8 +472,7 @@ End Class
 #Region "Rename In Tuples"
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/10898")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/10567")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/10567")>
         <CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInDeclaration(host As RenameTestHost)
@@ -538,8 +524,7 @@ namespace System
         End Sub
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/10898")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/10567")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/10567")>
         <CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInLiteral(host As RenameTestHost)
@@ -591,8 +576,7 @@ namespace System
         End Sub
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/10898")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/10567")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/10567")>
         <CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInFieldAccess(host As RenameTestHost)
@@ -643,8 +627,7 @@ namespace System
         End Sub
 
         <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/14600")>
-        <WpfTheory>
-        <CombinatorialData>
+        <WpfTheory, CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInLiteralRegress14600(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(

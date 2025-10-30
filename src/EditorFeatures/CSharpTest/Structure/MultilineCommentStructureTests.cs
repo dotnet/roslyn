@@ -2,14 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Structure;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -18,67 +12,50 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructureTests
+public sealed class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructureTests
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new MultilineCommentBlockStructureProvider();
 
     [Fact]
-    public async Task TestMultilineComment1()
-    {
-        var code = """
+    public Task TestMultilineComment1()
+        => VerifyBlockSpansAsync("""
             {|span:/* Hello
             $$C# */|}
             class C
             {
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span", "/* Hello ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestMultilineCommentOnOneLine()
-    {
-        var code = """
+    public Task TestMultilineCommentOnOneLine()
+        => VerifyBlockSpansAsync("""
             {|span:/* Hello $$C# */|}
             class C
             {
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span", "/* Hello C# ...", autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/791")]
-    public async Task TestIncompleteMultilineCommentZeroSpace()
-    {
-        var code = """
+    public Task TestIncompleteMultilineCommentZeroSpace()
+        => VerifyBlockSpansAsync("""
             {|span:$$/*|}
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span", "/*  ...", autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/791")]
-    public async Task TestIncompleteMultilineCommentSingleSpace()
-    {
-        var code = """
+    public Task TestIncompleteMultilineCommentSingleSpace()
+        => VerifyBlockSpansAsync("""
             {|span:$$/* |}
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span", "/*  ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyGetterWithMultiLineComments1()
-    {
-        var code = """
+    public Task TestPropertyGetterWithMultiLineComments1()
+        => VerifyBlockSpansAsync("""
             class C
             {
                 public string Text
@@ -90,16 +67,12 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
                     }
                 }
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span1", "/* My ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyGetterWithMultiLineComments2()
-    {
-        var code = """
+    public Task TestPropertyGetterWithMultiLineComments2()
+        => VerifyBlockSpansAsync("""
             class C
             {
                 public string Text
@@ -114,16 +87,12 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
                     }
                 }
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span1", "/* My ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyGetterWithMultiLineComments3()
-    {
-        var code = """
+    public Task TestPropertyGetterWithMultiLineComments3()
+        => VerifyBlockSpansAsync("""
             class C
             {
                 public string Text
@@ -139,16 +108,12 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
                     }
                 }
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span1", "/* My ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertySetterWithMultiLineComments1()
-    {
-        var code = """
+    public Task TestPropertySetterWithMultiLineComments1()
+        => VerifyBlockSpansAsync("""
             class C
             {
                 public string Text
@@ -160,16 +125,12 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
                     }
                 }
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span1", "/* My ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertySetterWithMultiLineComments2()
-    {
-        var code = """
+    public Task TestPropertySetterWithMultiLineComments2()
+        => VerifyBlockSpansAsync("""
             class C
             {
                 public string Text
@@ -184,16 +145,12 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
                     }
                 }
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span1", "/* My ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertySetterWithMultiLineComments3()
-    {
-        var code = """
+    public Task TestPropertySetterWithMultiLineComments3()
+        => VerifyBlockSpansAsync("""
             class C
             {
                 public string Text
@@ -209,46 +166,34 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
                     }
                 }
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span1", "/* My ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestMultilineCommentInFile()
-    {
-        var code = """
+    public Task TestMultilineCommentInFile()
+        => VerifyBlockSpansAsync("""
             $${|span1:/* Comment in file
              */|}
             namespace M
             {
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span1", "/* Comment in file ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestMultilineCommentInNamespace()
-    {
-        var code = """
+    public Task TestMultilineCommentInNamespace()
+        => VerifyBlockSpansAsync("""
             namespace M
             {
                 $${|span1:/* Comment in namespace
                  */|}
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span1", "/* Comment in namespace ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestMultilineCommentInClass()
-    {
-        var code = """
+    public Task TestMultilineCommentInClass()
+        => VerifyBlockSpansAsync("""
             namespace M
             {
                 class C
@@ -258,16 +203,12 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
                 }
 
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span1", "/* Comment in class ...", autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64001")]
-    public async Task TestMultilineCommentInMethod()
-    {
-        var code = """
+    public Task TestMultilineCommentInMethod()
+        => VerifyBlockSpansAsync("""
             namespace M
             {
                 class C
@@ -280,16 +221,12 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
                 }
 
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span1", "/* Comment in method ...", autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64001")]
-    public async Task TestMultilineCommentInLocalFunction()
-    {
-        var code = """
+    public Task TestMultilineCommentInLocalFunction()
+        => VerifyBlockSpansAsync("""
             namespace M
             {
                 class C
@@ -305,16 +242,12 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
                 }
 
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span1", "/* Comment in local function ...", autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64001")]
-    public async Task TestMultilineCommentInConstructor()
-    {
-        var code = """
+    public Task TestMultilineCommentInConstructor()
+        => VerifyBlockSpansAsync("""
             namespace M
             {
                 class C
@@ -327,18 +260,11 @@ public class MultilineCommentStructureTests : AbstractCSharpSyntaxTriviaStructur
                 }
 
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span1", "/* Comment in constructor ...", autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16186")]
-    public async Task TestInvalidComment()
-    {
-        const string code = @"$${|span:/*/|}";
-
-        await VerifyBlockSpansAsync(code,
+    public Task TestInvalidComment()
+        => VerifyBlockSpansAsync(@"$${|span:/*/|}",
             Region("span", "/* / ...", autoCollapse: true));
-    }
 }

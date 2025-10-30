@@ -2,8 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
     Public Class Perf : Inherits BasicTestBase
@@ -29,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
                                  <file name="VBPerfTest.vb">
                                      <%= TestResources.PerfTests.VBPerfTest %>
                                  </file>
-                             </compilation>, references:={TestMetadata.Net40.SystemCore}).VerifyDiagnostics()
+                             </compilation>, references:={Net40.References.SystemCore}).VerifyDiagnostics()
         End Sub
     End Class
 End Namespace

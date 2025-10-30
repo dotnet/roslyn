@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 
 namespace BuildBoss
 {
@@ -109,7 +108,7 @@ namespace BuildBoss
         /// </summary>
         private bool CheckProjectSystemGuid(TextWriter textWriter, IEnumerable<SolutionProjectData> dataList)
         {
-            Guid getExpectedGuid(ProjectData data)
+            static Guid getExpectedGuid(ProjectData data)
             {
                 var util = data.ProjectUtil;
                 switch (ProjectEntryUtil.GetProjectFileType(data.FilePath))

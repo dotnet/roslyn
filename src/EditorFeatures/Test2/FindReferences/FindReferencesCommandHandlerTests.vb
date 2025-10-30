@@ -4,9 +4,11 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.FindReferences
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Test.Utilities.FindUsages
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
@@ -37,11 +39,13 @@ class C
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
-                Dim context = New FindReferencesTests.TestContext()
+                Dim context = New FindUsagesTestContext()
                 Dim commandHandler = New FindReferencesCommandHandler(
-                    New MockStreamingFindReferencesPresenter(context),
-                    workspace.GlobalOptions,
-                    listenerProvider)
+                    New FindReferencesNavigationService(
+                        workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
+                        New MockStreamingFindReferencesPresenter(context),
+                        listenerProvider,
+                        workspace.GlobalOptions))
 
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
                 commandHandler.ExecuteCommand(
@@ -64,9 +68,9 @@ class C
         Private Class MockStreamingFindReferencesPresenter
             Implements IStreamingFindUsagesPresenter
 
-            Private ReadOnly _context As FindReferencesTests.TestContext
+            Private ReadOnly _context As FindUsagesTestContext
 
-            Public Sub New(context As FindReferencesTests.TestContext)
+            Public Sub New(context As FindUsagesTestContext)
                 _context = context
             End Sub
 

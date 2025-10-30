@@ -89,12 +89,10 @@ namespace Roslyn.Test.Performance.Utilities
 
         public override void Test()
         {
-            var args = $"{Path.Combine(TempDirectory, _testTemplateName)} -perf -host:vs -roslynonly -rootsuffix:{_rootSuffix}";
-            ShellOutVital(TaoPath, args, TempDirectory);
+            ShellOutVital(TaoPath, $"{Path.Combine(TempDirectory, _testTemplateName)} -perf -host:vs -roslynonly -rootsuffix:{_rootSuffix}", TempDirectory);
 
             var logDirectory = Path.Combine(TempDirectory, _testName, "PerfResults");
-            var xcopyArgs = $"{logDirectory} {Path.Combine(MyBinaries(), "..", "..", "ToArchive")} /s /i /y";
-            ShellOutVital("xcopy", xcopyArgs);
+            ShellOutVital("xcopy", $"{logDirectory} {Path.Combine(MyBinaries(), "..", "..", "ToArchive")} /s /i /y");
 
             foreach (var xml in Directory.EnumerateFiles(logDirectory, "*.xml"))
             {

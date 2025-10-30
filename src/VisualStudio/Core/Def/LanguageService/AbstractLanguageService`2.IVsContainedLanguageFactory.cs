@@ -7,7 +7,6 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 
@@ -62,7 +61,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             return null;
         }
 
-        return this.Workspace.GetProjectWithHierarchyAndName(hierarchy, projectName);
+        return this.Workspace.Value.GetProjectWithHierarchyAndName(hierarchy, projectName);
     }
 
     public int GetLanguage(IVsHierarchy hierarchy, uint itemid, IVsTextBufferCoordinator bufferCoordinator, out IVsContainedLanguage language)

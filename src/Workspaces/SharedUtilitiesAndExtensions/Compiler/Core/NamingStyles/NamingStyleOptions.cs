@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using Microsoft.CodeAnalysis.Host;
 #endif
 
@@ -24,34 +23,18 @@ internal static class NamingStyleOptions
     internal static PerLanguageOption2<NamingStylePreferences> NamingPreferences { get; } = new(
         NamingPreferencesOptionName,
         defaultValue: NamingStylePreferences.Default,
-        isEditorConfigOption: true);
+        isEditorConfigOption: true,
+        serializer: EditorConfigValueSerializer<NamingStylePreferences>.Unsupported);
+
+    /// <summary>
+    /// Options that we expect the user to set in editorconfig.
+    /// </summary>
+    internal static readonly ImmutableArray<IOption2> EditorConfigOptions = [NamingPreferences];
 }
 
 internal interface NamingStylePreferencesProvider
-#if !CODE_STYLE
+#if WORKSPACE
     : OptionsProvider<NamingStylePreferences>
 #endif
 {
 }
-
-#if !CODE_STYLE
-internal static class NamingStylePreferencesProviders
-{
-    public static async ValueTask<NamingStylePreferences> GetNamingStylePreferencesAsync(this Document document, NamingStylePreferences? fallbackOptions, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetEditorConfigOption(NamingStyleOptions.NamingPreferences, fallbackOptions ?? NamingStylePreferences.Default);
-    }
-
-    public static async ValueTask<NamingStylePreferences> GetNamingStylePreferencesAsync(this Document document, NamingStylePreferencesProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        if (configOptions.TryGetEditorConfigOption<NamingStylePreferences>(NamingStyleOptions.NamingPreferences, out var value))
-        {
-            return value;
-        }
-
-        return await fallbackOptionsProvider.GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
-    }
-}
-#endif

@@ -8,6 +8,7 @@ where:
 configuration:
   resourceManagementConfiguration:
     scheduledSearches:
+
     - description: Close "Need More Info" Issues
       frequencies:
       - hourly:
@@ -23,24 +24,12 @@ configuration:
       - closeIssue
       - addReply:
           reply: "Closing this issue as we've seen no reply to the request for more information. If you are able to get the requested information, please add it to the issue and we will retriage it. "
+
     eventResponderTasks:
-    - if:
-      - payloadType: Pull_Request
-      - isPullRequest
-      - labelAdded:
-          label: auto-merge
-      - or:
-        - activitySenderHasPermission:
-            permission: Admin
-        - isActivitySender:
-            user: dotnet-bot
-            issueAuthor: False
-      then:
-      - approvePullRequest:
-          comment: Auto-approval
-      description: Auto-approve auto-merge PRs
+
+    - description: Auto-approve maestro PRs
       triggerOnOwnActions: false
-    - if:
+      if:
       - payloadType: Pull_Request
       - isPullRequest
       - isActivitySender:
@@ -55,9 +44,10 @@ configuration:
       then:
       - approvePullRequest:
           comment: Auto-approve
-      description: Auto-approve maestro PRs
-      triggerOnOwnActions: false
-    - if:
+
+    - description: Milestone tracking
+      triggerOnOwnActions: true
+      if:
       - payloadType: Pull_Request
       - isPullRequest
       - or:
@@ -65,6 +55,8 @@ configuration:
             branch: main
         - targetsBranch:
             branch: main-vs-deps
+        - targetsBranch:
+            branch: community
       - and:
         - isAction:
             action: Closed
@@ -72,9 +64,10 @@ configuration:
       then:
       - addMilestone:
           milestone: Next
-      description: Milestone tracking
-      triggerOnOwnActions: true
-    - if:
+
+    - description: Auto-approve/merge OneLoc PRs
+      triggerOnOwnActions: false
+      if:
       - payloadType: Pull_Request
       - isPullRequest
       - isActivitySender:
@@ -86,11 +79,33 @@ configuration:
       - isAction:
           action: Opened
       then:
-      - addLabel:
-          label: auto-merge
-      description: Auto-approve OneLoc PRs
+      - approvePullRequest:
+          comment: Auto-approve
+      - enableAutoMerge:
+          mergeMethod: merge
+
+    - description: Auto-approve/merge automated merge PRs
       triggerOnOwnActions: false
-    - if:
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - isActivitySender:
+          user: github-actions[bot]
+          issueAuthor: False
+      - titleContains:
+          pattern: "[automated] Merge branch"
+          isRegex: False
+      - isAction:
+          action: Opened
+      then:
+      - approvePullRequest:
+          comment: Auto-approve
+      - enableAutoMerge:
+          mergeMethod: merge
+
+    - description: Remove "Need More Info" on comment
+      triggerOnOwnActions: false
+      if:
       - payloadType: Issue_Comment
       - isIssue
       - isOpen
@@ -101,9 +116,10 @@ configuration:
           label: untriaged
       - removeLabel:
           label: Need More Info
-      description: Remove "Need More Info" on comment
+
+    - description: Label Community Pull Requests
       triggerOnOwnActions: false
-    - if:
+      if:
       - payloadType: Pull_Request
       - isPullRequest
       - isAction:
@@ -137,18 +153,50 @@ configuration:
               issueAuthor: False
         - not:
             isActivitySender:
-              user: github-actions
+              user: github-actions[bot]
               issueAuthor: False
       then:
       - addLabel:
           label: Community
-      description: Label Community Pull Requests
+
+    - description: Adds "VSCode" tag on PRs which may affect C# extension.
       triggerOnOwnActions: false
-    - if:
+      if:
       - payloadType: Pull_Request
       - isPullRequest
       - filesMatchPattern:
-          pattern: '[xX][aA][mM][lL]$'
+          pattern: 'src/(Analyzers|CodeStyle|Features|LanguageServer|Workspaces)/.*\.(cs|vb)$'
+          matchAny: true
+      - and:
+        - not:
+            isActivitySender:
+              user: dotnet-bot
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: github-actions[bot]
+              issueAuthor: False
+      - or:
+        - isAction:
+            action: Opened
+        - isAction:
+            action: Synchronize
+      - and:
+        - not:
+            hasLabel:
+              label: VSCode
+      then:
+      - addLabel:
+          label: VSCode
+
+    - description: Add "Needs UX Triage" on PRs
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - filesMatchPattern:
+          pattern: '.*\.[xX][aA][mM][lL]$'
+          matchAny: true
       - and:
         - not:
             hasLabel:
@@ -187,12 +235,15 @@ configuration:
       then:
       - addLabel:
           label: Needs UX Triage
-      description: Add "Needs UX Triage" on PRs
+
+    - description: Adds "Needs API Review" on PRs that touch public APIs
       triggerOnOwnActions: false
-    - if:
+      if:
       - payloadType: Pull_Request
+      - isPullRequest
       - filesMatchPattern:
-          pattern: .*/PublicAPI\.(Shipped|Unshipped)\.txt
+          pattern: '.*/PublicAPI\.(Shipped|Unshipped)\.txt'
+          matchAny: true
       - not:
           isActivitySender:
             user: dotnet-bot
@@ -214,9 +265,10 @@ configuration:
           label: Needs API Review
       - addReply:
           reply: This PR modifies public API files. Please follow the instructions at https://github.com/dotnet/roslyn/blob/main/docs/contributing/API%20Review%20Process.md for ensuring all public APIs are reviewed before merging.
-      description: Adds "Needs API Review" on PRs that touch public APIs
+
+    - description: Close automatically generated PR tagger issues
       triggerOnOwnActions: false
-    - if:
+      if:
       - payloadType: Issues
       - isIssue
       - hasLabel:
@@ -226,7 +278,39 @@ configuration:
           isRegex: False
       then:
       - closeIssue
-      description: Close automatically generated PR tagger issues
-      triggerOnOwnActions: false
+
+    - description: Add breaking change doc instructions to issue
+      if:
+      - payloadType: Issues
+      - labelAdded:
+          label: breaking-change
+      then:
+      - addReply:
+          reply: >-
+            Refer to the [.NET SDK breaking change guidelines](https://github.com/dotnet/sdk/blob/main/documentation/project-docs/breaking-change-guidelines.md#required-process-for-all-net-sdk-breaking-changes)
+      
+    - description: Add breaking change instructions to PR.
+      if:
+      - payloadType: Pull_Request
+      - labelAdded:
+          label: breaking-change
+      then:
+      - addLabel:
+          label: needs-breaking-change-doc-created
+      - addReply:
+          reply: >-
+            Added `needs-breaking-change-doc-created` label because this PR has the `breaking-change` label. 
+
+
+            When you commit this breaking change:
+
+
+            1. [ ] Create and link to this PR and the issue a matching issue in the dotnet/docs repo using the [breaking change documentation template](https://aka.ms/dotnet/docs/new-breaking-change-issue), then remove this `needs-breaking-change-doc-created` label.
+
+            2. [ ] Ask a committer to mail the `.NET SDK Breaking Change Notification` email list.
+
+
+            You can refer to the [.NET SDK breaking change guidelines](https://github.com/dotnet/sdk/blob/main/documentation/project-docs/breaking-change-guidelines.md)
+      
 onFailure: 
 onSuccess:

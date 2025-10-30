@@ -322,19 +322,10 @@ class X
                         case ErrorCode.WRN_TargetDifferentRefness:
                         case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                         case ErrorCode.WRN_Experimental:
+                        case ErrorCode.WRN_ExperimentalWithMessage:
                         case ErrorCode.WRN_ConvertingLock:
-                            Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_MainIgnored:
-                        case ErrorCode.WRN_UnqualifiedNestedTypeInCref:
-                        case ErrorCode.WRN_NoRuntimeMetadataVersion:
-                            Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_PdbLocalNameTooLong:
-                        case ErrorCode.WRN_UnreferencedLocalFunction:
-                        case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
-                            Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
+                        case ErrorCode.WRN_PartialMemberSignatureDifference:
+                        case ErrorCode.WRN_UnscopedRefAttributeOldRules:
                         case ErrorCode.WRN_ConvertingNullableToNonNullable:
                         case ErrorCode.WRN_NullReferenceAssignment:
                         case ErrorCode.WRN_NullReferenceReceiver:
@@ -430,10 +421,22 @@ class X
                         case ErrorCode.WRN_UseDefViolationRefField:
                         case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                         case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
-                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
-                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
-                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
+                        case ErrorCode.INF_TooManyBoundLambdas:
+                        case ErrorCode.WRN_FieldIsAmbiguous:
+                        case ErrorCode.WRN_UninitializedNonNullableBackingField:
+                        case ErrorCode.WRN_AccessorDoesNotUseBackingField:
+                        case ErrorCode.WRN_RedundantPattern:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_MainIgnored:
+                        case ErrorCode.WRN_UnqualifiedNestedTypeInCref:
+                        case ErrorCode.WRN_NoRuntimeMetadataVersion:
+                            Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_PdbLocalNameTooLong:
+                        case ErrorCode.WRN_UnreferencedLocalFunction:
+                        case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
+                            Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
                             Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
@@ -469,6 +472,14 @@ class X
                         case ErrorCode.WRN_ByValArraySizeConstRequired:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 8 and C# 12.
                             Assert.Equal(8, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
+                            // These are the warnings introduced with the warning "wave" shipped with dotnet 9 and C# 13.
+                            Assert.Equal(9, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_UnassignedInternalRefField:
+                            // These are the warnings introduced with the warning "wave" shipped with dotnet 10 and C# 14.
+                            Assert.Equal(10, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
@@ -2978,6 +2989,10 @@ class Program
                     case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
+                    case ErrorCode.ERR_RefLocalAcrossAwait:
+                    case ErrorCode.ERR_DataSectionStringLiteralHashCollision:
+                    case ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync:
+                    case ErrorCode.ERR_NonTaskMainCantBeAsync:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

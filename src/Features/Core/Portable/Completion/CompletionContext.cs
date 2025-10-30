@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion;
 
@@ -22,9 +21,6 @@ namespace Microsoft.CodeAnalysis.Completion;
 public sealed class CompletionContext
 {
     private readonly SegmentedList<CompletionItem> _items = [];
-
-    private CompletionItem? _suggestionModeItem;
-    private bool _isExclusive;
 
     internal CompletionProvider Provider { get; }
 
@@ -90,7 +86,7 @@ public sealed class CompletionContext
     {
         get
         {
-            return _isExclusive && !Provider.IsExpandItemProvider;
+            return field && !Provider.IsExpandItemProvider;
         }
 
         set
@@ -98,7 +94,7 @@ public sealed class CompletionContext
             if (value)
                 Debug.Assert(!Provider.IsExpandItemProvider);
 
-            _isExclusive = value;
+            field = value;
         }
     }
 
@@ -199,10 +195,7 @@ public sealed class CompletionContext
     /// </summary>
     public CompletionItem? SuggestionModeItem
     {
-        get
-        {
-            return _suggestionModeItem;
-        }
+        get;
 
         set
         {
@@ -211,7 +204,7 @@ public sealed class CompletionContext
                 value = FixItem(value);
             }
 
-            _suggestionModeItem = value;
+            field = value;
         }
     }
 

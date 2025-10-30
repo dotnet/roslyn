@@ -27,27 +27,26 @@ namespace Microsoft.VisualStudio.Debugger.Clr
     {
         /// <summary>
         /// We would accept inherited members for tests purposes comparing to <see cref="TypeHelpers.MemberBindingFlags"/> 
-        /// because an actual VS <see cref="GetEvalAttributes(Type)"/> may return attributes from base types.
+        /// because an actual VS <see cref="GetEvalAttributes(DkmClrAppDomain, Type)"/> may return attributes from base types.
         /// Therefore, we do not check here for <see cref="BindingFlags.DeclaredOnly"/>.
         /// </summary>
         private const BindingFlags MemberBindingFlags = BindingFlags.Public |
                                                          BindingFlags.NonPublic |
                                                          BindingFlags.Instance |
                                                          BindingFlags.Static;
-
-        private readonly DkmClrModuleInstance _module;
-        private readonly DkmClrAppDomain _appDomain;
         private readonly Type _lmrType;
-        private readonly ReadOnlyCollection<DkmClrEvalAttribute> _evalAttributes;
+        private readonly System.Lazy<ReadOnlyCollection<DkmClrEvalAttribute>> _lazyEvalAttributes;
         private readonly DkmClrObjectFavoritesInfo _favorites;
         private ReadOnlyCollection<DkmClrType> _lazyGenericArguments;
 
         internal DkmClrType(DkmClrModuleInstance module, DkmClrAppDomain appDomain, Type lmrType, DkmClrObjectFavoritesInfo favorites = null)
         {
-            _module = module;
-            _appDomain = appDomain;
+            ModuleInstance = module;
+            AppDomain = appDomain;
             _lmrType = lmrType;
-            _evalAttributes = GetEvalAttributes(lmrType);
+            _lazyEvalAttributes = new System.Lazy<ReadOnlyCollection<DkmClrEvalAttribute>>(
+                () => GetEvalAttributes(appDomain, lmrType),
+                LazyThreadSafetyMode.PublicationOnly);
             _favorites = favorites;
         }
 
@@ -61,17 +60,14 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         {
         }
 
-        public DkmClrAppDomain AppDomain
-        {
-            get { return _appDomain; }
-        }
+        public DkmClrAppDomain AppDomain { get; }
 
         public DkmClrType ElementType
         {
             get
             {
                 var elementType = _lmrType.GetElementType();
-                return (elementType == null) ? null : Create(_appDomain, elementType);
+                return (elementType == null) ? null : Create(AppDomain, elementType);
             }
         }
 
@@ -83,8 +79,8 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         internal DkmClrType MakeGenericType(params DkmClrType[] genericArguments)
         {
             var type = new DkmClrType(
-                _module,
-                _appDomain,
+                ModuleInstance,
+                AppDomain,
                 _lmrType.MakeGenericType(genericArguments.Select(t => t._lmrType).ToArray()),
                 _favorites);
             type._lazyGenericArguments = new ReadOnlyCollection<DkmClrType>(genericArguments);
@@ -94,8 +90,8 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         internal DkmClrType MakeArrayType()
         {
             return new DkmClrType(
-                _module,
-                _appDomain,
+                ModuleInstance,
+                AppDomain,
                 _lmrType.MakeArrayType());
         }
 
@@ -131,7 +127,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                     var typeArgs = _lmrType.GetGenericArguments();
                     var genericArgs = (typeArgs.Length == 0)
                         ? s_emptyTypes
-                        : new ReadOnlyCollection<DkmClrType>(typeArgs.Select(t => DkmClrType.Create(_appDomain, t)).ToArray());
+                        : new ReadOnlyCollection<DkmClrType>(typeArgs.Select(t => DkmClrType.Create(AppDomain, t)).ToArray());
                     Interlocked.CompareExchange(ref _lazyGenericArguments, genericArgs, null);
                 }
                 return _lazyGenericArguments;
@@ -145,23 +141,20 @@ namespace Microsoft.VisualStudio.Debugger.Clr
 
         public ReadOnlyCollection<DkmClrEvalAttribute> GetEvalAttributes()
         {
-            return _evalAttributes;
+            return _lazyEvalAttributes.Value;
         }
 
-        public DkmClrModuleInstance ModuleInstance
-        {
-            get { return _module; }
-        }
+        public DkmClrModuleInstance ModuleInstance { get; }
 
         public DkmClrRuntimeInstance RuntimeInstance
         {
-            get { return _module.RuntimeInstance; }
+            get { return ModuleInstance.RuntimeInstance; }
         }
 
         private string GetDebuggerDisplay()
         {
             var result = _lmrType.ToString();
-            var proxyAttribute = _evalAttributes.OfType<DkmClrDebuggerTypeProxyAttribute>().FirstOrDefault();
+            var proxyAttribute = _lazyEvalAttributes.Value.OfType<DkmClrDebuggerTypeProxyAttribute>().FirstOrDefault();
             result = proxyAttribute != null
                 ? string.Format("{0} (Proxy = {1})", result, proxyAttribute.ProxyType.GetLmrType().ToString())
                 : result;
@@ -195,39 +188,47 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             return assembly.GetType(proxyName);
         }
 
-        private static ReadOnlyCollection<DkmClrEvalAttribute> GetEvalAttributes(Type type)
+        private static ReadOnlyCollection<DkmClrEvalAttribute> GetEvalAttributes(DkmClrAppDomain appDomain, Type type)
         {
             var reflectionType = ((TypeImpl)type).Type;
-            var attributes = ArrayBuilder<DkmClrEvalAttribute>.GetInstance();
+            return appDomain.TypeToEvalAttributesMap.GetOrAdd(
+                reflectionType,
+                static (k, a) => getEvalAttributesCore(k, a),
+                type);
 
-            var proxyType = GetProxyType(reflectionType);
-            if (proxyType != null)
+            static ReadOnlyCollection<DkmClrEvalAttribute> getEvalAttributesCore(System.Type reflectionType, Type type)
             {
-                attributes.Add(new DkmClrDebuggerTypeProxyAttribute(new DkmClrType((TypeImpl)proxyType)));
-            }
+                var attributes = ArrayBuilder<DkmClrEvalAttribute>.GetInstance();
 
-            var members = type.GetMembers(MemberBindingFlags).Where(TypeHelpers.IsVisibleMember);
-            foreach (var member in members)
-            {
-                foreach (var attribute in GetBrowsableAttributes(type, member))
+                var proxyType = GetProxyType(reflectionType);
+                if (proxyType != null)
                 {
-                    attributes.Add(attribute);
+                    attributes.Add(new DkmClrDebuggerTypeProxyAttribute(new DkmClrType((TypeImpl)proxyType)));
                 }
-            }
 
-            var debuggerDisplay = GetDebuggerDisplayAttribute(reflectionType);
-            if (debuggerDisplay != null)
-            {
-                attributes.Add(debuggerDisplay);
-            }
+                var members = type.GetMembers(MemberBindingFlags).Where(TypeHelpers.IsVisibleMember);
+                foreach (var member in members)
+                {
+                    foreach (var attribute in GetBrowsableAttributes(type, member))
+                    {
+                        attributes.Add(attribute);
+                    }
+                }
 
-            var debuggerVisualizers = GetDebuggerVisualizerAttributes(reflectionType);
-            if (debuggerVisualizers != null)
-            {
-                attributes.AddRange(debuggerVisualizers);
-            }
+                var debuggerDisplay = GetDebuggerDisplayAttribute(reflectionType);
+                if (debuggerDisplay != null)
+                {
+                    attributes.Add(debuggerDisplay);
+                }
 
-            return attributes.ToImmutableAndFree();
+                var debuggerVisualizers = GetDebuggerVisualizerAttributes(reflectionType);
+                if (debuggerVisualizers != null)
+                {
+                    attributes.AddRange(debuggerVisualizers);
+                }
+
+                return attributes.ToImmutableAndFree();
+            }
         }
 
         private static ReadOnlyCollection<DkmClrDebuggerBrowsableAttribute> GetBrowsableAttributes(Type type, MemberInfo member)

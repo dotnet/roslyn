@@ -2,11 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -656,11 +655,11 @@ BC31539: Cannot find the interop type that matches the embedded type 'IB'. Are y
             Dim comp = VisualBasicCompilation.Create(
                 "DupSignedRefs",
                 {VisualBasicSyntaxTree.ParseText(text)},
-                {Net451.System, Net20.System},
+                {NetFramework.System, Net20.References.System},
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
             comp.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_DuplicateReferenceStrong).WithArguments(Net451.System.Display, Net20.System.Display))
+                Diagnostic(ERRID.ERR_DuplicateReferenceStrong).WithArguments(NetFramework.System.Display, Net20.References.System.Display))
         End Sub
 
         <WorkItem(545062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545062")>

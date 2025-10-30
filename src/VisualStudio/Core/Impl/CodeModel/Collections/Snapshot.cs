@@ -4,11 +4,10 @@
 
 #nullable disable
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
+
+internal abstract class Snapshot
 {
-    internal abstract class Snapshot
-    {
-        public abstract int Count { get; }
-        public abstract EnvDTE.CodeElement this[int index] { get; }
-    }
+    public abstract int Count { get; }
+    public abstract EnvDTE.CodeElement this[int index] { get; }
 }

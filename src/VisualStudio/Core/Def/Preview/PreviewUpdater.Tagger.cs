@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
 internal partial class PreviewUpdater
 {
-    internal class PreviewTagger : ITagger<HighlightTag>
+    internal sealed class PreviewTagger : ITagger<HighlightTag>
     {
         private readonly ITextBuffer _textBuffer;
         private Span _span;
@@ -40,7 +40,10 @@ internal partial class PreviewUpdater
 
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
-        public IEnumerable<ITagSpan<HighlightTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+        IEnumerable<ITagSpan<HighlightTag>> ITagger<HighlightTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+            => GetTags();
+
+        public IEnumerable<TagSpan<HighlightTag>> GetTags()
         {
             var lines = _textBuffer.CurrentSnapshot.Lines.Where(line => line.Extent.OverlapsWith(_span));
 

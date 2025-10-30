@@ -9,12 +9,13 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler;
 
 internal abstract class AbstractDocumentDifferenceService : IDocumentDifferenceService
 {
+    protected abstract bool IsContainedInMemberBody(SyntaxNode oldMember, TextSpan span);
+
     public async Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
     {
         try
@@ -100,7 +101,7 @@ internal abstract class AbstractDocumentDifferenceService : IDocumentDifferenceS
         }
     }
 
-    private static SyntaxNode? GetChangedMember(
+    private SyntaxNode? GetChangedMember(
         ISyntaxFactsService syntaxFactsService, SyntaxNode oldRoot, SyntaxNode newRoot, TextChangeRange range)
     {
         // if either old or new tree contains skipped text, re-analyze whole document
@@ -119,7 +120,7 @@ internal abstract class AbstractDocumentDifferenceService : IDocumentDifferenceS
         }
 
         // member doesn't contain the change
-        if (!syntaxFactsService.ContainsInMemberBody(oldMember, range.Span))
+        if (!IsContainedInMemberBody(oldMember, range.Span))
         {
             return null;
         }

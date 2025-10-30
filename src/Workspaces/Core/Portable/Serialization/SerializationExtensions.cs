@@ -18,8 +18,6 @@ internal static class SerializationExtensions
             SolutionCompilationStateChecksums => WellKnownSynchronizationKind.SolutionCompilationState,
             SolutionStateChecksums => WellKnownSynchronizationKind.SolutionState,
             ProjectStateChecksums => WellKnownSynchronizationKind.ProjectState,
-            DocumentStateChecksums => WellKnownSynchronizationKind.DocumentState,
-            ChecksumCollection => WellKnownSynchronizationKind.ChecksumCollection,
             SolutionInfo.SolutionAttributes => WellKnownSynchronizationKind.SolutionAttributes,
             ProjectInfo.ProjectAttributes => WellKnownSynchronizationKind.ProjectAttributes,
             DocumentInfo.DocumentAttributes => WellKnownSynchronizationKind.DocumentAttributes,
@@ -31,6 +29,7 @@ internal static class SerializationExtensions
             SerializableSourceText => WellKnownSynchronizationKind.SerializableSourceText,
             SourceGeneratedDocumentIdentity => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
             SourceGeneratorExecutionVersionMap => WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap,
+            ImmutableDictionary<string, StructuredAnalyzerConfigOptions> => WellKnownSynchronizationKind.FallbackAnalyzerOptions,
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };
 
@@ -75,13 +74,13 @@ internal static class SerializationExtensions
         if (PathUtilities.IsAbsolute(info.FilePath))
         {
             // desktop strong name provider only knows how to deal with absolute path
-            builder.Add(PathUtilities.GetDirectoryName(info.FilePath)!);
+            builder.Add(PathUtilities.GetDirectoryName(info.FilePath));
         }
 
         if (PathUtilities.IsAbsolute(info.OutputFilePath))
         {
             // desktop strong name provider only knows how to deal with absolute path
-            builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath)!);
+            builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath));
         }
 
         return builder.ToImmutableAndFree();

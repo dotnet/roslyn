@@ -41,38 +41,24 @@ F(Function()
             Dim code = "System.Console.WriteLine(1)"
             Dim compilationUnit = VisualBasic.SyntaxFactory.ParseCompilationUnit(code, options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
             Dim syntaxTree = compilationUnit.SyntaxTree
-            Dim compilation = CreateCompilationWithMscorlib45({syntaxTree}, assemblyName:="Errors_01", options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib461({syntaxTree}, assemblyName:="Errors_01", options:=TestOptions.ReleaseExe)
             Dim semanticModel = compilation.GetSemanticModel(syntaxTree, True)
             Dim node5 As MemberAccessExpressionSyntax = ErrorTestsGetNode(syntaxTree)
             Assert.Equal("WriteLine", node5.Name.ToString())
-            Assert.Null(semanticModel.GetSymbolInfo(node5.Name).Symbol)
+            Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel.GetSymbolInfo(node5.Name).Symbol.ToTestDisplayString())
 
-            compilation.AssertTheseDiagnostics(
-<expected>
-BC30420: 'Sub Main' was not found in 'Errors_01'.
-BC30001: Statement is not valid in a namespace.
-System.Console.WriteLine(1)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-</expected>
-            )
+            compilation.AssertTheseDiagnostics()
 
-            compilation = CreateCompilationWithMscorlib45({syntaxTree}, options:=TestOptions.ReleaseExe.WithScriptClassName("Script"), assemblyName:="Errors_01")
+            compilation = CreateCompilationWithMscorlib461({syntaxTree}, options:=TestOptions.ReleaseExe.WithScriptClassName("Script"), assemblyName:="Errors_01")
             semanticModel = compilation.GetSemanticModel(syntaxTree, True)
             node5 = ErrorTestsGetNode(syntaxTree)
             Assert.Equal("WriteLine", node5.Name.ToString())
-            Assert.Null(semanticModel.GetSymbolInfo(node5.Name).Symbol)
+            Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel.GetSymbolInfo(node5.Name).Symbol.ToTestDisplayString())
 
-            compilation.AssertTheseDiagnostics(
-<expected>
-BC30420: 'Sub Main' was not found in 'Errors_01'.
-BC30001: Statement is not valid in a namespace.
-System.Console.WriteLine(1)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-</expected>
-            )
+            compilation.AssertTheseDiagnostics()
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
-            compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, options:=TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib461AndVBRuntime({syntaxTree}, options:=TestOptions.ReleaseExe)
             semanticModel = compilation.GetSemanticModel(syntaxTree, True)
             node5 = ErrorTestsGetNode(syntaxTree)
             Assert.Equal("WriteLine", node5.Name.ToString())
@@ -81,7 +67,7 @@ System.Console.WriteLine(1)
             CompileAndVerify(compilation, expectedOutput:="1").VerifyDiagnostics()
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
-            compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, options:=TestOptions.ReleaseExe.WithScriptClassName("Script"))
+            compilation = CreateCompilationWithMscorlib461AndVBRuntime({syntaxTree}, options:=TestOptions.ReleaseExe.WithScriptClassName("Script"))
             semanticModel = compilation.GetSemanticModel(syntaxTree, True)
             node5 = ErrorTestsGetNode(syntaxTree)
             Assert.Equal("WriteLine", node5.Name.ToString())
@@ -90,7 +76,7 @@ System.Console.WriteLine(1)
             CompileAndVerify(compilation, expectedOutput:="1").VerifyDiagnostics()
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
-            compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, options:=TestOptions.ReleaseExe.WithScriptClassName(""))
+            compilation = CreateCompilationWithMscorlib461AndVBRuntime({syntaxTree}, options:=TestOptions.ReleaseExe.WithScriptClassName(""))
             semanticModel = compilation.GetSemanticModel(syntaxTree, True)
             node5 = ErrorTestsGetNode(syntaxTree)
             Assert.Equal("WriteLine", node5.Name.ToString())
@@ -103,7 +89,7 @@ BC2014: the value '' is invalid for option 'ScriptClassName'
             )
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
-            compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, options:=TestOptions.ReleaseExe.WithScriptClassName(Nothing))
+            compilation = CreateCompilationWithMscorlib461AndVBRuntime({syntaxTree}, options:=TestOptions.ReleaseExe.WithScriptClassName(Nothing))
             semanticModel = compilation.GetSemanticModel(syntaxTree, True)
             node5 = ErrorTestsGetNode(syntaxTree)
             Assert.Equal("WriteLine", node5.Name.ToString())
@@ -116,7 +102,7 @@ BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
             )
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
-            compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, options:=TestOptions.ReleaseExe.WithScriptClassName("a" + ChrW(0) + "b"))
+            compilation = CreateCompilationWithMscorlib461AndVBRuntime({syntaxTree}, options:=TestOptions.ReleaseExe.WithScriptClassName("a" + ChrW(0) + "b"))
             semanticModel = compilation.GetSemanticModel(syntaxTree, True)
             node5 = ErrorTestsGetNode(syntaxTree)
             Assert.Equal("WriteLine", node5.Name.ToString())
@@ -129,6 +115,7 @@ BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
 
         <Fact>
         <WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/78792")>
         Public Sub Errors_02()
             Dim compilationUnit = VisualBasic.SyntaxFactory.ParseCompilationUnit("System.Console.WriteLine(1)", options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
             Dim syntaxTree1 = compilationUnit.SyntaxTree
@@ -138,33 +125,41 @@ BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
             Dim node2 As MemberAccessExpressionSyntax = ErrorTestsGetNode(syntaxTree2)
             Assert.Equal("WriteLine", node2.Name.ToString())
 
-            Dim compilation = CreateCompilationWithMscorlib45({syntaxTree1, syntaxTree2})
-            Dim semanticModel1 = compilation.GetSemanticModel(syntaxTree1, True)
-            Dim semanticModel2 = compilation.GetSemanticModel(syntaxTree2, True)
-            Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol)
-            Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel2.GetSymbolInfo(node2.Name).Symbol.ToTestDisplayString())
+            Assert.Throws(Of InvalidOperationException)(
+                Sub()
+                    Dim compilation = CreateCompilationWithMscorlib461({syntaxTree1, syntaxTree2})
+                    Dim semanticModel1 = compilation.GetSemanticModel(syntaxTree1, True)
+                    Dim semanticModel2 = compilation.GetSemanticModel(syntaxTree2, True)
 
-            compilation.AssertTheseDiagnostics(
+                    Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol)
+                    Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel2.GetSymbolInfo(node2.Name).Symbol.ToTestDisplayString())
+
+                    Compilation.AssertTheseDiagnostics(
 <expected>
 BC30001: Statement is not valid in a namespace.
 System.Console.WriteLine(1)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>
-            )
+                    )
+                End Sub)
 
-            compilation = CreateCompilationWithMscorlib45({syntaxTree2, syntaxTree1})
-            semanticModel1 = compilation.GetSemanticModel(syntaxTree1, True)
-            semanticModel2 = compilation.GetSemanticModel(syntaxTree2, True)
-            Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol)
-            Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel2.GetSymbolInfo(node2.Name).Symbol.ToTestDisplayString())
+            Assert.Throws(Of InvalidOperationException)(
+                Sub()
+                    Dim compilation = CreateCompilationWithMscorlib461({syntaxTree2, syntaxTree1})
+                    Dim semanticModel1 = compilation.GetSemanticModel(syntaxTree1, True)
+                    Dim semanticModel2 = compilation.GetSemanticModel(syntaxTree2, True)
 
-            compilation.AssertTheseDiagnostics(
-<expected>
+                    Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol)
+                    Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel2.GetSymbolInfo(node2.Name).Symbol.ToTestDisplayString())
+
+                    Compilation.AssertTheseDiagnostics(
+        <expected>
 BC30001: Statement is not valid in a namespace.
 System.Console.WriteLine(1)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>
-            )
+                    )
+                End Sub)
         End Sub
 
         Private Shared Function ErrorTestsGetNode(syntaxTree As SyntaxTree) As MemberAccessExpressionSyntax

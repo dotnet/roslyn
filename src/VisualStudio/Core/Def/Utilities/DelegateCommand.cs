@@ -3,15 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace Microsoft.VisualStudio.LanguageServices.Utilities;
 
-internal class DelegateCommand : ICommand
+internal sealed class DelegateCommand : ICommand
 {
     public event EventHandler? CanExecuteChanged;
 

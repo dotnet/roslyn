@@ -5,10 +5,7 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -20,10 +17,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionState
+internal sealed partial class SolutionState
 {
-    private static readonly ConditionalWeakTable<IReadOnlyList<ProjectId>, IReadOnlyList<ProjectId>> s_projectIdToSortedProjectsMap = new();
-
     /// <summary>
     /// Checksum representing the full checksum tree for this solution compilation state.  Includes the checksum for
     /// <see cref="SolutionState"/>.
@@ -35,9 +30,6 @@ internal partial class SolutionState
     /// to an OOP host.  Lock this specific field before reading/writing to it.
     /// </summary>
     private readonly Dictionary<ProjectId, AsyncLazy<SolutionStateChecksums>> _lazyProjectChecksums = [];
-
-    public static IReadOnlyList<ProjectId> GetOrCreateSortedProjectIds(IReadOnlyList<ProjectId> unorderedList)
-        => s_projectIdToSortedProjectsMap.GetValue(unorderedList, projectIds => projectIds.OrderBy(id => id.Id).ToImmutableArray());
 
     public bool TryGetStateChecksums([NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
         => _lazyChecksums.TryGetValue(out stateChecksums);
@@ -110,19 +102,16 @@ internal partial class SolutionState
         {
             using (Logger.LogBlock(FunctionId.SolutionState_ComputeChecksumsAsync, this.FilePath, cancellationToken))
             {
-                // get states by id order to have deterministic checksum.  Limit expensive computation to the
-                // requested set of projects if applicable.
-                var orderedProjectIds = GetOrCreateSortedProjectIds(this.ProjectIds);
-
+                // ProjectStates is sorted by ProjectId.Id, and thus we can use it to calculate a deterministic checksum.
+                // Limit expensive computation to the requested set of projects if applicable.
                 using var _ = ArrayBuilder<Task<ProjectStateChecksums>>.GetInstance(out var projectChecksumTasks);
 
-                foreach (var orderedProjectId in orderedProjectIds)
+                foreach (var projectState in this.SortedProjectStates)
                 {
-                    var projectState = this.ProjectStates[orderedProjectId];
                     if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
                         continue;
 
-                    if (projectConeId != null && !projectCone.Object.Contains(orderedProjectId))
+                    if (projectConeId != null && !projectCone.Object.Contains(projectState.Id))
                         continue;
 
                     projectChecksumTasks.Add(projectState.GetStateChecksumsAsync(cancellationToken));
@@ -133,14 +122,21 @@ internal partial class SolutionState
                 var projectChecksums = allResults.SelectAsArray(r => r.Checksum);
                 var projectIds = allResults.SelectAsArray(r => r.ProjectId);
 
-                var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(
-                    this.AnalyzerReferences, this.Services.GetRequiredService<ISerializerService>(), cancellationToken);
+                var serializer = this.Services.GetRequiredService<ISerializerService>();
+
+                var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(AnalyzerReferences, serializer, cancellationToken);
+
+                var fallbackAnalyzerOptionsChecksum = ChecksumCache.GetOrCreate(
+                    FallbackAnalyzerOptions,
+                    static (value, args) => args.serializer.CreateChecksum(value, args.cancellationToken),
+                    arg: (serializer, cancellationToken));
 
                 var stateChecksums = new SolutionStateChecksums(
                     projectConeId,
                     this.SolutionAttributes.Checksum,
                     new(new ChecksumCollection(projectChecksums), projectIds),
-                    analyzerReferenceChecksums);
+                    analyzerReferenceChecksums,
+                    fallbackAnalyzerOptionsChecksum);
 
 #if DEBUG
                 var projectConeTemp = projectConeId is null ? null : new ProjectCone(projectConeId, projectCone.Object.ToFrozenSet());
@@ -173,9 +169,9 @@ internal partial class SolutionState
                 // state.  While not desirable, we allow project's to have refs to projects that no longer exist
                 // anymore.  This state is expected to be temporary until the project is explicitly told by the
                 // host to remove the reference.  We do not expose this through the full Solution/Project which
-                // filters out this case already (in Project.ProjectReferences). However, becausde we're at the
+                // filters out this case already (in Project.ProjectReferences). However, because we're at the
                 // ProjectState level it cannot do that filtering unless examined through us (the SolutionState).
-                if (this.ProjectStates.ContainsKey(refProject.ProjectId))
+                if (this.ContainsProject(refProject.ProjectId))
                     AddProjectCone(refProject.ProjectId);
             }
         }

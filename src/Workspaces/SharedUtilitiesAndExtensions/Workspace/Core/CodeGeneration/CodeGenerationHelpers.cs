@@ -30,10 +30,7 @@ internal static class CodeGenerationHelpers
             return null;
         }
 
-        var exceptionCreationExpression = factory.ObjectCreationExpression(
-            exceptionType,
-            SpecializedCollections.EmptyList<SyntaxNode>());
-
+        var exceptionCreationExpression = factory.ObjectCreationExpression(exceptionType, arguments: []);
         return factory.ThrowStatement(exceptionCreationExpression);
     }
 
@@ -74,7 +71,7 @@ internal static class CodeGenerationHelpers
                 break;
             }
 
-            name = string.Join(".", names.ToArray());
+            name = string.Join(".", names);
         }
         else
         {
@@ -178,12 +175,12 @@ internal static class CodeGenerationHelpers
         return node.WithLeadingTrivia(leadingTrivia);
     }
 
-    public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationContextInfo info)
+    public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute)
         where T : SyntaxNode
     {
         Contract.ThrowIfNull(attribute);
 
-        return info.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null
+        return attribute.ApplicationSyntaxReference != null
             ? attribute.ApplicationSyntaxReference.GetSyntax() as T
             : null;
     }
@@ -196,10 +193,13 @@ internal static class CodeGenerationHelpers
         IComparer<TDeclaration> comparerWithoutNameCheck,
         IComparer<TDeclaration> comparerWithNameCheck,
         Func<SyntaxList<TDeclaration>, TDeclaration?>? after = null,
-        Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null)
+        Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null,
+        Func<SyntaxList<TDeclaration>, int, bool>? canPlaceAtIndex = null)
         where TDeclaration : SyntaxNode
     {
         Contract.ThrowIfTrue(availableIndices != null && availableIndices.Count != declarationList.Count + 1);
+
+        canPlaceAtIndex ??= static (_, _) => true;
 
         // Try to strictly obey the after option by inserting immediately after the member containing the location
         if (info.Context.AfterThisLocation?.SourceTree is { } afterSourceTree &&
@@ -210,10 +210,8 @@ internal static class CodeGenerationHelpers
             {
                 var index = declarationList.IndexOf(afterMember);
                 index = GetPreferredIndex(index + 1, availableIndices, forward: true);
-                if (index != -1)
-                {
+                if (index != -1 && canPlaceAtIndex(declarationList, index))
                     return index;
-                }
             }
         }
 
@@ -339,7 +337,7 @@ internal static class CodeGenerationHelpers
         // The list was grouped (by type, staticness, accessibility).  Try to find a location
         // to put the new declaration into.
 
-        var result = Array.BinarySearch(declarationList.ToArray(), declaration, comparerWithoutNameCheck);
+        var result = Array.BinarySearch([.. declarationList], declaration, comparerWithoutNameCheck);
         var desiredGroupIndex = result < 0 ? ~result : result;
         Debug.Assert(desiredGroupIndex >= 0);
         Debug.Assert(desiredGroupIndex <= declarationList.Count);

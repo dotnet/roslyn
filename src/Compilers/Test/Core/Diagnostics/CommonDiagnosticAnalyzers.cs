@@ -1556,7 +1556,7 @@ namespace Microsoft.CodeAnalysis
                 var sortedCallbackCodeBlockNames = new SortedSet<string>();
                 if (_testIsGeneratedCodeInCallbacks)
                 {
-                    // Test all remaining analysis contexts that expose "IsGeneratdCode" flag
+                    // Test all remaining analysis contexts that expose "IsGeneratedCode" flag
                     context.RegisterSyntaxNodeAction(context =>
                         sortedCallbackSyntaxNodeNames.Add($"{context.ContainingSymbol.Name}(IsGeneratedCode:{context.IsGeneratedCode})"),
                         ImmutableArray.Create(ClassDeclarationSyntaxKind));
@@ -2487,6 +2487,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// An analyzer that reports a diagnostic on every single named type.
+        /// </summary>
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class NamedTypeAnalyzerWithConfigurableEnabledByDefault : DiagnosticAnalyzer
         {

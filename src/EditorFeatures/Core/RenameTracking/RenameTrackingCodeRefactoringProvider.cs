@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
     Name = PredefinedCodeRefactoringProviderNames.RenameTracking), Shared]
-internal class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
 {
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
     private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
@@ -34,10 +34,10 @@ internal class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
 
     public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
-        var (document, span, cancellationToken) = context;
+        var (document, span, _) = context;
 
         var (action, renameSpan) = RenameTrackingTaggerProvider.TryGetCodeAction(
-            document, span, _refactorNotifyServices, _undoHistoryRegistry, cancellationToken);
+            document, span, _refactorNotifyServices, _undoHistoryRegistry);
 
         if (action != null)
             context.RegisterRefactoring(action, renameSpan);

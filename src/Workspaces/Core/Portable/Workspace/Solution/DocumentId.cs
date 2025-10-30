@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -26,14 +25,14 @@ public sealed class DocumentId : IEquatable<DocumentId>
     [DataMember(Order = 2)]
     internal bool IsSourceGenerated { get; }
     [DataMember(Order = 3)]
-    private readonly string? _debugName;
+    internal string? DebugName { get; }
 
     private DocumentId(ProjectId projectId, Guid guid, bool isSourceGenerated, string? debugName)
     {
         this.ProjectId = projectId;
         this.Id = guid;
         this.IsSourceGenerated = isSourceGenerated;
-        _debugName = debugName;
+        DebugName = debugName;
     }
 
     /// <summary>
@@ -58,10 +57,8 @@ public sealed class DocumentId : IEquatable<DocumentId>
         return new DocumentId(projectId, id, isSourceGenerated, debugName);
     }
 
-    internal string? DebugName => _debugName;
-
     internal string GetDebuggerDisplay()
-        => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
+        => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, DebugName);
 
     public override string ToString()
         => GetDebuggerDisplay();

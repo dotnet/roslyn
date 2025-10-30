@@ -4,10 +4,9 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.InlineHints;
 
 namespace Microsoft.CodeAnalysis.Options;
 
@@ -65,4 +64,7 @@ internal sealed class LegacyGlobalOptionsWorkspaceService(IGlobalOptionService g
 
     public void SetGenerateConstructorFromMembersOptionsAddNullChecks(string language, bool value)
         => _globalOptions.SetGlobalOption(s_addNullChecks, language, value);
+
+    public SyntaxFormattingOptions GetSyntaxFormattingOptions(LanguageServices languageServices)
+        => _globalOptions.GetSyntaxFormattingOptions(languageServices);
 }

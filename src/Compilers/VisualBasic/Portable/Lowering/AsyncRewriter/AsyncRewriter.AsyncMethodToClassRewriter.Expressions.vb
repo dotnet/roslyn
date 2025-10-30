@@ -559,18 +559,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
                 Dim type As TypeSymbol = Me.VisitType(node.Type)
 
-                Dim receiverOrCondition As BoundExpression = DirectCast(Me.Visit(node.ReceiverOrCondition), BoundExpression)
-                Dim receiverOrConditionNeedsSpill = NeedsSpill(receiverOrCondition)
+                Dim receiver As BoundExpression = DirectCast(Me.Visit(node.Receiver), BoundExpression)
+                Dim receiverNeedsSpill = NeedsSpill(receiver)
 
                 Dim saveConditionalAccessReceiverPlaceholderReplacementInfo = _conditionalAccessReceiverPlaceholderReplacementInfo
-                Dim conditionalAccessReceiverPlaceholderReplacementInfo As ConditionalAccessReceiverPlaceholderReplacementInfo
-
-                If node.PlaceholderId <> 0 Then
-                    conditionalAccessReceiverPlaceholderReplacementInfo = New ConditionalAccessReceiverPlaceholderReplacementInfo(node.PlaceholderId)
-                Else
-                    conditionalAccessReceiverPlaceholderReplacementInfo = Nothing
-                End If
-
+                Dim conditionalAccessReceiverPlaceholderReplacementInfo As New ConditionalAccessReceiverPlaceholderReplacementInfo(node.PlaceholderId)
                 _conditionalAccessReceiverPlaceholderReplacementInfo = conditionalAccessReceiverPlaceholderReplacementInfo
 
                 Dim whenNotNull As BoundExpression = DirectCast(Me.Visit(node.WhenNotNull), BoundExpression)
@@ -586,8 +579,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 _conditionalAccessReceiverPlaceholderReplacementInfo = saveConditionalAccessReceiverPlaceholderReplacementInfo
 
-                If Not receiverOrConditionNeedsSpill AndAlso Not whenNotNullNeedsSpill AndAlso Not whenNullNeedsSpill Then
-                    Return node.Update(receiverOrCondition,
+                If Not receiverNeedsSpill AndAlso Not whenNotNullNeedsSpill AndAlso Not whenNullNeedsSpill Then
+                    Return node.Update(receiver,
                                        node.CaptureReceiver,
                                        node.PlaceholderId,
                                        whenNotNull,
@@ -596,8 +589,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If Not whenNotNullNeedsSpill AndAlso Not whenNullNeedsSpill Then
-                    Debug.Assert(receiverOrConditionNeedsSpill)
-                    Dim spill = DirectCast(receiverOrCondition, BoundSpillSequence)
+                    Debug.Assert(receiverNeedsSpill)
+                    Dim spill = DirectCast(receiver, BoundSpillSequence)
                     Return SpillSequenceWithNewValue(spill, node.Update(spill.ValueOpt,
                                                                         node.CaptureReceiver,
                                                                         node.PlaceholderId,
@@ -608,131 +601,135 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim builder As New SpillBuilder()
 
-                If receiverOrConditionNeedsSpill Then
-                    Dim spill = DirectCast(receiverOrCondition, BoundSpillSequence)
+                If receiverNeedsSpill Then
+                    Dim spill = DirectCast(receiver, BoundSpillSequence)
                     builder.AddSpill(spill)
-                    receiverOrCondition = spill.ValueOpt
+                    receiver = spill.ValueOpt
                 End If
 
-                Dim condition As BoundExpression
+                Dim nullCheckTarget As BoundExpression
+                Dim placeholderReplacement As BoundExpression
 
-                If node.PlaceholderId = 0 Then
-                    Debug.Assert(receiverOrCondition.Type.IsBooleanType())
-                    condition = receiverOrCondition
-                Else
-                    Debug.Assert(Not receiverOrCondition.Type.IsBooleanType())
+                If node.CaptureReceiver OrElse conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled Then
+                    ' Nullable receiver is used to invoke GetValueOrDefault method, which is never spills receiver (takes no arguments)
+                    Debug.Assert(Not receiver.Type.IsNullableType() OrElse Not conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled)
+                    Debug.Assert(Not receiver.Type.IsNullableType() OrElse node.CaptureReceiver)
 
-                    Dim receiver As BoundExpression = receiverOrCondition
+                    ' Let's spill or capture it then.
+                    If node.CaptureReceiver OrElse conditionalAccessReceiverPlaceholderReplacementInfo.ForceCaptureIfReferenceType Then
+                        Debug.Assert(Not receiver.Type.IsNullableType() OrElse Not conditionalAccessReceiverPlaceholderReplacementInfo.ForceCaptureIfReferenceType)
 
-                    Dim nullCheckTarget As BoundExpression
-                    Dim placeholderReplacement As BoundExpression
+                        ' We need to capture the receiver by value.
+                        Dim capturedReceiver As BoundExpression
 
-                    If node.CaptureReceiver OrElse conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled Then
-                        ' Let's spill or capture it then.
-                        If node.CaptureReceiver OrElse conditionalAccessReceiverPlaceholderReplacementInfo.ForceCaptureIfReferenceType Then
-                            ' We need to capture the receiver by value.
-                            Dim capturedReceiver As BoundExpression
+                        ' However, when receiver is not known to be a reference type, we will not be using captured value for a value type receiver.
+                        ' In that case, we should perform real spilling first in order to avoid evaluating the side-effects more than one time, 
+                        ' to enforce order of evaluation and to decrease the size of the code that we will duplicate (1 - receiver evaluation during capture,
+                        ' 2 - value type receiver evaluation). 
+                        If Not receiver.Type.IsReferenceType AndAlso Not receiver.Type.IsNullableType() Then
+                            receiver = SpillValue(receiver, isReceiver:=True, evaluateSideEffects:=True, builder:=builder)
+                        End If
 
-                            ' However, when receiver is not known to be a reference type, we will not be using captured value for a value type receiver.
-                            ' In that case, we should perform real spilling first in order to avoid evaluating the side-effects more than one time, 
-                            ' to enforce order of evaluation and to decrease the size of the code that we will duplicate (1 - receiver evaluation during capture,
-                            ' 2 - value type receiver evaluation). 
-                            If Not receiver.Type.IsReferenceType Then
-                                receiver = SpillValue(receiver, isReceiver:=True, evaluateSideEffects:=True, builder:=builder)
+                        ' If receiver is not spilled, we can use a local to capture receiver's value. If receiver is spilled, use SpillRValue to accomplish this
+                        ' because values of locals are not preserved across awaits. 
+                        If conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled Then
+                            Debug.Assert(Not receiver.Type.IsNullableType())
+
+                            If node.CaptureReceiver OrElse receiver.Type.IsReferenceType Then
+                                nullCheckTarget = SpillRValue(receiver.MakeRValue(), builder:=builder)
+                                capturedReceiver = nullCheckTarget
+                            Else
+                                Debug.Assert(conditionalAccessReceiverPlaceholderReplacementInfo.ForceCaptureIfReferenceType)
+
+                                Dim referenceReceiverBuilder As New SpillBuilder()
+                                Dim spilledReferenceReceiver As BoundExpression = SpillRValue(receiver.MakeRValue(), referenceReceiverBuilder)
+                                spilledReferenceReceiver = referenceReceiverBuilder.BuildSequenceAndFree(Me.F, spilledReferenceReceiver)
+                                Dim referenceReceiverSpillSequence = TryCast(spilledReferenceReceiver, BoundSpillSequence)
+
+                                If referenceReceiverSpillSequence IsNot Nothing Then
+                                    ' If condition `(object)default(T) != null` is true at execution time,
+                                    ' the T is a value type. And it is a reference type otherwise.
+                                    Dim isValueTypeCheck = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(), receiver.Type),
+                                                                                    Me.F.SpecialType(SpecialType.System_Object)))
+
+                                    builder.AssumeFieldsIfNeeded(referenceReceiverSpillSequence)
+                                    builder.AddLocals(referenceReceiverSpillSequence.Locals)
+                                    builder.AddStatement(Me.F.If(Me.F.Not(isValueTypeCheck), Me.F.StatementList(referenceReceiverSpillSequence.Statements)))
+
+                                    spilledReferenceReceiver = referenceReceiverSpillSequence.ValueOpt
+                                End If
+
+                                capturedReceiver = spilledReferenceReceiver
+                                nullCheckTarget = New BoundComplexConditionalAccessReceiver(Me.F.Syntax,
+                                                                                            receiver,
+                                                                                            capturedReceiver,
+                                                                                            receiver.Type)
                             End If
+                        Else
+                            Dim receiverLocal As LocalSymbol = Nothing
+                            receiverLocal = Me.F.SynthesizedLocal(receiver.Type)
+                            builder.AddLocal(receiverLocal)
 
-                            ' If receiver is not spilled, we can use a local to capture receiver's value. If receiver is spilled, use SpillRValue to accomplish this
-                            ' because values of locals are not preserved across awaits. 
-                            If conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled Then
-                                If node.CaptureReceiver OrElse receiver.Type.IsReferenceType Then
-                                    nullCheckTarget = SpillRValue(receiver.MakeRValue(), builder:=builder)
-                                    capturedReceiver = nullCheckTarget
-                                Else
-                                    Debug.Assert(conditionalAccessReceiverPlaceholderReplacementInfo.ForceCaptureIfReferenceType)
+                            nullCheckTarget = Me.F.AssignmentExpression(Me.F.Local(receiverLocal, isLValue:=True), receiver.MakeRValue())
+                            capturedReceiver = Me.F.Local(receiverLocal, isLValue:=True)
+                        End If
 
-                                    Dim referenceReceiverBuilder As New SpillBuilder()
-                                    Dim spilledReferenceReceiver As BoundExpression = SpillRValue(receiver.MakeRValue(), referenceReceiverBuilder)
-                                    spilledReferenceReceiver = referenceReceiverBuilder.BuildSequenceAndFree(Me.F, spilledReferenceReceiver)
-                                    Dim referenceReceiverSpillSequence = TryCast(spilledReferenceReceiver, BoundSpillSequence)
+                        If nullCheckTarget.Type.IsReferenceType OrElse nullCheckTarget.Type.IsNullableType() Then
+                            placeholderReplacement = capturedReceiver
+                        Else
+                            Debug.Assert(Not nullCheckTarget.Type.IsValueType)
+                            Debug.Assert(nullCheckTarget.Type.IsTypeParameter())
 
-                                    If referenceReceiverSpillSequence IsNot Nothing Then
-                                        ' If condition `(object)default(T) != null` is true at execution time,
-                                        ' the T is a value type. And it is a reference type otherwise.
-                                        Dim isValueTypeCheck = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(), receiver.Type),
-                                                                                      Me.F.SpecialType(SpecialType.System_Object)))
-
-                                        builder.AssumeFieldsIfNeeded(referenceReceiverSpillSequence)
-                                        builder.AddLocals(referenceReceiverSpillSequence.Locals)
-                                        builder.AddStatement(Me.F.If(Me.F.Not(isValueTypeCheck), Me.F.StatementList(referenceReceiverSpillSequence.Statements)))
-
-                                        spilledReferenceReceiver = referenceReceiverSpillSequence.ValueOpt
-                                    End If
-
-                                    capturedReceiver = spilledReferenceReceiver
-                                    nullCheckTarget = New BoundComplexConditionalAccessReceiver(Me.F.Syntax,
+                            ' Note, as part of "receiver IsNot Nothing" check below, we are capturing receiver only for reference types. 
+                            ' When this happens, in order to avoid a race, we shouldn't reevaluate the receiver again, the capture 
+                            ' should be the target of the access. However, when receiver is a value type, in order to preserve
+                            ' side-effects, the original receiver should be the target of the access. That is why we don't even
+                            ' capture it at run-time.
+                            placeholderReplacement = New BoundComplexConditionalAccessReceiver(Me.F.Syntax,
                                                                                                 receiver,
                                                                                                 capturedReceiver,
                                                                                                 receiver.Type)
-                                End If
-                            Else
-                                Dim receiverLocal As LocalSymbol = Nothing
-                                receiverLocal = Me.F.SynthesizedLocal(receiver.Type)
-                                builder.AddLocal(receiverLocal)
-
-                                nullCheckTarget = Me.F.AssignmentExpression(Me.F.Local(receiverLocal, isLValue:=True), receiver.MakeRValue())
-                                capturedReceiver = Me.F.Local(receiverLocal, isLValue:=True)
-                            End If
-
-                            If nullCheckTarget.Type.IsReferenceType Then
-                                placeholderReplacement = capturedReceiver
-                            Else
-                                Debug.Assert(Not nullCheckTarget.Type.IsValueType)
-                                Debug.Assert(nullCheckTarget.Type.IsTypeParameter())
-
-                                ' Note, as part of "receiver IsNot Nothing" check below, we are capturing receiver only for reference types. 
-                                ' When this happens, in order to avoid a race, we shouldn't reevaluate the receiver again, the capture 
-                                ' should be the target of the access. However, when receiver is a value type, in order to preserve
-                                ' side-effects, the original receiver should be the target of the access. That is why we don't even
-                                ' capture it at run-time.
-                                placeholderReplacement = New BoundComplexConditionalAccessReceiver(Me.F.Syntax,
-                                                                                                   receiver,
-                                                                                                   capturedReceiver,
-                                                                                                   receiver.Type)
-                            End If
-                        Else
-                            Debug.Assert(conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled)
-                            placeholderReplacement = SpillValue(receiver, isReceiver:=True, evaluateSideEffects:=True, builder:=builder)
-                            nullCheckTarget = placeholderReplacement.MakeRValue()
                         End If
                     Else
-                        placeholderReplacement = receiver
+                        Debug.Assert(Not receiver.Type.IsNullableType())
+                        Debug.Assert(conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled)
+                        placeholderReplacement = SpillValue(receiver, isReceiver:=True, evaluateSideEffects:=True, builder:=builder)
                         nullCheckTarget = placeholderReplacement.MakeRValue()
                     End If
+                Else
+                    placeholderReplacement = receiver
+                    nullCheckTarget = placeholderReplacement.MakeRValue()
+                End If
 
-                    ' We need to revisit the whenNotNull expression to replace placeholder
-                    Dim rewriter As New ConditionalAccessReceiverPlaceholderReplacement(node.PlaceholderId, placeholderReplacement, RecursionDepth)
-                    whenNotNull = DirectCast(rewriter.Visit(whenNotNull), BoundExpression)
-                    Debug.Assert(rewriter.Replaced)
+                ' We need to revisit the whenNotNull expression to replace placeholder
+                Dim rewriter As New ConditionalAccessReceiverPlaceholderReplacement(node.PlaceholderId, placeholderReplacement, RecursionDepth)
+                whenNotNull = DirectCast(rewriter.Visit(whenNotNull), BoundExpression)
+                Debug.Assert(rewriter.Replaced)
 
-                    ' We need to a add a null check for the receiver
-                    If nullCheckTarget.Type.IsReferenceType Then
-                        condition = Me.F.ReferenceIsNotNothing(nullCheckTarget)
-                    Else
-                        Debug.Assert(Not nullCheckTarget.Type.IsValueType)
-                        Debug.Assert(nullCheckTarget.Type.IsTypeParameter())
+                Dim condition As BoundExpression
 
-                        ' The "receiver IsNot Nothing" check becomes
-                        ' Not <receiver's type is reference type> OrElse receiver IsNot Nothing 
-                        ' The <receiver's type is reference type> is performed by boxing default value of receiver's type and checking if it is a null reference. 
+                ' We need to a add a null check for the receiver
+                If nullCheckTarget.Type.IsReferenceType Then
+                    condition = Me.F.ReferenceIsNotNothing(nullCheckTarget)
+                ElseIf nullCheckTarget.Type.IsNullableType() Then
+                    Dim hasValue = DirectCast(Me.CompilationState.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue), MethodSymbol)
+                    Debug.Assert(hasValue IsNot Nothing)
+                    condition = Me.F.Call(nullCheckTarget, hasValue.AsMember(DirectCast(nullCheckTarget.Type, NamedTypeSymbol)))
+                Else
+                    Debug.Assert(Not nullCheckTarget.Type.IsValueType)
+                    Debug.Assert(nullCheckTarget.Type.IsTypeParameter())
 
-                        Dim notReferenceType = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(),
-                                                                                                          nullCheckTarget.Type),
-                                                                                          Me.F.SpecialType(SpecialType.System_Object)))
+                    ' The "receiver IsNot Nothing" check becomes
+                    ' Not <receiver's type is reference type> OrElse receiver IsNot Nothing 
+                    ' The <receiver's type is reference type> is performed by boxing default value of receiver's type and checking if it is a null reference. 
 
-                        condition = Me.F.LogicalOrElse(notReferenceType,
-                                                       Me.F.ReferenceIsNotNothing(Me.F.DirectCast(nullCheckTarget,
-                                                                                                  Me.F.SpecialType(SpecialType.System_Object))))
-                    End If
+                    Dim notReferenceType = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(),
+                                                                                                        nullCheckTarget.Type),
+                                                                                        Me.F.SpecialType(SpecialType.System_Object)))
+
+                    condition = Me.F.LogicalOrElse(notReferenceType,
+                                                    Me.F.ReferenceIsNotNothing(Me.F.DirectCast(nullCheckTarget,
+                                                                                                Me.F.SpecialType(SpecialType.System_Object))))
                 End If
 
                 If whenNullOpt Is Nothing Then

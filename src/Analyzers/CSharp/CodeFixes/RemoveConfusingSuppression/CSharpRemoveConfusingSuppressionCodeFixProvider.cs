@@ -16,21 +16,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveConfusingSuppression), Shared]
-internal sealed partial class CSharpRemoveConfusingSuppressionCodeFixProvider : CodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CSharpRemoveConfusingSuppressionCodeFixProvider() : CodeFixProvider
 {
     public const string RemoveOperator = nameof(RemoveOperator);
     public const string NegateExpression = nameof(NegateExpression);
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpRemoveConfusingSuppressionCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId];

@@ -9,11 +9,11 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -677,6 +677,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,34): warning CS0169: The field 'C.x' is never used
                 // unsafe class C { delegate*<void> x; }
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.x").WithLocation(1, 34));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78510")]
+        public void TestParseMethodsKeepParseOptionsInTheTree()
+        {
+            var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+
+            var argList = SyntaxFactory.ParseArgumentList("", options: parseOptions);
+            Assert.Same(parseOptions, argList.SyntaxTree.Options);
+
+            var attrArgList = SyntaxFactory.ParseAttributeArgumentList("", options: parseOptions);
+            Assert.Same(parseOptions, attrArgList.SyntaxTree.Options);
+
+            var bracketedArgList = SyntaxFactory.ParseBracketedArgumentList("", options: parseOptions);
+            Assert.Same(parseOptions, bracketedArgList.SyntaxTree.Options);
+
+            var bracketedParamList = SyntaxFactory.ParseBracketedParameterList("", options: parseOptions);
+            Assert.Same(parseOptions, bracketedParamList.SyntaxTree.Options);
+
+            var compUnit = SyntaxFactory.ParseCompilationUnit("", options: parseOptions);
+            Assert.Same(parseOptions, compUnit.SyntaxTree.Options);
+
+            var expr = SyntaxFactory.ParseExpression("", options: parseOptions);
+            Assert.Same(parseOptions, expr.SyntaxTree.Options);
+
+            var memberDecl = SyntaxFactory.ParseMemberDeclaration("public", options: parseOptions);
+            Assert.Same(parseOptions, memberDecl.SyntaxTree.Options);
+
+            var paramList = SyntaxFactory.ParseParameterList("", options: parseOptions);
+            Assert.Same(parseOptions, paramList.SyntaxTree.Options);
+
+            var statement = SyntaxFactory.ParseStatement("", options: parseOptions);
+            Assert.Same(parseOptions, statement.SyntaxTree.Options);
+
+            var typeName = SyntaxFactory.ParseTypeName("", options: parseOptions);
+            Assert.Same(parseOptions, typeName.SyntaxTree.Options);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17637")]
+        public void Identifier_Null_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => SyntaxFactory.Identifier(text: null));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), text: null, SyntaxFactory.TriviaList()));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, text: null, valueText: "value", SyntaxFactory.TriviaList()));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.IdentifierName, text: "text", valueText: null, SyntaxFactory.TriviaList()));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.VerbatimIdentifier(SyntaxFactory.TriviaList(), text: null, valueText: "value", SyntaxFactory.TriviaList()));
+            Assert.Throws<ArgumentNullException>(() =>
+                SyntaxFactory.VerbatimIdentifier(SyntaxFactory.TriviaList(), text: "text", valueText: null, SyntaxFactory.TriviaList()));
         }
     }
 }

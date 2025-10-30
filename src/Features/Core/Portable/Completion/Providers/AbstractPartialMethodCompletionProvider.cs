@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,10 +27,6 @@ internal abstract partial class AbstractPartialMethodCompletionProvider : Abstra
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-    protected AbstractPartialMethodCompletionProvider()
-    {
-    }
 
     protected abstract bool IncludeAccessibility(IMethodSymbol method, CancellationToken cancellationToken);
     protected abstract bool IsPartialMethodCompletionContext(SyntaxTree tree, int position, CancellationToken cancellationToken, out DeclarationModifiers modifiers, out SyntaxToken token);
@@ -60,9 +55,10 @@ internal abstract partial class AbstractPartialMethodCompletionProvider : Abstra
         }
     }
 
-    protected override async Task<ISymbol> GenerateMemberAsync(ISymbol member, INamedTypeSymbol containingType, Document document, CompletionItem item, CancellationToken cancellationToken)
+    protected override async Task<ISymbol> GenerateMemberAsync(
+        Document document, CompletionItem item, Compilation compilation, ISymbol member, INamedTypeSymbol containingType, CancellationToken cancellationToken)
     {
-        var syntaxFactory = document.GetLanguageService<SyntaxGenerator>();
+        var syntaxFactory = document.GetRequiredLanguageService<SyntaxGenerator>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var method = (IMethodSymbol)member;
@@ -91,9 +87,11 @@ internal abstract partial class AbstractPartialMethodCompletionProvider : Abstra
         if (enclosingSymbol.TypeKind is not (TypeKind.Struct or TypeKind.Class))
             return null;
 
-        var symbols = semanticModel.LookupSymbols(position, container: enclosingSymbol)
-                                    .OfType<IMethodSymbol>()
-                                    .Where(m => IsPartial(m) && m.PartialImplementationPart == null);
+        // https://github.com/dotnet/roslyn/issues/73772: should we also add an `AbstractPartialPropertiesProvider`?
+        var symbols = semanticModel
+            .LookupSymbols(position, container: enclosingSymbol)
+            .OfType<IMethodSymbol>()
+            .Where(m => IsPartial(m) && m.PartialImplementationPart == null);
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var line = text.Lines.IndexOf(position);

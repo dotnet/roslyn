@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Collections.Generic;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 {
@@ -160,7 +161,7 @@ class TestClass
         {
             get
             {
-                return TestMetadata.Net40.mscorlib;
+                return Net40.References.mscorlib;
             }
         }
 
@@ -168,7 +169,7 @@ class TestClass
         {
             get
             {
-                return TestMetadata.Net451.mscorlib;
+                return NetFramework.mscorlib;
             }
         }
 

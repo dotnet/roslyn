@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Simplification;
 /// <summary>
 /// An annotation that holds onto information about a type or namespace symbol.
 /// </summary>
-internal class SymbolAnnotation
+internal static class SymbolAnnotation
 {
     public const string Kind = "SymbolId";
 
@@ -22,6 +22,6 @@ internal class SymbolAnnotation
 
     public static ImmutableArray<ISymbol> GetSymbols(SyntaxAnnotation annotation, Compilation compilation)
         => annotation.Data is null
-            ? ImmutableArray<ISymbol>.Empty
+            ? []
             : DocumentationCommentId.GetSymbolsForReferenceId(annotation.Data, compilation);
 }

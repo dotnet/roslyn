@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Namespace_can_not_be_added_in_this_destination" xml:space="preserve">
-    <value>Namespace can not be added in this destination.</value>
-  </data>
   <data name="Only_attributes_expressions_or_statements_can_be_made_explicit" xml:space="preserve">
     <value>Only attributes, expressions or statements can be made explicit</value>
   </data>
@@ -258,8 +255,11 @@
   <data name="Remove_and_Sort_Imports" xml:space="preserve">
     <value>R&amp;emove and Sort Imports</value>
   </data>
-  <data name="Sort_Imports" xml:space="preserve">
+  <data name="Sort_Imports_with_accelerator" xml:space="preserve">
     <value>&amp;Sort Imports</value>
+  </data>
+  <data name="Sort_Imports" xml:space="preserve">
+    <value>Sort Imports</value>
   </data>
   <data name="VB_Coding_Conventions" xml:space="preserve">
     <value>VB Coding Conventions</value>

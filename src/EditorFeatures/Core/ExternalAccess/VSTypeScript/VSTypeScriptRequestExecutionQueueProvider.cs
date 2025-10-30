@@ -12,14 +12,10 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
 [ExportStatelessLspService(typeof(IRequestExecutionQueueProvider<RequestContext>), ProtocolConstants.TypeScriptLanguageContract), Shared]
-internal sealed class VSTypeScriptRequestExecutionQueueProvider : IRequestExecutionQueueProvider<RequestContext>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
+internal sealed class VSTypeScriptRequestExecutionQueueProvider() : IRequestExecutionQueueProvider<RequestContext>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-    public VSTypeScriptRequestExecutionQueueProvider()
-    {
-    }
-
     public IRequestExecutionQueue<RequestContext> CreateRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
     {
         var queue = new RoslynRequestExecutionQueue(languageServer, logger, handlerProvider);

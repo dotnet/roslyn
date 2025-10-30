@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Storage;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
@@ -28,7 +27,7 @@ internal sealed partial class TopLevelSyntaxTreeIndex : AbstractSyntaxIndex<TopL
         _declarationInfo = declarationInfo;
         _extensionMethodInfo = extensionMethodInfo;
 
-        _declaredSymbolInfoSet = new(() => new(this.DeclaredSymbolInfos));
+        _declaredSymbolInfoSet = new(() => [.. this.DeclaredSymbolInfos]);
     }
 
     public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos => _declarationInfo.DeclaredSymbolInfos;

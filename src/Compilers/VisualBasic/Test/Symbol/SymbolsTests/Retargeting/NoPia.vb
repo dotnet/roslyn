@@ -3,11 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports System.Xml.Linq
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
     Public Class NoPia
@@ -226,7 +225,7 @@ End Class
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(New Object() {
                     compilation1,
                     compilation2,
-                    TestMetadata.Net40.mscorlib
+                    Net40.References.mscorlib
                 })
             Dim localTypes1 = assemblies(0).Modules(0)
             Dim localTypes2 = assemblies(1).Modules(0)
@@ -1660,7 +1659,7 @@ public delegate Sub Y(addin As List(Of string))
 </compilation>
 
             Dim comp1 = CreateCompilationWithMscorlib40(source1, options:=TestOptions.ReleaseDll,
-                references:={TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)})
+                references:={TestReferences.SymbolsTests.NoPia.StdOleNet40.WithEmbedInteropTypes(True)})
 
             Dim source2 =
 <compilation>
@@ -1675,14 +1674,14 @@ End Module
 
             Dim comp2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2,
                 {comp1.EmitToImageReference(),
-                TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)},
+                TestReferences.SymbolsTests.NoPia.StdOleNet40.WithEmbedInteropTypes(True)},
                 TestOptions.ReleaseExe)
 
             CompileAndVerify(comp2, expectedOutput:="Y").Diagnostics.Verify()
 
             Dim comp3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2,
                 {New VisualBasicCompilationReference(comp1),
-                TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)},
+                TestReferences.SymbolsTests.NoPia.StdOleNet40.WithEmbedInteropTypes(True)},
                 TestOptions.ReleaseExe)
 
             CompileAndVerify(comp3, expectedOutput:="Y").Diagnostics.Verify()
@@ -1701,7 +1700,7 @@ Imports System.Runtime.InteropServices
 Public Structure Test
 End Structure
 "
-            Dim piaCompilation = CreateCompilationWithMscorlib45(pia, options:=TestOptions.ReleaseDll, assemblyName:="Pia")
+            Dim piaCompilation = CreateCompilationWithMscorlib461(pia, options:=TestOptions.ReleaseDll, assemblyName:="Pia")
 
             Dim consumer1 = "
 Public Class UsePia1 
@@ -1719,7 +1718,7 @@ Public Class Program
 End Class
 "
             For Each piaRef As MetadataReference In {piaCompilation.EmitToImageReference(), piaCompilation.ToMetadataReference()}
-                Dim compilation1 = CreateCompilationWithMscorlib45(consumer1, references:={piaRef.WithEmbedInteropTypes(True)}, options:=TestOptions.ReleaseDll)
+                Dim compilation1 = CreateCompilationWithMscorlib461(consumer1, references:={piaRef.WithEmbedInteropTypes(True)}, options:=TestOptions.ReleaseDll)
 
                 For Each consumer1Ref As MetadataReference In {compilation1.EmitToImageReference(), compilation1.ToMetadataReference()}
                     Dim compilation2 = CreateEmptyCompilation(consumer2, references:={MscorlibRef_v46, piaRef, consumer1Ref})

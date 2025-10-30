@@ -2,10 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -258,7 +258,7 @@ Module Program
     End Class
 End Module
     ]]></file>
-</compilation>, {Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
 
             compilation.AssertNoDiagnostics()
 
@@ -399,7 +399,7 @@ Module Ext
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:={Net40.SystemCore})
+</compilation>, additionalRefs:={Net40.References.SystemCore})
 
             compilation.AssertTheseDiagnostics()
 
@@ -451,7 +451,7 @@ Module Ext
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:={Net40.SystemCore})
+</compilation>, additionalRefs:={Net40.References.SystemCore})
 
             compilation.AssertTheseDiagnostics()
 
@@ -508,7 +508,7 @@ Module Ext
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:={Net40.SystemCore})
+</compilation>, additionalRefs:={Net40.References.SystemCore})
 
             compilation.AssertTheseDiagnostics()
 

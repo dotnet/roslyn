@@ -37,8 +37,9 @@ internal sealed partial class CSharpCopilotCodeFixProvider
 
                 if (workspace.Services.GetService<IWorkspaceTelemetryService>()?.IsUserMicrosoftInternal is true)
                 {
-                    Logger.Log(FunctionId.Copilot_Suggestion_Dismissed, KeyValueLogMessage.Create(m =>
+                    Logger.Log(FunctionId.Copilot_Suggestion_Dismissed, KeyValueLogMessage.Create(static (m, args) =>
                     {
+                        var (diagnostic, originalMethodNode) = args;
                         if (diagnostic.Properties.TryGetValue(FixPropertyName, out var fix))
                             m["FixedMethod"] = fix;
 
@@ -49,6 +50,7 @@ internal sealed partial class CSharpCopilotCodeFixProvider
                         m["Message"] = diagnostic.GetMessage();
                         m["OriginalMethod"] = originalMethodNode.ToFullString();
                     },
+                    (diagnostic, originalMethodNode),
                     LogLevel.Information));
                 }
                 else

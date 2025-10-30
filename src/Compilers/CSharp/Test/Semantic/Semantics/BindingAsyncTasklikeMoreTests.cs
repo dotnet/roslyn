@@ -103,7 +103,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(compilation, expectedOutput: "3");
             verifier.VerifyDiagnostics();
             var testData = verifier.TestData;
@@ -230,7 +230,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyEmitDiagnostics(
                 // (6,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Create'
                 //     static async MyTask F() { await Task.Delay(0); }
@@ -319,7 +319,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyEmitDiagnostics(
                 // (6,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilderFactory.Task'
                 //     static async MyTask F() { await Task.Delay(0); }
@@ -376,7 +376,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyEmitDiagnostics(
                 // (6,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.Task'
                 //     static async MyTask F() { await (Task)null; }
@@ -394,10 +394,8 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 using System.Runtime.CompilerServices;
 class C
 {
-#pragma warning disable CS1998
     static async MyTask F() { }
     static async MyTask<int> G() { return 3; }
-#pragma warning restore CS1998
     [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
     private class MyTask { }
     [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
@@ -428,7 +426,7 @@ class C
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             var verifier = CompileAndVerify(compilation);
             verifier.VerifyDiagnostics();
             var testData = verifier.TestData;
@@ -455,11 +453,9 @@ class C
     static void F(Func<MyTask<string>> f) { }
     static void M()
     {
-#pragma warning disable CS1998
         F(async () => { });
         F(async () => { return 3; });
         F(async () => { return string.Empty; });
-#pragma warning restore CS1998
     }
 }
 [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
@@ -509,7 +505,7 @@ class MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             var verifier = CompileAndVerify(compilation);
             verifier.VerifyDiagnostics();
             var testData = verifier.TestData;
@@ -533,12 +529,10 @@ class C
 {
     static async void M()
     {
-#pragma warning disable CS1998
         async MyTask F() { }
         async MyTask<T> G<T>(T t) => t;
         await F();
         await G(3);
-#pragma warning restore CS1998
     }
 }
 [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
@@ -588,7 +582,7 @@ class MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             var verifier = CompileAndVerify(compilation);
             verifier.VerifyDiagnostics();
             var testData = verifier.TestData;
@@ -614,11 +608,9 @@ class C
     static void G(Func<MyTask<dynamic>> f) { }
     static void M(object o)
     {
-#pragma warning disable CS1998
         F(async () => (dynamic)o);
         F(async () => new[] { (dynamic)o });
         G(async () => o);
-#pragma warning restore CS1998
     }
 }
 [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
@@ -646,10 +638,24 @@ class MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef });
-            var verifier = CompileAndVerify(
-                compilation,
-                expectedSignatures: new[]
+            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef });
+            var expectedSignatures = ExecutionConditionUtil.IsMonoCore
+                ? new[]
+                {
+                    Signature(
+                        "C+<>c__DisplayClass2_0",
+                        "<M>b__0",
+                        ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__0>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Boolean[])] MyTask`1[System.Object] <M>b__0() cil managed"),
+                    Signature(
+                        "C+<>c__DisplayClass2_0",
+                        "<M>b__1",
+                        ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__1>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Boolean[])] MyTask`1[System.Object[]] <M>b__1() cil managed"),
+                    Signature(
+                        "C+<>c__DisplayClass2_0",
+                        "<M>b__2",
+                        ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__2>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Boolean[])] MyTask`1[System.Object] <M>b__2() cil managed"),
+                }
+                : new[]
                 {
                     Signature(
                         "C+<>c__DisplayClass2_0",
@@ -663,7 +669,12 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                         "C+<>c__DisplayClass2_0",
                         "<M>b__2",
                         ".method [System.Runtime.CompilerServices.AsyncStateMachineAttribute(C+<>c__DisplayClass2_0+<<M>b__2>d)] assembly hidebysig instance [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] MyTask`1[System.Object] <M>b__2() cil managed"),
-                });
+                };
+
+            var verifier = CompileAndVerify(
+                compilation,
+                expectedSignatures: expectedSignatures);
+
             verifier.VerifyDiagnostics();
         }
 
@@ -677,10 +688,8 @@ class C
 {
     static async void M()
     {
-#pragma warning disable CS1998
         async MyTask F() { };
         await F();
-#pragma warning restore CS1998
     }
 }
 [AsyncMethodBuilder(typeof(string))]
@@ -697,14 +706,15 @@ public struct MyTask
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyEmitDiagnostics(
-                // (8,26): error CS0656: Missing compiler required member 'string.Task'
+                // (7,26): error CS0656: Missing compiler required member 'string.Task'
                 //         async MyTask F() { };
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ }").WithArguments("string", "Task").WithLocation(8, 26),
-                // (8,26): error CS0656: Missing compiler required member 'string.Create'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ }").WithArguments("string", "Task").WithLocation(7, 26),
+                // (7,26): error CS0656: Missing compiler required member 'string.Create'
                 //         async MyTask F() { };
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ }").WithArguments("string", "Create").WithLocation(8, 26));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ }").WithArguments("string", "Create").WithLocation(7, 26)
+            );
         }
 
         [Fact]
@@ -717,10 +727,8 @@ class C
 {
     static async void M()
     {
-#pragma warning disable CS1998
         async MyTask<T> F<T>(T t) => t;
         await F(3);
-#pragma warning restore CS1998
     }
 }
 [AsyncMethodBuilder(typeof(IEquatable<>))]
@@ -737,14 +745,15 @@ public struct MyTask<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyEmitDiagnostics(
-                // (8,35): error CS0656: Missing compiler required member 'IEquatable<T>.Task'
+                // (7,35): error CS0656: Missing compiler required member 'IEquatable<T>.Task'
                 //         async MyTask<T> F<T>(T t) => t;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> t").WithArguments("System.IEquatable<T>", "Task").WithLocation(8, 35),
-                // (8,35): error CS0656: Missing compiler required member 'IEquatable<T>.Create'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> t").WithArguments("System.IEquatable<T>", "Task").WithLocation(7, 35),
+                // (7,35): error CS0656: Missing compiler required member 'IEquatable<T>.Create'
                 //         async MyTask<T> F<T>(T t) => t;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> t").WithArguments("System.IEquatable<T>", "Create").WithLocation(8, 35));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> t").WithArguments("System.IEquatable<T>", "Create").WithLocation(7, 35)
+            );
         }
 
         [Fact]
@@ -757,10 +766,8 @@ class C
 {
     static async void M()
     {
-#pragma warning disable CS1998
         async MyTask F() { };
         await F();
-#pragma warning restore CS1998
     }
 }
 [AsyncMethodBuilder(typeof(object[]))]
@@ -777,11 +784,11 @@ struct MyTask
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyEmitDiagnostics(
-                // (8,22): error CS1983: The return type of an async method must be void, Task or Task<T>
+                // (7,22): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //         async MyTask F() { };
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ }").WithLocation(8, 26));
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ }").WithLocation(7, 26));
         }
 
         [Fact]
@@ -805,7 +812,7 @@ class Program {
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t, int i) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyEmitDiagnostics(
                 // (8,2): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'AsyncMethodBuilderAttribute.AsyncMethodBuilderAttribute(Type, int)'
                 // [AsyncMethodBuilder(typeof(B2))] class T2 { }
@@ -835,7 +842,7 @@ class Program {
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(int i) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyEmitDiagnostics(
                 // (9,13): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async T f() => await Task.Delay(1);
@@ -913,7 +920,7 @@ class MyTaskMethodBuilder<T>
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public MyTask<T> Task => default(MyTask<T>);
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             compilation.VerifyEmitDiagnostics(
                 // (13,29): error CS0656: Missing compiler required member 'MyTaskMethodBuilder.SetStateMachine'
                 //     static async MyTask F() { await Task.Delay(0); }
@@ -1002,7 +1009,7 @@ class MyTaskMethodBuilder<T>
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public MyTask<T> Task => default(MyTask<T>);
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             compilation.VerifyEmitDiagnostics(
                 // (17,9): error CS0311: The type 'MyTask.Awaiter' cannot be used as type parameter 'TAwaiter' in the generic type or method 'MyTaskMethodBuilder<int>.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)'. There is no implicit reference conversion from 'MyTask.Awaiter' to 'System.Runtime.CompilerServices.IAsyncStateMachine'.
                 //         await F();
@@ -1087,7 +1094,7 @@ class MyTaskMethodBuilder<T>
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine, ICriticalNotifyCompletion { }
     public MyTask<T> Task => default(MyTask<T>);
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             compilation.VerifyEmitDiagnostics(
                 // (14,40): error CS0311: The type 'C.<G>d__1<T>' cannot be used as type parameter 'TStateMachine' in the generic type or method 'MyTaskMethodBuilder<T>.AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)'. There is no implicit reference conversion from 'C.<G>d__1<T>' to 'System.Runtime.CompilerServices.ICriticalNotifyCompletion'.
                 //     static async MyTask<T> G<T>(T t) { await Task.Delay(0); return t; }
@@ -1114,7 +1121,7 @@ class B
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugExe);
             compilation.VerifyEmitDiagnostics();
         }
 
@@ -1164,7 +1171,7 @@ public sealed class MyTaskMethodBuilder
     }
     public MyTask Task => new MyTask();
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0);
+            var compilation0 = CreateCompilationWithMscorlib461(source0);
             var ref0 = compilation0.EmitToImageReference();
             var source =
 @"class Program
@@ -1179,7 +1186,7 @@ public sealed class MyTaskMethodBuilder
         t.GetAwaiter().GetResult();
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ref0 });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { ref0 });
             compilation.VerifyEmitDiagnostics(
                 // (5,9): error CS4027: 'MyTask.Awaiter' does not implement 'INotifyCompletion'
                 //         await new MyTask();
@@ -1327,7 +1334,7 @@ public sealed class MyTaskMethodBuilder
     }
     public MyTask Task => new MyTask();
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0);
+            var compilation0 = CreateCompilationWithMscorlib461(source0);
             var ref0 = compilation0.EmitToImageReference();
             var source =
 @"class Program
@@ -1342,7 +1349,7 @@ public sealed class MyTaskMethodBuilder
         t.GetAwaiter().GetResult();
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ref0 });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { ref0 });
             compilation.VerifyEmitDiagnostics(
                 // (4,5): error CS0315: The type 'Program.<F>d__0' cannot be used as type parameter 'TStateMachine' in the generic type or method 'MyTaskMethodBuilder.Start<TStateMachine>(ref TStateMachine)'. There is no boxing conversion from 'Program.<F>d__0' to 'IMyStateMachine'.
                 //     {
@@ -1401,7 +1408,7 @@ public sealed class MyTaskMethodBuilder
     }
     public MyTask Task => new MyTask();
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0);
+            var compilation0 = CreateCompilationWithMscorlib461(source0);
             var ref0 = compilation0.EmitToImageReference();
             var source =
 @"class Program
@@ -1416,7 +1423,7 @@ public sealed class MyTaskMethodBuilder
         t.GetAwaiter().GetResult();
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ref0 });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { ref0 });
             compilation.VerifyEmitDiagnostics(
                 // (5,9): error CS0310: 'MyTask.Awaiter' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'TAwaiter' in the generic type or method 'MyTaskMethodBuilder.AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)'
                 //         await new MyTask();
@@ -1475,7 +1482,7 @@ public sealed class MyTaskMethodBuilder
     }
     public MyTask Task => new MyTask();
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source0);
+            var compilation0 = CreateCompilationWithMscorlib461(source0);
             var ref0 = compilation0.EmitToImageReference();
             var source =
 @"class Program
@@ -1490,7 +1497,7 @@ public sealed class MyTaskMethodBuilder
         t.GetAwaiter().GetResult();
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ref0 });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { ref0 });
             compilation.VerifyEmitDiagnostics(
                 // (5,9): error CS0311: The type 'MyTask.Awaiter' cannot be used as type parameter 'TAwaiter' in the generic type or method 'MyTaskMethodBuilder.AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)'. There is no implicit reference conversion from 'MyTask.Awaiter' to 'IMyAwaiter'.
                 //         await new MyTask();

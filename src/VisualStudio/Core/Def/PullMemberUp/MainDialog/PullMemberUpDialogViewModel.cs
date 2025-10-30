@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -16,20 +15,17 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
 
-internal class PullMemberUpDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed class PullMemberUpDialogViewModel : AbstractNotifyPropertyChanged
 {
-    public bool OkButtonEnabled { get => _okButtonEnabled; set => SetProperty(ref _okButtonEnabled, value, nameof(OkButtonEnabled)); }
-    public bool? SelectAllCheckBoxState { get => _selectAllCheckBoxState; set => SetProperty(ref _selectAllCheckBoxState, value, nameof(SelectAllCheckBoxState)); }
-    public bool SelectAllCheckBoxThreeStateEnable { get => _selectAllCheckBoxThreeStateEnable; set => SetProperty(ref _selectAllCheckBoxThreeStateEnable, value, nameof(SelectAllCheckBoxThreeStateEnable)); }
+    public bool OkButtonEnabled { get; set => SetProperty(ref field, value, nameof(OkButtonEnabled)); }
+    public bool? SelectAllCheckBoxState { get; set => SetProperty(ref field, value, nameof(SelectAllCheckBoxState)); }
+    public bool SelectAllCheckBoxThreeStateEnable { get; set => SetProperty(ref field, value, nameof(SelectAllCheckBoxThreeStateEnable)); }
     public string SelectAllCheckBoxAutomationText => ServicesVSResources.Select_All;
     public string DestinationTreeViewAutomationText => ServicesVSResources.Select_destination;
     public string SelectMemberListViewAutomationText => ServicesVSResources.Select_member;
 
-    private bool _selectAllCheckBoxThreeStateEnable;
-    private bool? _selectAllCheckBoxState;
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
     private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> _symbolToDependentsMap;
-    private bool _okButtonEnabled;
 
     public PullMemberUpDialogViewModel(
         IUIThreadOperationExecutor uiThreadOperationExecutor,

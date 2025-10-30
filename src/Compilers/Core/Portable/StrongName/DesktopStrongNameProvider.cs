@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var other = (DesktopStrongNameProvider)obj;
-            if (FileSystem != other.FileSystem)
+            if (!FileSystem.Equals(other.FileSystem))
             {
                 return false;
             }

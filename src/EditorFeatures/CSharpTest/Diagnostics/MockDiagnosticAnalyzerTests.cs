@@ -8,62 +8,57 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnosticAnalyzer
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnosticAnalyzer;
+
+public sealed partial class MockDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
 {
-    public partial class MockDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    private sealed class MockDiagnosticAnalyzer : DiagnosticAnalyzer
     {
-        private class MockDiagnosticAnalyzer : DiagnosticAnalyzer
+        public const string Id = "MockDiagnostic";
+        private readonly DiagnosticDescriptor _descriptor = new(Id, "MockDiagnostic", "MockDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/dotnet/roslyn");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            public const string Id = "MockDiagnostic";
-            private readonly DiagnosticDescriptor _descriptor = new DiagnosticDescriptor(Id, "MockDiagnostic", "MockDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/dotnet/roslyn");
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            get
             {
-                get
-                {
-                    return ImmutableArray.Create(_descriptor);
-                }
-            }
-
-            public override void Initialize(AnalysisContext context)
-                => context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
-
-            public void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
-                => context.RegisterCompilationEndAction(AnalyzeCompilation);
-
-            public void AnalyzeCompilation(CompilationAnalysisContext context)
-            {
+                return [_descriptor];
             }
         }
 
-        public MockDiagnosticAnalyzerTests(ITestOutputHelper logger)
-           : base(logger)
-        {
-        }
+        public override void Initialize(AnalysisContext context)
+            => context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new MockDiagnosticAnalyzer(), null);
+        public void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
+            => context.RegisterCompilationEndAction(AnalyzeCompilation);
 
-        private async Task VerifyDiagnosticsAsync(
-             string source,
-             params DiagnosticDescription[] expectedDiagnostics)
+        public void AnalyzeCompilation(CompilationAnalysisContext context)
         {
-            using var workspace = EditorTestWorkspace.CreateCSharp(source, composition: GetComposition());
-            var actualDiagnostics = await this.GetDiagnosticsAsync(workspace, new TestParameters());
-            actualDiagnostics.Verify(expectedDiagnostics);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/906919")]
-        public async Task Bug906919()
-        {
-            var source = "[|class C { }|]";
-            await VerifyDiagnosticsAsync(source);
         }
     }
+
+    public MockDiagnosticAnalyzerTests(ITestOutputHelper logger)
+       : base(logger)
+    {
+    }
+
+    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (new MockDiagnosticAnalyzer(), null);
+
+    private async Task VerifyDiagnosticsAsync(
+         string source,
+         params DiagnosticDescription[] expectedDiagnostics)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp(source, composition: GetComposition());
+        var actualDiagnostics = await this.GetDiagnosticsAsync(workspace, TestParameters.Default);
+        actualDiagnostics.Verify(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/906919")]
+    public Task Bug906919()
+        => VerifyDiagnosticsAsync("[|class C { }|]");
 }

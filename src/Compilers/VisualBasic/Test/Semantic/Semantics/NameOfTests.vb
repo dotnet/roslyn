@@ -3,14 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -2339,7 +2336,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {TestMetadata.Net40.SystemCore}, TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {Net40.References.SystemCore}, TestOptions.DebugExe)
 
             CompileAndVerify(comp, expectedOutput:=
             <![CDATA[
@@ -2416,7 +2413,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {TestMetadata.Net40.SystemCore}, TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {Net40.References.SystemCore}, TestOptions.DebugExe)
 
             AssertTheseDiagnostics(comp,
 <expected>
@@ -3224,7 +3221,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {TestMetadata.Net40.SystemCore}, TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {Net40.References.SystemCore}, TestOptions.DebugExe)
 
             CompileAndVerify(comp, expectedOutput:=
             <![CDATA[

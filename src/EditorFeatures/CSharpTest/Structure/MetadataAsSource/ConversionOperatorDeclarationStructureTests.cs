@@ -11,43 +11,34 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
 
-public class ConversionOperatorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<ConversionOperatorDeclarationSyntax>
+public sealed class ConversionOperatorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<ConversionOperatorDeclarationSyntax>
 {
     protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
     internal override AbstractSyntaxStructureProvider CreateProvider() => new ConversionOperatorDeclarationStructureProvider();
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task NoCommentsOrAttributes()
-    {
-        var code = """
+    public Task NoCommentsOrAttributes()
+        => VerifyNoBlockSpansAsync("""
                 class C
                 {
                     public static explicit operator $$Goo(byte b);
                 }
-                """;
-
-        await VerifyNoBlockSpansAsync(code);
-    }
+                """);
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithAttributes()
-    {
-        var code = """
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:{|textspan:[Blah]
                     |}public static explicit operator $$Goo(byte b);|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAndAttributes()
-    {
-        var code = """
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:{|textspan:// Summary:
@@ -55,16 +46,12 @@ public class ConversionOperatorDeclarationStructureTests : AbstractCSharpSyntaxN
                     [Blah]
                     |}public static explicit operator $$Goo(byte b);|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-    public async Task TestOperator3()
-    {
-        var code = """
+    public Task TestOperator3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     $${|#0:public static explicit operator C(byte i){|textspan:
@@ -75,9 +62,6 @@ public class ConversionOperatorDeclarationStructureTests : AbstractCSharpSyntaxN
                     {
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

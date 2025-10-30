@@ -14,24 +14,17 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(PartialMethodCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(PartialMethodCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(OverrideCompletionProvider))]
-[Shared]
-internal partial class PartialMethodCompletionProvider : AbstractPartialMethodCompletionProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class PartialMethodCompletionProvider() : AbstractPartialMethodCompletionProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public PartialMethodCompletionProvider()
-    {
-    }
-
     internal override string Language => LanguageNames.CSharp;
 
     protected override bool IncludeAccessibility(IMethodSymbol method, CancellationToken cancellationToken)
@@ -62,10 +55,10 @@ internal partial class PartialMethodCompletionProvider : AbstractPartialMethodCo
             ?? throw ExceptionUtilities.UnexpectedValue(token);
     }
 
-    protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
+    protected override TextSpan GetTargetSelectionSpan(SyntaxNode caretTarget)
     {
         var methodDeclaration = (MethodDeclarationSyntax)caretTarget;
-        return CompletionUtilities.GetTargetCaretPositionForMethod(methodDeclaration);
+        return CompletionUtilities.GetTargetSelectionSpanForInsertedMember(methodDeclaration);
     }
 
     protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)
@@ -76,7 +69,7 @@ internal partial class PartialMethodCompletionProvider : AbstractPartialMethodCo
 
     public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
         => text[characterPosition] == ' ' ||
-           options.TriggerOnTypingLetters && CompletionUtilities.IsStartingNewWord(text, characterPosition);
+           (options.TriggerOnTypingLetters && CompletionUtilities.IsStartingNewWord(text, characterPosition));
 
     public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 

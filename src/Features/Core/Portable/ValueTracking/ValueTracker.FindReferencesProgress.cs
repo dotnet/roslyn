@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -14,9 +16,10 @@ namespace Microsoft.CodeAnalysis.ValueTracking;
 
 internal static partial class ValueTracker
 {
-    private class FindReferencesProgress(OperationCollector valueTrackingProgressCollector) : IStreamingFindReferencesProgress, IStreamingProgressTracker
+    private sealed class FindReferencesProgress(OperationCollector valueTrackingProgressCollector, IParameterSymbol? parameterSymbol = null) : IStreamingFindReferencesProgress, IStreamingProgressTracker
     {
         private readonly OperationCollector _operationCollector = valueTrackingProgressCollector;
+        private readonly IParameterSymbol? _parameterSymbol = parameterSymbol;
 
         public IStreamingProgressTracker ProgressTracker => this;
 
@@ -28,11 +31,16 @@ internal static partial class ValueTracker
 
         public ValueTask OnDefinitionFoundAsync(SymbolGroup symbolGroup, CancellationToken _) => new();
 
-        public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken _) => new();
+        public async ValueTask OnReferencesFoundAsync(
+            ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references,
+            CancellationToken cancellationToken)
+        {
+            foreach (var (_, symbol, location) in references)
+                await OnReferenceFoundAsync(symbol, location, cancellationToken).ConfigureAwait(false);
+        }
 
-        public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken _) => new();
-
-        public async ValueTask OnReferenceFoundAsync(SymbolGroup _, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)
+        private async ValueTask OnReferenceFoundAsync(
+            ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)
         {
             if (!location.Location.IsInSource)
             {
@@ -165,22 +173,27 @@ internal static partial class ValueTracker
             var originalNode = syntaxRoot.FindNode(span);
 
             if (originalNode is null)
-            {
                 return;
-            }
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var invocationSyntax = originalNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsInvocationExpression);
             if (invocationSyntax is null)
-            {
                 return;
-            }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var operation = semanticModel.GetOperation(invocationSyntax, cancellationToken);
-            if (operation is not IInvocationOperation)
-            {
+            if (operation is not IInvocationOperation invocationOperation)
                 return;
+
+            if (_parameterSymbol is not null)
+            {
+                // Filter out invocations not containing an argument matching _parameterSymbol
+                if (invocationOperation.Arguments.Any(
+                    static (argOp, parameterSymbol) => argOp.Parameter == parameterSymbol && argOp.IsImplicit,
+                    _parameterSymbol))
+                {
+                    return;
+                }
             }
 
             await _operationCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);

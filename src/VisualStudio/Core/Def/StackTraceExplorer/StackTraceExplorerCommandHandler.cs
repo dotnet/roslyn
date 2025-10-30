@@ -4,7 +4,7 @@
 
 using System;
 using System.ComponentModel.Design;
-using System.IO.Packaging;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class StackTraceExplorerCommandHandler : IVsBroadcastMessageEvents, IDisposable
+internal sealed class StackTraceExplorerCommandHandler : IVsBroadcastMessageEvents, IDisposable
 {
     private readonly RoslynPackage _package;
     private readonly IThreadingContext _threadingContext;
@@ -106,12 +106,21 @@ internal class StackTraceExplorerCommandHandler : IVsBroadcastMessageEvents, IDi
         }
     }
 
-    private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
+    private void GlobalOptionChanged(object sender, object target, OptionChangedEventArgs e)
     {
-        if (e.Option == StackTraceExplorerOptionsStorage.OpenOnFocus && e.Value is not null)
+        bool? enabled = null;
+        foreach (var (key, newValue) in e.ChangedOptions)
         {
-            var enabled = (bool)e.Value;
-            if (enabled)
+            if (key.Option.Equals(StackTraceExplorerOptionsStorage.OpenOnFocus))
+            {
+                Contract.ThrowIfNull(newValue);
+                enabled = (bool)newValue;
+            }
+        }
+
+        if (enabled.HasValue)
+        {
+            if (enabled.Value)
             {
                 AdviseBroadcastMessages();
             }

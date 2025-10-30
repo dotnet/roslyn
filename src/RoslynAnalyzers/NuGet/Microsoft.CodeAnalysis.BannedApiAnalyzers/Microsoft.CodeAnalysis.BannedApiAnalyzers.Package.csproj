@@ -1,0 +1,28 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NuspecPackageId>Microsoft.CodeAnalysis.BannedApiAnalyzers</NuspecPackageId>
+    <Description>Banned API Analyzers</Description>
+    <Summary>Banned API Analyzers</Summary>
+    <ReleaseNotes>Banned API Analyzers</ReleaseNotes>
+    <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics BannedApi ApiAnalyzer</PackageTags>
+    <IsShippingPackage>true</IsShippingPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.BannedApiAnalyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.BannedApiAnalyzers\Core\Microsoft.CodeAnalysis.BannedApiAnalyzers.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.BannedApiAnalyzers\CSharp\Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.BannedApiAnalyzers\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.vbproj" />
+  </ItemGroup>
+</Project>

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private SequencePointList _next;  // Linked list of all points.
 
         // No sequence points.
-        private static readonly SequencePointList s_empty = new SequencePointList();
+        internal static readonly SequencePointList Empty = new SequencePointList();
 
         // Construct a list with no sequence points.
         private SequencePointList()
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             if (seqPointBuilder.Count == 0)
             {
-                return SequencePointList.s_empty;
+                return SequencePointList.Empty;
             }
 
             SequencePointList first = null, current = null;

@@ -1378,8 +1378,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(declarationSyntax != null);
 
+            if (declarationSyntax is ExtensionBlockDeclarationSyntax extensionDeclaration)
+            {
+                return GetDeclaredExtension(extensionDeclaration);
+            }
+
             var name = declarationSyntax.Identifier.ValueText;
             return GetDeclaredNamedType(declarationSyntax, name);
+        }
+
+        private NamedTypeSymbol GetDeclaredExtension(ExtensionBlockDeclarationSyntax extensionDeclaration)
+        {
+            Debug.Assert(extensionDeclaration != null);
+
+            var container = GetDeclaredTypeMemberContainer(extensionDeclaration);
+            Debug.Assert(container is not null);
+
+            // look for any extension declaration with same declaration location
+            var collection = container.GetMembersUnordered();
+            var declarationSpan = extensionDeclaration.Span;
+            foreach (var symbol in collection)
+            {
+                if (symbol is NamedTypeSymbol { IsExtension: true } && symbol.HasLocationContainedWithin(this.SyntaxTree, declarationSpan, out var wasZeroWidthMatch))
+                {
+                    if (!wasZeroWidthMatch)
+                        return (NamedTypeSymbol)symbol;
+                }
+            }
+
+            return null;
         }
 
         private NamedTypeSymbol GetDeclaredType(DelegateDeclarationSyntax declarationSyntax)
@@ -1626,25 +1653,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.MethodDeclaration:
                     {
                         var methodDecl = (MethodDeclarationSyntax)declaration;
-                        return GetDeclarationName(declaration, methodDecl.ExplicitInterfaceSpecifier, methodDecl.Identifier.ValueText);
+                        return GetDeclarationName(declaration, methodDecl.Modifiers, methodDecl.ExplicitInterfaceSpecifier, methodDecl.Identifier.ValueText);
                     }
 
                 case SyntaxKind.PropertyDeclaration:
                     {
                         var propertyDecl = (PropertyDeclarationSyntax)declaration;
-                        return GetDeclarationName(declaration, propertyDecl.ExplicitInterfaceSpecifier, propertyDecl.Identifier.ValueText);
+                        return GetDeclarationName(declaration, propertyDecl.Modifiers, propertyDecl.ExplicitInterfaceSpecifier, propertyDecl.Identifier.ValueText);
                     }
 
                 case SyntaxKind.IndexerDeclaration:
                     {
                         var indexerDecl = (IndexerDeclarationSyntax)declaration;
-                        return GetDeclarationName(declaration, indexerDecl.ExplicitInterfaceSpecifier, WellKnownMemberNames.Indexer);
+                        return GetDeclarationName(declaration, indexerDecl.Modifiers, indexerDecl.ExplicitInterfaceSpecifier, WellKnownMemberNames.Indexer);
                     }
 
                 case SyntaxKind.EventDeclaration:
                     {
                         var eventDecl = (EventDeclarationSyntax)declaration;
-                        return GetDeclarationName(declaration, eventDecl.ExplicitInterfaceSpecifier, eventDecl.Identifier.ValueText);
+                        return GetDeclarationName(declaration, eventDecl.Modifiers, eventDecl.ExplicitInterfaceSpecifier, eventDecl.Identifier.ValueText);
                     }
 
                 case SyntaxKind.DelegateDeclaration:
@@ -1680,13 +1707,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OperatorDeclaration:
                     {
                         var operatorDecl = (OperatorDeclarationSyntax)declaration;
-                        return GetDeclarationName(declaration, operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
+                        return GetDeclarationName(declaration, operatorDecl.Modifiers, operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
                     }
 
                 case SyntaxKind.ConversionOperatorDeclaration:
                     {
                         var operatorDecl = (ConversionOperatorDeclarationSyntax)declaration;
-                        return GetDeclarationName(declaration, operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
+                        return GetDeclarationName(declaration, operatorDecl.Modifiers, operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
                     }
 
                 case SyntaxKind.EventFieldDeclaration:
@@ -1702,7 +1729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private string GetDeclarationName(CSharpSyntaxNode declaration, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt, string memberName)
+        private string GetDeclarationName(CSharpSyntaxNode declaration, SyntaxTokenList modifiers, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt, string memberName)
         {
             if (explicitInterfaceSpecifierOpt == null)
             {
@@ -1714,7 +1741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  Option 2: detect explicit impl and return null
             //  Option 3: get a binder and figure out the name
             // For now, we're going with Option 3
-            return ExplicitInterfaceHelpers.GetMemberName(_binderFactory.GetBinder(declaration), explicitInterfaceSpecifierOpt, memberName);
+            return ExplicitInterfaceHelpers.GetMemberName(_binderFactory.GetBinder(declaration), modifiers, explicitInterfaceSpecifierOpt, memberName);
         }
 
         private NamespaceSymbol GetDeclaredNamespace(NamespaceOrTypeSymbol container, TextSpan declarationSpan, NameSyntax name)
@@ -1799,10 +1826,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     zeroWidthMatch = symbol;
                 }
 
-                // Handle the case of the implementation of a partial method.
-                var partial = symbol.Kind == SymbolKind.Method
-                    ? ((MethodSymbol)symbol).PartialImplementationPart
-                    : null;
+                // Handle the case of the implementation of a partial member.
+                Symbol partial = symbol.GetPartialImplementationPart();
                 if ((object)partial != null)
                 {
                     var loc = partial.GetFirstLocation();
@@ -1999,6 +2024,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
+        private ParameterSymbol GetExtensionParameterSymbol(
+            ParameterSyntax parameter,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(parameter != null);
+
+            if (parameter.Parent is not ParameterListSyntax { Parent: ExtensionBlockDeclarationSyntax extensionDecl })
+            {
+                return null;
+            }
+
+            INamedTypeSymbol extension = GetDeclaredSymbol(extensionDecl, cancellationToken);
+            if (extension is null)
+            {
+                return null;
+            }
+
+            IParameterSymbol extensionParameter = extension.ExtensionParameter;
+            foreach (var location in extensionParameter.Locations)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (location.SourceTree == this.SyntaxTree && parameter.Span.Contains(location.SourceSpan))
+                {
+                    return extensionParameter.GetSymbol<ParameterSymbol>();
+                }
+            }
+
+            return null;
+        }
+
         private ParameterSymbol GetMethodParameterSymbol(
             ParameterSyntax parameter,
             CancellationToken cancellationToken)
@@ -2033,9 +2089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return
-                GetParameterSymbol(method.Parameters, parameter, cancellationToken) ??
-                ((object)method.PartialDefinitionPart == null ? null : GetParameterSymbol(method.PartialDefinitionPart.Parameters, parameter, cancellationToken));
+            return GetParameterSymbol(method.Parameters, parameter, cancellationToken);
         }
 
         private ParameterSymbol GetIndexerParameterSymbol(
@@ -2123,15 +2177,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return
                 GetMethodParameterSymbol(declarationSyntax, cancellationToken) ??
                 GetIndexerParameterSymbol(declarationSyntax, cancellationToken) ??
-                GetDelegateParameterSymbol(declarationSyntax, cancellationToken);
+                GetDelegateParameterSymbol(declarationSyntax, cancellationToken) ??
+                GetExtensionParameterSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
-        /// Given a type parameter declaration (field or method), get the corresponding symbol
+        /// Given a type parameter declaration (on a type or method), get the corresponding symbol
         /// </summary>
-        /// <param name="typeParameter"></param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
         public override ITypeParameterSymbol GetDeclaredSymbol(TypeParameterSyntax typeParameter, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (typeParameter == null)
@@ -2165,10 +2217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return this.GetTypeParameterSymbol(typeSymbol.TypeParameters, typeParameter).GetPublicSymbol();
 
                     case MethodSymbol methodSymbol:
-                        return (this.GetTypeParameterSymbol(methodSymbol.TypeParameters, typeParameter) ??
-                            ((object)methodSymbol.PartialDefinitionPart == null
-                                ? null
-                                : this.GetTypeParameterSymbol(methodSymbol.PartialDefinitionPart.TypeParameters, typeParameter))).GetPublicSymbol();
+                        return this.GetTypeParameterSymbol(methodSymbol.TypeParameters, typeParameter).GetPublicSymbol();
                 }
             }
 
@@ -2356,6 +2405,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override AwaitExpressionInfo GetAwaitExpressionInfo(AwaitExpressionSyntax node)
+        {
+            MemberSemanticModel memberModel = GetMemberModel(node);
+            return memberModel == null ? default(AwaitExpressionInfo) : memberModel.GetAwaitExpressionInfo(node);
+        }
+
+        public override AwaitExpressionInfo GetAwaitExpressionInfo(LocalDeclarationStatementSyntax node)
+        {
+            MemberSemanticModel memberModel = GetMemberModel(node);
+            return memberModel == null ? default(AwaitExpressionInfo) : memberModel.GetAwaitExpressionInfo(node);
+        }
+
+        public override AwaitExpressionInfo GetAwaitExpressionInfo(UsingStatementSyntax node)
         {
             MemberSemanticModel memberModel = GetMemberModel(node);
             return memberModel == null ? default(AwaitExpressionInfo) : memberModel.GetAwaitExpressionInfo(node);

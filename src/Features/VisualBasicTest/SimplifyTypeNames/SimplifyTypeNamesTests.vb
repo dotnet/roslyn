@@ -6,9 +6,8 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
 
@@ -107,7 +106,7 @@ Module Program
     Sub Main(args As String())
     End Sub
 End Module",
-options:=PreferIntrinsicPredefinedTypeEverywhere())
+New TestParameters(options:=PreferIntrinsicPredefinedTypeEverywhere()))
         End Function
 
         <Fact>
@@ -129,7 +128,7 @@ End Module")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21449")>
         Public Async Function DoNotChangeToAliasInNameOfIfItChangesNameOfName() As Task
-            Await TestInRegularAndScript1Async(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports Foo = SimplifyInsideNameof.Program
 
@@ -966,7 +965,7 @@ End Namespace")
 [|System.Console|].WriteLine(0)",
 "Imports System
 Console.WriteLine(0)",
-        parseOptions:=TestOptions.Script)
+        New TestParameters(parseOptions:=TestOptions.Script))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542093")>
@@ -1564,7 +1563,7 @@ End Class"
     Sub Goo()
         Dim x As New Program
     End Sub
-End Class", parseOptions:=Nothing, index:=0)
+End Class", New TestParameters(parseOptions:=Nothing, index:=0))
 
             Await TestMissingAsync(source, New TestParameters(GetScriptOptions()))
         End Function
@@ -1821,7 +1820,7 @@ End Module
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
+            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition().WithTestHostParts(TestHost.OutOfProcess))
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.NotEqual(span.Start, 0)
@@ -1869,7 +1868,7 @@ End Namespace
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
+            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition().WithTestHostParts(TestHost.OutOfProcess))
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ReplaceLineEndings(vbLf).IndexOf("new C", StringComparison.Ordinal) + 4)
@@ -1903,7 +1902,7 @@ End Module
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
+            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition().WithTestHostParts(TestHost.OutOfProcess))
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ReplaceLineEndings(vbLf).IndexOf("Console.WriteLine(""goo"")", StringComparison.Ordinal))
@@ -2046,7 +2045,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicPredefinedTypeInDeclaration())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicPredefinedTypeInDeclaration()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2069,7 +2068,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicPredefinedTypeInDeclaration())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicPredefinedTypeInDeclaration()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2090,7 +2089,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2109,7 +2108,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012713")>
@@ -2190,7 +2189,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2211,7 +2210,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")>
@@ -2289,7 +2288,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
@@ -2320,7 +2319,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")>
@@ -2451,7 +2450,7 @@ Module Module1
         Dim var As UInteger = UInt32.MinValue
     End Sub
 End Module",
-                options:=PreferIntrinsicPredefinedTypeInDeclaration())
+                New TestParameters(options:=PreferIntrinsicPredefinedTypeInDeclaration()))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15996")>
@@ -2469,7 +2468,7 @@ Module Module1
         Dim var As UInt32 = UInteger.MinValue
     End Sub
 End Module",
-                options:=PreferIntrinsicTypeInMemberAccess())
+                New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15996")>
@@ -2487,7 +2486,7 @@ Module Module1
         UInteger.Parse(""Goo"")
     End Sub
 End Module",
-                options:=PreferIntrinsicTypeInMemberAccess())
+                New TestParameters(options:=PreferIntrinsicTypeInMemberAccess()))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34494")>

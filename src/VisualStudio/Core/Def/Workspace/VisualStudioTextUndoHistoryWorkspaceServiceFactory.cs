@@ -6,7 +6,6 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 [ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), ServiceLayer.Host), Shared]
-internal class VisualStudioTextUndoHistoryWorkspaceServiceFactory : IWorkspaceServiceFactory
+internal sealed class VisualStudioTextUndoHistoryWorkspaceServiceFactory : IWorkspaceServiceFactory
 {
     private readonly ITextUndoHistoryWorkspaceService _serviceSingleton;
 
@@ -33,7 +32,7 @@ internal class VisualStudioTextUndoHistoryWorkspaceServiceFactory : IWorkspaceSe
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => _serviceSingleton;
 
-    private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
+    private sealed class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
@@ -65,10 +64,8 @@ internal class VisualStudioTextUndoHistoryWorkspaceServiceFactory : IWorkspaceSe
 
                     break;
 
-                case MiscellaneousFilesWorkspace _:
-
+                case MiscellaneousFilesWorkspace:
                     // Nothing to do in this case: textBuffer is correct!
-
                     break;
 
                 default:

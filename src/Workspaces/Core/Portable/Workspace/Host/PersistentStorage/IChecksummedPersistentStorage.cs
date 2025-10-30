@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +11,11 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal interface IChecksummedPersistentStorage : IPersistentStorage
 {
+    /// <summary>
+    /// The solution this is a storage instance for.
+    /// </summary>
+    SolutionKey SolutionKey { get; }
+
     /// <summary>
     /// <see langword="true"/> if the data we have for the solution with the given <paramref name="name"/> has the
     /// provided <paramref name="checksum"/>.

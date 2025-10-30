@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -21,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 [ExportSignatureHelpProvider("TupleSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal class TupleConstructionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+internal sealed class TupleConstructionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
 {
     private static readonly Func<TupleExpressionSyntax, SyntaxToken> s_getOpenToken = e => e.OpenParenToken;
     private static readonly Func<TupleExpressionSyntax, SyntaxToken> s_getCloseToken = e => e.CloseParenToken;
@@ -50,10 +51,10 @@ internal class TupleConstructionSignatureHelpProvider : AbstractCSharpSignatureH
             if (currentSpan.Start == parenthesizedExpression.SpanStart)
             {
                 return new SignatureHelpState(
-                    argumentIndex: 0,
-                    argumentCount: 0,
-                    argumentName: string.Empty,
-                    argumentNames: default);
+                    SemanticParameterIndex: 0,
+                    SyntacticArgumentCount: 0,
+                    ArgumentName: string.Empty,
+                    ArgumentNames: default);
             }
         }
 
@@ -98,13 +99,11 @@ internal class TupleConstructionSignatureHelpProvider : AbstractCSharpSignatureH
         return result != null;
     }
 
-    public override Boolean IsRetriggerCharacter(Char ch)
-        => ch == ')';
+    public override ImmutableArray<char> TriggerCharacters => ['(', ','];
 
-    public override Boolean IsTriggerCharacter(Char ch)
-        => ch is '(' or ',';
+    public override ImmutableArray<char> RetriggerCharacters => [')'];
 
-    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -207,7 +206,7 @@ internal class TupleConstructionSignatureHelpProvider : AbstractCSharpSignatureH
     }
 
     private bool IsTupleExpressionTriggerToken(SyntaxToken token)
-        => SignatureHelpUtilities.IsTriggerParenOrComma<TupleExpressionSyntax>(token, IsTriggerCharacter);
+        => SignatureHelpUtilities.IsTriggerParenOrComma<TupleExpressionSyntax>(token, TriggerCharacters);
 
     private static bool IsTupleArgumentListToken(TupleExpressionSyntax? tupleExpression, SyntaxToken token)
     {

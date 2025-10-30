@@ -12,17 +12,15 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateComparisonOperators;
 
 using static CodeGenerationSymbolFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeRefactoringProviderNames.GenerateComparisonOperators), Shared]
-internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactoringProvider
 {
     private const string LeftName = "left";
     private const string RightName = "right";
@@ -64,8 +62,7 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
         if (comparableType == null)
             return;
 
-        var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
-        if (containingType == null)
+        if (semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol containingType)
             return;
 
         using var _1 = ArrayBuilder<INamedTypeSymbol>.GetInstance(out var missingComparableTypes);
@@ -97,7 +94,7 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
             var missingType = missingComparableTypes[0];
             context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Generate_comparison_operators,
-                c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, context.Options, c),
+                c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
                 nameof(FeaturesResources.Generate_comparison_operators)));
             return;
         }
@@ -110,7 +107,7 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
             var displayString = typeArg.ToMinimalDisplayString(semanticModel, textSpan.Start);
             nestedActions.Add(CodeAction.Create(
                 string.Format(FeaturesResources.Generate_for_0, displayString),
-                c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, context.Options, c),
+                c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
                 nameof(FeaturesResources.Generate_for_0) + "_" + displayString));
         }
 
@@ -122,7 +119,7 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
 
     private static IMethodSymbol? TryGetCompareMethodImpl(INamedTypeSymbol containingType, ITypeSymbol comparableType)
     {
-        foreach (var member in comparableType.GetMembers(nameof(IComparable<int>.CompareTo)))
+        foreach (var member in comparableType.GetMembers(nameof(IComparable<>.CompareTo)))
         {
             if (member is IMethodSymbol method)
                 return (IMethodSymbol?)containingType.FindImplementationForInterfaceMember(method);
@@ -135,7 +132,6 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
         Document document,
         SyntaxNode typeDeclaration,
         INamedTypeSymbol comparableType,
-        CodeAndImportGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -152,8 +148,7 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
 
         var solutionContext = new CodeGenerationSolutionContext(
             document.Project.Solution,
-            new CodeGenerationContext(contextLocation: typeDeclaration.GetLocation()),
-            fallbackOptions);
+            new CodeGenerationContext(contextLocation: typeDeclaration.GetLocation()));
 
         return await codeGenService.AddMembersAsync(solutionContext, containingType, operators, cancellationToken).ConfigureAwait(false);
     }
@@ -205,7 +200,7 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
             }
         }
 
-        return operators.ToImmutable();
+        return operators.ToImmutableAndClear();
     }
 
     private static SyntaxNode GenerateStatement(

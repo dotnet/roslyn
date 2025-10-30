@@ -1,2 +1,24 @@
 M:System.IO.Path.GetTempPath(); Cannot be used safely in APIs or compiler server as underlying environment variables can change during build.
 P:System.Environment.CurrentDirectory; Cannot be used safely in APIs or compiler server as underlying environment variables can change during build.
+M:System.Text.StringBuilder.Append(System.SByte); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Text.StringBuilder.Append(System.Byte); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Text.StringBuilder.Append(System.Int16); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Text.StringBuilder.Append(System.UInt16); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Text.StringBuilder.Append(System.Int32); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Text.StringBuilder.Append(System.UInt32); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Text.StringBuilder.Append(System.Int64); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Text.StringBuilder.Append(System.UInt64); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Text.StringBuilder.Append(System.Single); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Text.StringBuilder.Append(System.Double); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Text.StringBuilder.Append(System.Decimal); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.SByte.ToString(); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Byte.ToString(); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Int16.ToString(); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.UInt16.ToString(); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Int32.ToString(); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.UInt32.ToString(); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Int64.ToString(); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.UInt64.ToString(); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Single.ToString(); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Double.ToString(); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.
+M:System.Decimal.ToString(); Use ToString(CultureInfo.InvariantCulture) to avoid culture-sensitive formatting.

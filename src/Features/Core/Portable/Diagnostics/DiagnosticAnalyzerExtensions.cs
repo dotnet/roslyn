@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
+using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -16,16 +15,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal static class DiagnosticAnalyzerExtensions
 {
     public static bool IsWorkspaceDiagnosticAnalyzer(this DiagnosticAnalyzer analyzer)
-        => analyzer is DocumentDiagnosticAnalyzer
-        || analyzer is ProjectDiagnosticAnalyzer
-        || analyzer == FileContentLoadAnalyzer.Instance
-        || analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance;
+        => analyzer is DocumentDiagnosticAnalyzer;
 
     public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
         => analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
-
-    public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, SimplifierOptions? options)
-        => analyzer is IBuiltInAnalyzer builtInAnalyzer && builtInAnalyzer.OpenFileOnly(options);
 
     public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions options)
     {
@@ -34,28 +27,10 @@ internal static class DiagnosticAnalyzerExtensions
             : descriptor.GetEffectiveSeverity(options);
     }
 
-    public static (string analyzerId, VersionStamp version) GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)
-    {
-        // Get the unique ID for given diagnostic analyzer.
-        // note that we also put version stamp so that we can detect changed analyzer.
-        var typeInfo = analyzer.GetType().GetTypeInfo();
-        return (analyzer.GetAnalyzerId(), GetAnalyzerVersion(typeInfo.Assembly.Location));
-    }
-
-    private static VersionStamp GetAnalyzerVersion(string path)
-    {
-        if (path == null || !File.Exists(path))
-        {
-            return VersionStamp.Default;
-        }
-
-        return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
-    }
-
     public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
         => analyzer.GetType().Assembly.GetName().Name ?? throw ExceptionUtilities.Unreachable();
 
-    public static void AppendAnalyzerMap(this Dictionary<string, DiagnosticAnalyzer> analyzerMap, IEnumerable<DiagnosticAnalyzer> analyzers)
+    public static void AppendAnalyzerMap(this Dictionary<string, DiagnosticAnalyzer> analyzerMap, ImmutableArray<DiagnosticAnalyzer> analyzers)
     {
         foreach (var analyzer in analyzers)
         {
@@ -64,6 +39,16 @@ internal static class DiagnosticAnalyzerExtensions
         }
     }
 
-    public static IEnumerable<AnalyzerPerformanceInfo> ToAnalyzerPerformanceInfo(this IDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analysisResult, DiagnosticAnalyzerInfoCache analyzerInfo)
-        => analysisResult.Select(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
+    public static ImmutableArray<AnalyzerPerformanceInfo> ToAnalyzerPerformanceInfo(this IDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analysisResult, DiagnosticAnalyzerInfoCache analyzerInfo)
+        => analysisResult.SelectAsArray(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
+
+    public static Task<ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsAsync(
+        this Project project,
+        AnalyzerReference analyzerReference,
+        CancellationToken cancellationToken)
+    {
+        var diagnosticAnalyzerService = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        return diagnosticAnalyzerService.GetDiagnosticDescriptorsAsync(
+            project.Solution, project.Id, analyzerReference, project.Language, cancellationToken);
+    }
 }

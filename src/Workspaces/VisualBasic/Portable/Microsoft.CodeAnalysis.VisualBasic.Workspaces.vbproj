@@ -4,6 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFrameworks>$(NetRoslynSourceBuild);netstandard2.0</TargetFrameworks>
+    <DefineConstants>$(DefineConstants),VISUAL_BASIC_WORKSPACE</DefineConstants>
     <RootNamespace></RootNamespace>
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
 
@@ -13,10 +14,6 @@
       .NET Compiler Platform ("Roslyn") support for analyzing Visual Basic projects and solutions.
     </PackageDescription>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="My Project\**" />
-    <EmbeddedResource Remove="My Project\**" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />

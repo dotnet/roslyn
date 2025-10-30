@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -48,6 +47,8 @@ internal static class StackTraceExplorerUtilities
         using var _ = PooledObjects.ArrayBuilder<Project>.GetInstance(out var candidateProjects);
         foreach (var project in solution.Projects)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!project.SupportsCompilation)
             {
                 continue;
@@ -62,9 +63,7 @@ internal static class StackTraceExplorerUtilities
             {
                 var method = await TryGetBestMatchAsync(project, fullyQualifiedTypeName, methodNode, methodArguments, methodTypeArguments, cancellationToken).ConfigureAwait(false);
                 if (method is not null)
-                {
-                    return GetDefinition(method);
-                }
+                    return await GetDefinitionAsync(method).ConfigureAwait(false);
             }
             else
             {
@@ -80,9 +79,7 @@ internal static class StackTraceExplorerUtilities
         {
             var method = await TryGetBestMatchAsync(project, fullyQualifiedTypeName, methodNode, methodArguments, methodTypeArguments, cancellationToken).ConfigureAwait(false);
             if (method is not null)
-            {
-                return GetDefinition(method);
-            }
+                return await GetDefinitionAsync(method).ConfigureAwait(false);
         }
 
         return null;
@@ -91,7 +88,7 @@ internal static class StackTraceExplorerUtilities
         // Local Functions
         //
 
-        DefinitionItem GetDefinition(IMethodSymbol method)
+        Task<DefinitionItem> GetDefinitionAsync(IMethodSymbol method)
         {
             ISymbol symbol = method;
             if (symbolPart == StackFrameSymbolPart.ContainingType)
@@ -99,10 +96,11 @@ internal static class StackTraceExplorerUtilities
                 symbol = method.ContainingType;
             }
 
-            return symbol.ToNonClassifiedDefinitionItem(
+            return symbol.ToNonClassifiedDefinitionItemAsync(
                 solution,
                 FindReferencesSearchOptions.Default with { UnidirectionalHierarchyCascade = true },
-                includeHiddenLocations: true);
+                includeHiddenLocations: true,
+                cancellationToken);
         }
     }
 
@@ -117,6 +115,8 @@ internal static class StackTraceExplorerUtilities
 
         foreach (var resolver in _resolvers)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var matchingMethod = await resolver.TryGetBestMatchAsync(project, type, methodNode, methodArguments, methodTypeArguments, cancellationToken).ConfigureAwait(false);
             if (matchingMethod is not null)
             {

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
         End Function
 
         Private Function OptionOn() As OptionsCollection
-            Return [Option](IdeAnalyzerOptionsStorage.ReportInvalidRegexPatterns, True)
+            Return [Option](RegexOptionsStorage.ReportInvalidRegexPatterns, True)
         End Function
 
         <Fact>
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
                 var r = new Regex(""[|)|]"")
             end sub
         end class",
-                        globalOptions:=OptionOn(),
+                        options:=OptionOn(),
                         diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
                         diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
                 var r = new Regex(""""""[|)|]"")
             end sub
         end class",
-                        globalOptions:=OptionOn(),
+                        options:=OptionOn(),
                         diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
                         diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))

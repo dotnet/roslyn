@@ -14,13 +14,24 @@ using Microsoft.CodeAnalysis.StackTraceExplorer;
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting;
 
 [method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-internal class UnitTestingStackTraceServiceAccessor(
+internal sealed class UnitTestingStackTraceServiceAccessor(
     IStackTraceExplorerService stackTraceExplorerService) : IUnitTestingStackTraceServiceAccessor
 {
     private readonly IStackTraceExplorerService _stackTraceExplorerService = stackTraceExplorerService;
 
-    public (Document? document, int lineNumber) GetDocumentAndLine(Workspace workspace, UnitTestingParsedFrameWrapper parsedFrame)
+    public (TextDocument? textDocument, int lineNumber) GetTextDocumentAndLine(Workspace workspace, UnitTestingParsedFrameWrapper parsedFrame)
         => _stackTraceExplorerService.GetDocumentAndLine(workspace.CurrentSolution, parsedFrame.UnderlyingObject);
+
+    public (Document? document, int lineNumber) GetDocumentAndLine(Workspace workspace, UnitTestingParsedFrameWrapper parsedFrame)
+    {
+        var (textDocument, lineNumber) = GetTextDocumentAndLine(workspace, parsedFrame);
+        if (textDocument is Document document)
+        {
+            return (document, lineNumber);
+        }
+
+        return (null, default);
+    }
 
     public async Task<UnitTestingDefinitionItemWrapper?> TryFindMethodDefinitionAsync(Workspace workspace, UnitTestingParsedFrameWrapper parsedFrame, CancellationToken cancellationToken)
     {

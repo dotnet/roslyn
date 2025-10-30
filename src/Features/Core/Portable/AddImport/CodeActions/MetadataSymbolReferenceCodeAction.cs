@@ -7,13 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private class MetadataSymbolReferenceCodeAction : SymbolReferenceCodeAction
+    private sealed class MetadataSymbolReferenceCodeAction : SymbolReferenceCodeAction
     {
         /// <summary>
         /// This code action only works by adding a reference to a metadata dll.  As such, it requires a non

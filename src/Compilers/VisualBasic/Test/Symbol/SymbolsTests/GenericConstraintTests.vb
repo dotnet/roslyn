@@ -3,14 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
-Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -2033,7 +2029,7 @@ Module M
     End Sub
 End Module
 ]]></file>
-</compilation>, {Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             ' Note: Dev10 reports several errors, although it seems those are incorrect.
             ' BC30456: 'M_Object' is not a member of 'U1'.
             '         x.M_Object()
@@ -2135,7 +2131,7 @@ Module E
     End Sub
 End Module
 ]]></file>
-</compilation>, {Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             compilation.AssertTheseDiagnostics(<expected>
 BC30456: 'M2' is not a member of 'T1'.
         _1.M2()
@@ -2268,7 +2264,7 @@ Module E
     End Sub
 End Module
 ]]></file>
-</compilation>, {Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             compilation.AssertNoErrors()
         End Sub
 
@@ -2295,7 +2291,7 @@ Module E
     End Sub
 End Module
 ]]></file>
-</compilation>, {Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             compilation.AssertTheseDiagnostics(<expected>
 BC30456: 'M2' is not a member of 'T'.
         x.M2(y)
@@ -2330,7 +2326,7 @@ Module E
     End Sub
 End Module
 ]]></file>
-</compilation>, {Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             compilation.AssertTheseDiagnostics(<expected>
 BC30456: 'M' is not a member of 'I(Of B, A)'.
         y.M(z)
@@ -2433,7 +2429,7 @@ Module M
 End Module
 ]]>
     </file>
-</compilation>, {Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             compilation.AssertTheseDiagnostics(<expected>
 BC36593: Expression of type 'T2' is not queryable. Make sure you are not missing an assembly reference and/or namespace import for the LINQ provider.
         result = From o In _2 Where o IsNot Nothing
@@ -2504,7 +2500,7 @@ Module E
     End Sub
 End Module
 ]]></file>
-</compilation>, {Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             compilation.AssertTheseDiagnostics(<expected>
 BC32105: Type argument 'T' does not satisfy the 'Structure' constraint for type parameter 'T'.
         _1 = AddressOf arg.F1(Of T)
@@ -4686,7 +4682,7 @@ End Interface
             compilation.AssertTheseDiagnostics(<expected>
 BC32044: Type argument 'String' does not inherit from or implement the constraint type 'IStoreable'.
     Public ReadOnly Property Deleted As IEnumerable(Of UpdateResult(Of String))
-                                                                       ~~~~~~
+                             ~~~~~~~
                                           </expected>)
         End Sub
 
@@ -5014,10 +5010,10 @@ Delegate Sub D(Of T As New)()
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC32083: Type argument 'B' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
     Event E As D(Of B)
-                    ~
+          ~
 BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
     Custom Event E As D(Of C)
-                           ~
+                 ~
 BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
         AddHandler(value As D(Of C))
                    ~~~~~
@@ -5099,7 +5095,7 @@ Class A
       ~
 BC32083: Type argument 'A' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
     ReadOnly Property P As IA(Of A) Implements IA(Of A).P
-                                 ~
+                      ~
 BC32083: Type argument 'A' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
     ReadOnly Property P As IA(Of A) Implements IA(Of A).P
                                                      ~
@@ -5195,10 +5191,10 @@ BC32083: Type argument 'A' must have a public parameterless instance constructor
                           ~
 BC32083: Type argument 'B' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
     Property P2 As I(Of B)
-                        ~
+             ~~
 BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
     Property P3 As I(Of C)
-                        ~
+             ~~
 BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
         Set(value As I(Of C))
             ~~~~~
@@ -5381,7 +5377,7 @@ Module M
     End Function
 End Module
    ]]></file>
-</compilation>, references:={Net40.SystemCore})
+</compilation>, references:={Net40.References.SystemCore})
             compilation.AssertNoErrors()
         End Sub
 
@@ -5402,7 +5398,7 @@ Module M
     End Sub
 End Module
    ]]></file>
-</compilation>, references:={Net40.SystemCore})
+</compilation>, references:={Net40.References.SystemCore})
             compilation.AssertNoErrors()
             compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
@@ -5416,7 +5412,7 @@ Module M
     End Sub
 End Module
    ]]></file>
-</compilation>, references:={Net40.SystemCore})
+</compilation>, references:={Net40.References.SystemCore})
             compilation.AssertNoErrors()
         End Sub
 
@@ -5455,7 +5451,7 @@ Class C
     End Sub
 End Class
    ]]></file>
-</compilation>, references:={Net40.SystemCore})
+</compilation>, references:={Net40.References.SystemCore})
             compilation.AssertNoErrors()
             compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
@@ -5493,7 +5489,7 @@ Class E
     End Sub
 End Class
    ]]></file>
-</compilation>, references:={Net40.SystemCore})
+</compilation>, references:={Net40.References.SystemCore})
             compilation.AssertNoErrors()
             compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
@@ -5535,7 +5531,7 @@ Class D2
     End Sub
 End Class
    ]]></file>
-</compilation>, references:={Net40.SystemCore})
+</compilation>, references:={Net40.References.SystemCore})
             compilation.AssertTheseDiagnostics(
 <expected>
 BC30456: 'E1' is not a member of 'X'.
@@ -5878,7 +5874,7 @@ End Class]]>
 
             metadataComp.AssertTheseDiagnostics()
 
-            Dim finalComp = CreateCompilationWithMscorlib45(
+            Dim finalComp = CreateCompilationWithMscorlib461(
 <compilation>
     <file name="b.vb"><![CDATA[
 Class D

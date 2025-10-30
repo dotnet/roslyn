@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-internal class RQIndexer(
+internal sealed class RQIndexer(
     RQUnconstructedType containingType,
     RQMethodPropertyOrEventName memberName,
     int typeParameterCount,

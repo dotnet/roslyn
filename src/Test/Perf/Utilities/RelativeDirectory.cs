@@ -8,7 +8,6 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
-using System.Runtime.CompilerServices;
 
 namespace Roslyn.Test.Performance.Utilities
 {
@@ -69,7 +68,6 @@ namespace Roslyn.Test.Performance.Utilities
         /// Returns the directory that contains built roslyn binaries.  Usually this will be 
         /// Binaries/Debug or Binaries/Release.
         /// </summary>
-        /// <returns></returns>
         public string MyBinaries()
         {
             ThrowIfNotSetup();

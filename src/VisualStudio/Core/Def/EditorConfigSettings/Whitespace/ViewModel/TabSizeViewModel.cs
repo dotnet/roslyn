@@ -4,13 +4,12 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 
-internal class TabSizeViewModel : EnumSettingViewModel<TabSizeSettings>
+internal sealed class TabSizeViewModel : EnumSettingViewModel<TabSizeSettings>
 {
     private readonly Setting _setting;
 

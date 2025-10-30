@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The declared base type of this type, or null. The object type, interface types,
-        /// and pointer types do not have a base type. The base type of a type parameter
-        /// is its effective base class.
+        /// pointer types, and type parameters do not have a base type.
         /// </summary>
         INamedTypeSymbol? BaseType { get; }
 
@@ -80,6 +79,12 @@ namespace Microsoft.CodeAnalysis
         /// by language keywords 'nint' and 'nuint'.
         /// </summary>
         bool IsNativeIntegerType { get; }
+
+        [Obsolete($"This API will be removed in the future. Use {nameof(INamedTypeSymbol)}.{nameof(INamedTypeSymbol.IsExtension)} instead.")]
+        bool IsExtension { get; }
+
+        [Obsolete($"This API will be removed in the future. Use {nameof(INamedTypeSymbol)}.{nameof(INamedTypeSymbol.ExtensionParameter)} instead.")]
+        IParameterSymbol? ExtensionParameter { get; }
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another

@@ -4,11 +4,8 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1847,7 +1844,7 @@ End Class
             Assert.Null(symbolInfo.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length)
-            Assert.Equal({"Sub X.Add(x As System.Collections.Generic.List(Of System.Byte))",
+            AssertEx.Equal({"Sub X.Add(x As System.Collections.Generic.List(Of System.Byte))",
                           "Sub X.Add(x As X)"},
                          (symbolInfo.CandidateSymbols.Select(Function(s) s.ToTestDisplayString()).Order()).ToArray())
         End Sub

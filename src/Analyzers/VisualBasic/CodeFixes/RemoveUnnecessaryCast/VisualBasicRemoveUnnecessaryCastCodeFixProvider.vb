@@ -7,7 +7,6 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
@@ -53,7 +52,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
             document As Document,
             diagnostics As ImmutableArray(Of Diagnostic),
             editor As SyntaxEditor,
-            fallbackOptions As CodeActionOptionsProvider,
             cancellationToken As CancellationToken) As Task
 
             ' VB parsing is extremely hairy.  Unlike C#, it can be very dangerous to go and remove a

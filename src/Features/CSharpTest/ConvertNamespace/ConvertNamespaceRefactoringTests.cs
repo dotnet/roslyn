@@ -9,1058 +9,940 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
-{
-    using VerifyCS = CSharpCodeRefactoringVerifier<ConvertNamespaceCodeRefactoringProvider>;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace;
 
-    public class ConvertNamespaceRefactoringTests
-    {
-        public static IEnumerable<object[]> EndOfDocumentSequences
+using VerifyCS = CSharpCodeRefactoringVerifier<ConvertNamespaceCodeRefactoringProvider>;
+
+[UseExportProvider]
+public sealed class ConvertNamespaceRefactoringTests
+{
+    public static IEnumerable<object[]> EndOfDocumentSequences => [[""], ["\r\n"]];
+
+    #region Convert To File Scoped
+
+    [Fact]
+    public Task TestNoConvertToFileScopedInCSharp9()
+        => new VerifyCS.Test
         {
-            get
+            TestCode = """
+            namespace $$N
             {
-                yield return new object[] { "" };
-                yield return new object[] { "\r\n" };
             }
-        }
-
-        #region Convert To File Scoped
-
-        [Fact]
-        public async Task TestNoConvertToFileScopedInCSharp9()
-        {
-            var code = @"
-namespace $$N
-{
-}
-";
-            await new VerifyCS.Test
+            """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            Options =
             {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
-                }
-            }.RunAsync();
-        }
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNoConvertToFileScopedInCSharp10WithFileScopedPreference()
+    [Fact]
+    public Task TestNoConvertToFileScopedInCSharp10WithFileScopedPreference()
+        => new VerifyCS.Test
         {
-            var code = @"
-namespace $$N
-{
-}
-";
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N
             {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToFileScopedInCSharp10WithBlockScopedPreference()
+    [Fact]
+    public Task TestConvertToFileScopedInCSharp10WithBlockScopedPreference()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N
             {
-                TestCode = @"
-namespace $$N
-{
-}
-",
-                FixedCode = @"
-namespace $$N;
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
-                }
-            }.RunAsync();
-        }
+            }
+            """,
+            FixedCode = """
+            namespace $$N;
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestOnNamespaceToken()
+    [Fact]
+    public Task TestOnNamespaceToken()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            $$namespace N
             {
-                TestCode = @"
-$$namespace N
-{
-}
-",
-                FixedCode = @"
-namespace N;
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
-                }
-            }.RunAsync();
-        }
+            }
+            """,
+            FixedCode = """
+            namespace N;
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNotBeforeNamespaceToken()
+    [Fact]
+    public Task TestNotBeforeNamespaceToken()
+        => new VerifyCS.Test
         {
-            var code = @"
-$$
-namespace N
-{
-}
-";
-            await new VerifyCS.Test
+            TestCode = """
+            $$
+            namespace N
             {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
-                }
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNotOnOpenBrace()
+    [Fact]
+    public Task TestNotOnOpenBrace()
+        => new VerifyCS.Test
         {
-            var code = @"
-namespace N
-$${
-}
-";
-            await new VerifyCS.Test
+            TestCode = """
+            namespace N
+            $${
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
             {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
-                }
-            }.RunAsync();
-        }
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNoConvertWithMultipleNamespaces()
+    [Fact]
+    public Task TestNoConvertWithMultipleNamespaces()
+        => new VerifyCS.Test
         {
-            var code = @"
-namespace $$N
-{
-}
-
-namespace N2
-{
-}
-";
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N
             {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
-                }
-            }.RunAsync();
-        }
+            }
 
-        [Fact]
-        public async Task TestNoConvertWithNestedNamespaces1()
+            namespace N2
+            {
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNoConvertWithNestedNamespaces1()
+        => new VerifyCS.Test
         {
-            var code = @"
-namespace $$N
-{
-    namespace N2
-    {
-    }
-}
-";
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N
             {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+                namespace N2
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNoConvertWithNestedNamespaces2()
+    [Fact]
+    public Task TestNoConvertWithNestedNamespaces2()
+        => new VerifyCS.Test
         {
-            var code = @"
-namespace N
-{
-    namespace $$N2
-    {
-    }
-}
-";
-            await new VerifyCS.Test
+            TestCode = """
+            namespace N
             {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+                namespace $$N2
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNoConvertWithTopLevelStatement1()
+    [Fact]
+    public Task TestNoConvertWithTopLevelStatement1()
+        => new VerifyCS.Test
         {
-            var code = @"
-int i = 0;
+            TestCode = """
+            {|CS8805:int i = 0;|}
 
-namespace $$N
-{
-}
-";
-            await new VerifyCS.Test
+            namespace $$N
             {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                ExpectedDiagnostics =
-                {
-                    // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
-                    DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 11),
-                },
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
-                }
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNoConvertWithTopLevelStatement2()
+    [Fact]
+    public Task TestNoConvertWithTopLevelStatement2()
+        => new VerifyCS.Test
         {
-            var code = @"
-namespace $$N
-{
-}
-
-int i = 0;
-";
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N
             {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                ExpectedDiagnostics =
-                {
-                    // /0/Test0.cs(6,1): error CS8803: Top-level statements must precede namespace and type declarations.
-                    DiagnosticResult.CompilerError("CS8803").WithSpan(6, 1, 6, 11),
-                    // /0/Test0.cs(6,1): error CS8805: Program using top-level statements must be an executable.
-                    DiagnosticResult.CompilerError("CS8805").WithSpan(6, 1, 6, 11),
-                },
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
-                }
-            }.RunAsync();
-        }
+            }
 
-        [Fact]
-        public async Task TestConvertToFileScopedWithUsing1()
+            {|CS8805:{|CS8803:int i = 0;|}|}
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
+
+    [Fact]
+    public Task TestConvertToFileScopedWithUsing1()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            using System;
+
+            namespace $$N
             {
-                TestCode = @"
-using System;
+            }
+            """,
+            FixedCode = """
+            using System;
 
-namespace $$N
-{
-}
-",
-                FixedCode = @"
-using System;
+            namespace $$N;
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-namespace $$N;
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestConvertToFileScopedWithUsing2()
+    [Fact]
+    public Task TestConvertToFileScopedWithUsing2()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N
             {
-                TestCode = @"
-namespace $$N
-{
-    using System;
-}
-",
-                FixedCode = @"
-namespace $$N;
+                using System;
+            }
+            """,
+            FixedCode = """
+            namespace $$N;
 
-using System;
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
-                }
-            }.RunAsync();
-        }
+            using System;
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToFileScopedWithClass()
+    [Fact]
+    public Task TestConvertToFileScopedWithClass()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N
             {
-                TestCode = @"
-namespace $$N
-{
-    class C
-    {
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
-
-class C
-{
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+                class C
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            FixedCode = """
+            namespace $$N;
 
-        [Fact]
-        public async Task TestConvertToFileScopedWithClassWithDocComment()
+            class C
+            {
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
+
+    [Fact]
+    public Task TestConvertToFileScopedWithClassWithDocComment()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N
             {
-                TestCode = @"
-namespace $$N
-{
-    /// <summary/>
-    class C
-    {
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
-
-/// <summary/>
-class C
-{
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+                /// <summary/>
+                class C
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            FixedCode = """
+            namespace $$N;
 
-        [Fact]
-        public async Task TestConvertToFileScopedWithMissingCloseBrace()
+            /// <summary/>
+            class C
+            {
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
+
+    [Fact]
+    public Task TestConvertToFileScopedWithMissingCloseBrace()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N
             {
-                TestCode = @"
-namespace $$N
-{
-    /// <summary/>
-    class C
-    {
-    }{|CS1513:|}",
-                FixedCode = @"
-namespace N;
-
-/// <summary/>
-class C
-{
-}",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+                /// <summary/>
+                class C
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
-                }
-            }.RunAsync();
-        }
+                }{|CS1513:|}
+            """,
+            FixedCode = """
+            namespace N;
 
-        [Fact]
-        public async Task TestConvertToFileScopedWithCommentOnOpenCurly()
+            /// <summary/>
+            class C
+            {
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
+
+    [Fact]
+    public Task TestConvertToFileScopedWithCommentOnOpenCurly()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
-namespace $$N
-{ // comment
-    class C
-    {
-    }
-}
-",
-                FixedCode = @"
-namespace $$N;
-// comment
-class C
-{
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+            TestCode = """
+            namespace $$N
+            { // comment
+                class C
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            FixedCode = """
+            namespace $$N;
+            // comment
+            class C
+            {
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToFileScopedWithLeadingComment()
+    [Fact]
+    public Task TestConvertToFileScopedWithLeadingComment()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            // copyright
+            namespace $$N
             {
-                TestCode = @"
-// copyright
-namespace $$N
-{
-    class C
-    {
-    }
-}
-",
-                FixedCode = @"
-// copyright
-namespace $$N;
-
-class C
-{
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+                class C
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            FixedCode = """
+            // copyright
+            namespace $$N;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57564")]
-        public async Task TextConvertToFileScopedWithCommentedOutContents()
+            class C
+            {
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57564")]
+    public Task TextConvertToFileScopedWithCommentedOutContents()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            $$namespace N
             {
-                TestCode = @"
-$$namespace N
-{
-    // public class C
-    // {
-    // }
-}
-",
-                FixedCode = @"
-namespace N;
+                // public class C
+                // {
+                // }
+            }
+            """,
+            FixedCode = """
+            namespace N;
 
-// public class C
-// {
-// }
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
-                }
-            }.RunAsync();
-        }
+            // public class C
+            // {
+            // }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57564")]
-        public async Task TextConvertToFileScopedWithCommentedAfterContents()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57564")]
+    public Task TextConvertToFileScopedWithCommentedAfterContents()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            $$namespace N
             {
-                TestCode = @"
-$$namespace N
-{
-    public class C
-    {
-    }
-
-    // I'll probably write some more code here later
-}
-",
-                FixedCode = @"
-namespace N;
-
-public class C
-{
-}
-
-// I'll probably write some more code here later
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+                public class C
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
                 }
-            }.RunAsync();
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57564")]
-        public async Task TextConvertToFileScopedWithTriviaAroundNamespace1()
+                // I'll probably write some more code here later
+            }
+            """,
+            FixedCode = """
+            namespace N;
+
+            public class C
+            {
+            }
+
+            // I'll probably write some more code here later
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57564")]
+    public Task TextConvertToFileScopedWithTriviaAroundNamespace1()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            #if !NONEXISTENT
+            $$namespace NDebug
+            #else
+            namespace NRelease
+            #endif
             {
-                TestCode = @"
-#if !NONEXISTENT
-$$namespace NDebug
-#else
-namespace NRelease
-#endif
-{
-    public class C
-    {
-    }
-}
-",
-                FixedCode = @"
-#if !NONEXISTENT
-namespace NDebug;
-#else
-namespace NRelease
-#endif
-
-public class C
-{
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+                public class C
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            FixedCode = """
+            #if !NONEXISTENT
+            namespace NDebug;
+            #else
+            namespace NRelease
+            #endif
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57564")]
-        public async Task TextConvertToFileScopedWithTriviaAroundNamespace2()
+            public class C
+            {
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57564")]
+    public Task TextConvertToFileScopedWithTriviaAroundNamespace2()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            #if NONEXISTENT
+            namespace NDebug
+            #else
+            $$namespace NRelease
+            #endif
             {
-                TestCode = @"
-#if NONEXISTENT
-namespace NDebug
-#else
-$$namespace NRelease
-#endif
-{
-    public class C
-    {
-    }
-}
-",
-                FixedCode = @"
-#if NONEXISTENT
-namespace NDebug
-#else
-namespace NRelease;
-#endif
-
-public class C
-{
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+                public class C
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            FixedCode = """
+            #if NONEXISTENT
+            namespace NDebug
+            #else
+            namespace NRelease;
+            #endif
 
-        #endregion
+            public class C
+            {
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-        #region Convert To Block Scoped
+    #endregion
 
-        [Theory]
-        [MemberData(nameof(EndOfDocumentSequences))]
-        public async Task TestConvertToBlockScopedInCSharp9(string endOfDocumentSequence)
+    #region Convert To Block Scoped
+
+    [Theory]
+    [MemberData(nameof(EndOfDocumentSequences))]
+    public Task TestConvertToBlockScopedInCSharp9(string endOfDocumentSequence)
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = $$"""
+            {|CS8773:namespace|} $$N;{{endOfDocumentSequence}}
+            """,
+            FixedCode = $$"""
+            namespace $$N
             {
-                TestCode = $@"
-{{|CS8773:namespace|}} $$N;{endOfDocumentSequence}",
-                FixedCode = $@"
-namespace $$N
-{{
-}}{endOfDocumentSequence}",
-                LanguageVersion = LanguageVersion.CSharp9,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
+            }{{endOfDocumentSequence}}
+            """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestNoConvertToBlockScopedInCSharp10WithBlockScopedPreference()
+    [Fact]
+    public Task TestNoConvertToBlockScopedInCSharp10WithBlockScopedPreference()
+        => new VerifyCS.Test
         {
-            var code = @"
-namespace $$N;
-";
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N;
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
             {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
-                }
-            }.RunAsync();
-        }
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToBlockScopedInCSharp10WithFileScopedPreference()
+    [Fact]
+    public Task TestConvertToBlockScopedInCSharp10WithFileScopedPreference()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N;
+            """,
+            FixedCode = """
+            namespace $$N
             {
-                TestCode = @"
-namespace $$N;
-",
-                FixedCode = @"
-namespace $$N
-{
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToBlockOnNamespaceToken2()
+    [Fact]
+    public Task TestConvertToBlockOnNamespaceToken2()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            $$namespace N;
+            """,
+            FixedCode = """
+            namespace N
             {
-                TestCode = @"
-$$namespace N;
-",
-                FixedCode = @"
-namespace N
-{
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToBlockNotBeforeNamespaceToken2()
+    [Fact]
+    public Task TestConvertToBlockNotBeforeNamespaceToken2()
+        => new VerifyCS.Test
         {
-            var code = @"
-$$
-namespace N;
-";
-            await new VerifyCS.Test
+            TestCode = """
+            $$
+            namespace N;
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
             {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToBlockNotAfterSemicolon()
+    [Fact]
+    public Task TestConvertToBlockNotAfterSemicolon()
+        => new VerifyCS.Test
         {
-            var code = @"
-namespace N;
-$$
-";
-            await new VerifyCS.Test
+            TestCode = """
+            namespace N;
+            $$
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
             {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToBlockAfterSemicolon()
+    [Fact]
+    public Task TestConvertToBlockAfterSemicolon()
+        => new VerifyCS.Test
         {
-            var code = @"
-namespace N; $$
-";
-            await new VerifyCS.Test
+            TestCode = """
+            namespace N; $$
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
             {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToBlockWithMultipleNamespaces()
+    [Fact]
+    public Task TestConvertToBlockWithMultipleNamespaces()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N;
+
+            namespace {|CS8955:N2|}
             {
-                TestCode = @"
-namespace $$N;
-
-namespace {|CS8955:N2|}
-{
-}
-",
-                FixedCode = @"
-namespace $$N
-{
-    namespace N2
-    {
-    }
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+            }
+            """,
+            FixedCode = """
+            namespace $$N
+            {
+                namespace N2
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToBlockWithNestedNamespaces1()
+    [Fact]
+    public Task TestConvertToBlockWithNestedNamespaces1()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N;
+
+            namespace {|CS8954:N2|};
+            """,
+            FixedCode = """
+            namespace $$N
             {
-                TestCode = @"
-namespace $$N;
+                namespace {|CS8955:N2|};
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-namespace {|CS8954:N2|};",
-                FixedCode = @"
-namespace $$N
-{
-    namespace {|CS8955:N2|};
-}",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestConvertToBlockWithNestedNamespaces2()
+    [Fact]
+    public Task TestConvertToBlockWithNestedNamespaces2()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace N
             {
-                TestCode = @"
-namespace N
-{
-    namespace $${|CS8955:N2|};
-}
-",
-                FixedCode = @"
-namespace N
-{
-    namespace $$N2
-    {
-    }
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+                namespace $${|CS8955:N2|};
+            }
+            """,
+            FixedCode = """
+            namespace N
+            {
+                namespace $$N2
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToBlockWithTopLevelStatement1()
+    [Fact]
+    public Task TestConvertToBlockWithTopLevelStatement1()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            {|CS8805:int i = 0;|}
+
+            namespace $${|CS8956:N|};
+            """,
+            FixedCode = """
+            {|CS8805:int i = 0;|}
+
+            namespace $$N
             {
-                TestCode = @"
-{|CS8805:int i = 0;|}
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-namespace $${|CS8956:N|};
-",
-                FixedCode = @"
-{|CS8805:int i = 0;|}
-
-namespace $$N
-{
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestConvertToBlockWithTopLevelStatement2()
+    [Fact]
+    public Task TestConvertToBlockWithTopLevelStatement2()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N;
+
+            int {|CS0116:i|} = 0;
+            """,
+            FixedCode = """
+            namespace $$N
             {
-                TestCode = @"
-namespace $$N;
+                int {|CS0116:i|} = 0;
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-int {|CS0116:i|} = 0;
-",
-                FixedCode = @"
-namespace $$N
-{
-    int {|CS0116:i|} = 0;
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestConvertToBlockScopedWithUsing1()
+    [Fact]
+    public Task TestConvertToBlockScopedWithUsing1()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            using System;
+
+            namespace $$N;
+            """,
+            FixedCode = """
+            using System;
+
+            namespace $$N
             {
-                TestCode = @"
-using System;
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-namespace $$N;
-",
-                FixedCode = @"
-using System;
-
-namespace $$N
-{
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestConvertToBlockScopedWithUsing2()
+    [Fact]
+    public Task TestConvertToBlockScopedWithUsing2()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N;
+
+            using System;
+            """,
+            FixedCode = """
+            namespace $$N
             {
-                TestCode = @"
-namespace $$N;
+                using System;
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-using System;
-",
-                FixedCode = @"
-namespace $$N
-{
-    using System;
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestConvertToBlockScopedWithClass()
+    [Fact]
+    public Task TestConvertToBlockScopedWithClass()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N;
+
+            class C
             {
-                TestCode = @"
-namespace $$N;
-
-class C
-{
-}
-",
-                FixedCode = @"
-namespace $$N
-{
-    class C
-    {
-    }
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+            }
+            """,
+            FixedCode = """
+            namespace $$N
+            {
+                class C
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToBlockScopedWithClassWithDocComment()
+    [Fact]
+    public Task TestConvertToBlockScopedWithClassWithDocComment()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N;
+
+            /// <summary/>
+            class C
             {
-                TestCode = @"
-namespace $$N;
-
-/// <summary/>
-class C
-{
-}
-",
-                FixedCode = @"
-namespace $$N
-{
-    /// <summary/>
-    class C
-    {
-    }
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+            }
+            """,
+            FixedCode = """
+            namespace $$N
+            {
+                /// <summary/>
+                class C
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToBlockScopedWithMissingCloseBrace()
+    [Fact]
+    public Task TestConvertToBlockScopedWithMissingCloseBrace()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N;
+
+            /// <summary/>
+            class C
+            {{|CS1513:|}
+            """,
+            FixedCode = """
+            namespace N
             {
-                TestCode = @"
-namespace $$N;
-
-/// <summary/>
-class C
-{{|CS1513:|}",
-                FixedCode = @"
-namespace N
-{
-    /// <summary/>
-    class C
-    {
-}{|CS1513:|}",
-                LanguageVersion = LanguageVersion.CSharp10,
-                CodeActionValidationMode = CodeActionValidationMode.None,
-                Options =
+                /// <summary/>
+                class C
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
-                }
-            }.RunAsync();
-        }
+            }{|CS1513:|}
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            CodeActionValidationMode = CodeActionValidationMode.None,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToBlockScopedWithCommentOnSemicolon()
+    [Fact]
+    public Task TestConvertToBlockScopedWithCommentOnSemicolon()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            namespace $$N; // comment
+
+            class C
             {
-                TestCode = @"
-namespace $$N; // comment
-
-class C
-{
-}
-",
-                FixedCode = @"
-namespace $$N
-{ // comment
-    class C
-    {
-    }
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+            }
+            """,
+            FixedCode = """
+            namespace $$N
+            { // comment
+                class C
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        [Fact]
-        public async Task TestConvertToBlockScopedWithLeadingComment()
+    [Fact]
+    public Task TestConvertToBlockScopedWithLeadingComment()
+        => new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = """
+            // copyright
+            namespace $$N;
+
+            class C
             {
-                TestCode = @"
-// copyright
-namespace $$N;
-
-class C
-{
-}
-",
-                FixedCode = @"
-// copyright
-namespace $$N
-{
-    class C
-    {
-    }
-}
-",
-                LanguageVersion = LanguageVersion.CSharp10,
-                Options =
+            }
+            """,
+            FixedCode = """
+            // copyright
+            namespace $$N
+            {
+                class C
                 {
-                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
                 }
-            }.RunAsync();
-        }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
 
-        #endregion
-    }
+    #endregion
 }

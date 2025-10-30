@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp;
 /// Once that it done, this will be converted to normal SignatureHelpParameters which only 
 /// point to TaggedText parts.
 /// </summary>
-internal class SignatureHelpSymbolParameter(
-    string name,
+internal sealed class SignatureHelpSymbolParameter(
+    string? name,
     bool isOptional,
     Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
     IEnumerable<SymbolDisplayPart> displayParts,
@@ -85,8 +85,8 @@ internal class SignatureHelpSymbolParameter(
     }
 }
 
-internal class SignatureHelpParameter(
-    string name,
+internal sealed class SignatureHelpParameter(
+    string? name,
     bool isOptional,
     Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
     IEnumerable<TaggedText> displayParts,

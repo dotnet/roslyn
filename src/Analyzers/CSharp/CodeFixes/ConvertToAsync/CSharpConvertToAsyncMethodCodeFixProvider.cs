@@ -16,18 +16,16 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConvertToAsync;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertToAsync), Shared]
-internal class CSharpConvertToAsyncMethodCodeFixProvider : AbstractConvertToAsyncCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpConvertToAsyncMethodCodeFixProvider() : AbstractConvertToAsyncCodeFixProvider
 {
     /// <summary>
     /// Cannot await void.
     /// </summary>
     private const string CS4008 = nameof(CS4008);
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpConvertToAsyncMethodCodeFixProvider()
-    {
-    }
+    public override FixAllProvider? GetFixAllProvider() => base.GetFixAllProvider();
 
     public override ImmutableArray<string> FixableDiagnosticIds => [CS4008];
 
@@ -44,7 +42,7 @@ internal class CSharpConvertToAsyncMethodCodeFixProvider : AbstractConvertToAsyn
         return string.Format(CSharpCodeFixesResources.Make_0_return_Task_instead_of_void, methodNode!.WithBody(null));
     }
 
-    protected override async Task<Tuple<SyntaxTree, SyntaxNode>?> GetRootInOtherSyntaxTreeAsync(
+    protected override async Task<(SyntaxTree syntaxTree, SyntaxNode root)?> GetRootInOtherSyntaxTreeAsync(
         SyntaxNode node,
         SemanticModel semanticModel,
         Diagnostic diagnostic,
@@ -52,13 +50,11 @@ internal class CSharpConvertToAsyncMethodCodeFixProvider : AbstractConvertToAsyn
     {
         var methodDeclaration = await GetMethodDeclarationAsync(node, semanticModel, cancellationToken).ConfigureAwait(false);
         if (methodDeclaration == null)
-        {
             return null;
-        }
 
         var oldRoot = await methodDeclaration.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         var newRoot = oldRoot.ReplaceNode(methodDeclaration, ConvertToAsyncFunction(methodDeclaration));
-        return Tuple.Create(oldRoot.SyntaxTree, newRoot);
+        return (oldRoot.SyntaxTree, newRoot);
     }
 
     private static async Task<MethodDeclarationSyntax?> GetMethodDeclarationAsync(

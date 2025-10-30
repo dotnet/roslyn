@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationDestructorInfo
+internal sealed class CodeGenerationDestructorInfo
 {
     private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationDestructorInfo> s_destructorToInfoMap = new();
 

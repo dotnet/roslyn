@@ -20,7 +20,7 @@ internal static partial class IFindReferencesResultExtensions
         this ISymbol definition)
     {
         return definition.IsKind(SymbolKind.Namespace)
-            ? SpecializedCollections.SingletonEnumerable(definition.Locations.First())
+            ? [definition.Locations.First()]
             : definition.Locations;
     }
 
@@ -103,11 +103,11 @@ internal static partial class IFindReferencesResultExtensions
         }
 
         var q = from r in result
-                let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbol)).ToImmutableArray()
+                let aliasLocations = r.Locations.WhereAsArray(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbol))
                 where aliasLocations.Any()
                 select new ReferencedSymbol(r.Definition, aliasLocations);
 
-        return q.ToImmutableArray();
+        return [.. q];
     }
 
     public static ImmutableArray<ReferencedSymbol> FilterNonMatchingMethodNames(
@@ -139,6 +139,6 @@ internal static partial class IFindReferencesResultExtensions
             result.Add(reference);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 }

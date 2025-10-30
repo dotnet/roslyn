@@ -327,6 +327,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal enum AccessorKind : byte
+    {
+        Unknown,
+        Get,
+        Set,
+        Both
+    }
+
     internal partial class BoundIndexerAccess
     {
         public override Symbol? ExpressionSymbol
@@ -340,6 +348,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return !this.OriginalIndexersOpt.IsDefault ? LookupResultKind.OverloadResolutionFailure : base.ResultKind;
             }
+        }
+
+        public BoundIndexerAccess Update(AccessorKind accessorKind)
+        {
+            return this.Update(
+                ReceiverOpt,
+                InitialBindingReceiverIsSubjectToCloning,
+                Indexer,
+                Arguments,
+                ArgumentNamesOpt,
+                ArgumentRefKindsOpt,
+                Expanded,
+                accessorKind,
+                ArgsToParamsOpt,
+                DefaultArguments,
+                Type);
         }
     }
 
@@ -379,9 +403,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override ConstantValue? ConstantValueOpt => Data?.ConstantValue;
 
-        public override Symbol? ExpressionSymbol => this.Method;
+        public override Symbol? ExpressionSymbol => this.BinaryOperatorMethod;
 
-        internal MethodSymbol? Method => Data?.Method;
+        public MethodSymbol? BinaryOperatorMethod => OperatorKind.IsDynamic() ? null : Data?.Method;
+        public MethodSymbol? LeftTruthOperatorMethod => OperatorKind.IsDynamic() && OperatorKind.IsLogical() ? Data?.Method : null;
 
         internal TypeSymbol? ConstrainedToType => Data?.ConstrainedToType;
 
@@ -394,6 +419,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundUserDefinedConditionalLogicalOperator
     {
+        private partial void Validate()
+        {
+            Debug.Assert(LogicalOperator.ParameterCount == 2);
+            Debug.Assert(TrueOperator.ParameterCount == 1);
+            Debug.Assert(FalseOperator.ParameterCount == 1);
+        }
+
         public override Symbol ExpressionSymbol
         {
             get { return this.LogicalOperator; }
@@ -453,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConversion UpdateOperand(BoundExpression operand)
         {
-            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.OriginalUserDefinedConversionsOpt, this.Type);
+            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.Type);
         }
 
         /// <summary>

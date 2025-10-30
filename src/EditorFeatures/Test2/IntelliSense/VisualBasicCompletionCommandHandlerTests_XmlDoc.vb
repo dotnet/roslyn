@@ -744,8 +744,7 @@ End Class
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623219")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746919")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746919")>
         Public Async Function CommitParam() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -1210,8 +1209,7 @@ End Class
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
         Public Async Function AllowTypingSpace() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[

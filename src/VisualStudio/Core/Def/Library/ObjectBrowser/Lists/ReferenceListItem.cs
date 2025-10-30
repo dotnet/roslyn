@@ -9,16 +9,15 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 
-internal class ReferenceListItem : ObjectListItem
+internal sealed class ReferenceListItem : ObjectListItem
 {
     private readonly string _name;
-    private readonly MetadataReference _reference;
 
     public ReferenceListItem(ProjectId projectId, string name, MetadataReference reference)
         : base(projectId, StandardGlyphGroup.GlyphAssembly)
     {
         _name = name;
-        _reference = reference;
+        MetadataReference = reference;
     }
 
     public override string DisplayText
@@ -36,11 +35,8 @@ internal class ReferenceListItem : ObjectListItem
         get { return _name; }
     }
 
-    public MetadataReference MetadataReference
-    {
-        get { return _reference; }
-    }
+    public MetadataReference MetadataReference { get; }
 
     public IAssemblySymbol GetAssembly(Compilation compilation)
-        => compilation.GetAssemblyOrModuleSymbol(_reference) as IAssemblySymbol;
+        => compilation.GetAssemblyOrModuleSymbol(MetadataReference) as IAssemblySymbol;
 }

@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -21,7 +20,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 {
     private abstract partial class SymbolReference(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-        SymbolResult<INamespaceOrTypeSymbol> symbolResult) : Reference(provider, new SearchResult(symbolResult))
+        SymbolResult<INamespaceOrTypeSymbol> symbolResult)
+        : Reference(provider, new SearchResult(symbolResult), isWithinImport: false)
     {
         public readonly SymbolResult<INamespaceOrTypeSymbol> SymbolResult = symbolResult;
 
@@ -47,7 +47,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         private async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
             Document document, SyntaxNode contextNode,
-            CodeCleanupOptions options, bool hasExistingImport,
+            bool cleanupDocument, CodeCleanupOptions options, bool hasExistingImport,
             CancellationToken cancellationToken)
         {
             // Defer to the language to add the actual import/using.
@@ -63,18 +63,17 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 newContextNode, SymbolResult.Symbol, newDocument,
                 options.AddImportOptions, cancellationToken).ConfigureAwait(false);
 
-            var cleanedDocument = await CodeAction.CleanupDocumentAsync(
-                updatedDocument, options, cancellationToken).ConfigureAwait(false);
+            var cleanedDocument = await CleanDocumentAsync(
+                updatedDocument, cleanupDocument, options, cancellationToken).ConfigureAwait(false);
 
             var textChanges = await cleanedDocument.GetTextChangesAsync(
                 document, cancellationToken).ConfigureAwait(false);
 
-            return textChanges.ToImmutableArray();
+            return [.. textChanges];
         }
 
         public sealed override async Task<AddImportFixData> TryGetFixDataAsync(
-            Document document, SyntaxNode node,
-            CodeCleanupOptions options, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, bool cleanupDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var (description, hasExistingImport) = GetDescription(document, options, node, semanticModel, cancellationToken);
@@ -108,7 +107,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             }
 
             var textChanges = await GetTextChangesAsync(
-                document, node, options, hasExistingImport, cancellationToken).ConfigureAwait(false);
+                document, node, cleanupDocument, options, hasExistingImport, cancellationToken).ConfigureAwait(false);
 
             return GetFixData(
                 document, textChanges, description,

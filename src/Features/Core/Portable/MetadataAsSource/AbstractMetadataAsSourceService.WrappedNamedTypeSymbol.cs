@@ -9,13 +9,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal partial class AbstractMetadataAsSourceService
+internal abstract partial class AbstractMetadataAsSourceService
 {
-    private class WrappedNamedTypeSymbol : AbstractWrappedNamespaceOrTypeSymbol, INamedTypeSymbol
+    private sealed class WrappedNamedTypeSymbol : AbstractWrappedNamespaceOrTypeSymbol, INamedTypeSymbol
     {
         private readonly INamedTypeSymbol _symbol;
         private readonly ImmutableArray<ISymbol> _members;
@@ -38,7 +37,7 @@ internal partial class AbstractMetadataAsSourceService
                                         SymbolKind.Property
                                   select WrapMember(m, canImplementImplicitly, docCommentFormattingService);
 
-            _members = ImmutableArray.CreateRange(filteredMembers);
+            _members = [.. filteredMembers];
         }
 
         private static ISymbol WrapMember(ISymbol m, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
@@ -143,6 +142,11 @@ internal partial class AbstractMetadataAsSourceService
         public bool IsRecord => _symbol.IsRecord;
 
         public bool IsNativeIntegerType => _symbol.IsNativeIntegerType;
+
+        public bool IsExtension => _symbol.IsExtension;
+        public IParameterSymbol ExtensionParameter => _symbol.ExtensionParameter;
+        public string ExtensionGroupingName => _symbol.ExtensionGroupingName;
+        public string ExtensionMarkerName => _symbol.ExtensionMarkerName;
 
         public bool IsFileLocal => _symbol.IsFileLocal;
 

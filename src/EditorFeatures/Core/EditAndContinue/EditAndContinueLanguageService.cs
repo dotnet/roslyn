@@ -3,36 +3,37 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [Shared]
-[Export(typeof(IManagedHotReloadLanguageService))]
+[Export(typeof(IManagedHotReloadLanguageService3))]
 [Export(typeof(IEditAndContinueSolutionProvider))]
 [Export(typeof(EditAndContinueLanguageService))]
 [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class EditAndContinueLanguageService(
-    IServiceBrokerProvider serviceBrokerProvider,
+    EditAndContinueSessionState sessionState,
     Lazy<IHostWorkspaceProvider> workspaceProvider,
     Lazy<IManagedHotReloadService> debuggerService,
-    IDiagnosticAnalyzerService diagnosticService,
-    EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
     PdbMatchingSourceTextProvider sourceTextProvider,
-    IDiagnosticsRefresher diagnosticRefresher,
-    IAsynchronousOperationListenerProvider listenerProvider) : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
+    IEditAndContinueLogReporter logReporter,
+    IDiagnosticsRefresher diagnosticRefresher) : IManagedHotReloadLanguageService3, IEditAndContinueSolutionProvider
 {
     private sealed class NoSessionException : InvalidOperationException
     {
@@ -43,18 +44,6 @@ internal sealed class EditAndContinueLanguageService(
             HResult = unchecked((int)0x801315087);
         }
     }
-
-    private readonly PdbMatchingSourceTextProvider _sourceTextProvider = sourceTextProvider;
-    private readonly IDiagnosticsRefresher _diagnosticRefresher = diagnosticRefresher;
-    private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.EditAndContinue);
-    private readonly Lazy<IManagedHotReloadService> _debuggerService = debuggerService;
-    private readonly IDiagnosticAnalyzerService _diagnosticService = diagnosticService;
-    private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource = diagnosticUpdateSource;
-    private readonly HotReloadLoggerProxy _logger = new(serviceBrokerProvider.ServiceBroker);
-
-    public readonly Lazy<IHostWorkspaceProvider> WorkspaceProvider = workspaceProvider;
-
-    public bool IsSessionActive { get; private set; }
 
     private bool _disabled;
     private RemoteDebuggingSessionProxy? _debuggingSession;
@@ -70,7 +59,7 @@ internal sealed class EditAndContinueLanguageService(
         {
             try
             {
-                var proxy = new RemoteEditAndContinueServiceProxy(WorkspaceProvider.Value.Workspace);
+                var proxy = new RemoteEditAndContinueServiceProxy(Services);
                 await proxy.SetFileLoggingDirectoryAsync(logDirectory, CancellationToken.None).ConfigureAwait(false);
             }
             catch
@@ -80,26 +69,31 @@ internal sealed class EditAndContinueLanguageService(
         });
     }
 
-    private Solution GetCurrentCompileTimeSolution(Solution? currentDesignTimeSolution = null)
-    {
-        var workspace = WorkspaceProvider.Value.Workspace;
-        return workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(currentDesignTimeSolution ?? workspace.CurrentSolution);
-    }
+    private SolutionServices Services
+        => workspaceProvider.Value.Workspace.Services.SolutionServices;
+
+    private Solution GetCurrentDesignTimeSolution()
+        => workspaceProvider.Value.Workspace.CurrentSolution;
+
+    private Solution GetCurrentCompileTimeSolution(Solution currentDesignTimeSolution)
+        => Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(currentDesignTimeSolution);
 
     private RemoteDebuggingSessionProxy GetDebuggingSession()
         => _debuggingSession ?? throw new NoSessionException();
 
     private IActiveStatementTrackingService GetActiveStatementTrackingService()
-        => WorkspaceProvider.Value.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
+        => Services.GetRequiredService<IActiveStatementTrackingService>();
 
     internal void Disable(Exception e)
     {
         _disabled = true;
+        logReporter.Report(e.ToString(), LogMessageSeverity.Error);
+    }
 
-        var token = _asyncListener.BeginAsyncOperation(nameof(EditAndContinueLanguageService) + ".LogToOutput");
-
-        _ = _logger.LogAsync(new HotReloadLogMessage(HotReloadVerbosity.Diagnostic, e.ToString(), errorLevel: HotReloadDiagnosticErrorLevel.Error), CancellationToken.None).AsTask()
-            .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
+    private void UpdateApplyChangesDiagnostics(ImmutableArray<DiagnosticData> diagnostics)
+    {
+        sessionState.ApplyChangesDiagnostics = diagnostics;
+        diagnosticRefresher.RequestWorkspaceRefresh();
     }
 
     /// <summary>
@@ -107,7 +101,7 @@ internal sealed class EditAndContinueLanguageService(
     /// </summary>
     public async ValueTask StartSessionAsync(CancellationToken cancellationToken)
     {
-        IsSessionActive = true;
+        sessionState.IsSessionActive = true;
 
         if (_disabled)
         {
@@ -118,23 +112,20 @@ internal sealed class EditAndContinueLanguageService(
         {
             // Activate listener before capturing the current solution snapshot,
             // so that we don't miss any pertinent workspace update events.
-            _sourceTextProvider.Activate();
+            sourceTextProvider.Activate();
 
-            var workspace = WorkspaceProvider.Value.Workspace;
-            var currentSolution = workspace.CurrentSolution;
+            var currentSolution = GetCurrentDesignTimeSolution();
             _committedDesignTimeSolution = currentSolution;
             var solution = GetCurrentCompileTimeSolution(currentSolution);
 
-            _sourceTextProvider.SetBaseline(currentSolution);
+            sourceTextProvider.SetBaseline(currentSolution);
 
-            var proxy = new RemoteEditAndContinueServiceProxy(workspace);
+            var proxy = new RemoteEditAndContinueServiceProxy(Services);
 
             _debuggingSession = await proxy.StartDebuggingSessionAsync(
                 solution,
-                new ManagedHotReloadServiceBridge(_debuggerService.Value),
-                _sourceTextProvider,
-                captureMatchingDocuments: [],
-                captureAllMatchingDocuments: false,
+                new ManagedHotReloadServiceBridge(debuggerService.Value),
+                sourceTextProvider,
                 reportDiagnostics: true,
                 cancellationToken).ConfigureAwait(false);
         }
@@ -145,61 +136,16 @@ internal sealed class EditAndContinueLanguageService(
         }
     }
 
-    public async ValueTask EnterBreakStateAsync(CancellationToken cancellationToken)
-    {
-        if (_disabled)
-        {
-            return;
-        }
+    public ValueTask EnterBreakStateAsync(CancellationToken cancellationToken)
+        => BreakStateOrCapabilitiesChangedAsync(inBreakState: true, cancellationToken);
 
-        var solution = GetCurrentCompileTimeSolution();
-        var session = GetDebuggingSession();
+    public ValueTask ExitBreakStateAsync(CancellationToken cancellationToken)
+        => BreakStateOrCapabilitiesChangedAsync(inBreakState: false, cancellationToken);
 
-        try
-        {
-            await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: true, cancellationToken).ConfigureAwait(false);
+    public ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
+        => BreakStateOrCapabilitiesChangedAsync(inBreakState: null, cancellationToken);
 
-            _diagnosticRefresher.RequestWorkspaceRefresh();
-        }
-        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-        {
-            Disable(e);
-            return;
-        }
-
-        // Start tracking after we entered break state so that break-state session is active.
-        // This is potentially costly operation as source generators might get invoked in OOP
-        // to determine the spans of all active statements.
-        // We start the operation but do not wait for it to complete.
-        // The tracking session is cancelled when we exit the break state.
-
-        GetActiveStatementTrackingService().StartTracking(solution, session);
-    }
-
-    public async ValueTask ExitBreakStateAsync(CancellationToken cancellationToken)
-    {
-        if (_disabled)
-        {
-            return;
-        }
-
-        var session = GetDebuggingSession();
-
-        try
-        {
-            await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: false, cancellationToken).ConfigureAwait(false);
-
-            _diagnosticRefresher.RequestWorkspaceRefresh();
-            GetActiveStatementTrackingService().EndTracking();
-        }
-        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-        {
-            Disable(e);
-            return;
-        }
-    }
-
-    public async ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
+    private async ValueTask BreakStateOrCapabilitiesChangedAsync(bool? inBreakState, CancellationToken cancellationToken)
     {
         if (_disabled)
         {
@@ -208,14 +154,34 @@ internal sealed class EditAndContinueLanguageService(
 
         try
         {
-            await GetDebuggingSession().BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: null, cancellationToken).ConfigureAwait(false);
+            var session = GetDebuggingSession();
+            var solution = (inBreakState == true) ? GetCurrentCompileTimeSolution(GetCurrentDesignTimeSolution()) : null;
 
-            _diagnosticRefresher.RequestWorkspaceRefresh();
+            await session.BreakStateOrCapabilitiesChangedAsync(inBreakState, cancellationToken).ConfigureAwait(false);
+
+            if (inBreakState == false)
+            {
+                GetActiveStatementTrackingService().EndTracking();
+            }
+            else if (inBreakState == true)
+            {
+                // Start tracking after we entered break state so that break-state session is active.
+                // This is potentially costly operation as source generators might get invoked in OOP
+                // to determine the spans of all active statements.
+                // We start the operation but do not wait for it to complete.
+                // The tracking session is cancelled when we exit the break state.
+
+                Contract.ThrowIfNull(solution);
+                GetActiveStatementTrackingService().StartTracking(solution, session);
+            }
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
             Disable(e);
         }
+
+        // clear diagnostics reported previously:
+        UpdateApplyChangesDiagnostics([]);
     }
 
     public async ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
@@ -240,11 +206,13 @@ internal sealed class EditAndContinueLanguageService(
 
         try
         {
-            await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
+            await GetDebuggingSession().CommitSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
         }
+
+        workspaceProvider.Value.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
     }
 
     public async ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
@@ -265,18 +233,19 @@ internal sealed class EditAndContinueLanguageService(
         }
     }
 
+    [Obsolete]
+    public ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+        => throw new NotImplementedException();
+
     public async ValueTask EndSessionAsync(CancellationToken cancellationToken)
     {
-        IsSessionActive = false;
+        sessionState.IsSessionActive = false;
 
         if (!_disabled)
         {
             try
             {
-                var solution = GetCurrentCompileTimeSolution();
-                await GetDebuggingSession().EndDebuggingSessionAsync(solution, _diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
-
-                _diagnosticRefresher.RequestWorkspaceRefresh();
+                await GetDebuggingSession().EndDebuggingSessionAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -284,7 +253,10 @@ internal sealed class EditAndContinueLanguageService(
             }
         }
 
-        _sourceTextProvider.Deactivate();
+        // clear diagnostics reported previously:
+        UpdateApplyChangesDiagnostics([]);
+
+        sourceTextProvider.Deactivate();
         _debuggingSession = null;
         _committedDesignTimeSolution = null;
         _pendingUpdatedDesignTimeSolution = null;
@@ -320,7 +292,7 @@ internal sealed class EditAndContinueLanguageService(
 
             Contract.ThrowIfNull(_committedDesignTimeSolution);
             var oldSolution = _committedDesignTimeSolution;
-            var newSolution = WorkspaceProvider.Value.Workspace.CurrentSolution;
+            var newSolution = GetCurrentDesignTimeSolution();
 
             return (sourceFilePath != null)
                 ? await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false)
@@ -332,28 +304,81 @@ internal sealed class EditAndContinueLanguageService(
         }
     }
 
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+    [Obsolete]
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+        => throw new NotImplementedException();
+
+    [Obsolete]
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
+    {
+        // StreamJsonRpc may use this overload when the method is invoked with empty parameters. Call the new implementation instead.
+
+        if (!runningProjects.IsEmpty)
+            throw new NotImplementedException();
+
+        return GetUpdatesAsync(ImmutableArray<RunningProjectInfo>.Empty, cancellationToken);
+    }
+
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
     {
         if (_disabled)
         {
             return new ManagedHotReloadUpdates([], []);
         }
 
-        var workspace = WorkspaceProvider.Value.Workspace;
-        var designTimeSolution = workspace.CurrentSolution;
+        var designTimeSolution = GetCurrentDesignTimeSolution();
         var solution = GetCurrentCompileTimeSolution(designTimeSolution);
         var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-        var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+        var runningProjectOptions = runningProjects.ToRunningProjectOptions(solution, static info => (info.ProjectInstanceId.ProjectFilePath, info.ProjectInstanceId.TargetFramework, info.RestartAutomatically));
 
-        // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
-        if (moduleUpdates.Status == ModuleUpdateStatus.Ready)
+        var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, runningProjectOptions, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+
+        switch (result.ModuleUpdates.Status)
         {
-            _pendingUpdatedDesignTimeSolution = designTimeSolution;
+            case ModuleUpdateStatus.Ready:
+                // The debugger will call Commit/Discard on the solution
+                // based on whether the updates will be applied successfully or not.
+                _pendingUpdatedDesignTimeSolution = designTimeSolution;
+                break;
+
+            case ModuleUpdateStatus.None:
+                // No significant changes have been made.
+                // Commit the solution to apply any changes in comments that do not generate updates.
+                _committedDesignTimeSolution = designTimeSolution;
+                break;
         }
 
-        _diagnosticRefresher.RequestWorkspaceRefresh();
+        ArrayBuilder<DiagnosticData>? applyChangesDiagnostics = null;
+        foreach (var diagnostic in result.Diagnostics)
+        {
+            // Report warnings and errors that are not reported when analyzing documents or are reported for deleted documents.
 
-        var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
-        return new ManagedHotReloadUpdates(moduleUpdates.Updates.FromContract(), diagnostics.FromContract());
+            if (diagnostic.Severity is not (DiagnosticSeverity.Error or DiagnosticSeverity.Warning))
+            {
+                continue;
+            }
+
+            if ((!EditAndContinueDiagnosticDescriptors.IsRudeEdit(diagnostic.Id)) ||
+                await solution.GetDocumentAsync(diagnostic.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false) == null)
+            {
+                applyChangesDiagnostics ??= ArrayBuilder<DiagnosticData>.GetInstance();
+                applyChangesDiagnostics.Add(diagnostic);
+            }
+        }
+
+        UpdateApplyChangesDiagnostics(applyChangesDiagnostics.ToImmutableOrEmptyAndFree());
+
+        return new ManagedHotReloadUpdates(
+            result.ModuleUpdates.Updates.FromContract(),
+            result.GetAllDiagnostics().FromContract(),
+            ToProjectIntanceIds(result.ProjectsToRebuild),
+            ToProjectIntanceIds(result.ProjectsToRestart.Keys));
+
+        ImmutableArray<ProjectInstanceId> ToProjectIntanceIds(IEnumerable<ProjectId> ids)
+            => ids.SelectAsArray(id =>
+            {
+                var project = solution.GetRequiredProject(id);
+                return new ProjectInstanceId(project.FilePath!, project.State.NameAndFlavor.flavor ?? "");
+            });
     }
 }

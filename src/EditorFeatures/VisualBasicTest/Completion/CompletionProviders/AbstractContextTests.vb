@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public MustInherit Class AbstractContextTests
         Protected MustOverride Function CheckResultAsync(validLocation As Boolean, position As Integer, syntaxTree As SyntaxTree) As Task
 
-        Private Async Function VerifyWorkerAsync(markup As String, validLocation As Boolean) As Threading.Tasks.Task
+        Private Async Function VerifyWorkerAsync(markup As String, validLocation As Boolean) As Task
             Dim text As String = Nothing
             Dim position As Integer = Nothing
             MarkupTestFile.GetPosition(markup, text, position)
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await VerifyAtEndOfFile_TypePartiallyWrittenAsync(text, position, validLocation)
         End Function
 
-        Private Function VerifyAtPositionAsync(text As String, position As Integer, validLocation As Boolean, insertText As String) As Threading.Tasks.Task
+        Private Function VerifyAtPositionAsync(text As String, position As Integer, validLocation As Boolean, insertText As String) As Task
             text = text.Substring(0, position) & insertText & text.Substring(position)
 
             position += insertText.Length
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return CheckResultAsync(validLocation, position, tree)
         End Function
 
-        Private Function VerifyAtPosition_TypePartiallyWrittenAsync(text As String, position As Integer, validLocation As Boolean) As Threading.Tasks.Task
+        Private Function VerifyAtPosition_TypePartiallyWrittenAsync(text As String, position As Integer, validLocation As Boolean) As Task
             Return VerifyAtPositionAsync(text, position, validLocation, "Str")
         End Function
 
@@ -51,11 +51,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return VerifyAtEndOfFileAsync(text, position, validLocation, "Str")
         End Function
 
-        Protected Function VerifyTrueAsync(text As String) As Threading.Tasks.Task
+        Protected Function VerifyTrueAsync(text As String) As Task
             Return VerifyWorkerAsync(text, validLocation:=True)
         End Function
 
-        Protected Function VerifyFalseAsync(text As String) As Threading.Tasks.Task
+        Protected Function VerifyFalseAsync(text As String) As Task
             Return VerifyWorkerAsync(text, validLocation:=False)
         End Function
 

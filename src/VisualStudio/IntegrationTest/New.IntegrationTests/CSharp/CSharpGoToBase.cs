@@ -9,38 +9,39 @@ using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
+
+[Trait(Traits.Feature, Traits.Features.GoToBase)]
+public class CSharpGoToBase : AbstractEditorTest
 {
-    [Trait(Traits.Feature, Traits.Features.GoToBase)]
-    public class CSharpGoToBase : AbstractEditorTest
+    protected override string LanguageName => LanguageNames.CSharp;
+
+    public CSharpGoToBase()
+        : base(nameof(CSharpGoToBase))
     {
-        protected override string LanguageName => LanguageNames.CSharp;
-
-        public CSharpGoToBase()
-            : base(nameof(CSharpGoToBase))
-        {
-        }
-
-        [IdeFact]
-        public async Task GoToBaseFromMetadataAsSource()
-        {
-            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
-            await TestServices.Editor.SetTextAsync(
-@"using System;
-
-class C
-{
-    public override string ToString()
-    {
-        return ""C"";
     }
-}", HangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("ToString", charsOffset: -1, HangMitigatingCancellationToken);
-            await TestServices.Editor.GoToBaseAsync(HangMitigatingCancellationToken);
-            Assert.Equal("Object [decompiled] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
-            await TestServices.EditorVerifier.TextContainsAsync(@"public virtual string $$ToString()", assertCaretPosition: true);
-        }
+    [IdeFact]
+    public async Task GoToBaseFromMetadataAsSource()
+    {
+        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync(
+            """
+            using System;
+
+            class C
+            {
+                public override string ToString()
+                {
+                    return "C";
+                }
+            }
+            """, HangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("ToString", charsOffset: -1, HangMitigatingCancellationToken);
+        await TestServices.Editor.GoToBaseAsync(HangMitigatingCancellationToken);
+        Assert.Equal("Object [decompiled] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+
+        await TestServices.EditorVerifier.TextContainsAsync(@"public virtual string $$ToString()", assertCaretPosition: true);
     }
 }

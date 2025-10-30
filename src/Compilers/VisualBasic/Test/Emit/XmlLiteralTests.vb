@@ -2,11 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.IO
 Imports System.Text
+Imports Basic.Reference.Assemblies
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
 
@@ -4962,9 +4961,9 @@ End Class
             Dim tree = VisualBasicSyntaxTree.ParseText(source)
 
             Dim refBuilder = ArrayBuilder(Of MetadataReference).GetInstance()
-            refBuilder.Add(TestMetadata.Net40.mscorlib)
-            refBuilder.Add(TestMetadata.Net40.System)
-            refBuilder.Add(TestMetadata.Net40.MicrosoftVisualBasic)
+            refBuilder.Add(Net40.References.mscorlib)
+            refBuilder.Add(Net40.References.System)
+            refBuilder.Add(Net40.References.MicrosoftVisualBasic)
             refBuilder.AddRange(Net40XmlReferences)
             Dim refs = refBuilder.ToImmutableAndFree()
 

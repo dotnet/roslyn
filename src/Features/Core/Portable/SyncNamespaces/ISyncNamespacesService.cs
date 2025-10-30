@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.SyncNamespaces;
@@ -18,5 +17,5 @@ internal interface ISyncNamespacesService : ILanguageService
     /// and their relative folder path.
     /// </summary>
     Task<Solution> SyncNamespacesAsync(
-        ImmutableArray<Project> projects, CodeActionOptionsProvider options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
+        ImmutableArray<Project> projects, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
 }

@@ -18,19 +18,15 @@ using static SyntaxFactory;
 [ExportCodeFixProvider(LanguageNames.CSharp,
     Name = PredefinedCodeFixProviderNames.PopulateSwitchExpression), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-internal class CSharpPopulateSwitchExpressionCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpPopulateSwitchExpressionCodeFixProvider()
     : AbstractPopulateSwitchExpressionCodeFixProvider<
         ExpressionSyntax,
         SwitchExpressionSyntax,
         SwitchExpressionArmSyntax,
         MemberAccessExpressionSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpPopulateSwitchExpressionCodeFixProvider()
-    {
-    }
-
     protected override SwitchExpressionArmSyntax CreateDefaultSwitchArm(SyntaxGenerator generator, Compilation compilation)
         => SwitchExpressionArm(DiscardPattern(), Exception(generator, compilation));
 

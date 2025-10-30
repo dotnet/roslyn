@@ -6,53 +6,53 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.SymbolKeyTests
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.SymbolKeyTests;
+
+[UseExportProvider]
+public sealed class SymbolKeyCrossLanguageTests
 {
-    [UseExportProvider]
-    public class SymbolKeyCrossLanguageTests
+    [Theory]
+    [InlineData("dynamic")]
+    [InlineData("int*")]
+    [InlineData("delegate*&lt;int, void&gt;")]
+    public async Task TestUnsupportedVBTypes(string parameterType)
     {
-        [Theory]
-        [InlineData("dynamic")]
-        [InlineData("int*")]
-        [InlineData("delegate*&lt;int, void&gt;")]
-        public async Task TestUnsupportedVBTypes(string parameterType)
-        {
-            using var workspace = TestWorkspace.Create(
-@$"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" Name=""CSProject"">
-        <Document>
-public class C
-{{
-    public void M({parameterType} d) {{ }}
-}}
-        </Document>
-    </Project>
-    <Project Language=""Visual Basic"" CommonReference=""true"">
-        <ProjectReference>CSProject</ProjectReference>
-        
-    </Project>
-</Workspace>");
+        using var workspace = TestWorkspace.Create(
+            $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Name="CSProject">
+                    <Document>
+            public class C
+            {
+                public void M({{parameterType}} d) { }
+            }
+                    </Document>
+                </Project>
+                <Project Language="Visual Basic" CommonReference="true">
+                    <ProjectReference>CSProject</ProjectReference>
 
-            var solution = workspace.CurrentSolution;
-            var csDocument = solution.Projects.Single(p => p.Language == LanguageNames.CSharp).Documents.Single();
-            var semanticModel = await csDocument.GetRequiredSemanticModelAsync(CancellationToken.None);
-            var tree = semanticModel.SyntaxTree;
-            var root = tree.GetRoot();
+                </Project>
+            </Workspace>
+            """);
 
-            var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
-            var methodSymbol = semanticModel.GetDeclaredSymbol(method);
+        var solution = workspace.CurrentSolution;
+        var csDocument = solution.Projects.Single(p => p.Language == LanguageNames.CSharp).Documents.Single();
+        var semanticModel = await csDocument.GetRequiredSemanticModelAsync(CancellationToken.None);
+        var tree = semanticModel.SyntaxTree;
+        var root = tree.GetRoot();
 
-            var vbProject = solution.Projects.Single(p => p.Language == LanguageNames.VisualBasic);
-            var vbCompilation = await vbProject.GetRequiredCompilationAsync(CancellationToken.None);
+        var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+        var methodSymbol = semanticModel.GetDeclaredSymbol(method);
 
-            var resolved = SymbolKey.ResolveString(methodSymbol.GetSymbolKey().ToString(), vbCompilation, out var failureReason, CancellationToken.None);
-            Assert.NotNull(failureReason);
-            Assert.Null(resolved.GetAnySymbol());
-        }
+        var vbProject = solution.Projects.Single(p => p.Language == LanguageNames.VisualBasic);
+        var vbCompilation = await vbProject.GetRequiredCompilationAsync(CancellationToken.None);
+
+        var resolved = SymbolKey.ResolveString(methodSymbol.GetSymbolKey().ToString(), vbCompilation, out var failureReason, CancellationToken.None);
+        Assert.NotNull(failureReason);
+        Assert.Null(resolved.GetAnySymbol());
     }
 }

@@ -10,42 +10,39 @@ using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
+
+public sealed class AsyncLocalFunctionHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
-    public class AsyncLocalFunctionHighlighterTests : AbstractCSharpKeywordHighlighterTests
-    {
-        internal override Type GetHighlighterType()
-            => typeof(AsyncAwaitHighlighter);
+    internal override Type GetHighlighterType()
+        => typeof(AsyncAwaitHighlighter);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestLocalFunction()
-        {
-            await TestAsync(
-                """
-                using System;
-                using System.Threading.Tasks;
+    [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+    public Task TestLocalFunction()
+        => TestAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
 
-                class AsyncExample
+            class AsyncExample
+            {
+                async Task<int> AsyncMethod()
                 {
-                    async Task<int> AsyncMethod()
-                    {
-                        int hours = 24;
-                        return hours;
-                    }
-
-                    async Task UseAsync()
-                    {
-                        {|Cursor:[|async|]|} Task<int> function()
-                        {
-                            return [|await|] AsyncMethod();
-                        }
-                        int result = await AsyncMethod();
-                        Task<int> resultTask = AsyncMethod();
-                        result = await resultTask;
-                        result = await function();
-                    }
+                    int hours = 24;
+                    return hours;
                 }
-                """);
-        }
-    }
+
+                async Task UseAsync()
+                {
+                    {|Cursor:[|async|]|} Task<int> function()
+                    {
+                        return [|await|] AsyncMethod();
+                    }
+                    int result = await AsyncMethod();
+                    Task<int> resultTask = AsyncMethod();
+                    result = await resultTask;
+                    result = await function();
+                }
+            }
+            """);
 }

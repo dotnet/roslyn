@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -236,6 +237,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_AsyncStateMachineAttribute,
         System_Runtime_CompilerServices_IteratorStateMachineAttribute,
 
+        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
+
         System_Windows_Forms_Form,
         System_Windows_Forms_Application,
 
@@ -248,9 +251,6 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple,
 
         System_ValueTuple_T1,
-
-        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
-
         System_ValueTuple_T2,
         System_ValueTuple_T3,
         System_ValueTuple_T4,
@@ -328,16 +328,55 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
 
-        System_MissingMethodException,
+        System_Runtime_CompilerServices_HotReloadException,
         System_IndexOutOfRangeException,
 
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
+        System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute,
         System_Runtime_CompilerServices_Unsafe,
 
         System_Runtime_CompilerServices_ParamCollectionAttribute,
+        System_Runtime_CompilerServices_ExtensionMarkerAttribute,
+
+        System_Linq_Expressions_BinaryExpression,
+        System_Linq_Expressions_MethodCallExpression,
+        System_Linq_Expressions_ConstantExpression,
+        System_Linq_Expressions_UnaryExpression,
+        System_Linq_Expressions_NewExpression,
+        System_Linq_Expressions_MemberExpression,
+        System_Linq_Expressions_MemberMemberBinding,
+        System_Linq_Expressions_MemberAssignment,
+        System_Linq_Expressions_MemberListBinding,
+        System_Linq_Expressions_ListInitExpression,
+        System_Linq_Expressions_MemberInitExpression,
+        System_Linq_Expressions_LambdaExpression,
+        System_Linq_Expressions_TypeBinaryExpression,
+        System_Linq_Expressions_ConditionalExpression,
+        System_Linq_Expressions_InvocationExpression,
+        System_Linq_Expressions_NewArrayExpression,
+        System_Linq_Expressions_DefaultExpression,
+
+        System_Text_Encoding,
+
+        // The InlineArray types must be sequential, as we do arithmetic on them.
+        System_Runtime_CompilerServices_InlineArray2,
+        System_Runtime_CompilerServices_InlineArray3,
+        System_Runtime_CompilerServices_InlineArray4,
+        System_Runtime_CompilerServices_InlineArray5,
+        System_Runtime_CompilerServices_InlineArray6,
+        System_Runtime_CompilerServices_InlineArray7,
+        System_Runtime_CompilerServices_InlineArray8,
+        System_Runtime_CompilerServices_InlineArray9,
+        System_Runtime_CompilerServices_InlineArray10,
+        System_Runtime_CompilerServices_InlineArray11,
+        System_Runtime_CompilerServices_InlineArray12,
+        System_Runtime_CompilerServices_InlineArray13,
+        System_Runtime_CompilerServices_InlineArray14,
+        System_Runtime_CompilerServices_InlineArray15,
+        System_Runtime_CompilerServices_InlineArray16,
 
         NextAvailable,
-        // Remember to update the AllWellKnownTypes tests when making changes here
+        // Remember to update MissingSpecialMember.AllWellKnownTypes and WellKnownTypeValidationTests.AllWellKnownTypes tests when making changes here
     }
 
     internal static class WellKnownTypes
@@ -566,6 +605,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.AsyncStateMachineAttribute",
             "System.Runtime.CompilerServices.IteratorStateMachineAttribute",
 
+            "", // WellKnownType.ExtSentinel extension marker
+
             "System.Windows.Forms.Form",
             "System.Windows.Forms.Application",
 
@@ -574,10 +615,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.GCLatencyMode",
 
             "System.ValueTuple",
+
             "System.ValueTuple`1",
-
-            "", // WellKnownType.ExtSentinel extension marker
-
             "System.ValueTuple`2",
             "System.ValueTuple`3",
             "System.ValueTuple`4",
@@ -652,12 +691,50 @@ namespace Microsoft.CodeAnalysis
             "System.MemoryExtensions",
             "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute",
             "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute",
-            "System.MissingMethodException",
+            "System.Runtime.CompilerServices.HotReloadException",
             "System.IndexOutOfRangeException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
+            "System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute",
             "System.Runtime.CompilerServices.Unsafe",
 
             "System.Runtime.CompilerServices.ParamCollectionAttribute",
+            "System.Runtime.CompilerServices.ExtensionMarkerAttribute",
+
+            "System.Linq.Expressions.BinaryExpression",
+            "System.Linq.Expressions.MethodCallExpression",
+            "System.Linq.Expressions.ConstantExpression",
+            "System.Linq.Expressions.UnaryExpression",
+            "System.Linq.Expressions.NewExpression",
+            "System.Linq.Expressions.MemberExpression",
+            "System.Linq.Expressions.MemberMemberBinding",
+            "System.Linq.Expressions.MemberAssignment",
+            "System.Linq.Expressions.MemberListBinding",
+            "System.Linq.Expressions.ListInitExpression",
+            "System.Linq.Expressions.MemberInitExpression",
+            "System.Linq.Expressions.LambdaExpression",
+            "System.Linq.Expressions.TypeBinaryExpression",
+            "System.Linq.Expressions.ConditionalExpression",
+            "System.Linq.Expressions.InvocationExpression",
+            "System.Linq.Expressions.NewArrayExpression",
+            "System.Linq.Expressions.DefaultExpression",
+
+            "System.Text.Encoding",
+
+            "System.Runtime.CompilerServices.InlineArray2`1",
+            "System.Runtime.CompilerServices.InlineArray3`1",
+            "System.Runtime.CompilerServices.InlineArray4`1",
+            "System.Runtime.CompilerServices.InlineArray5`1",
+            "System.Runtime.CompilerServices.InlineArray6`1",
+            "System.Runtime.CompilerServices.InlineArray7`1",
+            "System.Runtime.CompilerServices.InlineArray8`1",
+            "System.Runtime.CompilerServices.InlineArray9`1",
+            "System.Runtime.CompilerServices.InlineArray10`1",
+            "System.Runtime.CompilerServices.InlineArray11`1",
+            "System.Runtime.CompilerServices.InlineArray12`1",
+            "System.Runtime.CompilerServices.InlineArray13`1",
+            "System.Runtime.CompilerServices.InlineArray14`1",
+            "System.Runtime.CompilerServices.InlineArray15`1",
+            "System.Runtime.CompilerServices.InlineArray16`1",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -710,12 +787,25 @@ namespace Microsoft.CodeAnalysis
                     typeIdName = typeIdName.Substring(0, separator);
                 }
 
-                Debug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
+                RoslynDebug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
+            }
+
+            // InlineArray types must be sequential, as we do arithmetic on them.
+            var startingOffset = WellKnownType.System_Runtime_CompilerServices_InlineArray2 - 2;
+            for (int i = 2; i <= 16; i++)
+            {
+                var expectedName = $"System_Runtime_CompilerServices_InlineArray{i}";
+                Debug.Assert(expectedName == (startingOffset + i).ToString());
             }
 
 #if DEBUG
             // Some compile time asserts
             {
+                // We should not add new types to CSharp7 set
+                const int ExpectedCSharp7SentinelValue = 200 + (int)InternalSpecialType.NextAvailable + 1 /* Placeholder for ExtSentinel */;
+                _ = new int[(int)WellKnownType.CSharp7Sentinel - ExpectedCSharp7SentinelValue];
+                _ = new int[ExpectedCSharp7SentinelValue - (int)WellKnownType.CSharp7Sentinel];
+
                 // The WellKnownType.ExtSentinel value must be 255
                 _ = new int[(int)WellKnownType.ExtSentinel - 255];
                 _ = new int[255 - (int)WellKnownType.ExtSentinel];

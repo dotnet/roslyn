@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ParamsArrayOrCollection = 1 << 9,
 
+            /// <summary>
+            /// Set after checking if the property access should use the backing field directly.
+            /// </summary>
+            WasPropertyBackingFieldAccessChecked = 1 << 10,
+
             AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArrayOrCollection,
         }
 
@@ -325,6 +330,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        public bool WasPropertyBackingFieldAccessChecked
+        {
+            get
+            {
+                return (_attributes & BoundNodeAttributes.WasPropertyBackingFieldAccessChecked) != 0;
+            }
+            set
+            {
+                Debug.Assert((_attributes & BoundNodeAttributes.WasPropertyBackingFieldAccessChecked) == 0, "should not be set twice or reset");
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.WasPropertyBackingFieldAccessChecked;
+                }
+            }
+        }
 #endif
 
         public bool IsParamsArrayOrCollection
@@ -335,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             protected set
             {
-                Debug.Assert((_attributes & BoundNodeAttributes.ParamsArrayOrCollection) == 0, $"{nameof(BoundNodeAttributes.ParamsArrayOrCollection)} flag should not be set twice or reset");
+                RoslynDebug.Assert((_attributes & BoundNodeAttributes.ParamsArrayOrCollection) == 0, $"{nameof(BoundNodeAttributes.ParamsArrayOrCollection)} flag should not be set twice or reset");
                 Debug.Assert(value || !IsParamsArrayOrCollection);
                 Debug.Assert(!value ||
                              this is BoundArrayCreation { Bounds: [BoundLiteral { WasCompilerGenerated: true }], InitializerOpt: BoundArrayInitialization { WasCompilerGenerated: true }, WasCompilerGenerated: true } or

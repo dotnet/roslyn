@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -29,12 +27,11 @@ internal static class MakeLocalFunctionStaticCodeFixHelper
         Document document,
         LocalFunctionStatementSyntax localFunction,
         ImmutableArray<ISymbol> captures,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Services);
-        await MakeLocalFunctionStaticAsync(document, localFunction, captures, syntaxEditor, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        await MakeLocalFunctionStaticAsync(document, localFunction, captures, syntaxEditor, cancellationToken).ConfigureAwait(false);
         return document.WithSyntaxRoot(syntaxEditor.GetChangedRoot());
     }
 
@@ -43,7 +40,6 @@ internal static class MakeLocalFunctionStaticCodeFixHelper
         LocalFunctionStatementSyntax localFunction,
         ImmutableArray<ISymbol> captures,
         SyntaxEditor syntaxEditor,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -102,7 +98,8 @@ internal static class MakeLocalFunctionStaticCodeFixHelper
                     var seenDefaultArgumentValue = currentInvocation.ArgumentList.Arguments.Count < localFunction.ParameterList.Parameters.Count;
 
                     // Add all the non-this parameters to the end.  If there is a 'this' parameter, add it to the start.
-                    var newArguments = parameterAndCapturedSymbols.Where(p => !p.symbol.IsThisParameter()).Select(
+                    var newArguments = parameterAndCapturedSymbols.SelectAsArray(
+                        p => !p.symbol.IsThisParameter(),
                         symbolAndCapture => (ArgumentSyntax)generator.Argument(
                             seenNamedArgument || seenDefaultArgumentValue ? symbolAndCapture.symbol.Name : null,
                             symbolAndCapture.symbol.RefKind,
@@ -167,12 +164,7 @@ internal static class MakeLocalFunctionStaticCodeFixHelper
             }
         }
 
-#if CODE_STYLE
-        var info = new CSharpCodeGenerationContextInfo(
-            CodeGenerationContext.Default, CSharpCodeGenerationOptions.Default, new CSharpCodeGenerationService(document.Project.GetExtendedLanguageServices().LanguageServices), root.SyntaxTree.Options.LanguageVersion());
-#else
-        var info = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
-#endif
+        var info = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
 
         // Updates the local function declaration with variables passed in as parameters
         syntaxEditor.ReplaceNode(

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
@@ -13,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class SuppressMessageAttributeState(Compilation compilation, INamedTypeSymbol suppressMessageAttributeType)
+internal sealed partial class SuppressMessageAttributeState(Compilation compilation, INamedTypeSymbol suppressMessageAttributeType)
 {
     internal const string SuppressMessageScope = "Scope";
     internal const string SuppressMessageTarget = "Target";
@@ -27,9 +26,7 @@ internal partial class SuppressMessageAttributeState(Compilation compilation, IN
     {
         var builder = ImmutableDictionary.CreateBuilder<string, TargetScope>(StringComparer.OrdinalIgnoreCase);
 
-#pragma warning disable CS8605 // Unboxing a possibly null value.
-        foreach (TargetScope targetScope in Enum.GetValues(typeof(TargetScope)))
-#pragma warning restore CS8605 // Unboxing a possibly null value.
+        foreach (var targetScope in Enum.GetValues<TargetScope>())
         {
             if (targetScope == TargetScope.None)
             {

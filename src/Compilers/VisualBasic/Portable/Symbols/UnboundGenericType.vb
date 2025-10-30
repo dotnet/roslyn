@@ -9,6 +9,7 @@ Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -143,6 +144,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
             Get
                 Return OriginalDefinition.HasVisualBasicEmbeddedAttribute
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
+            Get
+                Return OriginalDefinition.HasCompilerLoweringPreserveAttribute
             End Get
         End Property
 

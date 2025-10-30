@@ -2,13 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
-Imports VB = Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -515,7 +513,7 @@ Module MyExtensionModule
     End Function
 End Module
     </file>
-</compilation>, {TestMetadata.Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             Dim symbol = LookUpSymbolTest(comp, "Sum", expectedCount:=1, expectedString:="Function C1.Sum() As System.Int32")
             GetSymbolInfoTest(comp, "MyClass.Sum", symbol)
             GetTypeInfoTest(comp, "MyClass.Sum", "Integer")

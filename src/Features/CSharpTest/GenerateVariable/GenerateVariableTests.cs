@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -19,3137 +18,2929 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+public sealed class GenerateVariableTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-    public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
-    {
-        private const int FieldIndex = 0;
-        private const int ReadonlyFieldIndex = 1;
-        private const int PropertyIndex = 2;
-        private const int LocalIndex = 3;
-        private const int Parameter = 4;
-        private const int ParameterAndOverrides = 5;
+    private const int FieldIndex = 0;
+    private const int ReadonlyFieldIndex = 1;
+    private const int PropertyIndex = 2;
+    private const int LocalIndex = 3;
+    private const int Parameter = 4;
+    private const int ParameterAndOverrides = 5;
 
-        public GenerateVariableTests(ITestOutputHelper logger)
-            : base(logger)
+    internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (null, new CSharpGenerateVariableCodeFixProvider());
+
+    private readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
+
+    // specify all options explicitly to override defaults.
+    private OptionsCollection ImplicitTypingEverywhere()
+        => new(GetLanguage())
         {
-        }
+            { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+        };
 
-        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpGenerateVariableCodeFixProvider());
+    protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        => FlattenActions(actions);
 
-        private readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
-
-        // specify all options explicitly to override defaults.
-        private OptionsCollection ImplicitTypingEverywhere()
-            => new(GetLanguage())
+    [Fact]
+    public Task TestSimpleLowercaseIdentifier1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
             {
-                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
-                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
-                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
-            };
+                void Method()
+                {
+                    [|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private object goo;
 
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
-            => FlattenActions(actions);
+                void Method()
+                {
+                    goo;
+                }
+            }
+            """);
 
-        [Fact]
-        public async Task TestSimpleLowercaseIdentifier1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public Task TestSimpleLowercaseIdentifierAllOptionsOffered()
+        => TestExactActionSetOfferedAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|goo|];
+                }
+            }
+            """,
+            [
+                string.Format(CodeFixesResources.Generate_field_0, "goo"),
+                string.Format(CodeFixesResources.Generate_read_only_field_0, "goo"),
+                string.Format(CodeFixesResources.Generate_property_0, "goo"),
+                string.Format(CodeFixesResources.Generate_local_0, "goo"),
+                string.Format(CodeFixesResources.Generate_parameter_0, "goo"),
+            ]);
+
+    [Fact]
+    public Task TestUnderscorePrefixAllOptionsOffered()
+        => TestExactActionSetOfferedAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|_goo|];
+                }
+            }
+            """,
+            [
+                string.Format(CodeFixesResources.Generate_field_0, "_goo"),
+                string.Format(CodeFixesResources.Generate_read_only_field_0, "_goo"),
+            ]);
+
+    [Fact]
+    public Task TestSimpleLowercaseIdentifier2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private readonly object goo;
+
+                void Method()
+                {
+                    goo;
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestTestSimpleLowercaseIdentifier3()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public object goo { get; private set; }
+
+                void Method()
+                {
+                    goo;
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact]
+    public Task TestSimpleUppercaseIdentifier1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|Goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public object Goo { get; private set; }
+
+                void Method()
+                {
+                    Goo;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestSimpleUppercaseIdentifier2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|Goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private object Goo;
+
+                void Method()
+                {
+                    Goo;
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestSimpleUppercaseIdentifier3()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|Goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private readonly object Goo;
+
+                void Method()
+                {
+                    Goo;
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact]
+    public Task TestSimpleRead1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(int i)
+                {
+                    Method([|goo|]);
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private int goo;
+
+                void Method(int i)
+                {
+                    Method(goo);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestSimpleReadWithTopLevelNullability()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+
+            class Class
+            {
+                void Method(string? s)
+                {
+                    Method([|goo|]);
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class Class
+            {
+                private string? goo;
+
+                void Method(string? s)
+                {
+                    Method(goo);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestSimpleReadWithNestedNullability()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+
+            using System.Collections.Generic;
+
+            class Class
+            {
+                void Method(IEnumerable<string?> s)
+                {
+                    Method([|goo|]);
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            using System.Collections.Generic;
+
+            class Class
+            {
+                private IEnumerable<string?> goo;
+
+                void Method(IEnumerable<string?> s)
+                {
+                    Method(goo);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestSimpleWriteCount()
+        => TestExactActionSetOfferedAsync(
+            """
+            class Class
+            {
+                void Method(int i)
+                {
+                    [|goo|] = 1;
+                }
+            }
+            """,
+            [string.Format(CodeFixesResources.Generate_field_0, "goo"), string.Format(CodeFixesResources.Generate_property_0, "goo"), string.Format(CodeFixesResources.Generate_local_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0, "goo")]);
+
+    [Fact]
+    public Task TestSimpleWriteInOverrideCount()
+        => TestExactActionSetOfferedAsync(
+            """
+            abstract class Base
+            {
+                public abstract void Method(int i);
+            }
+
+            class Class : Base
+            {
+                public override void Method(int i)
+                {
+                    [|goo|] = 1;
+                }
+            }
+            """,
+            [string.Format(CodeFixesResources.Generate_field_0, "goo"), string.Format(CodeFixesResources.Generate_property_0, "goo"), string.Format(CodeFixesResources.Generate_local_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0_and_overrides_implementations, "goo")]);
+
+    [Fact]
+    public Task TestSimpleWrite1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(int i)
+                {
+                    [|goo|] = 1;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private int goo;
+
+                void Method(int i)
+                {
+                    goo = 1;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestSimpleWrite2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(int i)
+                {
+                    [|goo|] = 1;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public int goo { get; private set; }
+
+                void Method(int i)
+                {
+                    goo = 1;
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestGenerateFieldInRef()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(ref int i)
+                {
+                    Method(ref this.[|goo|]);
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private int goo;
+
+                void Method(ref int i)
+                {
+                    Method(ref this.[|goo|]);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGeneratePropertyInRef()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            class Class
+            {
+                void Method(ref int i)
+                {
+                    Method(ref this.[|goo|]);
+                }
+            }
+            """,
+            """
+            using System;
+            class Class
+            {
+                public ref int goo => throw new NotImplementedException();
+
+                void Method(ref int i)
+                {
+                    Method(ref this.goo);
+                }
+            }
+            """, index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestGeneratePropertyInIn()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            class Class
+            {
+                void Method(in int i)
+                {
+                    Method(in this.[|goo|]);
+                }
+            }
+            """,
+            """
+            using System;
+            class Class
+            {
+                public ref readonly int goo => throw new NotImplementedException();
+
+                void Method(in int i)
+                {
+                    Method(in this.goo);
+                }
+            }
+            """, index: PropertyIndex);
+
+    [Fact]
+    public Task TestInRef1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(ref int i)
+                {
+                    Method(ref [|goo|]);
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private int goo;
+
+                void Method(ref int i)
+                {
+                    Method(ref goo);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestInOutCodeActionCount()
+        => TestExactActionSetOfferedAsync(
+            """
+            class Class
+            {
+                void Method(out int i)
+                {
+                    Method(out [|goo|]);
+                }
+            }
+            """,
+            [string.Format(CodeFixesResources.Generate_field_0, "goo"), string.Format(CodeFixesResources.Generate_local_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0, "goo")]);
+
+    [Fact]
+    public Task TestInOut1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(out int i)
+                {
+                    Method(out [|goo|]);
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private int goo;
+
+                void Method(out int i)
+                {
+                    Method(out goo);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateInStaticMember1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                static void Method()
+                {
+                    [|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private static object goo;
+
+                static void Method()
+                {
+                    goo;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateInStaticMember2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                static void Method()
+                {
+                    [|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private static readonly object goo;
+
+                static void Method()
+                {
+                    goo;
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestGenerateInStaticMember3()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                static void Method()
+                {
+                    [|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public static object goo { get; private set; }
+
+                static void Method()
+                {
+                    goo;
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact]
+    public Task TestGenerateOffInstance1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    this.[|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private object goo;
+
+                void Method()
+                {
+                    this.goo;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateOffInstance2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    this.[|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private readonly object goo;
+
+                void Method()
+                {
+                    this.goo;
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestGenerateOffInstance3()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    this.[|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public object goo { get; private set; }
+
+                void Method()
+                {
+                    this.goo;
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact]
+    public Task TestGenerateOffWrittenInstance1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    this.[|goo|] = 1;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private int goo;
+
+                void Method()
+                {
+                    this.goo = 1;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateOffWrittenInstance2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    this.[|goo|] = 1;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public int goo { get; private set; }
+
+                void Method()
+                {
+                    this.goo = 1;
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestGenerateOffStatic1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    Class.[|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private static object goo;
+
+                void Method()
+                {
+                    Class.goo;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateOffStatic2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    Class.[|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private static readonly object goo;
+
+                void Method()
+                {
+                    Class.goo;
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestGenerateOffStatic3()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    Class.[|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public static object goo { get; private set; }
+
+                void Method()
+                {
+                    Class.goo;
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact]
+    public Task TestGenerateOffWrittenStatic1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    Class.[|goo|] = 1;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private static int goo;
+
+                void Method()
+                {
+                    Class.goo = 1;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateOffWrittenStatic2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    Class.[|goo|] = 1;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public static int goo { get; private set; }
+
+                void Method()
+                {
+                    Class.goo = 1;
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestGenerateInstanceIntoSibling1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    new D().[|goo|];
+                }
+            }
+
+            class D
+            {
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
+                {
+                    new D().goo;
+                }
+            }
+
+            class D
+            {
+                internal object goo;
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateInstanceIntoOuter1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Outer
+            {
                 class Class
                 {
                     void Method()
                     {
-                        [|goo|];
+                        new Outer().[|goo|];
                     }
                 }
-                """,
-                """
-                class Class
-                {
-                    private object goo;
+            }
+            """,
+            """
+            class Outer
+            {
+                private object goo;
 
-                    void Method()
-                    {
-                        goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestSimpleLowercaseIdentifierAllOptionsOffered()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
                 class Class
                 {
                     void Method()
                     {
-                        [|goo|];
+                        new Outer().goo;
                     }
                 }
-                """,
-[
-    string.Format(FeaturesResources.Generate_field_0, "goo"),
-    string.Format(FeaturesResources.Generate_read_only_field_0, "goo"),
-    string.Format(FeaturesResources.Generate_property_0, "goo"),
-    string.Format(FeaturesResources.Generate_local_0, "goo"),
-    string.Format(FeaturesResources.Generate_parameter_0, "goo"),
-]);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestUnderscorePrefixAllOptionsOffered()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                class Class
+    [Fact]
+    public Task TestGenerateInstanceIntoDerived1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class : Base
+            {
+                void Method(Base b)
                 {
-                    void Method()
+                    b.[|goo|];
+                }
+            }
+
+            class Base
+            {
+            }
+            """,
+            """
+            class Class : Base
+            {
+                void Method(Base b)
+                {
+                    b.goo;
+                }
+            }
+
+            class Base
+            {
+                internal object goo;
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateStaticIntoDerived1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class : Base
+            {
+                void Method(Base b)
+                {
+                    Base.[|goo|];
+                }
+            }
+
+            class Base
+            {
+            }
+            """,
+            """
+            class Class : Base
+            {
+                void Method(Base b)
+                {
+                    Base.goo;
+                }
+            }
+
+            class Base
+            {
+                protected static object goo;
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateIntoInterfaceFixCount()
+        => TestActionCountAsync(
+            """
+            class Class
+            {
+                void Method(I i)
+                {
+                    i.[|goo|];
+                }
+            }
+
+            interface I
+            {
+            }
+            """,
+            count: 2);
+
+    [Fact]
+    public Task TestGenerateIntoInterface1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(I i)
+                {
+                    i.[|Goo|];
+                }
+            }
+
+            interface I
+            {
+            }
+            """,
+            """
+            class Class
+            {
+                void Method(I i)
+                {
+                    i.Goo;
+                }
+            }
+
+            interface I
+            {
+                object Goo { get; set; }
+            }
+            """, index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestGenerateIntoInterface2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(I i)
+                {
+                    i.[|Goo|];
+                }
+            }
+
+            interface I
+            {
+            }
+            """,
+            """
+            class Class
+            {
+                void Method(I i)
+                {
+                    i.Goo;
+                }
+            }
+
+            interface I
+            {
+                object Goo { get; }
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateStaticIntoInterfaceMissing()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(I i)
+                {
+                    I.[|Goo|];
+                }
+            }
+
+            interface I
+            {
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateWriteIntoInterfaceFixCount()
+        => TestActionCountAsync(
+            """
+            class Class
+            {
+                void Method(I i)
+                {
+                    i.[|Goo|] = 1;
+                }
+            }
+
+            interface I
+            {
+            }
+            """,
+            count: 1);
+
+    [Fact]
+    public Task TestGenerateWriteIntoInterface1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(I i)
+                {
+                    i.[|Goo|] = 1;
+                }
+            }
+
+            interface I
+            {
+            }
+            """,
+            """
+            class Class
+            {
+                void Method(I i)
+                {
+                    i.Goo = 1;
+                }
+            }
+
+            interface I
+            {
+                int Goo { get; set; }
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateInGenericType()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class<T>
+            {
+                void Method(T t)
+                {
+                    [|goo|] = t;
+                }
+            }
+            """,
+            """
+            class Class<T>
+            {
+                private T goo;
+
+                void Method(T t)
+                {
+                    goo = t;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateInGenericMethod1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method<T>(T t)
+                {
+                    [|goo|] = t;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private object goo;
+
+                void Method<T>(T t)
+                {
+                    goo = t;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateInGenericMethod2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method<T>(IList<T> t)
+                {
+                    [|goo|] = t;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private IList<object> goo;
+
+                void Method<T>(IList<T> t)
+                {
+                    goo = t;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateFieldBeforeFirstField()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                int i;
+
+                void Method()
+                {
+                    [|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                int i;
+                private object goo;
+
+                void Method()
+                {
+                    goo;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateFieldAfterLastField()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|goo|];
+                }
+
+                int i;
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
+                {
+                    goo;
+                }
+
+                int i;
+                private object goo;
+            }
+            """);
+
+    [Fact]
+    public Task TestGeneratePropertyAfterLastField1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                int Bar;
+
+                void Method()
+                {
+                    [|Goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                int Bar;
+
+                public object Goo { get; private set; }
+
+                void Method()
+                {
+                    Goo;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGeneratePropertyAfterLastField2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|Goo|];
+                }
+
+                int Bar;
+            }
+            """,
+            """
+            class Class
+            {
+                void Method()
+                {
+                    Goo;
+                }
+
+                int Bar;
+
+                public object Goo { get; private set; }
+            }
+            """);
+
+    [Fact]
+    public Task TestGeneratePropertyBeforeFirstProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                int Quux { get; }
+
+                void Method()
+                {
+                    [|Goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public object Goo { get; private set; }
+                int Quux { get; }
+
+                void Method()
+                {
+                    Goo;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGeneratePropertyBeforeFirstPropertyEvenWithField1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                int Bar;
+
+                int Quux { get; }
+
+                void Method()
+                {
+                    [|Goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                int Bar;
+
+                public object Goo { get; private set; }
+                int Quux { get; }
+
+                void Method()
+                {
+                    Goo;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGeneratePropertyAfterLastPropertyEvenWithField2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                int Quux { get; }
+
+                int Bar;
+
+                void Method()
+                {
+                    [|Goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                int Quux { get; }
+                public object Goo { get; private set; }
+
+                int Bar;
+
+                void Method()
+                {
+                    Goo;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestMissingInInvocation()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|Goo|]();
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestMissingInObjectCreation()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    new [|Goo|]();
+                }
+            }
+            """);
+
+    [Fact]
+    public async Task TestMissingInTypeDeclaration()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|A|] a;
+                }
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|A.B|] a;
+                }
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|A|].B a;
+                }
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    A.[|B|] a;
+                }
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|A.B.C|] a;
+                }
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|A.B|].C a;
+                }
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    A.B.[|C|] a;
+                }
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|A|].B.C a;
+                }
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    A.[|B|].C a;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539336")]
+    public async Task TestMissingInAttribute()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            [[|A|]]
+            class Class
+            {
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            [[|A.B|]]
+            class Class
+            {
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            [[|A|].B]
+            class Class
+            {
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            [A.[|B|]]
+            class Class
+            {
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            [[|A.B.C|]]
+            class Class
+            {
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            [[|A.B|].C]
+            class Class
+            {
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            [A.B.[|C|]]
+            class Class
+            {
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            [[|A|].B.C]
+            class Class
+            {
+            }
+            """);
+
+        await TestMissingInRegularAndScriptAsync(
+            """
+            [A.B.[|C|]]
+            class Class
+            {
+            }
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539340")]
+    public async Task TestSpansField()
+    {
+        await TestSpansAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    this.[|Goo|] }
+            """);
+
+        await TestSpansAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    this.[|Goo|];
+                }
+            """);
+
+        await TestSpansAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    this.[|Goo|] = 1 }
+            """);
+
+        await TestSpansAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    this.[|Goo|] = 1 + 2 }
+            """);
+
+        await TestSpansAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    this.[|Goo|] = 1 + 2;
+                }
+            """);
+
+        await TestSpansAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    this.[|Goo|] += Bar() }
+            """);
+
+        await TestSpansAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    this.[|Goo|] += Bar();
+                }
+            """);
+    }
+
+    [Fact]
+    public Task TestGenerateFieldInSimpleLambda()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Func<string, int> f = x => [|goo|];
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                private static int goo;
+
+                static void Main(string[] args)
+                {
+                    Func<string, int> f = x => goo;
+                }
+            }
+            """, FieldIndex);
+
+    [Fact]
+    public Task TestGenerateFieldInParenthesizedLambda()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Func<int> f = () => [|goo|];
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                private static int goo;
+
+                static void Main(string[] args)
+                {
+                    Func<int> f = () => goo;
+                }
+            }
+            """, FieldIndex);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30232")]
+    public Task TestGenerateFieldInAsyncTaskOfTSimpleLambda()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Func<string, Task<int>> f = async x => [|goo|];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                private static int goo;
+
+                static void Main(string[] args)
+                {
+                    Func<string, Task<int>> f = async x => goo;
+                }
+            }
+            """, FieldIndex);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30232")]
+    public Task TestGenerateFieldInAsyncTaskOfTParenthesizedLambda()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Func<Task<int>> f = async () => [|goo|];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                private static int goo;
+
+                static void Main(string[] args)
+                {
+                    Func<Task<int>> f = async () => goo;
+                }
+            }
+            """, FieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539427")]
+    public Task TestGenerateFromLambda()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(int i)
+                {
+                    [|goo|] = () => {
+                        return 2 };
+                }
+            }
+            """,
+            """
+            using System;
+
+            class Class
+            {
+                private Func<int> goo;
+
+                void Method(int i)
+                {
+                    goo = () => {
+                        return 2 };
+                }
+            }
+            """);
+
+    // TODO: Move to TypeInferrer.InferTypes, or something
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539466")]
+    public Task TestGenerateInMethodOverload1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(int i)
+                {
+                    System.Console.WriteLine([|goo|]);
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private bool goo;
+
+                void Method(int i)
+                {
+                    System.Console.WriteLine(goo);
+                }
+            }
+            """);
+
+    // TODO: Move to TypeInferrer.InferTypes, or something
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539466")]
+    public Task TestGenerateInMethodOverload2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(int i)
+                {
+                    System.Console.WriteLine(this.[|goo|]);
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private bool goo;
+
+                void Method(int i)
+                {
+                    System.Console.WriteLine(this.goo);
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
+    public Task TestExplicitProperty1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class : ITest
+            {
+                bool ITest.[|SomeProp|] { get; set; }
+            }
+
+            interface ITest
+            {
+            }
+            """,
+            """
+            class Class : ITest
+            {
+                bool ITest.SomeProp { get; set; }
+            }
+
+            interface ITest
+            {
+                bool SomeProp { get; set; }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
+    public Task TestExplicitProperty2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class : ITest
+            {
+                bool ITest.[|SomeProp|] { }
+            }
+
+            interface ITest
+            {
+            }
+            """,
+            """
+            class Class : ITest
+            {
+                bool ITest.SomeProp { }
+            }
+
+            interface ITest
+            {
+                bool SomeProp { get; set; }
+            }
+            """, index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
+    public Task TestExplicitProperty3()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class : ITest
+            {
+                bool ITest.[|SomeProp|] { }
+            }
+
+            interface ITest
+            {
+            }
+            """,
+            """
+            class Class : ITest
+            {
+                bool ITest.SomeProp { }
+            }
+
+            interface ITest
+            {
+                bool SomeProp { get; }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
+    public Task TestExplicitProperty4()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                bool ITest.[|SomeProp|] { }
+            }
+
+            interface ITest
+            {
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
+    public Task TestExplicitProperty5()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Class : ITest
+            {
+                bool ITest.[|SomeProp|] { }
+            }
+
+            interface ITest
+            {
+                bool SomeProp { get; }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
+    public Task TestEscapedName()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|@goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private object goo;
+
+                void Method()
+                {
+                    @goo;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
+    public Task TestEscapedKeyword()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|@int|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private object @int;
+
+                void Method()
+                {
+                    @int;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539529")]
+    public Task TestRefLambda()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|test|] = (ref int x) => x = 10;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private object test;
+
+                void Method()
+                {
+                    test = (ref int x) => x = 10;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539595")]
+    public Task TestNotOnError()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void F<U, V>(U u1, V v1)
+                {
+                    Goo<string, int>([|u1|], u2);
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539571")]
+    public Task TestNameSimplification()
+        => TestInRegularAndScriptAsync(
+            """
+            namespace TestNs
+            {
+                class Program
+                {
+                    class Test
                     {
-                        [|_goo|];
-                    }
-                }
-                """,
-[
-    string.Format(FeaturesResources.Generate_field_0, "_goo"),
-    string.Format(FeaturesResources.Generate_read_only_field_0, "_goo"),
-]);
-        }
-
-        [Fact]
-        public async Task TestSimpleLowercaseIdentifier2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private readonly object goo;
-
-                    void Method()
-                    {
-                        goo;
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact]
-        public async Task TestTestSimpleLowercaseIdentifier3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    public object goo { get; private set; }
-
-                    void Method()
-                    {
-                        goo;
-                    }
-                }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact]
-        public async Task TestSimpleUppercaseIdentifier1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|Goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    public object Goo { get; private set; }
-
-                    void Method()
-                    {
-                        Goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestSimpleUppercaseIdentifier2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|Goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private object Goo;
-
-                    void Method()
-                    {
-                        Goo;
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact]
-        public async Task TestSimpleUppercaseIdentifier3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|Goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private readonly object Goo;
-
-                    void Method()
-                    {
-                        Goo;
-                    }
-                }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact]
-        public async Task TestSimpleRead1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(int i)
-                    {
-                        Method([|goo|]);
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private int goo;
-
-                    void Method(int i)
-                    {
-                        Method(goo);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestSimpleReadWithTopLevelNullability()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                #nullable enable
-
-                class Class
-                {
-                    void Method(string? s)
-                    {
-                        Method([|goo|]);
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class Class
-                {
-                    private string? goo;
-
-                    void Method(string? s)
-                    {
-                        Method(goo);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestSimpleReadWithNestedNullability()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                #nullable enable
-
-                using System.Collections.Generic;
-
-                class Class
-                {
-                    void Method(IEnumerable<string?> s)
-                    {
-                        Method([|goo|]);
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                using System.Collections.Generic;
-
-                class Class
-                {
-                    private IEnumerable<string?> goo;
-
-                    void Method(IEnumerable<string?> s)
-                    {
-                        Method(goo);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestSimpleWriteCount()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                class Class
-                {
-                    void Method(int i)
-                    {
-                        [|goo|] = 1;
-                    }
-                }
-                """,
-[string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_property_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo")]);
-        }
-
-        [Fact]
-        public async Task TestSimpleWriteInOverrideCount()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                abstract class Base
-                {
-                    public abstract void Method(int i);
-                }
-
-                class Class : Base
-                {
-                    public override void Method(int i)
-                    {
-                        [|goo|] = 1;
-                    }
-                }
-                """,
-[string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_property_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0_and_overrides_implementations, "goo")]);
-        }
-
-        [Fact]
-        public async Task TestSimpleWrite1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(int i)
-                    {
-                        [|goo|] = 1;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private int goo;
-
-                    void Method(int i)
-                    {
-                        goo = 1;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestSimpleWrite2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(int i)
-                    {
-                        [|goo|] = 1;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    public int goo { get; private set; }
-
-                    void Method(int i)
-                    {
-                        goo = 1;
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateFieldInRef()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(ref int i)
-                    {
-                        Method(ref this.[|goo|]);
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private int goo;
-
-                    void Method(ref int i)
-                    {
-                        Method(ref this.[|goo|]);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGeneratePropertyInRef()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                class Class
-                {
-                    void Method(ref int i)
-                    {
-                        Method(ref this.[|goo|]);
-                    }
-                }
-                """,
-                """
-                using System;
-                class Class
-                {
-                    public ref int goo => throw new NotImplementedException();
-
-                    void Method(ref int i)
-                    {
-                        Method(ref this.goo);
-                    }
-                }
-                """, index: ReadonlyFieldIndex);
-        }
-
-        [Fact]
-        public async Task TestGeneratePropertyInIn()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                class Class
-                {
-                    void Method(in int i)
-                    {
-                        Method(in this.[|goo|]);
-                    }
-                }
-                """,
-                """
-                using System;
-                class Class
-                {
-                    public ref readonly int goo => throw new NotImplementedException();
-
-                    void Method(in int i)
-                    {
-                        Method(in this.goo);
-                    }
-                }
-                """, index: PropertyIndex);
-        }
-
-        [Fact]
-        public async Task TestInRef1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(ref int i)
-                    {
-                        Method(ref [|goo|]);
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private int goo;
-
-                    void Method(ref int i)
-                    {
-                        Method(ref goo);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestInOutCodeActionCount()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                class Class
-                {
-                    void Method(out int i)
-                    {
-                        Method(out [|goo|]);
-                    }
-                }
-                """,
-[string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo")]);
-        }
-
-        [Fact]
-        public async Task TestInOut1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(out int i)
-                    {
-                        Method(out [|goo|]);
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private int goo;
-
-                    void Method(out int i)
-                    {
-                        Method(out goo);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateInStaticMember1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    static void Method()
-                    {
-                        [|goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private static object goo;
-
-                    static void Method()
-                    {
-                        goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateInStaticMember2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    static void Method()
-                    {
-                        [|goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private static readonly object goo;
-
-                    static void Method()
-                    {
-                        goo;
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateInStaticMember3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    static void Method()
-                    {
-                        [|goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    public static object goo { get; private set; }
-
-                    static void Method()
-                    {
-                        goo;
-                    }
-                }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateOffInstance1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        this.[|goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private object goo;
-
-                    void Method()
-                    {
-                        this.goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateOffInstance2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        this.[|goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private readonly object goo;
-
-                    void Method()
-                    {
-                        this.goo;
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateOffInstance3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        this.[|goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    public object goo { get; private set; }
-
-                    void Method()
-                    {
-                        this.goo;
-                    }
-                }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateOffWrittenInstance1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        this.[|goo|] = 1;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private int goo;
-
-                    void Method()
-                    {
-                        this.goo = 1;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateOffWrittenInstance2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        this.[|goo|] = 1;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    public int goo { get; private set; }
-
-                    void Method()
-                    {
-                        this.goo = 1;
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateOffStatic1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        Class.[|goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private static object goo;
-
-                    void Method()
-                    {
-                        Class.goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateOffStatic2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        Class.[|goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private static readonly object goo;
-
-                    void Method()
-                    {
-                        Class.goo;
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateOffStatic3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        Class.[|goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    public static object goo { get; private set; }
-
-                    void Method()
-                    {
-                        Class.goo;
-                    }
-                }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateOffWrittenStatic1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        Class.[|goo|] = 1;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private static int goo;
-
-                    void Method()
-                    {
-                        Class.goo = 1;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateOffWrittenStatic2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        Class.[|goo|] = 1;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    public static int goo { get; private set; }
-
-                    void Method()
-                    {
-                        Class.goo = 1;
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateInstanceIntoSibling1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        new D().[|goo|];
-                    }
-                }
-
-                class D
-                {
-                }
-                """,
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        new D().goo;
-                    }
-                }
-
-                class D
-                {
-                    internal object goo;
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateInstanceIntoOuter1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Outer
-                {
-                    class Class
-                    {
-                        void Method()
+                        void Meth()
                         {
-                            new Outer().[|goo|];
+                            Program.[|blah|] = new Test();
                         }
                     }
                 }
-                """,
-                """
-                class Outer
+            }
+            """,
+            """
+            namespace TestNs
+            {
+                class Program
                 {
-                    private object goo;
+                    private static Test blah;
 
-                    class Class
+                    class Test
                     {
-                        void Method()
+                        void Meth()
                         {
-                            new Outer().goo;
+                            Program.blah = new Test();
                         }
                     }
                 }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateInstanceIntoDerived1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class : Base
-                {
-                    void Method(Base b)
-                    {
-                        b.[|goo|];
-                    }
-                }
-
-                class Base
-                {
-                }
-                """,
-                """
-                class Class : Base
-                {
-                    void Method(Base b)
-                    {
-                        b.goo;
-                    }
-                }
-
-                class Base
-                {
-                    internal object goo;
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateStaticIntoDerived1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class : Base
-                {
-                    void Method(Base b)
-                    {
-                        Base.[|goo|];
-                    }
-                }
-
-                class Base
-                {
-                }
-                """,
-                """
-                class Class : Base
-                {
-                    void Method(Base b)
-                    {
-                        Base.goo;
-                    }
-                }
-
-                class Base
-                {
-                    protected static object goo;
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateIntoInterfaceFixCount()
-        {
-            await TestActionCountAsync(
-                """
-                class Class
-                {
-                    void Method(I i)
-                    {
-                        i.[|goo|];
-                    }
-                }
-
-                interface I
-                {
-                }
-                """,
-count: 2);
-        }
-
-        [Fact]
-        public async Task TestGenerateIntoInterface1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(I i)
-                    {
-                        i.[|Goo|];
-                    }
-                }
-
-                interface I
-                {
-                }
-                """,
-                """
-                class Class
-                {
-                    void Method(I i)
-                    {
-                        i.Goo;
-                    }
-                }
-
-                interface I
-                {
-                    object Goo { get; set; }
-                }
-                """, index: ReadonlyFieldIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateIntoInterface2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(I i)
-                    {
-                        i.[|Goo|];
-                    }
-                }
-
-                interface I
-                {
-                }
-                """,
-                """
-                class Class
-                {
-                    void Method(I i)
-                    {
-                        i.Goo;
-                    }
-                }
-
-                interface I
-                {
-                    object Goo { get; }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateStaticIntoInterfaceMissing()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(I i)
-                    {
-                        I.[|Goo|];
-                    }
-                }
-
-                interface I
-                {
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateWriteIntoInterfaceFixCount()
-        {
-            await TestActionCountAsync(
-                """
-                class Class
-                {
-                    void Method(I i)
-                    {
-                        i.[|Goo|] = 1;
-                    }
-                }
-
-                interface I
-                {
-                }
-                """,
-count: 1);
-        }
-
-        [Fact]
-        public async Task TestGenerateWriteIntoInterface1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(I i)
-                    {
-                        i.[|Goo|] = 1;
-                    }
-                }
-
-                interface I
-                {
-                }
-                """,
-                """
-                class Class
-                {
-                    void Method(I i)
-                    {
-                        i.Goo = 1;
-                    }
-                }
-
-                interface I
-                {
-                    int Goo { get; set; }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateInGenericType()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class<T>
-                {
-                    void Method(T t)
-                    {
-                        [|goo|] = t;
-                    }
-                }
-                """,
-                """
-                class Class<T>
-                {
-                    private T goo;
-
-                    void Method(T t)
-                    {
-                        goo = t;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateInGenericMethod1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method<T>(T t)
-                    {
-                        [|goo|] = t;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private object goo;
-
-                    void Method<T>(T t)
-                    {
-                        goo = t;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateInGenericMethod2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method<T>(IList<T> t)
-                    {
-                        [|goo|] = t;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private IList<object> goo;
-
-                    void Method<T>(IList<T> t)
-                    {
-                        goo = t;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateFieldBeforeFirstField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    int i;
-
-                    void Method()
-                    {
-                        [|goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    int i;
-                    private object goo;
-
-                    void Method()
-                    {
-                        goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateFieldAfterLastField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|goo|];
-                    }
-
-                    int i;
-                }
-                """,
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        goo;
-                    }
-
-                    int i;
-                    private object goo;
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGeneratePropertyAfterLastField1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    int Bar;
-
-                    void Method()
-                    {
-                        [|Goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    int Bar;
-
-                    public object Goo { get; private set; }
-
-                    void Method()
-                    {
-                        Goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGeneratePropertyAfterLastField2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|Goo|];
-                    }
-
-                    int Bar;
-                }
-                """,
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        Goo;
-                    }
-
-                    int Bar;
-
-                    public object Goo { get; private set; }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGeneratePropertyBeforeFirstProperty()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    int Quux { get; }
-
-                    void Method()
-                    {
-                        [|Goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    public object Goo { get; private set; }
-                    int Quux { get; }
-
-                    void Method()
-                    {
-                        Goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGeneratePropertyBeforeFirstPropertyEvenWithField1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    int Bar;
-
-                    int Quux { get; }
-
-                    void Method()
-                    {
-                        [|Goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    int Bar;
-
-                    public object Goo { get; private set; }
-                    int Quux { get; }
-
-                    void Method()
-                    {
-                        Goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGeneratePropertyAfterLastPropertyEvenWithField2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    int Quux { get; }
-
-                    int Bar;
-
-                    void Method()
-                    {
-                        [|Goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    int Quux { get; }
-                    public object Goo { get; private set; }
-
-                    int Bar;
-
-                    void Method()
-                    {
-                        Goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingInInvocation()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|Goo|]();
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingInObjectCreation()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        new [|Goo|]();
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingInTypeDeclaration()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|A|] a;
-                    }
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|A.B|] a;
-                    }
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|A|].B a;
-                    }
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        A.[|B|] a;
-                    }
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|A.B.C|] a;
-                    }
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|A.B|].C a;
-                    }
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        A.B.[|C|] a;
-                    }
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|A|].B.C a;
-                    }
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        A.[|B|].C a;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539336")]
-        public async Task TestMissingInAttribute()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                [[|A|]]
-                class Class
-                {
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                [[|A.B|]]
-                class Class
-                {
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                [[|A|].B]
-                class Class
-                {
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                [A.[|B|]]
-                class Class
-                {
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                [[|A.B.C|]]
-                class Class
-                {
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                [[|A.B|].C]
-                class Class
-                {
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                [A.B.[|C|]]
-                class Class
-                {
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                [[|A|].B.C]
-                class Class
-                {
-                }
-                """);
-
-            await TestMissingInRegularAndScriptAsync(
-                """
-                [A.B.[|C|]]
-                class Class
-                {
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539340")]
-        public async Task TestSpansField()
-        {
-            await TestSpansAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        this.[|Goo|] }
-                """);
-
-            await TestSpansAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        this.[|Goo|];
-                    }
-                """);
-
-            await TestSpansAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        this.[|Goo|] = 1 }
-                """);
-
-            await TestSpansAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        this.[|Goo|] = 1 + 2 }
-                """);
-
-            await TestSpansAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        this.[|Goo|] = 1 + 2;
-                    }
-                """);
-
-            await TestSpansAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        this.[|Goo|] += Bar() }
-                """);
-
-            await TestSpansAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        this.[|Goo|] += Bar();
-                    }
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateFieldInSimpleLambda()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        Func<string, int> f = x => [|goo|];
-                    }
-                }
-                """,
-                """
-                using System;
-
-                class Program
-                {
-                    private static int goo;
-
-                    static void Main(string[] args)
-                    {
-                        Func<string, int> f = x => goo;
-                    }
-                }
-                """, FieldIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateFieldInParenthesizedLambda()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        Func<int> f = () => [|goo|];
-                    }
-                }
-                """,
-                """
-                using System;
-
-                class Program
-                {
-                    private static int goo;
-
-                    static void Main(string[] args)
-                    {
-                        Func<int> f = () => goo;
-                    }
-                }
-                """, FieldIndex);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30232")]
-        public async Task TestGenerateFieldInAsyncTaskOfTSimpleLambda()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Threading.Tasks;
-
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        Func<string, Task<int>> f = async x => [|goo|];
-                    }
-                }
-                """,
-                """
-                using System;
-                using System.Threading.Tasks;
-
-                class Program
-                {
-                    private static int goo;
-
-                    static void Main(string[] args)
-                    {
-                        Func<string, Task<int>> f = async x => goo;
-                    }
-                }
-                """, FieldIndex);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30232")]
-        public async Task TestGenerateFieldInAsyncTaskOfTParenthesizedLambda()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Threading.Tasks;
-
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        Func<Task<int>> f = async () => [|goo|];
-                    }
-                }
-                """,
-                """
-                using System;
-                using System.Threading.Tasks;
-
-                class Program
-                {
-                    private static int goo;
-
-                    static void Main(string[] args)
-                    {
-                        Func<Task<int>> f = async () => goo;
-                    }
-                }
-                """, FieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539427")]
-        public async Task TestGenerateFromLambda()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(int i)
-                    {
-                        [|goo|] = () => {
-                            return 2 };
-                    }
-                }
-                """,
-                """
-                using System;
-
-                class Class
-                {
-                    private Func<int> goo;
-
-                    void Method(int i)
-                    {
-                        goo = () => {
-                            return 2 };
-                    }
-                }
-                """);
-        }
-
-        // TODO: Move to TypeInferrer.InferTypes, or something
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539466")]
-        public async Task TestGenerateInMethodOverload1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(int i)
-                    {
-                        System.Console.WriteLine([|goo|]);
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private bool goo;
-
-                    void Method(int i)
-                    {
-                        System.Console.WriteLine(goo);
-                    }
-                }
-                """);
-        }
-
-        // TODO: Move to TypeInferrer.InferTypes, or something
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539466")]
-        public async Task TestGenerateInMethodOverload2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method(int i)
-                    {
-                        System.Console.WriteLine(this.[|goo|]);
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private bool goo;
-
-                    void Method(int i)
-                    {
-                        System.Console.WriteLine(this.goo);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
-        public async Task TestExplicitProperty1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class : ITest
-                {
-                    bool ITest.[|SomeProp|] { get; set; }
-                }
-
-                interface ITest
-                {
-                }
-                """,
-                """
-                class Class : ITest
-                {
-                    bool ITest.SomeProp { get; set; }
-                }
-
-                interface ITest
-                {
-                    bool SomeProp { get; set; }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
-        public async Task TestExplicitProperty2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class : ITest
-                {
-                    bool ITest.[|SomeProp|] { }
-                }
-
-                interface ITest
-                {
-                }
-                """,
-                """
-                class Class : ITest
-                {
-                    bool ITest.SomeProp { }
-                }
-
-                interface ITest
-                {
-                    bool SomeProp { get; set; }
-                }
-                """, index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
-        public async Task TestExplicitProperty3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class : ITest
-                {
-                    bool ITest.[|SomeProp|] { }
-                }
-
-                interface ITest
-                {
-                }
-                """,
-                """
-                class Class : ITest
-                {
-                    bool ITest.SomeProp { }
-                }
-
-                interface ITest
-                {
-                    bool SomeProp { get; }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
-        public async Task TestExplicitProperty4()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    bool ITest.[|SomeProp|] { }
-                }
-
-                interface ITest
-                {
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
-        public async Task TestExplicitProperty5()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class : ITest
-                {
-                    bool ITest.[|SomeProp|] { }
-                }
-
-                interface ITest
-                {
-                    bool SomeProp { get; }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
-        public async Task TestEscapedName()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|@goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private object goo;
-
-                    void Method()
-                    {
-                        @goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
-        public async Task TestEscapedKeyword()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|@int|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private object @int;
-
-                    void Method()
-                    {
-                        @int;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539529")]
-        public async Task TestRefLambda()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|test|] = (ref int x) => x = 10;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private object test;
-
-                    void Method()
-                    {
-                        test = (ref int x) => x = 10;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539595")]
-        public async Task TestNotOnError()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void F<U, V>(U u1, V v1)
-                    {
-                        Goo<string, int>([|u1|], u2);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539571")]
-        public async Task TestNameSimplification()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                namespace TestNs
-                {
-                    class Program
-                    {
-                        class Test
-                        {
-                            void Meth()
-                            {
-                                Program.[|blah|] = new Test();
-                            }
-                        }
-                    }
-                }
-                """,
-                """
-                namespace TestNs
-                {
-                    class Program
-                    {
-                        private static Test blah;
-
-                        class Test
-                        {
-                            void Meth()
-                            {
-                                Program.blah = new Test();
-                            }
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539717")]
-        public async Task TestPostIncrement()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        [|i|]++;
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private static int i;
-
-                    static void Main(string[] args)
-                    {
-                        i++;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539717")]
-        public async Task TestPreDecrement()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        --[|i|];
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private static int i;
-
-                    static void Main(string[] args)
-                    {
-                        --i;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539738")]
-        public async Task TestGenerateIntoScript()
-        {
-            await TestAsync(
-                """
-                using C;
-
-                static class C
-                {
-                }
-
-                C.[|i|] ++ ;
-                """,
-                """
-                using C;
-
-                static class C
-                {
-                    internal static int i;
-                }
-
-                C.i ++ ;
-                """,
-parseOptions: Options.Script);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539558")]
-        public async Task BugFix5565()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        [|Goo|]#();
-                    }
-                }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-
-                class Program
-                {
-                    public static object Goo { get; private set; }
-
-                    static void Main(string[] args)
-                    {
-                        Goo#();
-                    }
-                }
-                """);
-        }
-
-        [Fact(Skip = "Tuples")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539536")]
-        public async Task BugFix5538()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        new([|goo|])();
-                    }
-                }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-
-                class Program
-                {
-                    public static object goo { get; private set; }
-
-                    static void Main(string[] args)
-                    {
-                        new(goo)();
-                    }
-                }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539665")]
-        public async Task BugFix5697()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C { }
-                class D
-                {
-                    void M()
-                    {
-                        C.[|P|] = 10;
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    public static int P { get; internal set; }
-                }
-                class D
-                {
-                    void M()
-                    {
-                        C.P = 10;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539793")]
-        public async Task TestIncrement()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                class Program
-                {
-                    static void Main()
-                    {
-                        [|p|]++;
-                    }
-                }
-                """,
-[string.Format(FeaturesResources.Generate_field_0, "p"), string.Format(FeaturesResources.Generate_property_0, "p"), string.Format(FeaturesResources.Generate_local_0, "p"), string.Format(FeaturesResources.Generate_parameter_0, "p")]);
-
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    static void Main()
-                    {
-                        [|p|]++;
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private static int p;
-
-                    static void Main()
-                    {
-                        p++;
-                    }
-                }
-                """);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539834")]
-        public async Task TestNotInGoto()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    static void Main()
-                    {
-                        goto [|goo|];
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539826")]
-        public async Task TestOnLeftOfDot()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    static void Main()
-                    {
-                        [|goo|].ToString();
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private static object goo;
-
-                    static void Main()
-                    {
-                        goo.ToString();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539840")]
-        public async Task TestNotBeforeAlias()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        [|global|]::System.String s;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539871")]
-        public async Task TestMissingOnGenericName()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C<T>
-                {
-                    public delegate void Goo<R>(R r);
-
-                    static void M()
-                    {
-                        Goo<T> r = [|Goo<T>|];
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539934")]
-        public async Task TestOnDelegateAddition()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    delegate void D();
-
-                    void M()
-                    {
-                        D d = [|M1|] + M2;
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    private D M1 { get; set; }
-
-                    delegate void D();
-
-                    void M()
-                    {
-                        D d = M1 + M2;
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539986")]
-        public async Task TestReferenceTypeParameter1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C<T>
-                {
-                    public void Test()
-                    {
-                        C<T> c = A.[|M|];
-                    }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539717")]
+    public Task TestPostIncrement()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|i|]++;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private static int i;
+
+                static void Main(string[] args)
+                {
+                    i++;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539717")]
+    public Task TestPreDecrement()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    --[|i|];
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private static int i;
+
+                static void Main(string[] args)
+                {
+                    --i;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539738")]
+    public Task TestGenerateIntoScript()
+        => TestAsync(
+            """
+            using C;
+
+            static class C
+            {
+            }
+
+            C.[|i|] ++ ;
+            """,
+            """
+            using C;
+
+            static class C
+            {
+                internal static int i;
+            }
+
+            C.i ++ ;
+            """,
+            new(parseOptions: Options.Script));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539558")]
+    public Task BugFix5565()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|Goo|]#();
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                public static object Goo { get; private set; }
+
+                static void Main(string[] args)
+                {
+                    Goo#();
+                }
+            }
+            """);
+
+    [Fact(Skip = "Tuples")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539536")]
+    public Task BugFix5538()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    new([|goo|])();
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                public static object goo { get; private set; }
+
+                static void Main(string[] args)
+                {
+                    new(goo)();
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539665")]
+    public Task BugFix5697()
+        => TestInRegularAndScriptAsync(
+            """
+            class C { }
+            class D
+            {
+                void M()
+                {
+                    C.[|P|] = 10;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static int P { get; internal set; }
+            }
+            class D
+            {
+                void M()
+                {
+                    C.P = 10;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539793")]
+    public async Task TestIncrement()
+    {
+        await TestExactActionSetOfferedAsync(
+            """
+            class Program
+            {
+                static void Main()
+                {
+                    [|p|]++;
+                }
+            }
+            """,
+            [string.Format(CodeFixesResources.Generate_field_0, "p"), string.Format(CodeFixesResources.Generate_property_0, "p"), string.Format(CodeFixesResources.Generate_local_0, "p"), string.Format(CodeFixesResources.Generate_parameter_0, "p")]);
+
+        await TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main()
+                {
+                    [|p|]++;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private static int p;
+
+                static void Main()
+                {
+                    p++;
+                }
+            }
+            """);
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539834")]
+    public Task TestNotInGoto()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main()
+                {
+                    goto [|goo|];
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539826")]
+    public Task TestOnLeftOfDot()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main()
+                {
+                    [|goo|].ToString();
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private static object goo;
+
+                static void Main()
+                {
+                    goo.ToString();
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539840")]
+    public Task TestNotBeforeAlias()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|global|]::System.String s;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539871")]
+    public Task TestMissingOnGenericName()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C<T>
+            {
+                public delegate void Goo<R>(R r);
+
+                static void M()
+                {
+                    Goo<T> r = [|Goo<T>|];
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539934")]
+    public Task TestOnDelegateAddition()
+        => TestAsync(
+            """
+            class C
+            {
+                delegate void D();
+
+                void M()
+                {
+                    D d = [|M1|] + M2;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private D M1 { get; set; }
+
+                delegate void D();
+
+                void M()
+                {
+                    D d = M1 + M2;
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539986")]
+    public Task TestReferenceTypeParameter1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C<T>
+            {
+                public void Test()
+                {
+                    C<T> c = A.[|M|];
+                }
+            }
+
+            class A
+            {
+            }
+            """,
+            """
+            class C<T>
+            {
+                public void Test()
+                {
+                    C<T> c = A.M;
+                }
+            }
+
+            class A
+            {
+                public static C<object> M { get; internal set; }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539986")]
+    public Task TestReferenceTypeParameter2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C<T>
+            {
+                public void Test()
+                {
+                    C<T> c = A.[|M|];
                 }
 
                 class A
                 {
                 }
-                """,
-                """
-                class C<T>
+            }
+            """,
+            """
+            class C<T>
+            {
+                public void Test()
                 {
-                    public void Test()
-                    {
-                        C<T> c = A.M;
-                    }
+                    C<T> c = A.M;
                 }
 
                 class A
                 {
-                    public static C<object> M { get; internal set; }
+                    public static C<T> M { get; internal set; }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539986")]
-        public async Task TestReferenceTypeParameter2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C<T>
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540159")]
+    public async Task TestEmptyIdentifierName()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                static void M()
                 {
-                    public void Test()
-                    {
-                        C<T> c = A.[|M|];
-                    }
+                    int i = [|@|] }
+            }
+            """);
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                static void M()
+                {
+                    int i = [|@|]}
+            }
+            """);
+    }
 
-                    class A
-                    {
-                    }
-                }
-                """,
-                """
-                class C<T>
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541194")]
+    public Task TestForeachVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    public void Test()
+                    foreach (var v in [|list|])
                     {
-                        C<T> c = A.M;
-                    }
-
-                    class A
-                    {
-                        public static C<T> M { get; internal set; }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540159")]
-        public async Task TestEmptyIdentifierName()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    static void M()
-                    {
-                        int i = [|@|] }
-                }
-                """);
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    static void M()
-                    {
-                        int i = [|@|]}
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541194")]
-        public async Task TestForeachVar()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        foreach (var v in [|list|])
-                        {
-                        }
                     }
                 }
-                """,
-                """
-                using System.Collections.Generic;
+            }
+            """,
+            """
+            using System.Collections.Generic;
 
-                class C
+            class C
+            {
+                private IEnumerable<object> list;
+
+                void M()
                 {
-                    private IEnumerable<object> list;
-
-                    void M()
+                    foreach (var v in list)
                     {
-                        foreach (var v in list)
-                        {
-                        }
                     }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541265")]
-        public async Task TestExtensionMethodUsedAsInstance()
-        {
-            await TestAsync(
-                """
-                using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541265")]
+    public Task TestExtensionMethodUsedAsInstance()
+        => TestAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                public static void Main()
                 {
-                    public static void Main()
-                    {
-                        string s = "Hello";
-                        [|f|] = s.ExtensionMethod;
-                    }
+                    string s = "Hello";
+                    [|f|] = s.ExtensionMethod;
                 }
+            }
 
-                public static class MyExtension
+            public static class MyExtension
+            {
+                public static int ExtensionMethod(this String s)
                 {
-                    public static int ExtensionMethod(this String s)
-                    {
-                        return s.Length;
-                    }
+                    return s.Length;
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
+            class C
+            {
+                private static Func<int> f;
+
+                public static void Main()
                 {
-                    private static Func<int> f;
-
-                    public static void Main()
-                    {
-                        string s = "Hello";
-                        f = s.ExtensionMethod;
-                    }
+                    string s = "Hello";
+                    f = s.ExtensionMethod;
                 }
+            }
 
-                public static class MyExtension
+            public static class MyExtension
+            {
+                public static int ExtensionMethod(this String s)
                 {
-                    public static int ExtensionMethod(this String s)
-                    {
-                        return s.Length;
-                    }
+                    return s.Length;
                 }
-                """,
-parseOptions: null);
-        }
+            }
+            """,
+            new(parseOptions: null));
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541549")]
-        public async Task TestDelegateInvoke()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541549")]
+    public Task TestDelegateInvoke()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class Program
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        Func<int, int> f = x => x + 1;
-                        f([|x|]);
-                    }
+                    Func<int, int> f = x => x + 1;
+                    f([|x|]);
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class Program
+            class Program
+            {
+                private static int x;
+
+                static void Main(string[] args)
                 {
-                    private static int x;
-
-                    static void Main(string[] args)
-                    {
-                        Func<int, int> f = x => x + 1;
-                        f(x);
-                    }
+                    Func<int, int> f = x => x + 1;
+                    f(x);
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541597")]
-        public async Task TestComplexAssign1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541597")]
+    public Task TestComplexAssign1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        [|a|] = a + 10;
-                    }
+                    [|a|] = a + 10;
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            """
+            class Program
+            {
+                private static int a;
+
+                static void Main(string[] args)
                 {
-                    private static int a;
-
-                    static void Main(string[] args)
-                    {
-                        a = a + 10;
-                    }
+                    a = a + 10;
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541597")]
-        public async Task TestComplexAssign2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541597")]
+    public Task TestComplexAssign2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        a = [|a|] + 10;
-                    }
+                    a = [|a|] + 10;
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            """
+            class Program
+            {
+                private static int a;
+
+                static void Main(string[] args)
                 {
-                    private static int a;
-
-                    static void Main(string[] args)
-                    {
-                        a = a + 10;
-                    }
+                    a = a + 10;
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541659")]
-        public async Task TestTypeNamedVar()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541659")]
+    public Task TestTypeNamedVar()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class Program
+            class Program
+            {
+                public static void Main()
                 {
-                    public static void Main()
-                    {
-                        var v = [|p|];
-                    }
+                    var v = [|p|];
                 }
+            }
 
-                class var
+            class var
+            {
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                private static var p;
+
+                public static void Main()
                 {
+                    var v = p;
                 }
-                """,
-                """
-                using System;
+            }
 
-                class Program
+            class var
+            {
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541675")]
+    public Task TestStaticExtensionMethodArgument()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    private static var p;
-
-                    public static void Main()
-                    {
-                        var v = p;
-                    }
+                    MyExtension.ExMethod([|ss|]);
                 }
+            }
 
-                class var
+            static class MyExtension
+            {
+                public static int ExMethod(this string s)
                 {
+                    return s.Length;
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541675")]
-        public async Task TestStaticExtensionMethodArgument()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            class Program
+            {
+                private static string ss;
 
-                class Program
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        MyExtension.ExMethod([|ss|]);
-                    }
+                    MyExtension.ExMethod(ss);
                 }
+            }
 
-                static class MyExtension
+            static class MyExtension
+            {
+                public static int ExMethod(this string s)
                 {
-                    public static int ExMethod(this string s)
-                    {
-                        return s.Length;
-                    }
+                    return s.Length;
                 }
-                """,
-                """
-                using System;
+            }
+            """);
 
-                class Program
+    [Fact]
+    public Task SpeakableTopLevelStatementType()
+        => TestMissingAsync("""
+            [|P|] = 10;
+
+            partial class Program
+            {
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539675")]
+    public Task AddBlankLineBeforeCommentBetweenMembers1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                //method
+                static void Main(string[] args)
                 {
-                    private static string ss;
-
-                    static void Main(string[] args)
-                    {
-                        MyExtension.ExMethod(ss);
-                    }
+                    [|P|] = 10;
                 }
+            }
+            """,
+            """
+            class Program
+            {
+                public static int P { get; private set; }
 
-                static class MyExtension
+                //method
+                static void Main(string[] args)
                 {
-                    public static int ExMethod(this string s)
-                    {
-                        return s.Length;
-                    }
+                    P = 10;
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task SpeakableTopLevelStatementType()
-        {
-            await TestMissingAsync("""
-                [|P|] = 10;
-
-                partial class Program
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539675")]
+    public Task AddBlankLineBeforeCommentBetweenMembers2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                //method
+                static void Main(string[] args)
                 {
+                    [|P|] = 10;
                 }
-                """);
-        }
+            }
+            """,
+            """
+            class Program
+            {
+                private static int P;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539675")]
-        public async Task AddBlankLineBeforeCommentBetweenMembers1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                //method
+                static void Main(string[] args)
                 {
-                    //method
-                    static void Main(string[] args)
-                    {
-                        [|P|] = 10;
-                    }
+                    P = 10;
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
+    public Task AddBlankLineBetweenMembers1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    public static int P { get; private set; }
-
-                    //method
-                    static void Main(string[] args)
-                    {
-                        P = 10;
-                    }
+                    [|P|] = 10;
                 }
-                """);
-        }
+            }
+            """,
+            """
+            class Program
+            {
+                private static int P;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539675")]
-        public async Task AddBlankLineBeforeCommentBetweenMembers2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                static void Main(string[] args)
                 {
-                    //method
-                    static void Main(string[] args)
-                    {
-                        [|P|] = 10;
-                    }
+                    P = 10;
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
+    public Task AddBlankLineBetweenMembers2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    private static int P;
-
-                    //method
-                    static void Main(string[] args)
-                    {
-                        P = 10;
-                    }
+                    [|P|] = 10;
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            """
+            class Program
+            {
+                public static int P { get; private set; }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
-        public async Task AddBlankLineBetweenMembers1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        [|P|] = 10;
-                    }
+                    P = 10;
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            index: 0);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
+    public Task DoNotAddBlankLineBetweenFields()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                private static int P;
+
+                static void Main(string[] args)
                 {
-                    private static int P;
-
-                    static void Main(string[] args)
-                    {
-                        P = 10;
-                    }
+                    P = 10;
+                    [|A|] = 9;
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            """
+            class Program
+            {
+                private static int P;
+                private static int A;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
-        public async Task AddBlankLineBetweenMembers2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        [|P|] = 10;
-                    }
+                    P = 10;
+                    A = 9;
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
+    public Task DoNotAddBlankLineBetweenAutoProperties()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public static int P { get; private set; }
+
+                static void Main(string[] args)
                 {
-                    public static int P { get; private set; }
-
-                    static void Main(string[] args)
-                    {
-                        P = 10;
-                    }
+                    P = 10;
+                    [|A|] = 9;
                 }
-                """,
-index: 0);
-        }
+            }
+            """,
+            """
+            class Program
+            {
+                public static int P { get; private set; }
+                public static int A { get; private set; }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
-        public async Task DoNotAddBlankLineBetweenFields()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                static void Main(string[] args)
                 {
-                    private static int P;
-
-                    static void Main(string[] args)
-                    {
-                        P = 10;
-                        [|A|] = 9;
-                    }
+                    P = 10;
+                    A = 9;
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            index: 0);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539665")]
+    public Task TestIntoEmptyClass()
+        => TestInRegularAndScriptAsync(
+            """
+            class C { }
+            class D
+            {
+                void M()
                 {
-                    private static int P;
-                    private static int A;
-
-                    static void Main(string[] args)
-                    {
-                        P = 10;
-                        A = 9;
-                    }
+                    C.[|P|] = 10;
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
-        public async Task DoNotAddBlankLineBetweenAutoProperties()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+            }
+            """,
+            """
+            class C
+            {
+                public static int P { get; internal set; }
+            }
+            class D
+            {
+                void M()
                 {
-                    public static int P { get; private set; }
-
-                    static void Main(string[] args)
-                    {
-                        P = 10;
-                        [|A|] = 9;
-                    }
+                    C.P = 10;
                 }
-                """,
-                """
-                class Program
-                {
-                    public static int P { get; private set; }
-                    public static int A { get; private set; }
+            }
+            """);
 
-                    static void Main(string[] args)
-                    {
-                        P = 10;
-                        A = 9;
-                    }
-                }
-                """,
-index: 0);
-        }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540595")]
+    public Task TestGeneratePropertyInScript()
+        => TestAsync(
+            @"[|Goo|]",
+            """
+            object Goo { get; private set; }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539665")]
-        public async Task TestIntoEmptyClass()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C { }
-                class D
-                {
-                    void M()
-                    {
-                        C.[|P|] = 10;
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    public static int P { get; internal set; }
-                }
-                class D
-                {
-                    void M()
-                    {
-                        C.P = 10;
-                    }
-                }
-                """);
-        }
+            Goo
+            """,
+            new(parseOptions: Options.Script));
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540595")]
-        public async Task TestGeneratePropertyInScript()
-        {
-            await TestAsync(
-@"[|Goo|]",
-"""
-object Goo { get; private set; }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542535")]
+    public async Task TestConstantInParameterValue()
+    {
+        const string Initial =
+            """
+            class C
+            {   
+                const int y = 1 ; 
+                public void Goo ( bool x = [|undeclared|] ) { }
+            }
+            """;
 
-Goo
-""",
-parseOptions: Options.Script);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542535")]
-        public async Task TestConstantInParameterValue()
-        {
-            const string Initial =
-                """
-                class C
-                {   
-                    const int y = 1 ; 
-                    public void Goo ( bool x = [|undeclared|] ) { }
-                }
-                """;
-
-            await TestActionCountAsync(
+        await TestActionCountAsync(
 Initial,
 count: 1);
 
-            await TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
 Initial,
 """
 class C
@@ -3160,75 +2951,369 @@ class C
     public void Goo ( bool x = undeclared ) { }
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542900")]
-        public async Task TestGenerateFromAttributeNamedArgument1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542900")]
+    public Task TestGenerateFromAttributeNamedArgument1()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class ProgramAttribute : Attribute
+            class ProgramAttribute : Attribute
+            {
+                [Program([|Name|] = 0)]
+                static void Main(string[] args)
                 {
-                    [Program([|Name|] = 0)]
-                    static void Main(string[] args)
-                    {
-                    }
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class ProgramAttribute : Attribute
+            class ProgramAttribute : Attribute
+            {
+                public int Name { get; set; }
+
+                [Program(Name = 0)]
+                static void Main(string[] args)
                 {
-                    public int Name { get; set; }
-
-                    [Program(Name = 0)]
-                    static void Main(string[] args)
-                    {
-                    }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542900")]
-        public async Task TestGenerateFromAttributeNamedArgument2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542900")]
+    public Task TestGenerateFromAttributeNamedArgument2()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class ProgramAttribute : Attribute
+            class ProgramAttribute : Attribute
+            {
+                [Program([|Name|] = 0)]
+                static void Main(string[] args)
                 {
-                    [Program([|Name|] = 0)]
-                    static void Main(string[] args)
-                    {
-                    }
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class ProgramAttribute : Attribute
+            class ProgramAttribute : Attribute
+            {
+                public int Name;
+
+                [Program(Name = 0)]
+                static void Main(string[] args)
                 {
-                    public int Name;
-
-                    [Program(Name = 0)]
-                    static void Main(string[] args)
-                    {
-                    }
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility1_InternalPrivate()
-        {
-            await TestAsync(
-                """
-                class Program
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility1_InternalPrivate()
+        => TestAsync(
+            """
+            class Program
+            {
+                public static void Main()
+                {
+                    C c = [|P|];
+                }
+
+                private class C
+                {
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private static C P { get; set; }
+
+                public static void Main()
+                {
+                    C c = P;
+                }
+
+                private class C
+                {
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility2_InternalProtected()
+        => TestAsync(
+            """
+            class Program
+            {
+                public static void Main()
+                {
+                    C c = [|P|];
+                }
+
+                protected class C
+                {
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                protected static C P { get; private set; }
+
+                public static void Main()
+                {
+                    C c = P;
+                }
+
+                protected class C
+                {
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility3_InternalInternal()
+        => TestAsync(
+            """
+            class Program
+            {
+                public static void Main()
+                {
+                    C c = [|P|];
+                }
+
+                internal class C
+                {
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                public static C P { get; private set; }
+
+                public static void Main()
+                {
+                    C c = P;
+                }
+
+                internal class C
+                {
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility4_InternalProtectedInternal()
+        => TestAsync(
+            """
+            class Program
+            {
+                public static void Main()
+                {
+                    C c = [|P|];
+                }
+
+                protected internal class C
+                {
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                public static C P { get; private set; }
+
+                public static void Main()
+                {
+                    C c = P;
+                }
+
+                protected internal class C
+                {
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility5_InternalPublic()
+        => TestAsync(
+            """
+            class Program
+            {
+                public static void Main()
+                {
+                    C c = [|P|];
+                }
+
+                public class C
+                {
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                public static C P { get; private set; }
+
+                public static void Main()
+                {
+                    C c = P;
+                }
+
+                public class C
+                {
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility6_PublicInternal()
+        => TestAsync(
+            """
+            public class Program
+            {
+                public static void Main()
+                {
+                    C c = [|P|];
+                }
+
+                internal class C
+                {
+                }
+            }
+            """,
+            """
+            public class Program
+            {
+                internal static C P { get; private set; }
+
+                public static void Main()
+                {
+                    C c = P;
+                }
+
+                internal class C
+                {
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility7_PublicProtectedInternal()
+        => TestAsync(
+            """
+            public class Program
+            {
+                public static void Main()
+                {
+                    C c = [|P|];
+                }
+
+                protected internal class C
+                {
+                }
+            }
+            """,
+            """
+            public class Program
+            {
+                protected internal static C P { get; private set; }
+
+                public static void Main()
+                {
+                    C c = P;
+                }
+
+                protected internal class C
+                {
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility8_PublicProtected()
+        => TestAsync(
+            """
+            public class Program
+            {
+                public static void Main()
+                {
+                    C c = [|P|];
+                }
+
+                protected class C
+                {
+                }
+            }
+            """,
+            """
+            public class Program
+            {
+                protected static C P { get; private set; }
+
+                public static void Main()
+                {
+                    C c = P;
+                }
+
+                protected class C
+                {
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility9_PublicPrivate()
+        => TestAsync(
+            """
+            public class Program
+            {
+                public static void Main()
+                {
+                    C c = [|P|];
+                }
+
+                private class C
+                {
+                }
+            }
+            """,
+            """
+            public class Program
+            {
+                private static C P { get; set; }
+
+                public static void Main()
+                {
+                    C c = P;
+                }
+
+                private class C
+                {
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility10_PrivatePrivate()
+        => TestAsync(
+            """
+            class outer
+            {
+                private class Program
                 {
                     public static void Main()
                     {
@@ -3239,9 +3324,168 @@ index: ReadonlyFieldIndex);
                     {
                     }
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            """
+            class outer
+            {
+                private class Program
+                {
+                    public static C P { get; private set; }
+
+                    public static void Main()
+                    {
+                        C c = P;
+                    }
+
+                    private class C
+                    {
+                    }
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility11_PrivateProtected()
+        => TestAsync(
+            """
+            class outer
+            {
+                private class Program
+                {
+                    public static void Main()
+                    {
+                        C c = [|P|];
+                    }
+
+                    protected class C
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class outer
+            {
+                private class Program
+                {
+                    public static C P { get; private set; }
+
+                    public static void Main()
+                    {
+                        C c = P;
+                    }
+
+                    protected class C
+                    {
+                    }
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility12_PrivateProtectedInternal()
+        => TestAsync(
+            """
+            class outer
+            {
+                private class Program
+                {
+                    public static void Main()
+                    {
+                        C c = [|P|];
+                    }
+
+                    protected internal class C
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class outer
+            {
+                private class Program
+                {
+                    public static C P { get; private set; }
+
+                    public static void Main()
+                    {
+                        C c = P;
+                    }
+
+                    protected internal class C
+                    {
+                    }
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility13_PrivateInternal()
+        => TestAsync(
+            """
+            class outer
+            {
+                private class Program
+                {
+                    public static void Main()
+                    {
+                        C c = [|P|];
+                    }
+
+                    internal class C
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class outer
+            {
+                private class Program
+                {
+                    public static C P { get; private set; }
+
+                    public static void Main()
+                    {
+                        C c = P;
+                    }
+
+                    internal class C
+                    {
+                    }
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility14_ProtectedPrivate()
+        => TestAsync(
+            """
+            class outer
+            {
+                protected class Program
+                {
+                    public static void Main()
+                    {
+                        C c = [|P|];
+                    }
+
+                    private class C
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class outer
+            {
+                protected class Program
                 {
                     private static C P { get; set; }
 
@@ -3254,16 +3498,56 @@ index: ReadonlyFieldIndex);
                     {
                     }
                 }
-                """,
-parseOptions: null);
-        }
+            }
+            """,
+            new(parseOptions: null));
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility2_InternalProtected()
-        {
-            await TestAsync(
-                """
-                class Program
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility15_ProtectedInternal()
+        => TestAsync(
+            """
+            class outer
+            {
+                protected class Program
+                {
+                    public static void Main()
+                    {
+                        C c = [|P|];
+                    }
+
+                    internal class C
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class outer
+            {
+                protected class Program
+                {
+                    public static C P { get; private set; }
+
+                    public static void Main()
+                    {
+                        C c = P;
+                    }
+
+                    internal class C
+                    {
+                    }
+                }
+            }
+            """,
+            new(parseOptions: null));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility16_ProtectedInternalProtected()
+        => TestAsync(
+            """
+            class outer
+            {
+                protected internal class Program
                 {
                     public static void Main()
                     {
@@ -3274,9 +3558,12 @@ parseOptions: null);
                     {
                     }
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            """
+            class outer
+            {
+                protected internal class Program
                 {
                     protected static C P { get; private set; }
 
@@ -3289,16 +3576,17 @@ parseOptions: null);
                     {
                     }
                 }
-                """,
-parseOptions: null);
-        }
+            }
+            """,
+            new(parseOptions: null));
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility3_InternalInternal()
-        {
-            await TestAsync(
-                """
-                class Program
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
+    public Task TestMinimalAccessibility17_ProtectedInternalInternal()
+        => TestAsync(
+            """
+            class outer
+            {
+                protected internal class Program
                 {
                     public static void Main()
                     {
@@ -3309,9 +3597,12 @@ parseOptions: null);
                     {
                     }
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            """
+            class outer
+            {
+                protected internal class Program
                 {
                     public static C P { get; private set; }
 
@@ -3324,2382 +3615,1748 @@ parseOptions: null);
                     {
                     }
                 }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility4_InternalProtectedInternal()
-        {
-            await TestAsync(
-                """
-                class Program
-                {
-                    public static void Main()
-                    {
-                        C c = [|P|];
-                    }
-
-                    protected internal class C
-                    {
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    public static C P { get; private set; }
-
-                    public static void Main()
-                    {
-                        C c = P;
-                    }
-
-                    protected internal class C
-                    {
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility5_InternalPublic()
-        {
-            await TestAsync(
-                """
-                class Program
-                {
-                    public static void Main()
-                    {
-                        C c = [|P|];
-                    }
-
-                    public class C
-                    {
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    public static C P { get; private set; }
-
-                    public static void Main()
-                    {
-                        C c = P;
-                    }
-
-                    public class C
-                    {
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility6_PublicInternal()
-        {
-            await TestAsync(
-                """
-                public class Program
-                {
-                    public static void Main()
-                    {
-                        C c = [|P|];
-                    }
-
-                    internal class C
-                    {
-                    }
-                }
-                """,
-                """
-                public class Program
-                {
-                    internal static C P { get; private set; }
-
-                    public static void Main()
-                    {
-                        C c = P;
-                    }
-
-                    internal class C
-                    {
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility7_PublicProtectedInternal()
-        {
-            await TestAsync(
-                """
-                public class Program
-                {
-                    public static void Main()
-                    {
-                        C c = [|P|];
-                    }
-
-                    protected internal class C
-                    {
-                    }
-                }
-                """,
-                """
-                public class Program
-                {
-                    protected internal static C P { get; private set; }
-
-                    public static void Main()
-                    {
-                        C c = P;
-                    }
-
-                    protected internal class C
-                    {
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility8_PublicProtected()
-        {
-            await TestAsync(
-                """
-                public class Program
-                {
-                    public static void Main()
-                    {
-                        C c = [|P|];
-                    }
-
-                    protected class C
-                    {
-                    }
-                }
-                """,
-                """
-                public class Program
-                {
-                    protected static C P { get; private set; }
-
-                    public static void Main()
-                    {
-                        C c = P;
-                    }
-
-                    protected class C
-                    {
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility9_PublicPrivate()
-        {
-            await TestAsync(
-                """
-                public class Program
-                {
-                    public static void Main()
-                    {
-                        C c = [|P|];
-                    }
-
-                    private class C
-                    {
-                    }
-                }
-                """,
-                """
-                public class Program
-                {
-                    private static C P { get; set; }
-
-                    public static void Main()
-                    {
-                        C c = P;
-                    }
-
-                    private class C
-                    {
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility10_PrivatePrivate()
-        {
-            await TestAsync(
-                """
-                class outer
-                {
-                    private class Program
-                    {
-                        public static void Main()
-                        {
-                            C c = [|P|];
-                        }
-
-                        private class C
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class outer
-                {
-                    private class Program
-                    {
-                        public static C P { get; private set; }
-
-                        public static void Main()
-                        {
-                            C c = P;
-                        }
-
-                        private class C
-                        {
-                        }
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility11_PrivateProtected()
-        {
-            await TestAsync(
-                """
-                class outer
-                {
-                    private class Program
-                    {
-                        public static void Main()
-                        {
-                            C c = [|P|];
-                        }
-
-                        protected class C
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class outer
-                {
-                    private class Program
-                    {
-                        public static C P { get; private set; }
-
-                        public static void Main()
-                        {
-                            C c = P;
-                        }
-
-                        protected class C
-                        {
-                        }
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility12_PrivateProtectedInternal()
-        {
-            await TestAsync(
-                """
-                class outer
-                {
-                    private class Program
-                    {
-                        public static void Main()
-                        {
-                            C c = [|P|];
-                        }
-
-                        protected internal class C
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class outer
-                {
-                    private class Program
-                    {
-                        public static C P { get; private set; }
-
-                        public static void Main()
-                        {
-                            C c = P;
-                        }
-
-                        protected internal class C
-                        {
-                        }
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility13_PrivateInternal()
-        {
-            await TestAsync(
-                """
-                class outer
-                {
-                    private class Program
-                    {
-                        public static void Main()
-                        {
-                            C c = [|P|];
-                        }
-
-                        internal class C
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class outer
-                {
-                    private class Program
-                    {
-                        public static C P { get; private set; }
-
-                        public static void Main()
-                        {
-                            C c = P;
-                        }
-
-                        internal class C
-                        {
-                        }
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility14_ProtectedPrivate()
-        {
-            await TestAsync(
-                """
-                class outer
-                {
-                    protected class Program
-                    {
-                        public static void Main()
-                        {
-                            C c = [|P|];
-                        }
-
-                        private class C
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class outer
-                {
-                    protected class Program
-                    {
-                        private static C P { get; set; }
-
-                        public static void Main()
-                        {
-                            C c = P;
-                        }
-
-                        private class C
-                        {
-                        }
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility15_ProtectedInternal()
-        {
-            await TestAsync(
-                """
-                class outer
-                {
-                    protected class Program
-                    {
-                        public static void Main()
-                        {
-                            C c = [|P|];
-                        }
-
-                        internal class C
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class outer
-                {
-                    protected class Program
-                    {
-                        public static C P { get; private set; }
-
-                        public static void Main()
-                        {
-                            C c = P;
-                        }
-
-                        internal class C
-                        {
-                        }
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility16_ProtectedInternalProtected()
-        {
-            await TestAsync(
-                """
-                class outer
-                {
-                    protected internal class Program
-                    {
-                        public static void Main()
-                        {
-                            C c = [|P|];
-                        }
-
-                        protected class C
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class outer
-                {
-                    protected internal class Program
-                    {
-                        protected static C P { get; private set; }
-
-                        public static void Main()
-                        {
-                            C c = P;
-                        }
-
-                        protected class C
-                        {
-                        }
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541698")]
-        public async Task TestMinimalAccessibility17_ProtectedInternalInternal()
-        {
-            await TestAsync(
-                """
-                class outer
-                {
-                    protected internal class Program
-                    {
-                        public static void Main()
-                        {
-                            C c = [|P|];
-                        }
-
-                        internal class C
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class outer
-                {
-                    protected internal class Program
-                    {
-                        public static C P { get; private set; }
-
-                        public static void Main()
-                        {
-                            C c = P;
-                        }
-
-                        internal class C
-                        {
-                        }
-                    }
-                }
-                """,
-parseOptions: null);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543153")]
-        public async Task TestAnonymousObjectInitializer1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var a = new { x = 5 };
-                        a = new { x = [|HERE|] };
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    private int HERE;
-
-                    void M()
-                    {
-                        var a = new { x = 5 };
-                        a = new { x = HERE };
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543124")]
-        public async Task TestNoGenerationIntoAnonymousType()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    static void Main(string[] args)
-                    {
-                        var v = new { };
-                        bool b = v.[|Bar|];
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543543")]
-        public async Task TestNotOfferedForBoundParametersOfOperators()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    public Program(string s)
-                    {
-                    }
-
-                    static void Main(string[] args)
-                    {
-                        Program p = "";
-                    }
-
-                    public static implicit operator Program(string str)
-                    {
-                        return new Program([|str|]);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544175")]
-        public async Task TestNotOnNamedParameterName1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                class class1
-                {
-                    public void Test()
-                    {
-                        Goo([|x|]: x);
-                    }
-
-                    public string Goo(int x)
-                    {
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544271")]
-        public async Task TestNotOnNamedParameterName2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Goo
-                {
-                    public Goo(int a = 42)
-                    {
-                    }
-                }
-
-                class DogBed : Goo
-                {
-                    public DogBed(int b) : base([|a|]: b)
-                    {
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544164")]
-        public async Task TestPropertyOnObjectInitializer()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Goo
-                {
-                }
-
-                class Bar
-                {
-                    void goo()
-                    {
-                        var c = new Goo { [|Gibberish|] = 24 };
-                    }
-                }
-                """,
-                """
-                class Goo
-                {
-                    public int Gibberish { get; internal set; }
-                }
-
-                class Bar
-                {
-                    void goo()
-                    {
-                        var c = new Goo { Gibberish = 24 };
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49294")]
-        public async Task TestPropertyInWithInitializer()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                record Goo
-                {
-                }
-
-                class Bar
-                {
-                    void goo(Goo g)
-                    {
-                        var c = g with { [|Gibberish|] = 24 };
-                    }
-                }
-                """,
-                """
-                record Goo
-                {
-                    public int Gibberish { get; internal set; }
-                }
-
-                class Bar
-                {
-                    void goo(Goo g)
-                    {
-                        var c = g with { Gibberish = 24 };
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13166")]
-        public async Task TestPropertyOnNestedObjectInitializer()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                public class Inner
-                {
-                }
-
-                public class Outer
-                {
-                    public Inner Inner { get; set; } = new Inner();
-
-                    public static Outer X() => new Outer { Inner = { [|InnerValue|] = 5 } };
-                }
-                """,
-                """
-                public class Inner
-                {
-                    public int InnerValue { get; internal set; }
-                }
-
-                public class Outer
-                {
-                    public Inner Inner { get; set; } = new Inner();
-
-                    public static Outer X() => new Outer { Inner = { InnerValue = 5 } };
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestPropertyOnObjectInitializer1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Goo
-                {
-                }
-
-                class Bar
-                {
-                    void goo()
-                    {
-                        var c = new Goo { [|Gibberish|] = Gibberish };
-                    }
-                }
-                """,
-                """
-                class Goo
-                {
-                    public object Gibberish { get; internal set; }
-                }
-
-                class Bar
-                {
-                    void goo()
-                    {
-                        var c = new Goo { Gibberish = Gibberish };
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestPropertyOnObjectInitializer2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Goo
-                {
-                }
-
-                class Bar
-                {
-                    void goo()
-                    {
-                        var c = new Goo { Gibberish = [|Gibberish|] };
-                    }
-                }
-                """,
-                """
-                class Goo
-                {
-                }
-
-                class Bar
-                {
-                    public object Gibberish { get; private set; }
-
-                    void goo()
-                    {
-                        var c = new Goo { Gibberish = Gibberish };
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestFieldOnObjectInitializer()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Goo
-                {
-                }
-
-                class Bar
-                {
-                    void goo()
-                    {
-                        var c = new Goo { [|Gibberish|] = 24 };
-                    }
-                }
-                """,
-                """
-                class Goo
-                {
-                    internal int Gibberish;
-                }
-
-                class Bar
-                {
-                    void goo()
-                    {
-                        var c = new Goo { Gibberish = 24 };
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact]
-        public async Task TestFieldOnObjectInitializer1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Goo
-                {
-                }
-
-                class Bar
-                {
-                    void goo()
-                    {
-                        var c = new Goo { [|Gibberish|] = Gibberish };
-                    }
-                }
-                """,
-                """
-                class Goo
-                {
-                    internal object Gibberish;
-                }
-
-                class Bar
-                {
-                    void goo()
-                    {
-                        var c = new Goo { Gibberish = Gibberish };
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            new(parseOptions: null));
 
-        [Fact]
-        public async Task TestFieldOnObjectInitializer2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Goo
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543153")]
+    public Task TestAnonymousObjectInitializer1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
                 {
+                    var a = new { x = 5 };
+                    a = new { x = [|HERE|] };
                 }
+            }
+            """,
+            """
+            class C
+            {
+                private int HERE;
 
-                class Bar
-                {
-                    void goo()
-                    {
-                        var c = new Goo { Gibberish = [|Gibberish|] };
-                    }
-                }
-                """,
-                """
-                class Goo
+                void M()
                 {
+                    var a = new { x = 5 };
+                    a = new { x = HERE };
                 }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-                class Bar
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543124")]
+    public Task TestNoGenerationIntoAnonymousType()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    private object Gibberish;
-
-                    void goo()
-                    {
-                        var c = new Goo { Gibberish = Gibberish };
-                    }
+                    var v = new { };
+                    bool b = v.[|Bar|];
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestOnlyPropertyAndFieldOfferedForObjectInitializer()
-        {
-            await TestActionCountAsync(
-                """
-                class Goo
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543543")]
+    public Task TestNotOfferedForBoundParametersOfOperators()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public Program(string s)
                 {
                 }
 
-                class Bar
+                static void Main(string[] args)
                 {
-                    void goo()
-                    {
-                        var c = new Goo { . [|Gibberish|] = 24 };
-                    }
+                    Program p = "";
                 }
-                """,
-2);
-        }
 
-        [Fact]
-        public async Task TestGenerateLocalInObjectInitializerValue()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Goo
+                public static implicit operator Program(string str)
                 {
+                    return new Program([|str|]);
                 }
+            }
+            """);
 
-                class Bar
-                {
-                    void goo()
-                    {
-                        var c = new Goo { Gibberish = [|blah|] };
-                    }
-                }
-                """,
-                """
-                class Goo
-                {
-                }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544175")]
+    public Task TestNotOnNamedParameterName1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
 
-                class Bar
+            class class1
+            {
+                public void Test()
                 {
-                    void goo()
-                    {
-                        object blah = null;
-                        var c = new Goo { Gibberish = blah };
-                    }
+                    Goo([|x|]: x);
                 }
-                """,
-index: LocalIndex);
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544319")]
-        public async Task TestNotOnIncompleteMember1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                class Class1
+                public string Goo(int x)
                 {
-                    Console.[|WriteLine|](); }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544319")]
-        public async Task TestNotOnIncompleteMember2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                class Class1
-                { [|WriteLine|]();
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544319")]
-        public async Task TestNotOnIncompleteMember3()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                class Class1
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544271")]
+    public Task TestNotOnNamedParameterName2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Goo
+            {
+                public Goo(int a = 42)
                 {
-                    [|WriteLine|]
                 }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544384")]
-        public async Task TestPointerType()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    static int x;
+            }
 
-                    unsafe static void F(int* p)
-                    {
-                        *p = 1;
-                    }
-
-                    static unsafe void Main(string[] args)
-                    {
-                        int[] a = new int[10];
-                        fixed (int* p2 = &x, int* p3 = ) F(GetP2([|p2|]));
-                    }
-
-                    unsafe private static int* GetP2(int* p2)
-                    {
-                        return p2;
-                    }
-                }
-                """,
-                """
-                class Program
+            class DogBed : Goo
+            {
+                public DogBed(int b) : base([|a|]: b)
                 {
-                    static int x;
-                    private static unsafe int* p2;
-
-                    unsafe static void F(int* p)
-                    {
-                        *p = 1;
-                    }
-
-                    static unsafe void Main(string[] args)
-                    {
-                        int[] a = new int[10];
-                        fixed (int* p2 = &x, int* p3 = ) F(GetP2(p2));
-                    }
-
-                    unsafe private static int* GetP2(int* p2)
-                    {
-                        return p2;
-                    }
                 }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544510")]
-        public async Task TestNotOnUsingAlias()
-        {
-            await TestMissingInRegularAndScriptAsync(
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544164")]
+    public Task TestPropertyOnObjectInitializer()
+        => TestInRegularAndScriptAsync(
+            """
+            class Goo
+            {
+            }
+
+            class Bar
+            {
+                void goo()
+                {
+                    var c = new Goo { [|Gibberish|] = 24 };
+                }
+            }
+            """,
+            """
+            class Goo
+            {
+                public int Gibberish { get; internal set; }
+            }
+
+            class Bar
+            {
+                void goo()
+                {
+                    var c = new Goo { Gibberish = 24 };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49294")]
+    public Task TestPropertyInWithInitializer()
+        => TestInRegularAndScriptAsync(
+            """
+            record Goo
+            {
+            }
+
+            class Bar
+            {
+                void goo(Goo g)
+                {
+                    var c = g with { [|Gibberish|] = 24 };
+                }
+            }
+            """,
+            """
+            record Goo
+            {
+                public int Gibberish { get; internal set; }
+            }
+
+            class Bar
+            {
+                void goo(Goo g)
+                {
+                    var c = g with { Gibberish = 24 };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13166")]
+    public Task TestPropertyOnNestedObjectInitializer()
+        => TestInRegularAndScriptAsync(
+            """
+            public class Inner
+            {
+            }
+
+            public class Outer
+            {
+                public Inner Inner { get; set; } = new Inner();
+
+                public static Outer X() => new Outer { Inner = { [|InnerValue|] = 5 } };
+            }
+            """,
+            """
+            public class Inner
+            {
+                public int InnerValue { get; internal set; }
+            }
+
+            public class Outer
+            {
+                public Inner Inner { get; set; } = new Inner();
+
+                public static Outer X() => new Outer { Inner = { InnerValue = 5 } };
+            }
+            """);
+
+    [Fact]
+    public Task TestPropertyOnObjectInitializer1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Goo
+            {
+            }
+
+            class Bar
+            {
+                void goo()
+                {
+                    var c = new Goo { [|Gibberish|] = Gibberish };
+                }
+            }
+            """,
+            """
+            class Goo
+            {
+                public object Gibberish { get; internal set; }
+            }
+
+            class Bar
+            {
+                void goo()
+                {
+                    var c = new Goo { Gibberish = Gibberish };
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestPropertyOnObjectInitializer2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Goo
+            {
+            }
+
+            class Bar
+            {
+                void goo()
+                {
+                    var c = new Goo { Gibberish = [|Gibberish|] };
+                }
+            }
+            """,
+            """
+            class Goo
+            {
+            }
+
+            class Bar
+            {
+                public object Gibberish { get; private set; }
+
+                void goo()
+                {
+                    var c = new Goo { Gibberish = Gibberish };
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestFieldOnObjectInitializer()
+        => TestInRegularAndScriptAsync(
+            """
+            class Goo
+            {
+            }
+
+            class Bar
+            {
+                void goo()
+                {
+                    var c = new Goo { [|Gibberish|] = 24 };
+                }
+            }
+            """,
+            """
+            class Goo
+            {
+                internal int Gibberish;
+            }
+
+            class Bar
+            {
+                void goo()
+                {
+                    var c = new Goo { Gibberish = 24 };
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestFieldOnObjectInitializer1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Goo
+            {
+            }
+
+            class Bar
+            {
+                void goo()
+                {
+                    var c = new Goo { [|Gibberish|] = Gibberish };
+                }
+            }
+            """,
+            """
+            class Goo
+            {
+                internal object Gibberish;
+            }
+
+            class Bar
+            {
+                void goo()
+                {
+                    var c = new Goo { Gibberish = Gibberish };
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestFieldOnObjectInitializer2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Goo
+            {
+            }
+
+            class Bar
+            {
+                void goo()
+                {
+                    var c = new Goo { Gibberish = [|Gibberish|] };
+                }
+            }
+            """,
+            """
+            class Goo
+            {
+            }
+
+            class Bar
+            {
+                private object Gibberish;
+
+                void goo()
+                {
+                    var c = new Goo { Gibberish = Gibberish };
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestOnlyPropertyAndFieldOfferedForObjectInitializer()
+        => TestActionCountAsync(
+            """
+            class Goo
+            {
+            }
+
+            class Bar
+            {
+                void goo()
+                {
+                    var c = new Goo { . [|Gibberish|] = 24 };
+                }
+            }
+            """,
+            2);
+
+    [Fact]
+    public Task TestGenerateLocalInObjectInitializerValue()
+        => TestInRegularAndScriptAsync(
+            """
+            class Goo
+            {
+            }
+
+            class Bar
+            {
+                void goo()
+                {
+                    var c = new Goo { Gibberish = [|blah|] };
+                }
+            }
+            """,
+            """
+            class Goo
+            {
+            }
+
+            class Bar
+            {
+                void goo()
+                {
+                    object blah = null;
+                    var c = new Goo { Gibberish = blah };
+                }
+            }
+            """,
+            index: LocalIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544319")]
+    public Task TestNotOnIncompleteMember1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Class1
+            {
+                Console.[|WriteLine|](); }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544319")]
+    public Task TestNotOnIncompleteMember2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Class1
+            { [|WriteLine|]();
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544319")]
+    public Task TestNotOnIncompleteMember3()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Class1
+            {
+                [|WriteLine|]
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544384")]
+    public Task TestPointerType()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static int x;
+
+                unsafe static void F(int* p)
+                {
+                    *p = 1;
+                }
+
+                static unsafe void Main(string[] args)
+                {
+                    int[] a = new int[10];
+                    fixed (int* p2 = &x, int* p3 = ) F(GetP2([|p2|]));
+                }
+
+                unsafe private static int* GetP2(int* p2)
+                {
+                    return p2;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                static int x;
+                private static unsafe int* p2;
+
+                unsafe static void F(int* p)
+                {
+                    *p = 1;
+                }
+
+                static unsafe void Main(string[] args)
+                {
+                    int[] a = new int[10];
+                    fixed (int* p2 = &x, int* p3 = ) F(GetP2(p2));
+                }
+
+                unsafe private static int* GetP2(int* p2)
+                {
+                    return p2;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544510")]
+    public Task TestNotOnUsingAlias()
+        => TestMissingInRegularAndScriptAsync(
 @"using [|S|] = System ; S . Console . WriteLine ( ""hello world"" ) ; ");
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544907")]
-        public async Task TestExpressionTLambda()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Linq.Expressions;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544907")]
+    public Task TestExpressionTLambda()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Linq.Expressions;
 
-                class C
+            class C
+            {
+                static void Main()
                 {
-                    static void Main()
+                    Expression<Func<int, int>> e = x => [|Goo|];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Linq.Expressions;
+
+            class C
+            {
+                public static int Goo { get; private set; }
+
+                static void Main()
+                {
+                    Expression<Func<int, int>> e = x => Goo;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNoGenerationIntoEntirelyHiddenType()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Goo()
+                {
+                    int i = D.[|Bar|];
+                }
+            }
+
+            #line hidden
+            class D
+            {
+            }
+            #line default
+            """);
+
+    [Fact]
+    public Task TestInReturnStatement()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    return [|goo|];
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private object goo;
+
+                void Main()
+                {
+                    return goo;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestLocal1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    Goo([|bar|]);
+                }
+
+                static void Goo(int i)
+                {
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void Main()
+                {
+                    int bar = 0;
+                    Goo(bar);
+                }
+
+                static void Goo(int i)
+                {
+                }
+            }
+            """,
+            index: LocalIndex);
+
+    [Fact]
+    public Task TestLocalTopLevelNullability()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+
+            class Program
+            {
+                void Main()
+                {
+                    Goo([|bar|]);
+                }
+
+                static void Goo(string? s)
+                {
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class Program
+            {
+                void Main()
+                {
+                    string? bar = null;
+                    Goo(bar);
+                }
+
+                static void Goo(string? s)
+                {
+                }
+            }
+            """,
+            index: LocalIndex);
+
+    [Fact]
+    public Task TestLocalNestedNullability()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+
+            class Program
+            {
+                void Main()
+                {
+                    Goo([|bar|]);
+                }
+
+                static void Goo(IEnumerable<string?> s)
+                {
+                }
+            }
+            """,
+            """
+            #nullable enable
+
+            class Program
+            {
+                void Main()
+                {
+                    IEnumerable<string?> bar = null;
+                    Goo(bar);
+                }
+
+                static void Goo(IEnumerable<string?> s)
+                {
+                }
+            }
+            """,
+            index: LocalIndex);
+
+    [Fact]
+    public Task TestOutLocal1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    Goo(out [|bar|]);
+                }
+
+                static void Goo(out int i)
+                {
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void Main()
+                {
+                    int bar;
+                    Goo(out bar);
+                }
+
+                static void Goo(out int i)
+                {
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")]
+    public Task TestLocalBeforeComment()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+            #if true
+                    // Banner Line 1
+                    // Banner Line 2
+                    int.TryParse("123", out [|local|]);
+            #endif
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void Main()
+                {
+            #if true
+                    int local;
+                    // Banner Line 1
+                    // Banner Line 2
+                    int.TryParse("123", out [|local|]);
+            #endif
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")]
+    public Task TestLocalAfterComment()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+            #if true
+                    // Banner Line 1
+                    // Banner Line 2
+
+                    int.TryParse("123", out [|local|]);
+            #endif
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void Main()
+                {
+            #if true
+                    // Banner Line 1
+                    // Banner Line 2
+
+                    int local;
+                    int.TryParse("123", out [|local|]);
+            #endif
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestGenerateIntoVisiblePortion()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            #line hidden
+            class Program
+            {
+                void Main()
+                {
+            #line default
+                    Goo(Program.[|X|])
+                }
+            }
+            """,
+            """
+            using System;
+
+            #line hidden
+            class Program
+            {
+                void Main()
+                {
+            #line default
+                    Goo(Program.X)
+                }
+
+                public static object X { get; private set; }
+            }
+            """);
+
+    [Fact]
+    public Task TestMissingWhenNoAvailableRegionToGenerateInto()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            #line hidden
+            class Program
+            {
+                void Main()
+                {
+            #line default
+                    Goo(Program.[|X|])
+
+
+            #line hidden
+                }
+            }
+            #line default
+            """);
+
+    [Fact]
+    public Task TestGenerateLocalAvailableIfBlockIsNotHidden()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            #line hidden
+            class Program
+            {
+            #line default
+                void Main()
+                {
+                    Goo([|x|]);
+                }
+            #line hidden
+            }
+            #line default
+            """,
+            """
+            using System;
+
+            #line hidden
+            class Program
+            {
+            #line default
+                void Main()
+                {
+                    object x = null;
+                    Goo(x);
+                }
+            #line hidden
+            }
+            #line default
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545217")]
+    public Task TestGenerateLocalNameSimplificationCSharp7()
+        => TestAsync(
+            """
+            class Program
+            {
+                void goo()
+                {
+                    bar([|xyz|]);
+                }
+
+                struct sfoo
+                {
+                }
+
+                void bar(sfoo x)
+                {
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void goo()
+                {
+                    sfoo xyz = default(sfoo);
+                    bar(xyz);
+                }
+
+                struct sfoo
+                {
+                }
+
+                void bar(sfoo x)
+                {
+                }
+            }
+            """,
+            new(index: 3, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545217")]
+    public Task TestGenerateLocalNameSimplification()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void goo()
+                {
+                    bar([|xyz|]);
+                }
+
+                struct sfoo
+                {
+                }
+
+                void bar(sfoo x)
+                {
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void goo()
+                {
+                    sfoo xyz = default;
+                    bar(xyz);
+                }
+
+                struct sfoo
+                {
+                }
+
+                void bar(sfoo x)
+                {
+                }
+            }
+            """,
+            index: LocalIndex);
+
+    [Fact]
+    public Task TestParenthesizedExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    int v = 1 + ([|k|]);
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private int k;
+
+                void Main()
+                {
+                    int v = 1 + (k);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestInSelect()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Linq;
+
+            class Program
+            {
+                void Main(string[] args)
+                {
+                    var q = from a in args
+                            select [|v|];
+                }
+            }
+            """,
+            """
+            using System.Linq;
+
+            class Program
+            {
+                private object v;
+
+                void Main(string[] args)
+                {
+                    var q = from a in args
+                            select v;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestInChecked()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    int[] a = null;
+                    int[] temp = checked([|goo|]);
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private int[] goo;
+
+                void Main()
+                {
+                    int[] a = null;
+                    int[] temp = checked(goo);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestInArrayRankSpecifier()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    var v = new int[[|k|]];
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private int k;
+
+                void Main()
+                {
+                    var v = new int[k];
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestInConditional1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main()
+                {
+                    int i = [|goo|] ? bar : baz;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private static bool goo;
+
+                static void Main()
+                {
+                    int i = goo ? bar : baz;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestInConditional2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main()
+                {
+                    int i = goo ? [|bar|] : baz;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private static int bar;
+
+                static void Main()
+                {
+                    int i = goo ? bar : baz;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestInConditional3()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                static void Main()
+                {
+                    int i = goo ? bar : [|baz|];
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private static int baz;
+
+                static void Main()
+                {
+                    int i = goo ? bar : baz;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestInCast()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    var x = (int)[|y|];
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private int y;
+
+                void Main()
+                {
+                    var x = (int)y;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestInIf()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    if ([|goo|])
                     {
-                        Expression<Func<int, int>> e = x => [|Goo|];
                     }
                 }
-                """,
-                """
-                using System;
-                using System.Linq.Expressions;
+            }
+            """,
+            """
+            class Program
+            {
+                private bool goo;
 
-                class C
+                void Main()
                 {
-                    public static int Goo { get; private set; }
-
-                    static void Main()
+                    if (goo)
                     {
-                        Expression<Func<int, int>> e = x => Goo;
                     }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestNoGenerationIntoEntirelyHiddenType()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
+    [Fact]
+    public Task TestInSwitch()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
                 {
-                    void Goo()
+                    switch ([|goo|])
                     {
-                        int i = D.[|Bar|];
                     }
                 }
+            }
+            """,
+            """
+            class Program
+            {
+                private int goo;
 
-                #line hidden
-                class D
+                void Main()
                 {
+                    switch (goo)
+                    {
+                    }
                 }
-                #line default
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestInReturnStatement()
-        {
-            await TestInRegularAndScriptAsync(
-                """
+    [Fact]
+    public Task TestMissingOnNamespace()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    [|System|].Console.WriteLine(4);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestMissingOnType()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    [|System.Console|].WriteLine(4);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestMissingOnBase()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    [|base|].ToString();
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
+    public Task TestGenerateFromAssign1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    [|undefined|] = 1;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void Main()
+                {
+                    var undefined = 1;
+                }
+            }
+            """,
+            index: PropertyIndex, new(options: ImplicitTypingEverywhere()));
+
+    [Fact]
+    public Task TestFuncAssignment()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    [|undefined|] = (x) => 2;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void Main()
+                {
+                    System.Func<object, int> undefined = (x) => 2;
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
+    public Task TestGenerateFromAssign1NotAsVar()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    [|undefined|] = 1;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void Main()
+                {
+                    int undefined = 1;
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
+    public Task TestGenerateFromAssign2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                void Main()
+                {
+                    [|undefined|] = new { P = "1" };
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void Main()
+                {
+                    var undefined = new { P = "1" };
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545269")]
+    public Task TestGenerateInVenus1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+            #line 1 "goo"
+                void Goo()
+                {
+                    this.[|Bar|] = 1;
+                }
+            #line default
+            #line hidden
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545269")]
+    public async Task TestGenerateInVenus2()
+    {
+        var code = """
+            class C
+            {
+            #line 1 "goo"
+                void Goo()
+                {
+                    [|Bar|] = 1;
+                }
+            #line default
+            #line hidden
+            }
+            """;
+        await TestExactActionSetOfferedAsync(code, [string.Format(CodeFixesResources.Generate_local_0, "Bar"), string.Format(CodeFixesResources.Generate_parameter_0, "Bar")]);
+
+        await TestInRegularAndScriptAsync(code,
+            """
+            class C
+            {
+            #line 1 "goo"
+                void Goo()
+                {
+                    var [|Bar|] = 1;
+                }
+            #line default
+            #line hidden
+            }
+            """, new(options: ImplicitTypingEverywhere()));
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
+    public Task TestGeneratePropertyFromAttribute()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            [AttributeUsage(AttributeTargets.Class)]
+            class MyAttrAttribute : Attribute
+            {
+            }
+
+            [MyAttr(123, [|Value|] = 1)]
+            class D
+            {
+            }
+            """,
+            """
+            using System;
+
+            [AttributeUsage(AttributeTargets.Class)]
+            class MyAttrAttribute : Attribute
+            {
+                public int Value { get; set; }
+            }
+
+            [MyAttr(123, Value = 1)]
+            class D
+            {
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545232")]
+    public Task TestNewLinePreservationBeforeInsertingLocal()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            namespace CSharpDemoApp
+            {
                 class Program
                 {
-                    void Main()
+                    static void Main(string[] args)
                     {
-                        return [|goo|];
+                        const int MEGABYTE = 1024 * 1024;
+                        Console.WriteLine(MEGABYTE);
+
+                        Calculate([|multiplier|]);
+                    }
+                    static void Calculate(double multiplier = Math.PI)
+                    {
                     }
                 }
-                """,
-                """
+            }
+            """,
+            """
+            using System;
+            namespace CSharpDemoApp
+            {
                 class Program
                 {
-                    private object goo;
-
-                    void Main()
-                    {
-                        return goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestLocal1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        Goo([|bar|]);
-                    }
-
-                    static void Goo(int i)
-                    {
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        int bar = 0;
-                        Goo(bar);
-                    }
-
-                    static void Goo(int i)
-                    {
-                    }
-                }
-                """,
-index: LocalIndex);
-        }
-
-        [Fact]
-        public async Task TestLocalTopLevelNullability()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                #nullable enable
-
-                class Program
-                {
-                    void Main()
-                    {
-                        Goo([|bar|]);
-                    }
-
-                    static void Goo(string? s)
-                    {
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class Program
-                {
-                    void Main()
-                    {
-                        string? bar = null;
-                        Goo(bar);
-                    }
-
-                    static void Goo(string? s)
-                    {
-                    }
-                }
-                """,
-index: LocalIndex);
-        }
-
-        [Fact]
-        public async Task TestLocalNestedNullability()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                #nullable enable
-
-                class Program
-                {
-                    void Main()
-                    {
-                        Goo([|bar|]);
-                    }
-
-                    static void Goo(IEnumerable<string?> s)
-                    {
-                    }
-                }
-                """,
-                """
-                #nullable enable
-
-                class Program
-                {
-                    void Main()
-                    {
-                        IEnumerable<string?> bar = null;
-                        Goo(bar);
-                    }
-
-                    static void Goo(IEnumerable<string?> s)
-                    {
-                    }
-                }
-                """,
-index: LocalIndex);
-        }
-
-        [Fact]
-        public async Task TestOutLocal1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        Goo(out [|bar|]);
-                    }
-
-                    static void Goo(out int i)
-                    {
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        int bar;
-                        Goo(out bar);
-                    }
-
-                    static void Goo(out int i)
-                    {
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")]
-        public async Task TestLocalBeforeComment()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                #if true
-                        // Banner Line 1
-                        // Banner Line 2
-                        int.TryParse("123", out [|local|]);
-                #endif
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                #if true
-                        int local;
-                        // Banner Line 1
-                        // Banner Line 2
-                        int.TryParse("123", out [|local|]);
-                #endif
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/809542")]
-        public async Task TestLocalAfterComment()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                #if true
-                        // Banner Line 1
-                        // Banner Line 2
-
-                        int.TryParse("123", out [|local|]);
-                #endif
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                #if true
-                        // Banner Line 1
-                        // Banner Line 2
-
-                        int local;
-                        int.TryParse("123", out [|local|]);
-                #endif
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateIntoVisiblePortion()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-
-                #line hidden
-                class Program
-                {
-                    void Main()
-                    {
-                #line default
-                        Goo(Program.[|X|])
-                    }
-                }
-                """,
-                """
-                using System;
-
-                #line hidden
-                class Program
-                {
-                    void Main()
-                    {
-                #line default
-                        Goo(Program.X)
-                    }
-
-                    public static object X { get; private set; }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingWhenNoAvailableRegionToGenerateInto()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                #line hidden
-                class Program
-                {
-                    void Main()
-                    {
-                #line default
-                        Goo(Program.[|X|])
-
-
-                #line hidden
-                    }
-                }
-                #line default
-                """);
-        }
-
-        [Fact]
-        public async Task TestGenerateLocalAvailableIfBlockIsNotHidden()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-
-                #line hidden
-                class Program
-                {
-                #line default
-                    void Main()
-                    {
-                        Goo([|x|]);
-                    }
-                #line hidden
-                }
-                #line default
-                """,
-                """
-                using System;
-
-                #line hidden
-                class Program
-                {
-                #line default
-                    void Main()
-                    {
-                        object x = null;
-                        Goo(x);
-                    }
-                #line hidden
-                }
-                #line default
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545217")]
-        public async Task TestGenerateLocalNameSimplificationCSharp7()
-        {
-            await TestAsync(
-                """
-                class Program
-                {
-                    void goo()
-                    {
-                        bar([|xyz|]);
-                    }
-
-                    struct sfoo
-                    {
-                    }
-
-                    void bar(sfoo x)
-                    {
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    void goo()
-                    {
-                        sfoo xyz = default(sfoo);
-                        bar(xyz);
-                    }
-
-                    struct sfoo
-                    {
-                    }
-
-                    void bar(sfoo x)
-                    {
-                    }
-                }
-                """,
-index: 3, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545217")]
-        public async Task TestGenerateLocalNameSimplification()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void goo()
-                    {
-                        bar([|xyz|]);
-                    }
-
-                    struct sfoo
-                    {
-                    }
-
-                    void bar(sfoo x)
-                    {
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    void goo()
-                    {
-                        sfoo xyz = default;
-                        bar(xyz);
-                    }
-
-                    struct sfoo
-                    {
-                    }
-
-                    void bar(sfoo x)
-                    {
-                    }
-                }
-                """,
-index: LocalIndex);
-        }
-
-        [Fact]
-        public async Task TestParenthesizedExpression()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        int v = 1 + ([|k|]);
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private int k;
-
-                    void Main()
-                    {
-                        int v = 1 + (k);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestInSelect()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Linq;
-
-                class Program
-                {
-                    void Main(string[] args)
-                    {
-                        var q = from a in args
-                                select [|v|];
-                    }
-                }
-                """,
-                """
-                using System.Linq;
-
-                class Program
-                {
-                    private object v;
-
-                    void Main(string[] args)
-                    {
-                        var q = from a in args
-                                select v;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestInChecked()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        int[] a = null;
-                        int[] temp = checked([|goo|]);
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private int[] goo;
-
-                    void Main()
-                    {
-                        int[] a = null;
-                        int[] temp = checked(goo);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestInArrayRankSpecifier()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        var v = new int[[|k|]];
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private int k;
-
-                    void Main()
-                    {
-                        var v = new int[k];
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestInConditional1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    static void Main()
-                    {
-                        int i = [|goo|] ? bar : baz;
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private static bool goo;
-
-                    static void Main()
-                    {
-                        int i = goo ? bar : baz;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestInConditional2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    static void Main()
-                    {
-                        int i = goo ? [|bar|] : baz;
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private static int bar;
-
-                    static void Main()
-                    {
-                        int i = goo ? bar : baz;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestInConditional3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    static void Main()
-                    {
-                        int i = goo ? bar : [|baz|];
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private static int baz;
-
-                    static void Main()
-                    {
-                        int i = goo ? bar : baz;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestInCast()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        var x = (int)[|y|];
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private int y;
-
-                    void Main()
-                    {
-                        var x = (int)y;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestInIf()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        if ([|goo|])
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private bool goo;
-
-                    void Main()
-                    {
-                        if (goo)
-                        {
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestInSwitch()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        switch ([|goo|])
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private int goo;
-
-                    void Main()
-                    {
-                        switch (goo)
-                        {
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingOnNamespace()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        [|System|].Console.WriteLine(4);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingOnType()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        [|System.Console|].WriteLine(4);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingOnBase()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
+                    static void Main(string[] args)
                     {
-                        [|base|].ToString();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
-        public async Task TestGenerateFromAssign1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        [|undefined|] = 1;
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        var undefined = 1;
-                    }
-                }
-                """,
-index: PropertyIndex, options: ImplicitTypingEverywhere());
-        }
+                        const int MEGABYTE = 1024 * 1024;
+                        Console.WriteLine(MEGABYTE);
 
-        [Fact]
-        public async Task TestFuncAssignment()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        [|undefined|] = (x) => 2;
+                        double multiplier = 0;
+                        Calculate(multiplier);
                     }
-                }
-                """,
-                """
-                class Program
-                {
-                    void Main()
+                    static void Calculate(double multiplier = Math.PI)
                     {
-                        System.Func<object, int> undefined = (x) => 2;
                     }
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """,
+            index: LocalIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
-        public async Task TestGenerateFromAssign1NotAsVar()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
+    public Task TestGenerateInGenericMethod_Local()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            class TestClass<T1>
+            {
+                static T TestMethod<T>(T item)
                 {
-                    void Main()
-                    {
-                        [|undefined|] = 1;
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    void Main()
-                    {
-                        int undefined = 1;
-                    }
+                    T t = WrapFunc<T>([|NewLocal|]);
+                    return t;
                 }
-                """,
-index: PropertyIndex);
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
-        public async Task TestGenerateFromAssign2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                private static T WrapFunc<T>(Func<T1, T> function)
                 {
-                    void Main()
-                    {
-                        [|undefined|] = new { P = "1" };
-                    }
+                    T1 zoo = default(T1);
+                    return function(zoo);
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            """
+            using System;
+            class TestClass<T1>
+            {
+                static T TestMethod<T>(T item)
                 {
-                    void Main()
-                    {
-                        var undefined = new { P = "1" };
-                    }
+                    Func<T1, T> NewLocal = null;
+                    T t = WrapFunc<T>(NewLocal);
+                    return t;
                 }
-                """,
-index: PropertyIndex);
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545269")]
-        public async Task TestGenerateInVenus1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
+                private static T WrapFunc<T>(Func<T1, T> function)
                 {
-                #line 1 "goo"
-                    void Goo()
-                    {
-                        this.[|Bar|] = 1;
-                    }
-                #line default
-                #line hidden
+                    T1 zoo = default(T1);
+                    return function(zoo);
                 }
-                """);
-        }
+            }
+            """,
+            index: LocalIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545269")]
-        public async Task TestGenerateInVenus2()
-        {
-            var code = """
-                class C
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
+    public Task TestGenerateInGenericMethod_Property()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            class TestClass<T1>
+            {
+                static T TestMethod<T>(T item)
                 {
-                #line 1 "goo"
-                    void Goo()
-                    {
-                        [|Bar|] = 1;
-                    }
-                #line default
-                #line hidden
+                    T t = WrapFunc<T>([|NewLocal|]);
+                    return t;
                 }
-                """;
-            await TestExactActionSetOfferedAsync(code, [string.Format(FeaturesResources.Generate_local_0, "Bar"), string.Format(FeaturesResources.Generate_parameter_0, "Bar")]);
 
-            await TestInRegularAndScriptAsync(code,
-                """
-                class C
+                private static T WrapFunc<T>(Func<T1, T> function)
                 {
-                #line 1 "goo"
-                    void Goo()
-                    {
-                        var [|Bar|] = 1;
-                    }
-                #line default
-                #line hidden
+                    T1 zoo = default(T1);
+                    return function(zoo);
                 }
-                """, options: ImplicitTypingEverywhere());
-        }
+            }
+            """,
+            """
+            using System;
+            class TestClass<T1>
+            {
+                public static Func<T1, object> NewLocal { get; private set; }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
-        public async Task TestGeneratePropertyFromAttribute()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-
-                [AttributeUsage(AttributeTargets.Class)]
-                class MyAttrAttribute : Attribute
+                static T TestMethod<T>(T item)
                 {
+                    T t = WrapFunc<T>(NewLocal);
+                    return t;
                 }
 
-                [MyAttr(123, [|Value|] = 1)]
-                class D
+                private static T WrapFunc<T>(Func<T1, T> function)
                 {
+                    T1 zoo = default(T1);
+                    return function(zoo);
                 }
-                """,
-                """
-                using System;
+            }
+            """);
 
-                [AttributeUsage(AttributeTargets.Class)]
-                class MyAttrAttribute : Attribute
-                {
-                    public int Value { get; set; }
-                }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865067")]
+    public Task TestWithYieldReturnInMethod()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
 
-                [MyAttr(123, Value = 1)]
-                class D
+            class Program
+            {
+                IEnumerable<DayOfWeek> Goo()
                 {
+                    yield return [|abc|];
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545232")]
-        public async Task TestNewLinePreservationBeforeInsertingLocal()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                namespace CSharpDemoApp
-                {
-                    class Program
-                    {
-                        static void Main(string[] args)
-                        {
-                            const int MEGABYTE = 1024 * 1024;
-                            Console.WriteLine(MEGABYTE);
+            class Program
+            {
+                private DayOfWeek abc;
 
-                            Calculate([|multiplier|]);
-                        }
-                        static void Calculate(double multiplier = Math.PI)
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                using System;
-                namespace CSharpDemoApp
+                IEnumerable<DayOfWeek> Goo()
                 {
-                    class Program
-                    {
-                        static void Main(string[] args)
-                        {
-                            const int MEGABYTE = 1024 * 1024;
-                            Console.WriteLine(MEGABYTE);
-
-                            double multiplier = 0;
-                            Calculate(multiplier);
-                        }
-                        static void Calculate(double multiplier = Math.PI)
-                        {
-                        }
-                    }
+                    yield return abc;
                 }
-                """,
-index: LocalIndex);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
-        public async Task TestGenerateInGenericMethod_Local()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                class TestClass<T1>
-                {
-                    static T TestMethod<T>(T item)
-                    {
-                        T t = WrapFunc<T>([|NewLocal|]);
-                        return t;
-                    }
+    [Fact]
+    public Task TestWithYieldReturnInAsyncMethod()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
 
-                    private static T WrapFunc<T>(Func<T1, T> function)
-                    {
-                        T1 zoo = default(T1);
-                        return function(zoo);
-                    }
-                }
-                """,
-                """
-                using System;
-                class TestClass<T1>
+            class Program
+            {
+                async IAsyncEnumerable<DayOfWeek> Goo()
                 {
-                    static T TestMethod<T>(T item)
-                    {
-                        Func<T1, T> NewLocal = null;
-                        T t = WrapFunc<T>(NewLocal);
-                        return t;
-                    }
-
-                    private static T WrapFunc<T>(Func<T1, T> function)
-                    {
-                        T1 zoo = default(T1);
-                        return function(zoo);
-                    }
+                    yield return [|abc|];
                 }
-                """,
-index: LocalIndex);
-        }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
-        public async Task TestGenerateInGenericMethod_Property()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                class TestClass<T1>
-                {
-                    static T TestMethod<T>(T item)
-                    {
-                        T t = WrapFunc<T>([|NewLocal|]);
-                        return t;
-                    }
+            class Program
+            {
+                private DayOfWeek abc;
 
-                    private static T WrapFunc<T>(Func<T1, T> function)
-                    {
-                        T1 zoo = default(T1);
-                        return function(zoo);
-                    }
-                }
-                """,
-                """
-                using System;
-                class TestClass<T1>
+                async IAsyncEnumerable<DayOfWeek> Goo()
                 {
-                    public static Func<T1, object> NewLocal { get; private set; }
-
-                    static T TestMethod<T>(T item)
-                    {
-                        T t = WrapFunc<T>(NewLocal);
-                        return t;
-                    }
-
-                    private static T WrapFunc<T>(Func<T1, T> function)
-                    {
-                        T1 zoo = default(T1);
-                        return function(zoo);
-                    }
+                    yield return abc;
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865067")]
-        public async Task TestWithYieldReturnInMethod()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Collections.Generic;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30235")]
+    public Task TestWithYieldReturnInLocalFunction()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
 
-                class Program
+            class Program
+            {
+                void M()
                 {
-                    IEnumerable<DayOfWeek> Goo()
+                    IEnumerable<DayOfWeek> F()
                     {
                         yield return [|abc|];
                     }
                 }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
 
-                class Program
+            class Program
+            {
+                private DayOfWeek abc;
+
+                void M()
                 {
-                    private DayOfWeek abc;
-
-                    IEnumerable<DayOfWeek> Goo()
+                    IEnumerable<DayOfWeek> F()
                     {
                         yield return abc;
                     }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestWithYieldReturnInAsyncMethod()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Collections.Generic;
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/877580")]
+    public Task TestWithThrow()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class Program
+            class Program
+            {
+                void Goo()
                 {
-                    async IAsyncEnumerable<DayOfWeek> Goo()
-                    {
-                        yield return [|abc|];
-                    }
+                    throw [|MyExp|];
                 }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
+            }
+            """,
+            """
+            using System;
 
-                class Program
+            class Program
+            {
+                private Exception MyExp;
+
+                void Goo()
                 {
-                    private DayOfWeek abc;
-
-                    async IAsyncEnumerable<DayOfWeek> Goo()
-                    {
-                        yield return abc;
-                    }
+                    throw MyExp;
                 }
-                """);
-        }
+            }
+            """, index: ReadonlyFieldIndex);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30235")]
-        public async Task TestWithYieldReturnInLocalFunction()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Collections.Generic;
-
-                class Program
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafeField()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void M()
-                    {
-                        IEnumerable<DayOfWeek> F()
-                        {
-                            yield return [|abc|];
-                        }
-                    }
+                    [|int* a = goo|];
                 }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
+            }
+            """,
+            """
+            class Class
+            {
+                private unsafe int* goo;
 
-                class Program
+                void Method()
                 {
-                    private DayOfWeek abc;
-
-                    void M()
-                    {
-                        IEnumerable<DayOfWeek> F()
-                        {
-                            yield return abc;
-                        }
-                    }
+                    int* a = goo;
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/877580")]
-        public async Task TestWithThrow()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-
-                class Program
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafeField2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    void Goo()
-                    {
-                        throw [|MyExp|];
-                    }
+                    [|int*[] a = goo|];
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            class Class
+            {
+                private unsafe int*[] goo;
 
-                class Program
+                void Method()
                 {
-                    private Exception MyExp;
-
-                    void Goo()
-                    {
-                        throw MyExp;
-                    }
+                    int*[] a = goo;
                 }
-                """, index: ReadonlyFieldIndex);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafeField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafeFieldInUnsafeClass()
+        => TestInRegularAndScriptAsync(
+            """
+            unsafe class Class
+            {
+                void Method()
+                {
+                    [|int* a = goo|];
+                }
+            }
+            """,
+            """
+            unsafe class Class
+            {
+                private int* goo;
+
+                void Method()
+                {
+                    int* a = goo;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafeFieldInNestedClass()
+        => TestInRegularAndScriptAsync(
+            """
+            unsafe class Class
+            {
+                class MyClass
                 {
                     void Method()
                     {
                         [|int* a = goo|];
                     }
                 }
-                """,
-                """
-                class Class
-                {
-                    private unsafe int* goo;
-
-                    void Method()
-                    {
-                        int* a = goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafeField2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|int*[] a = goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private unsafe int*[] goo;
-
-                    void Method()
-                    {
-                        int*[] a = goo;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafeFieldInUnsafeClass()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                unsafe class Class
-                {
-                    void Method()
-                    {
-                        [|int* a = goo|];
-                    }
-                }
-                """,
-                """
-                unsafe class Class
+            }
+            """,
+            """
+            unsafe class Class
+            {
+                class MyClass
                 {
                     private int* goo;
 
@@ -5708,142 +5365,133 @@ index: LocalIndex);
                         int* a = goo;
                     }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafeFieldInNestedClass()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                unsafe class Class
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafeFieldInNestedClass2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                unsafe class MyClass
                 {
-                    class MyClass
+                    void Method()
                     {
-                        void Method()
-                        {
-                            [|int* a = goo|];
-                        }
+                        [|int* a = Class.goo|];
                     }
                 }
-                """,
-                """
-                unsafe class Class
-                {
-                    class MyClass
-                    {
-                        private int* goo;
+            }
+            """,
+            """
+            class Class
+            {
+                private static unsafe int* goo;
 
-                        void Method()
-                        {
-                            int* a = goo;
-                        }
+                unsafe class MyClass
+                {
+                    void Method()
+                    {
+                        int* a = Class.goo;
                     }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafeFieldInNestedClass2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafeReadOnlyField()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    unsafe class MyClass
-                    {
-                        void Method()
-                        {
-                            [|int* a = Class.goo|];
-                        }
-                    }
+                    [|int* a = goo|];
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                private readonly unsafe int* goo;
+
+                void Method()
                 {
-                    private static unsafe int* goo;
-
-                    unsafe class MyClass
-                    {
-                        void Method()
-                        {
-                            int* a = Class.goo;
-                        }
-                    }
+                    int* a = goo;
                 }
-                """);
-        }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafeReadOnlyField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafeReadOnlyField2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|int*[] a = goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private readonly unsafe int*[] goo;
+
+                void Method()
+                {
+                    int*[] a = goo;
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafeReadOnlyFieldInUnsafeClass()
+        => TestInRegularAndScriptAsync(
+            """
+            unsafe class Class
+            {
+                void Method()
+                {
+                    [|int* a = goo|];
+                }
+            }
+            """,
+            """
+            unsafe class Class
+            {
+                private readonly int* goo;
+
+                void Method()
+                {
+                    int* a = goo;
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafeReadOnlyFieldInNestedClass()
+        => TestInRegularAndScriptAsync(
+            """
+            unsafe class Class
+            {
+                class MyClass
                 {
                     void Method()
                     {
                         [|int* a = goo|];
                     }
                 }
-                """,
-                """
-                class Class
-                {
-                    private readonly unsafe int* goo;
-
-                    void Method()
-                    {
-                        int* a = goo;
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafeReadOnlyField2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|int*[] a = goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private readonly unsafe int*[] goo;
-
-                    void Method()
-                    {
-                        int*[] a = goo;
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafeReadOnlyFieldInUnsafeClass()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                unsafe class Class
-                {
-                    void Method()
-                    {
-                        [|int* a = goo|];
-                    }
-                }
-                """,
-                """
-                unsafe class Class
+            }
+            """,
+            """
+            unsafe class Class
+            {
+                class MyClass
                 {
                     private readonly int* goo;
 
@@ -5852,145 +5500,135 @@ index: ReadonlyFieldIndex);
                         int* a = goo;
                     }
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafeReadOnlyFieldInNestedClass()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                unsafe class Class
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafeReadOnlyFieldInNestedClass2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                unsafe class MyClass
                 {
-                    class MyClass
+                    void Method()
                     {
-                        void Method()
-                        {
-                            [|int* a = goo|];
-                        }
+                        [|int* a = Class.goo|];
                     }
                 }
-                """,
-                """
-                unsafe class Class
-                {
-                    class MyClass
-                    {
-                        private readonly int* goo;
+            }
+            """,
+            """
+            class Class
+            {
+                private static readonly unsafe int* goo;
 
-                        void Method()
-                        {
-                            int* a = goo;
-                        }
+                unsafe class MyClass
+                {
+                    void Method()
+                    {
+                        int* a = Class.goo;
                     }
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafeReadOnlyFieldInNestedClass2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafeProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    unsafe class MyClass
-                    {
-                        void Method()
-                        {
-                            [|int* a = Class.goo|];
-                        }
-                    }
+                    [|int* a = goo|];
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class Class
+            {
+                public unsafe int* goo { get; private set; }
+
+                void Method()
                 {
-                    private static readonly unsafe int* goo;
-
-                    unsafe class MyClass
-                    {
-                        void Method()
-                        {
-                            int* a = Class.goo;
-                        }
-                    }
+                    int* a = goo;
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            index: PropertyIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafeProperty()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafeProperty2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|int*[] a = goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public unsafe int*[] goo { get; private set; }
+
+                void Method()
+                {
+                    int*[] a = goo;
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafePropertyInUnsafeClass()
+        => TestInRegularAndScriptAsync(
+            """
+            unsafe class Class
+            {
+                void Method()
+                {
+                    [|int* a = goo|];
+                }
+            }
+            """,
+            """
+            unsafe class Class
+            {
+                public int* goo { get; private set; }
+
+                void Method()
+                {
+                    int* a = goo;
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafePropertyInNestedClass()
+        => TestInRegularAndScriptAsync(
+            """
+            unsafe class Class
+            {
+                class MyClass
                 {
                     void Method()
                     {
                         [|int* a = goo|];
                     }
                 }
-                """,
-                """
-                class Class
-                {
-                    public unsafe int* goo { get; private set; }
-
-                    void Method()
-                    {
-                        int* a = goo;
-                    }
-                }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafeProperty2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|int*[] a = goo|];
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    public unsafe int*[] goo { get; private set; }
-
-                    void Method()
-                    {
-                        int*[] a = goo;
-                    }
-                }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafePropertyInUnsafeClass()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                unsafe class Class
-                {
-                    void Method()
-                    {
-                        [|int* a = goo|];
-                    }
-                }
-                """,
-                """
-                unsafe class Class
+            }
+            """,
+            """
+            unsafe class Class
+            {
+                class MyClass
                 {
                     public int* goo { get; private set; }
 
@@ -5999,5142 +5637,4909 @@ index: PropertyIndex);
                         int* a = goo;
                     }
                 }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafePropertyInNestedClass()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                unsafe class Class
-                {
-                    class MyClass
-                    {
-                        void Method()
-                        {
-                            [|int* a = goo|];
-                        }
-                    }
-                }
-                """,
-                """
-                unsafe class Class
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+    public Task TestUnsafePropertyInNestedClass2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                unsafe class MyClass
                 {
-                    class MyClass
+                    void Method()
                     {
-                        public int* goo { get; private set; }
-
-                        void Method()
-                        {
-                            int* a = goo;
-                        }
+                        [|int* a = Class.goo|];
                     }
                 }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
-        public async Task TestUnsafePropertyInNestedClass2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    unsafe class MyClass
+            }
+            """,
+            """
+            class Class
+            {
+                public static unsafe int* goo { get; private set; }
+
+                unsafe class MyClass
+                {
+                    void Method()
                     {
-                        void Method()
-                        {
-                            [|int* a = Class.goo|];
-                        }
+                        int* a = Class.goo;
                     }
                 }
-                """,
-                """
-                class Class
-                {
-                    public static unsafe int* goo { get; private set; }
+            }
+            """,
+            index: PropertyIndex);
 
-                    unsafe class MyClass
-                    {
-                        void Method()
-                        {
-                            int* a = Class.goo;
-                        }
-                    }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|Z|]);
                 }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfProperty()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|Z|]);
-                    }
+            }
+            """,
+            """
+            class C
+            {
+                public object Z { get; private set; }
+
+                void M()
+                {
+                    var x = nameof(Z);
                 }
-                """,
-                """
-                class C
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfField()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|Z|]);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private object Z;
+
+                void M()
+                {
+                    var x = nameof(Z);
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfReadonlyField()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|Z|]);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly object Z;
+
+                void M()
+                {
+                    var x = nameof(Z);
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfLocal()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|Z|]);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    object Z = null;
+                    var x = nameof(Z);
+                }
+            }
+            """,
+            index: LocalIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfProperty2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|Z.X|]);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public object Z { get; private set; }
+
+                void M()
+                {
+                    var x = nameof(Z.X);
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfField2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|Z.X|]);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private object Z;
+
+                void M()
+                {
+                    var x = nameof(Z.X);
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfReadonlyField2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|Z.X|]);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly object Z;
+
+                void M()
+                {
+                    var x = nameof(Z.X);
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfLocal2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|Z.X|]);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    object Z = null;
+                    var x = nameof(Z.X);
+                }
+            }
+            """,
+            index: LocalIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfProperty3()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|Z.X.Y|]);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public object Z { get; private set; }
+
+                void M()
+                {
+                    var x = nameof(Z.X.Y);
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfField3()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|Z.X.Y|]);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private object Z;
+
+                void M()
+                {
+                    var x = nameof(Z.X.Y);
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfReadonlyField3()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|Z.X.Y|]);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly object Z;
+
+                void M()
+                {
+                    var x = nameof(Z.X.Y);
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfLocal3()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|Z.X.Y|]);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    object Z = null;
+                    var x = nameof(Z.X.Y);
+                }
+            }
+            """,
+            index: LocalIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfMissing()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = [|nameof(1 + 2)|];
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfMissing2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var y = 1 + 2;
+                    var x = [|nameof(y)|];
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfMissing3()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var y = 1 + 2;
+                    var z = "";
+                    var x = [|nameof(y, z)|];
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfProperty4()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|y|], z);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public object y { get; private set; }
+
+                void M()
+                {
+                    var x = nameof(y, z);
+                }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfField4()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|y|], z);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private object y;
+
+                void M()
+                {
+                    var x = nameof(y, z);
+                }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfReadonlyField4()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|y|], z);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly object y;
+
+                void M()
                 {
-                    public object Z { get; private set; }
+                    var x = nameof(y, z);
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-                    void M()
-                    {
-                        var x = nameof(Z);
-                    }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfLocal4()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|y|], z);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    object y = null;
+                    var x = nameof(y, z);
                 }
-                """);
-        }
+            }
+            """,
+            index: LocalIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfProperty5()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        var x = nameof([|Z|]);
-                    }
+                    var x = nameof([|y|]);
                 }
-                """,
-                """
-                class C
+
+                private object nameof(object y)
                 {
-                    private object Z;
+                    return null;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public object y { get; private set; }
 
-                    void M()
-                    {
-                        var x = nameof(Z);
-                    }
+                void M()
+                {
+                    var x = nameof(y);
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfReadonlyField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|Z|]);
-                    }
+
+                private object nameof(object y)
+                {
+                    return null;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfField5()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    private readonly object Z;
+                    var x = nameof([|y|]);
+                }
 
-                    void M()
-                    {
-                        var x = nameof(Z);
-                    }
+                private object nameof(object y)
+                {
+                    return null;
                 }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfLocal()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|Z|]);
-                    }
+            }
+            """,
+            """
+            class C
+            {
+                private object y;
+
+                void M()
+                {
+                    var x = nameof(y);
                 }
-                """,
-                """
-                class C
+
+                private object nameof(object y)
                 {
-                    void M()
-                    {
-                        object Z = null;
-                        var x = nameof(Z);
-                    }
+                    return null;
                 }
-                """,
-index: LocalIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfProperty2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|Z.X|]);
-                    }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfReadonlyField5()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = nameof([|y|]);
                 }
-                """,
-                """
-                class C
+
+                private object nameof(object y)
                 {
-                    public object Z { get; private set; }
+                    return null;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly object y;
 
-                    void M()
-                    {
-                        var x = nameof(Z.X);
-                    }
+                void M()
+                {
+                    var x = nameof(y);
                 }
-                """);
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfField2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                private object nameof(object y)
                 {
-                    void M()
-                    {
-                        var x = nameof([|Z.X|]);
-                    }
+                    return null;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+    public Task TestInsideNameOfLocal5()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    private object Z;
+                    var x = nameof([|y|]);
+                }
 
-                    void M()
-                    {
-                        var x = nameof(Z.X);
-                    }
+                private object nameof(object y)
+                {
+                    return null;
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfReadonlyField2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|Z.X|]);
-                    }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    object y = null;
+                    var x = nameof(y);
                 }
-                """,
-                """
-                class C
+
+                private object nameof(object y)
                 {
-                    private readonly object Z;
+                    return null;
+                }
+            }
+            """,
+            index: LocalIndex);
 
-                    void M()
-                    {
-                        var x = nameof(Z.X);
-                    }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestConditionalAccessProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Main(C a)
+                {
+                    C x = a?[|.Instance|];
                 }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfLocal2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|Z.X|]);
-                    }
+            }
+            """,
+            """
+            class C
+            {
+                public C Instance { get; private set; }
+
+                void Main(C a)
+                {
+                    C x = a?.Instance;
                 }
-                """,
-                """
-                class C
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestConditionalAccessField()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Main(C a)
                 {
-                    void M()
-                    {
-                        object Z = null;
-                        var x = nameof(Z.X);
-                    }
+                    C x = a?[|.Instance|];
                 }
-                """,
-index: LocalIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfProperty3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|Z.X.Y|]);
-                    }
+            }
+            """,
+            """
+            class C
+            {
+                private C Instance;
+
+                void Main(C a)
+                {
+                    C x = a?.Instance;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestConditionalAccessReadonlyField()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Main(C a)
                 {
-                    public object Z { get; private set; }
+                    C x = a?[|.Instance|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly C Instance;
 
-                    void M()
-                    {
-                        var x = nameof(Z.X.Y);
-                    }
+                void Main(C a)
+                {
+                    C x = a?.Instance;
                 }
-                """);
-        }
+            }
+            """,
+            index: PropertyIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfField3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestConditionalAccessVarProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Main(C a)
                 {
-                    void M()
-                    {
-                        var x = nameof([|Z.X.Y|]);
-                    }
+                    var x = a?[|.Instance|];
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                public object Instance { get; private set; }
+
+                void Main(C a)
                 {
-                    private object Z;
+                    var x = a?.Instance;
+                }
+            }
+            """);
 
-                    void M()
-                    {
-                        var x = nameof(Z.X.Y);
-                    }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestConditionalAccessVarField()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Main(C a)
+                {
+                    var x = a?[|.Instance|];
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfReadonlyField3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|Z.X.Y|]);
-                    }
+            }
+            """,
+            """
+            class C
+            {
+                private object Instance;
+
+                void Main(C a)
+                {
+                    var x = a?.Instance;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestConditionalAccessVarReadOnlyField()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Main(C a)
                 {
-                    private readonly object Z;
+                    var x = a?[|.Instance|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly object Instance;
 
-                    void M()
-                    {
-                        var x = nameof(Z.X.Y);
-                    }
+                void Main(C a)
+                {
+                    var x = a?.Instance;
                 }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfLocal3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|Z.X.Y|]);
-                    }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestConditionalAccessNullableProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Main(C a)
+                {
+                    int? x = a?[|.B|];
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                public int B { get; private set; }
+
+                void Main(C a)
                 {
-                    void M()
-                    {
-                        object Z = null;
-                        var x = nameof(Z.X.Y);
-                    }
+                    int? x = a?.B;
                 }
-                """,
-index: LocalIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfMissing()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = [|nameof(1 + 2)|];
-                    }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestConditionalAccessNullableField()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Main(C a)
+                {
+                    int? x = a?[|.B|];
                 }
-                """);
-        }
+            }
+            """,
+            """
+            class C
+            {
+                private int B;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfMissing2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
+                void Main(C a)
                 {
-                    void M()
-                    {
-                        var y = 1 + 2;
-                        var x = [|nameof(y)|];
-                    }
+                    int? x = a?.B;
                 }
-                """);
-        }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfMissing3()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestConditionalAccessNullableReadonlyField()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Main(C a)
                 {
-                    void M()
-                    {
-                        var y = 1 + 2;
-                        var z = "";
-                        var x = [|nameof(y, z)|];
-                    }
+                    int? x = a?[|.B|];
                 }
-                """);
-        }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly int B;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfProperty4()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                void Main(C a)
                 {
-                    void M()
-                    {
-                        var x = nameof([|y|], z);
-                    }
+                    int? x = a?.B;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestGeneratePropertyInConditionalAccessExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
                 {
-                    public object y { get; private set; }
+                    C x = a?.B.[|C|];
+                }
 
-                    void M()
-                    {
-                        var x = nameof(y, z);
-                    }
+                public class E
+                {
                 }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfField4()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|y|], z);
-                    }
+            }
+            """,
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
+                {
+                    C x = a?.B.C;
                 }
-                """,
-                """
-                class C
+
+                public class E
                 {
-                    private object y;
+                    public C C { get; internal set; }
+                }
+            }
+            """);
 
-                    void M()
-                    {
-                        var x = nameof(y, z);
-                    }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestGeneratePropertyInConditionalAccessExpression2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
+                {
+                    int x = a?.B.[|C|];
                 }
-                """);
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfReadonlyField4()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                public class E
                 {
-                    void M()
-                    {
-                        var x = nameof([|y|], z);
-                    }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
                 {
-                    private readonly object y;
+                    int x = a?.B.C;
+                }
 
-                    void M()
-                    {
-                        var x = nameof(y, z);
-                    }
+                public class E
+                {
+                    public int C { get; internal set; }
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfLocal4()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|y|], z);
-                    }
+            }
+            """);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestGeneratePropertyInConditionalAccessExpression3()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
+                {
+                    int? x = a?.B.[|C|];
                 }
-                """,
-                """
-                class C
+
+                public class E
                 {
-                    void M()
-                    {
-                        object y = null;
-                        var x = nameof(y, z);
-                    }
                 }
-                """,
-index: LocalIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfProperty5()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|y|]);
-                    }
+            }
+            """,
+            """
+            class C
+            {
+                public E B { get; private set; }
 
-                    private object nameof(object y)
-                    {
-                        return null;
-                    }
+                void Main(C a)
+                {
+                    int? x = a?.B.C;
                 }
-                """,
-                """
-                class C
+
+                public class E
                 {
-                    public object y { get; private set; }
+                    public int C { get; internal set; }
+                }
+            }
+            """);
 
-                    void M()
-                    {
-                        var x = nameof(y);
-                    }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestGeneratePropertyInConditionalAccessExpression4()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public E B { get; private set; }
 
-                    private object nameof(object y)
-                    {
-                        return null;
-                    }
+                void Main(C a)
+                {
+                    var x = a?.B.[|C|];
                 }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfField5()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|y|]);
-                    }
 
-                    private object nameof(object y)
-                    {
-                        return null;
-                    }
+                public class E
+                {
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
                 {
-                    private object y;
+                    var x = a?.B.C;
+                }
 
-                    void M()
-                    {
-                        var x = nameof(y);
-                    }
+                public class E
+                {
+                    public object C { get; internal set; }
+                }
+            }
+            """);
 
-                    private object nameof(object y)
-                    {
-                        return null;
-                    }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestGenerateFieldInConditionalAccessExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
+                {
+                    C x = a?.B.[|C|];
                 }
-                """);
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfReadonlyField5()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                public class E
                 {
-                    void M()
-                    {
-                        var x = nameof([|y|]);
-                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public E B { get; private set; }
 
-                    private object nameof(object y)
-                    {
-                        return null;
-                    }
+                void Main(C a)
+                {
+                    C x = a?.B.C;
                 }
-                """,
-                """
-                class C
+
+                public class E
                 {
-                    private readonly object y;
+                    internal C C;
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-                    void M()
-                    {
-                        var x = nameof(y);
-                    }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestGenerateFieldInConditionalAccessExpression2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public E B { get; private set; }
 
-                    private object nameof(object y)
-                    {
-                        return null;
-                    }
+                void Main(C a)
+                {
+                    int x = a?.B.[|C|];
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
-        public async Task TestInsideNameOfLocal5()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        var x = nameof([|y|]);
-                    }
 
-                    private object nameof(object y)
-                    {
-                        return null;
-                    }
+                public class E
+                {
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
                 {
-                    void M()
-                    {
-                        object y = null;
-                        var x = nameof(y);
-                    }
+                    int x = a?.B.C;
+                }
 
-                    private object nameof(object y)
-                    {
-                        return null;
-                    }
+                public class E
+                {
+                    internal int C;
                 }
-                """,
-index: LocalIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestConditionalAccessProperty()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void Main(C a)
-                    {
-                        C x = a?[|.Instance|];
-                    }
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestGenerateFieldInConditionalAccessExpression3()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
+                {
+                    int? x = a?.B.[|C|];
                 }
-                """,
-                """
-                class C
+
+                public class E
                 {
-                    public C Instance { get; private set; }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public E B { get; private set; }
 
-                    void Main(C a)
-                    {
-                        C x = a?.Instance;
-                    }
+                void Main(C a)
+                {
+                    int? x = a?.B.C;
                 }
-                """);
-        }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestConditionalAccessField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                public class E
                 {
-                    void Main(C a)
-                    {
-                        C x = a?[|.Instance|];
-                    }
+                    internal int C;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestGenerateFieldInConditionalAccessExpression4()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
                 {
-                    private C Instance;
+                    var x = a?.B.[|C|];
+                }
 
-                    void Main(C a)
-                    {
-                        C x = a?.Instance;
-                    }
+                public class E
+                {
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestConditionalAccessReadonlyField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void Main(C a)
-                    {
-                        C x = a?[|.Instance|];
-                    }
+            }
+            """,
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
+                {
+                    var x = a?.B.C;
                 }
-                """,
-                """
-                class C
+
+                public class E
                 {
-                    private readonly C Instance;
+                    internal object C;
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-                    void Main(C a)
-                    {
-                        C x = a?.Instance;
-                    }
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestGenerateReadonlyFieldInConditionalAccessExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
+                {
+                    C x = a?.B.[|C|];
                 }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestConditionalAccessVarProperty()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void Main(C a)
-                    {
-                        var x = a?[|.Instance|];
-                    }
+
+                public class E
+                {
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
                 {
-                    public object Instance { get; private set; }
+                    C x = a?.B.C;
+                }
 
-                    void Main(C a)
-                    {
-                        var x = a?.Instance;
-                    }
+                public class E
+                {
+                    internal readonly C C;
                 }
-                """);
-        }
+            }
+            """,
+            index: PropertyIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestConditionalAccessVarField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestGenerateReadonlyFieldInConditionalAccessExpression2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
                 {
-                    void Main(C a)
-                    {
-                        var x = a?[|.Instance|];
-                    }
+                    int x = a?.B.[|C|];
+                }
+
+                public class E
+                {
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
                 {
-                    private object Instance;
+                    int x = a?.B.C;
+                }
 
-                    void Main(C a)
-                    {
-                        var x = a?.Instance;
-                    }
+                public class E
+                {
+                    internal readonly int C;
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestConditionalAccessVarReadOnlyField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void Main(C a)
-                    {
-                        var x = a?[|.Instance|];
-                    }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestGenerateReadonlyFieldInConditionalAccessExpression3()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
+                {
+                    int? x = a?.B.[|C|];
                 }
-                """,
-                """
-                class C
+
+                public class E
                 {
-                    private readonly object Instance;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public E B { get; private set; }
 
-                    void Main(C a)
-                    {
-                        var x = a?.Instance;
-                    }
+                void Main(C a)
+                {
+                    int? x = a?.B.C;
                 }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestConditionalAccessNullableProperty()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void Main(C a)
-                    {
-                        int? x = a?[|.B|];
-                    }
+
+                public class E
+                {
+                    internal readonly int C;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public Task TestGenerateReadonlyFieldInConditionalAccessExpression4()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public E B { get; private set; }
+
+                void Main(C a)
                 {
-                    public int B { get; private set; }
+                    var x = a?.B.[|C|];
+                }
 
-                    void Main(C a)
-                    {
-                        int? x = a?.B;
-                    }
+                public class E
+                {
                 }
-                """);
-        }
+            }
+            """,
+            """
+            class C
+            {
+                public E B { get; private set; }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestConditionalAccessNullableField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                void Main(C a)
                 {
-                    void Main(C a)
-                    {
-                        int? x = a?[|.B|];
-                    }
+                    var x = a?.B.C;
                 }
-                """,
-                """
-                class C
+
+                public class E
                 {
-                    private int B;
+                    internal readonly object C;
+                }
+            }
+            """,
+            index: PropertyIndex);
 
-                    void Main(C a)
-                    {
-                        int? x = a?.B;
-                    }
+    [Fact]
+    public Task TestGenerateFieldInPropertyInitializers()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                public int MyProperty { get; } = [|y|];
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                private static int y;
+
+                public int MyProperty { get; } = y;
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateReadonlyFieldInPropertyInitializers()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                public int MyProperty { get; } = [|y|];
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                private static readonly int y;
+
+                public int MyProperty { get; } = y;
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestGeneratePropertyInPropertyInitializers()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                public int MyProperty { get; } = [|y|];
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                public static int y { get; private set; }
+                public int MyProperty { get; } = y;
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact]
+    public Task TestGenerateFieldInExpressionBodiedProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public int Y => [|y|];
+            }
+            """,
+            """
+            class Program
+            {
+                private int y;
+
+                public int Y => y;
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateReadonlyFieldInExpressionBodiedProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public int Y => [|y|];
+            }
+            """,
+            """
+            class Program
+            {
+                private readonly int y;
+
+                public int Y => y;
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestGeneratePropertyInExpressionBodiedProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public int Y => [|y|];
+            }
+            """,
+            """
+            class Program
+            {
+                public int Y => y;
+
+                public int y { get; private set; }
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact]
+    public Task TestGenerateFieldInExpressionBodiedOperator()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public static C operator --(C p) => [|x|];
+            }
+            """,
+            """
+            class C
+            {
+                private static C x;
+
+                public static C operator --(C p) => x;
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateReadOnlyFieldInExpressionBodiedOperator()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public static C operator --(C p) => [|x|];
+            }
+            """,
+            """
+            class C
+            {
+                private static readonly C x;
+
+                public static C operator --(C p) => x;
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestGeneratePropertyInExpressionBodiedOperator()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public static C operator --(C p) => [|x|];
+            }
+            """,
+            """
+            class C
+            {
+                public static C x { get; private set; }
+
+                public static C operator --(C p) => x;
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact]
+    public Task TestGenerateFieldInExpressionBodiedMethod()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public static C GetValue(C p) => [|x|];
+            }
+            """,
+            """
+            class C
+            {
+                private static C x;
+
+                public static C GetValue(C p) => x;
+            }
+            """);
+
+    [Fact]
+    public Task TestGenerateReadOnlyFieldInExpressionBodiedMethod()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public static C GetValue(C p) => [|x|];
+            }
+            """,
+            """
+            class C
+            {
+                private static readonly C x;
+
+                public static C GetValue(C p) => x;
+            }
+            """,
+            index: ReadonlyFieldIndex);
+
+    [Fact]
+    public Task TestGeneratePropertyInExpressionBodiedMethod()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public static C GetValue(C p) => [|x|];
+            }
+            """,
+            """
+            class C
+            {
+                public static C x { get; private set; }
+
+                public static C GetValue(C p) => x;
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27647")]
+    public Task TestGeneratePropertyInExpressionBodiedAsyncTaskOfTMethod()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public static async System.Threading.Tasks.Task<C> GetValue(C p) => [|x|];
+            }
+            """,
+            """
+            class C
+            {
+                public static C x { get; private set; }
+
+                public static async System.Threading.Tasks.Task<C> GetValue(C p) => x;
+            }
+            """,
+            index: PropertyIndex);
+
+    [Fact]
+    public Task TestGenerateFieldInDictionaryInitializer()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var x = new Dictionary<string, int> { [[|key|]] = 0 };
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestConditionalAccessNullableReadonlyField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void Main(C a)
-                    {
-                        int? x = a?[|.B|];
-                    }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                private static string key;
+
+                static void Main(string[] args)
+                {
+                    var x = new Dictionary<string, int> { [key] = 0 };
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestGeneratePropertyInDictionaryInitializer()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var x = new Dictionary<string, int> { ["Zero"] = 0, [[|One|]] = 1, ["Two"] = 2 };
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                public static string One { get; private set; }
+
+                static void Main(string[] args)
                 {
-                    private readonly int B;
+                    var x = new Dictionary<string, int> { ["Zero"] = 0, [One] = 1, ["Two"] = 2 };
+                }
+            }
+            """);
 
-                    void Main(C a)
-                    {
-                        int? x = a?.B;
-                    }
+    [Fact]
+    public Task TestGenerateFieldInDictionaryInitializer2()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var x = new Dictionary<string, int> { ["Zero"] = [|i|] };
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                private static int i;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestGeneratePropertyInConditionalAccessExpression()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    var x = new Dictionary<string, int> { ["Zero"] = i };
+                }
+            }
+            """);
 
-                    void Main(C a)
-                    {
-                        C x = a?.B.[|C|];
-                    }
+    [Fact]
+    public Task TestGenerateReadOnlyFieldInDictionaryInitializer()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
 
-                    public class E
-                    {
-                    }
-                }
-                """,
-                """
-                class C
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    var x = new Dictionary<string, int> { [[|key|]] = 0 };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
 
-                    void Main(C a)
-                    {
-                        C x = a?.B.C;
-                    }
+            class Program
+            {
+                private static readonly string key;
 
-                    public class E
-                    {
-                        public C C { get; internal set; }
-                    }
+                static void Main(string[] args)
+                {
+                    var x = new Dictionary<string, int> { [key] = 0 };
                 }
-                """);
-        }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestGeneratePropertyInConditionalAccessExpression2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact]
+    public Task TestGenerateFieldInDictionaryInitializer3()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    var x = new Dictionary<string, int> { ["Zero"] = 0, [[|One|]] = 1, ["Two"] = 2 };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
 
-                    void Main(C a)
-                    {
-                        int x = a?.B.[|C|];
-                    }
+            class Program
+            {
+                private static string One;
 
-                    public class E
-                    {
-                    }
-                }
-                """,
-                """
-                class C
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    var x = new Dictionary<string, int> { ["Zero"] = 0, [One] = 1, ["Two"] = 2 };
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-                    void Main(C a)
-                    {
-                        int x = a?.B.C;
-                    }
+    [Fact]
+    public Task TestGenerateReadOnlyFieldInDictionaryInitializer2()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
 
-                    public class E
-                    {
-                        public int C { get; internal set; }
-                    }
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var x = new Dictionary<string, int> { ["Zero"] = [|i|] };
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                private static readonly int i;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestGeneratePropertyInConditionalAccessExpression3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    var x = new Dictionary<string, int> { ["Zero"] = i };
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-                    void Main(C a)
-                    {
-                        int? x = a?.B.[|C|];
-                    }
+    [Fact]
+    public Task TestGeneratePropertyInDictionaryInitializer2()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
 
-                    public class E
-                    {
-                    }
-                }
-                """,
-                """
-                class C
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    var x = new Dictionary<string, int> { [[|key|]] = 0 };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
 
-                    void Main(C a)
-                    {
-                        int? x = a?.B.C;
-                    }
+            class Program
+            {
+                public static string key { get; private set; }
 
-                    public class E
-                    {
-                        public int C { get; internal set; }
-                    }
+                static void Main(string[] args)
+                {
+                    var x = new Dictionary<string, int> { [key] = 0 };
                 }
-                """);
-        }
+            }
+            """,
+            index: PropertyIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestGeneratePropertyInConditionalAccessExpression4()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact]
+    public Task TestGenerateReadOnlyFieldInDictionaryInitializer3()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    var x = new Dictionary<string, int> { ["Zero"] = 0, [[|One|]] = 1, ["Two"] = 2 };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
 
-                    void Main(C a)
-                    {
-                        var x = a?.B.[|C|];
-                    }
+            class Program
+            {
+                private static readonly string One;
 
-                    public class E
-                    {
-                    }
-                }
-                """,
-                """
-                class C
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    var x = new Dictionary<string, int> { ["Zero"] = 0, [One] = 1, ["Two"] = 2 };
+                }
+            }
+            """,
+            index: PropertyIndex);
 
-                    void Main(C a)
-                    {
-                        var x = a?.B.C;
-                    }
+    [Fact]
+    public Task TestGeneratePropertyInDictionaryInitializer3()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
 
-                    public class E
-                    {
-                        public object C { get; internal set; }
-                    }
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var x = new Dictionary<string, int> { ["Zero"] = [|i|] };
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                public static int i { get; private set; }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestGenerateFieldInConditionalAccessExpression()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    var x = new Dictionary<string, int> { ["Zero"] = i };
+                }
+            }
+            """,
+            index: PropertyIndex);
 
-                    void Main(C a)
-                    {
-                        C x = a?.B.[|C|];
-                    }
+    [Fact]
+    public Task TestGenerateLocalInDictionaryInitializer()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
 
-                    public class E
-                    {
-                    }
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var x = new Dictionary<string, int> { [[|key|]] = 0 };
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    string key = null;
+                    var x = new Dictionary<string, int> { [key] = 0 };
+                }
+            }
+            """,
+            index: LocalIndex);
 
-                    void Main(C a)
-                    {
-                        C x = a?.B.C;
-                    }
+    [Fact]
+    public Task TestGenerateLocalInDictionaryInitializer2()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
 
-                    public class E
-                    {
-                        internal C C;
-                    }
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var x = new Dictionary<string, int> { ["Zero"] = 0, [[|One|]] = 1, ["Two"] = 2 };
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            """
+            using System.Collections.Generic;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestGenerateFieldInConditionalAccessExpression2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    string One = null;
+                    var x = new Dictionary<string, int> { ["Zero"] = 0, [One] = 1, ["Two"] = 2 };
+                }
+            }
+            """,
+            index: LocalIndex);
 
-                    void Main(C a)
-                    {
-                        int x = a?.B.[|C|];
-                    }
+    [Fact]
+    public Task TestGenerateLocalInDictionaryInitializer3()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
 
-                    public class E
-                    {
-                    }
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var x = new Dictionary<string, int> { ["Zero"] = [|i|] };
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    int i = 0;
+                    var x = new Dictionary<string, int> { ["Zero"] = i };
+                }
+            }
+            """,
+            index: LocalIndex);
 
-                    void Main(C a)
-                    {
-                        int x = a?.B.C;
-                    }
+    [Fact]
+    public Task TestGenerateVariableFromLambda()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                    public class E
-                    {
-                        internal int C;
-                    }
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|goo|] = () => {
+                        return 0;
+                    };
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestGenerateFieldInConditionalAccessExpression3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+            class Program
+            {
+                private static Func<int> goo;
+
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    goo = () => {
+                        return 0;
+                    };
+                }
+            }
+            """);
 
-                    void Main(C a)
-                    {
-                        int? x = a?.B.[|C|];
-                    }
+    [Fact]
+    public Task TestGenerateVariableFromLambda2()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                    public class E
-                    {
-                    }
-                }
-                """,
-                """
-                class C
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    public E B { get; private set; }
+                    [|goo|] = () => {
+                        return 0;
+                    };
+                }
+            }
+            """,
+            """
+            using System;
 
-                    void Main(C a)
-                    {
-                        int? x = a?.B.C;
-                    }
+            class Program
+            {
+                public static Func<int> goo { get; private set; }
 
-                    public class E
-                    {
-                        internal int C;
-                    }
+                static void Main(string[] args)
+                {
+                    goo = () => {
+                        return 0;
+                    };
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestGenerateFieldInConditionalAccessExpression4()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    public E B { get; private set; }
+    [Fact]
+    public Task TestGenerateVariableFromLambda3()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                    void Main(C a)
-                    {
-                        var x = a?.B.[|C|];
-                    }
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|goo|] = () => {
+                        return 0;
+                    };
+                }
+            }
+            """,
+            """
+            using System;
 
-                    public class E
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Func<int> goo = () =>
                     {
-                    }
+                        return 0;
+                    };
                 }
-                """,
-                """
-                class C
-                {
-                    public E B { get; private set; }
+            }
+            """,
+            index: PropertyIndex);
 
-                    void Main(C a)
-                    {
-                        var x = a?.B.C;
-                    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8010")]
+    public Task TestGenerationFromStaticProperty_Field()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                    public class E
+            public class Test
+            {
+                public static int Property1
+                {
+                    get
                     {
-                        internal object C;
+                        return [|_field|];
                     }
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestGenerateReadonlyFieldInConditionalAccessExpression()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    public E B { get; private set; }
+            public class Test
+            {
+                private static int _field;
 
-                    void Main(C a)
+                public static int Property1
+                {
+                    get
                     {
-                        C x = a?.B.[|C|];
+                        return _field;
                     }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8010")]
+    public Task TestGenerationFromStaticProperty_ReadonlyField()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                    public class E
+            public class Test
+            {
+                public static int Property1
+                {
+                    get
                     {
+                        return [|_field|];
                     }
                 }
-                """,
-                """
-                class C
-                {
-                    public E B { get; private set; }
+            }
+            """,
+            """
+            using System;
 
-                    void Main(C a)
-                    {
-                        C x = a?.B.C;
-                    }
+            public class Test
+            {
+                private static readonly int _field;
 
-                    public class E
+                public static int Property1
+                {
+                    get
                     {
-                        internal readonly C C;
+                        return _field;
                     }
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestGenerateReadonlyFieldInConditionalAccessExpression2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    public E B { get; private set; }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8010")]
+    public Task TestGenerationFromStaticProperty_Property()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                    void Main(C a)
+            public class Test
+            {
+                public static int Property1
+                {
+                    get
                     {
-                        int x = a?.B.[|C|];
+                        return [|goo|];
                     }
+                }
+            }
+            """,
+            """
+            using System;
 
-                    public class E
+            public class Test
+            {
+                public static int Property1
+                {
+                    get
                     {
+                        return goo;
                     }
                 }
-                """,
-                """
-                class C
-                {
-                    public E B { get; private set; }
 
-                    void Main(C a)
-                    {
-                        int x = a?.B.C;
-                    }
+                public static int goo { get; private set; }
+            }
+            """,
+            index: PropertyIndex);
 
-                    public class E
-                    {
-                        internal readonly int C;
-                    }
-                }
-                """,
-index: PropertyIndex);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8010")]
+    public Task TestGenerationFromStaticProperty_Local()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestGenerateReadonlyFieldInConditionalAccessExpression3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+            public class Test
+            {
+                public static int Property1
                 {
-                    public E B { get; private set; }
-
-                    void Main(C a)
+                    get
                     {
-                        int? x = a?.B.[|C|];
+                        return [|goo|];
                     }
+                }
+            }
+            """,
+            """
+            using System;
 
-                    public class E
+            public class Test
+            {
+                public static int Property1
+                {
+                    get
                     {
+                        int goo = 0;
+                        return goo;
                     }
                 }
-                """,
-                """
-                class C
-                {
-                    public E B { get; private set; }
+            }
+            """,
+            index: LocalIndex);
 
-                    void Main(C a)
-                    {
-                        int? x = a?.B.C;
-                    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8358")]
+    public Task TestSameNameAsInstanceVariableInContainingType()
+        => TestInRegularAndScriptAsync(
+            """
+            class Outer
+            {
+                int _field;
 
-                    public class E
+                class Inner
+                {
+                    public Inner(int field)
                     {
-                        internal readonly int C;
+                        [|_field|] = field;
                     }
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """,
+            """
+            class Outer
+            {
+                int _field;
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        public async Task TestGenerateReadonlyFieldInConditionalAccessExpression4()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                class Inner
                 {
-                    public E B { get; private set; }
+                    private int _field;
 
-                    void Main(C a)
+                    public Inner(int field)
                     {
-                        var x = a?.B.[|C|];
+                        _field = field;
                     }
-
-                    public class E
-                    {
-                    }
                 }
-                """,
-                """
-                class C
-                {
-                    public E B { get; private set; }
+            }
+            """);
 
-                    void Main(C a)
-                    {
-                        var x = a?.B.C;
-                    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8358")]
+    public Task TestNotOnStaticWithExistingInstance1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int _field;
 
-                    public class E
-                    {
-                        internal readonly object C;
-                    }
+                void M()
+                {
+                    C.[|_field|] = 42;
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestGenerateFieldInPropertyInitializers()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-                using System.Threading.Tasks;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8358")]
+    public Task TestNotOnStaticWithExistingInstance2()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int _field;
 
-                class Program
+                static C()
                 {
-                    public int MyProperty { get; } = [|y|];
+                    [|_field|] = 42;
                 }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-                using System.Threading.Tasks;
+            }
+            """);
 
-                class Program
+    [Fact]
+    public Task TupleRead()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method((int, string) i)
                 {
-                    private static int y;
-
-                    public int MyProperty { get; } = y;
+                    Method([|tuple|]);
                 }
-                """);
-        }
+            }
+            """,
+            """
+            class Class
+            {
+                private (int, string) tuple;
 
-        [Fact]
-        public async Task TestGenerateReadonlyFieldInPropertyInitializers()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-                using System.Threading.Tasks;
-
-                class Program
+                void Method((int, string) i)
                 {
-                    public int MyProperty { get; } = [|y|];
+                    Method(tuple);
                 }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-                using System.Threading.Tasks;
+            }
+            """);
 
-                class Program
+    [Fact]
+    public Task TupleWithOneNameRead()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method((int a, string) i)
                 {
-                    private static readonly int y;
-
-                    public int MyProperty { get; } = y;
+                    Method([|tuple|]);
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            """
+            class Class
+            {
+                private (int a, string) tuple;
 
-        [Fact]
-        public async Task TestGeneratePropertyInPropertyInitializers()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-                using System.Threading.Tasks;
-
-                class Program
+                void Method((int a, string) i)
                 {
-                    public int MyProperty { get; } = [|y|];
+                    Method(tuple);
                 }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-                using System.Threading.Tasks;
+            }
+            """);
 
-                class Program
+    [Fact]
+    public Task TupleWrite()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    public static int y { get; private set; }
-                    public int MyProperty { get; } = y;
+                    [|tuple|] = (1, "hello");
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """,
+            """
+            class Class
+            {
+                private (int, string) tuple;
 
-        [Fact]
-        public async Task TestGenerateFieldInExpressionBodiedProperty()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                void Method()
                 {
-                    public int Y => [|y|];
+                    tuple = (1, "hello");
                 }
-                """,
-                """
-                class Program
-                {
-                    private int y;
+            }
+            """);
 
-                    public int Y => y;
+    [Fact]
+    public Task TupleWithOneNameWrite()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    [|tuple|] = (a: 1, "hello");
                 }
-                """);
-        }
+            }
+            """,
+            """
+            class Class
+            {
+                private (int a, string) tuple;
 
-        [Fact]
-        public async Task TestGenerateReadonlyFieldInExpressionBodiedProperty()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                void Method()
                 {
-                    public int Y => [|y|];
+                    tuple = (a: 1, "hello");
                 }
-                """,
-                """
-                class Program
+            }
+            """);
+
+    [Fact]
+    public Task TupleRefReturnProperties()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            class C
+            {
+                public void Goo()
                 {
-                    private readonly int y;
+                    ref int i = ref this.[|Bar|];
+                }
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                public ref int Bar => throw new NotImplementedException();
 
-                    public int Y => y;
+                public void Goo()
+                {
+                    ref int i = ref this.Bar;
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestGeneratePropertyInExpressionBodiedProperty()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+    [Fact]
+    public Task TupleRefWithField()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            class C
+            {
+                public void Goo()
                 {
-                    public int Y => [|y|];
+                    ref int i = ref this.[|bar|];
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            """
+            using System;
+            class C
+            {
+                private int bar;
+
+                public void Goo()
                 {
-                    public int Y => y;
+                    ref int i = ref this.bar;
+                }
+            }
+            """);
 
-                    public int y { get; private set; }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17621")]
+    public Task TestWithMatchingTypeName1()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            public class Goo
+            {
+                public Goo(String goo)
+                {
+                    [|String|] = goo;
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """,
+            """
+            using System;
 
-        [Fact]
-        public async Task TestGenerateFieldInExpressionBodiedOperator()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+            public class Goo
+            {
+                public Goo(String goo)
                 {
-                    public static C operator --(C p) => [|x|];
+                    String = goo;
                 }
-                """,
-                """
-                class C
+
+                public string String { get; }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17621")]
+    public Task TestWithMatchingTypeName2()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            public class Goo
+            {
+                public Goo(String goo)
                 {
-                    private static C x;
+                    [|String|] = goo;
+                }
+            }
+            """,
+            """
+            using System;
 
-                    public static C operator --(C p) => x;
+            public class Goo
+            {
+                public Goo(String goo)
+                {
+                    String = goo;
                 }
-                """);
-        }
+
+                public string String { get; private set; }
+            }
+            """, index: ReadonlyFieldIndex);
 
-        [Fact]
-        public async Task TestGenerateReadOnlyFieldInExpressionBodiedOperator()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18275")]
+    public Task TestContextualKeyword1()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            namespace N
+            {
+                class nameof
                 {
-                    public static C operator --(C p) => [|x|];
                 }
-                """,
-                """
-                class C
+            }
+
+            class C
+            {
+                void M()
                 {
-                    private static readonly C x;
+                    [|nameof|]
+                }
+            }
+            """);
 
-                    public static C operator --(C p) => x;
+    [Fact]
+    public Task TestPreferReadOnlyIfAfterReadOnlyAssignment()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                private readonly int _goo;
+
+                public Class()
+                {
+                    _goo = 0;
+                    [|_bar|] = 1;
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            """
+            class Class
+            {
+                private readonly int _goo;
+                private readonly int _bar;
 
-        [Fact]
-        public async Task TestGeneratePropertyInExpressionBodiedOperator()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                public Class()
                 {
-                    public static C operator --(C p) => [|x|];
+                    _goo = 0;
+                    _bar = 1;
                 }
-                """,
-                """
-                class C
+            }
+            """);
+
+    [Fact]
+    public Task TestPreferReadOnlyIfBeforeReadOnlyAssignment()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                private readonly int _goo;
+
+                public Class()
                 {
-                    public static C x { get; private set; }
+                    [|_bar|] = 1;
+                    _goo = 0;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private readonly int _bar;
+                private readonly int _goo;
 
-                    public static C operator --(C p) => x;
+                public Class()
+                {
+                    _bar = 1;
+                    _goo = 0;
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestGenerateFieldInExpressionBodiedMethod()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19239")]
+    public Task TestGenerateReadOnlyPropertyInConstructor()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                public Class()
                 {
-                    public static C GetValue(C p) => [|x|];
+                    [|Bar|] = 1;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class Class
+            {
+                public Class()
                 {
-                    private static C x;
-
-                    public static C GetValue(C p) => x;
+                    Bar = 1;
                 }
-                """);
-        }
+
+                public int Bar { get; }
+            }
+            """);
 
-        [Fact]
-        public async Task TestGenerateReadOnlyFieldInExpressionBodiedMethod()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact]
+    public Task TestPlaceFieldBasedOnSurroundingStatements()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                private int _goo;
+                private int _quux;
+
+                public Class()
                 {
-                    public static C GetValue(C p) => [|x|];
+                    _goo = 0;
+                    [|_bar|] = 1;
+                    _quux = 2;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class Class
+            {
+                private int _goo;
+                private int _bar;
+                private int _quux;
+
+                public Class()
                 {
-                    private static readonly C x;
+                    _goo = 0;
+                    _bar = 1;
+                    _quux = 2;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestPlaceFieldBasedOnSurroundingStatements2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                private int goo;
+                private int quux;
 
-                    public static C GetValue(C p) => x;
+                public Class()
+                {
+                    this.goo = 0;
+                    this.[|bar|] = 1;
+                    this.quux = 2;
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            """
+            class Class
+            {
+                private int goo;
+                private int bar;
+                private int quux;
 
-        [Fact]
-        public async Task TestGeneratePropertyInExpressionBodiedMethod()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                public Class()
                 {
-                    public static C GetValue(C p) => [|x|];
+                    this.goo = 0;
+                    this.bar = 1;
+                    this.quux = 2;
                 }
-                """,
-                """
-                class C
+            }
+            """);
+
+    [Fact]
+    public Task TestPlacePropertyBasedOnSurroundingStatements()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                public int Goo { get; }
+                public int Quuz { get; }
+
+                public Class()
                 {
-                    public static C x { get; private set; }
+                    Goo = 0;
+                    [|Bar|] = 1;
+                    Quux = 2;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public int Goo { get; }
+                public int Bar { get; }
+                public int Quuz { get; }
 
-                    public static C GetValue(C p) => x;
+                public Class()
+                {
+                    Goo = 0;
+                    Bar = 1;
+                    Quux = 2;
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27647")]
-        public async Task TestGeneratePropertyInExpressionBodiedAsyncTaskOfTMethod()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19575")]
+    public Task TestNotOnGenericCodeParsedAsExpression()
+        => TestMissingAsync("""
+            class C
+            {
+                private void GetEvaluationRuleNames()
                 {
-                    public static async System.Threading.Tasks.Task<C> GetValue(C p) => [|x|];
+                    [|IEnumerable|] < Int32 >
+                    return ImmutableArray.CreateRange();
                 }
-                """,
-                """
-                class C
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19575")]
+    public Task TestOnNonGenericExpressionWithLessThan()
+        => TestInRegularAndScriptAsync("""
+            class C
+            {
+                private void GetEvaluationRuleNames()
                 {
-                    public static C x { get; private set; }
+                    [|IEnumerable|] < Int32
+                    return ImmutableArray.CreateRange();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public int IEnumerable { get; private set; }
 
-                    public static async System.Threading.Tasks.Task<C> GetValue(C p) => x;
+                private void GetEvaluationRuleNames()
+                {
+                    IEnumerable < Int32
+                    return ImmutableArray.CreateRange();
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestGenerateFieldInDictionaryInitializer()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18988")]
+    public Task GroupNonReadonlyFieldsTogether()
+        => TestInRegularAndScriptAsync("""
+            class C
+            {
+                public bool isDisposed;
 
-                class Program
+                public readonly int x;
+                public readonly int m;
+
+                public C()
                 {
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { [[|key|]] = 0 };
-                    }
+                    this.[|y|] = 0;
                 }
-                """,
-                """
-                using System.Collections.Generic;
+            }
+            """,
+            """
+            class C
+            {
+                public bool isDisposed;
+                private int y;
+                public readonly int x;
+                public readonly int m;
 
-                class Program
+                public C()
                 {
-                    private static string key;
-
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { [key] = 0 };
-                    }
+                    this.y = 0;
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestGeneratePropertyInDictionaryInitializer()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18988")]
+    public Task GroupReadonlyFieldsTogether()
+        => TestInRegularAndScriptAsync("""
+            class C
+            {
+                public readonly int x;
+                public readonly int m;
 
-                class Program
+                public bool isDisposed;
+
+                public C()
                 {
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { ["Zero"] = 0, [[|One|]] = 1, ["Two"] = 2 };
-                    }
+                    this.[|y|] = 0;
                 }
-                """,
-                """
-                using System.Collections.Generic;
+            }
+            """,
+            """
+            class C
+            {
+                public readonly int x;
+                public readonly int m;
+                private readonly int y;
+                public bool isDisposed;
 
-                class Program
+                public C()
                 {
-                    public static string One { get; private set; }
+                    this.y = 0;
+                }
+            }
+            """, index: ReadonlyFieldIndex);
 
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { ["Zero"] = 0, [One] = 1, ["Two"] = 2 };
-                    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20791")]
+    public Task TestWithOutOverload1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    Goo(out [|goo|]);
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestGenerateFieldInDictionaryInitializer2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
+                void Goo(int i) { }
+                void Goo(out bool b) { }
+            }
+            """,
+            """
+            class Class
+            {
+                private bool goo;
 
-                class Program
+                void Method()
                 {
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { ["Zero"] = [|i|] };
-                    }
+                    Goo(out goo);
                 }
-                """,
-                """
-                using System.Collections.Generic;
 
-                class Program
-                {
-                    private static int i;
+                void Goo(int i) { }
+                void Goo(out bool b) { }
+            }
+            """);
 
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { ["Zero"] = i };
-                    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20791")]
+    public Task TestWithOutOverload2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    Goo([|goo|]);
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestGenerateReadOnlyFieldInDictionaryInitializer()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
+                void Goo(out bool b) { }
+                void Goo(int i) { }
+            }
+            """,
+            """
+            class Class
+            {
+                private int goo;
 
-                class Program
+                void Method()
                 {
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { [[|key|]] = 0 };
-                    }
+                    Goo(goo);
                 }
-                """,
-                """
-                using System.Collections.Generic;
 
-                class Program
-                {
-                    private static readonly string key;
+                void Goo(out bool b) { }
+                void Goo(int i) { }
+            }
+            """);
 
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { [key] = 0 };
-                    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20791")]
+    public Task TestWithRefOverload1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    Goo(ref [|goo|]);
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
 
-        [Fact]
-        public async Task TestGenerateFieldInDictionaryInitializer3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
+                void Goo(int i) { }
+                void Goo(ref bool b) { }
+            }
+            """,
+            """
+            class Class
+            {
+                private bool goo;
 
-                class Program
+                void Method()
                 {
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { ["Zero"] = 0, [[|One|]] = 1, ["Two"] = 2 };
-                    }
+                    Goo(ref goo);
                 }
-                """,
-                """
-                using System.Collections.Generic;
+
+                void Goo(int i) { }
+                void Goo(ref bool b) { }
+            }
+            """);
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20791")]
+    public Task TestWithRefOverload2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    private static string One;
+                    Goo([|goo|]);
+                }
 
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { ["Zero"] = 0, [One] = 1, ["Two"] = 2 };
-                    }
+                void Goo(ref bool b) { }
+                void Goo(int i) { }
+            }
+            """,
+            """
+            class Class
+            {
+                private int goo;
+
+                void Method()
+                {
+                    Goo(goo);
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
 
-        [Fact]
-        public async Task TestGenerateReadOnlyFieldInDictionaryInitializer2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
+                void Goo(ref bool b) { }
+                void Goo(int i) { }
+            }
+            """);
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGenerateFieldInExpressionBodiedGetter()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public int Property
                 {
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { ["Zero"] = [|i|] };
-                    }
+                    get => [|_field|];
                 }
-                """,
-                """
-                using System.Collections.Generic;
+            }
+            """,
+            """
+            class Program
+            {
+                private int _field;
 
-                class Program
+                public int Property
                 {
-                    private static readonly int i;
+                    get => _field;
+                }
+            }
+            """);
 
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { ["Zero"] = i };
-                    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGenerateFieldInExpressionBodiedGetterWithDifferentAccessibility()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public int Property
+                {
+                    protected get => [|_field|];
+                    set => throw new System.NotImplementedException();
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            """
+            class Program
+            {
+                private int _field;
 
-        [Fact]
-        public async Task TestGeneratePropertyInDictionaryInitializer2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
+                public int Property
+                {
+                    protected get => _field;
+                    set => throw new System.NotImplementedException();
+                }
+            }
+            """);
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGenerateReadonlyFieldInExpressionBodiedGetter()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public int Property
                 {
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { [[|key|]] = 0 };
-                    }
+                    get => [|_readonlyField|];
                 }
-                """,
-                """
-                using System.Collections.Generic;
+            }
+            """,
+            """
+            class Program
+            {
+                private readonly int _readonlyField;
 
-                class Program
+                public int Property
                 {
-                    public static string key { get; private set; }
+                    get => _readonlyField;
+                }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { [key] = 0 };
-                    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGeneratePropertyInExpressionBodiedGetter()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public int Property
+                {
+                    get => [|prop|];
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                public int Property
+                {
+                    get => prop;
                 }
-                """,
-index: PropertyIndex);
-        }
+                public int prop { get; private set; }
+            }
+            """,
+            index: PropertyIndex);
 
-        [Fact]
-        public async Task TestGenerateReadOnlyFieldInDictionaryInitializer3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGenerateFieldInExpressionBodiedSetterInferredFromType()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public int Property
+                {
+                    set => [|_field|] = value;
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private int _field;
 
-                class Program
+                public int Property
                 {
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { ["Zero"] = 0, [[|One|]] = 1, ["Two"] = 2 };
-                    }
+                    set => _field = value;
                 }
-                """,
-                """
-                using System.Collections.Generic;
+            }
+            """);
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGenerateFieldInExpressionBodiedLocalFunction()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public void Method()
                 {
-                    private static readonly string One;
+                    int Local() => [|_field|];
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private int _field;
 
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { ["Zero"] = 0, [One] = 1, ["Two"] = 2 };
-                    }
+                public void Method()
+                {
+                    int Local() => _field;
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestGeneratePropertyInDictionaryInitializer3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGenerateReadonlyFieldInExpressionBodiedLocalFunction()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public void Method()
+                {
+                    int Local() => [|_readonlyField|];
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                private readonly int _readonlyField;
 
-                class Program
+                public void Method()
                 {
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { ["Zero"] = [|i|] };
-                    }
+                    int Local() => _readonlyField;
                 }
-                """,
-                """
-                using System.Collections.Generic;
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGeneratePropertyInExpressionBodiedLocalFunction()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public void Method()
                 {
-                    public static int i { get; private set; }
+                    int Local() => [|prop|];
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                public int prop { get; private set; }
 
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { ["Zero"] = i };
-                    }
+                public void Method()
+                {
+                    int Local() => prop;
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """,
+            index: PropertyIndex);
 
-        [Fact]
-        public async Task TestGenerateLocalInDictionaryInitializer()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27647")]
+    public Task TestGeneratePropertyInExpressionBodiedAsyncTaskOfTLocalFunction()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public void Method()
+                {
+                    async System.Threading.Tasks.Task<int> Local() => [|prop|];
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                public int prop { get; private set; }
 
-                class Program
+                public void Method()
                 {
-                    static void Main(string[] args)
-                    {
-                        var x = new Dictionary<string, int> { [[|key|]] = 0 };
-                    }
+                    async System.Threading.Tasks.Task<int> Local() => prop;
                 }
-                """,
-                """
-                using System.Collections.Generic;
+            }
+            """,
+            index: PropertyIndex);
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGenerateFieldInExpressionBodiedLocalFunctionInferredFromType()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public void Method()
                 {
-                    static void Main(string[] args)
-                    {
-                        string key = null;
-                        var x = new Dictionary<string, int> { [key] = 0 };
-                    }
+                    int Local() => [|_field|] = 12;
                 }
-                """,
-index: LocalIndex);
-        }
+            }
+            """,
+            """
+            class Program
+            {
+                private int _field;
 
-        [Fact]
-        public async Task TestGenerateLocalInDictionaryInitializer2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
+                public void Method()
+                {
+                    int Local() => _field = 12;
+                }
+            }
+            """);
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGenerateFieldInBlockBodiedLocalFunction()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public void Method()
                 {
-                    static void Main(string[] args)
+                    int Local()
                     {
-                        var x = new Dictionary<string, int> { ["Zero"] = 0, [[|One|]] = 1, ["Two"] = 2 };
+                        return [|_field|];
                     }
                 }
-                """,
-                """
-                using System.Collections.Generic;
+            }
+            """,
+            """
+            class Program
+            {
+                private int _field;
 
-                class Program
+                public void Method()
                 {
-                    static void Main(string[] args)
+                    int Local()
                     {
-                        string One = null;
-                        var x = new Dictionary<string, int> { ["Zero"] = 0, [One] = 1, ["Two"] = 2 };
+                        return _field;
                     }
                 }
-                """,
-index: LocalIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateLocalInDictionaryInitializer3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
+            }
+            """);
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGenerateReadonlyFieldInBlockBodiedLocalFunction()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public void Method()
                 {
-                    static void Main(string[] args)
+                    int Local()
                     {
-                        var x = new Dictionary<string, int> { ["Zero"] = [|i|] };
+                        return [|_readonlyField|];
                     }
                 }
-                """,
-                """
-                using System.Collections.Generic;
+            }
+            """,
+            """
+            class Program
+            {
+                private readonly int _readonlyField;
 
-                class Program
+                public void Method()
                 {
-                    static void Main(string[] args)
+                    int Local()
                     {
-                        int i = 0;
-                        var x = new Dictionary<string, int> { ["Zero"] = i };
+                        return _readonlyField;
                     }
                 }
-                """,
-index: LocalIndex);
-        }
+            }
+            """,
+            index: ReadonlyFieldIndex);
 
-        [Fact]
-        public async Task TestGenerateVariableFromLambda()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGeneratePropertyInBlockBodiedLocalFunction()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public void Method()
                 {
-                    static void Main(string[] args)
+                    int Local()
                     {
-                        [|goo|] = () => {
-                            return 0;
-                        };
+                        return [|prop|];
                     }
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            class Program
+            {
+                public int prop { get; private set; }
 
-                class Program
+                public void Method()
                 {
-                    private static Func<int> goo;
-
-                    static void Main(string[] args)
+                    int Local()
                     {
-                        goo = () => {
-                            return 0;
-                        };
+                        return prop;
                     }
                 }
-                """);
-        }
+            }
+            """,
+            index: PropertyIndex);
 
-        [Fact]
-        public async Task TestGenerateVariableFromLambda2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-
-                class Program
+    [Fact]
+    public Task TestGeneratePropertyInBlockBodiedAsyncTaskOfTLocalFunction()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public void Method()
                 {
-                    static void Main(string[] args)
+                    async System.Threading.Tasks.Task<int> Local()
                     {
-                        [|goo|] = () => {
-                            return 0;
-                        };
+                        return [|prop|];
                     }
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            class Program
+            {
+                public int prop { get; private set; }
 
-                class Program
+                public void Method()
                 {
-                    public static Func<int> goo { get; private set; }
-
-                    static void Main(string[] args)
+                    async System.Threading.Tasks.Task<int> Local()
                     {
-                        goo = () => {
-                            return 0;
-                        };
+                        return prop;
                     }
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact]
-        public async Task TestGenerateVariableFromLambda3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+            }
+            """,
+            index: PropertyIndex);
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGenerateFieldInBlockBodiedLocalFunctionInferredFromType()
+        => TestInRegularAndScriptAsync(
+            """
+            class Program
+            {
+                public void Method()
                 {
-                    static void Main(string[] args)
+                    int Local() 
                     {
-                        [|goo|] = () => {
-                            return 0;
-                        };
+                        return [|_field|] = 12;
                     }
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            class Program
+            {
+                private int _field;
 
-                class Program
+                public void Method()
                 {
-                    static void Main(string[] args)
+                    int Local() 
                     {
-                        Func<int> goo = () =>
-                        {
-                            return 0;
-                        };
+                        return _field = 12;
                     }
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8010")]
-        public async Task TestGenerationFromStaticProperty_Field()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGenerateFieldInBlockBodiedLocalFunctionInsideLambdaExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                public class Test
+            class Program
+            {
+                public void Method()
                 {
-                    public static int Property1
+                    Action action = () => 
                     {
-                        get
+                        int Local()
                         {
                             return [|_field|];
                         }
-                    }
+                    };
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                public class Test
+            class Program
+            {
+                private int _field;
+
+                public void Method()
                 {
-                    private static int _field;
-
-                    public static int Property1
+                    Action action = () => 
                     {
-                        get
+                        int Local()
                         {
                             return _field;
                         }
-                    }
+                    };
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8010")]
-        public async Task TestGenerationFromStaticProperty_ReadonlyField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
+    public Task TestGenerateFieldInExpressionBodiedLocalFunctionInsideLambdaExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                public class Test
+            class Program
+            {
+                public void Method()
                 {
-                    public static int Property1
-                    {
-                        get
-                        {
-                            return [|_field|];
-                        }
-                    }
-                }
-                """,
-                """
-                using System;
-
-                public class Test
-                {
-                    private static readonly int _field;
-
-                    public static int Property1
-                    {
-                        get
-                        {
-                            return _field;
-                        }
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8010")]
-        public async Task TestGenerationFromStaticProperty_Property()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-
-                public class Test
-                {
-                    public static int Property1
-                    {
-                        get
-                        {
-                            return [|goo|];
-                        }
-                    }
-                }
-                """,
-                """
-                using System;
-
-                public class Test
-                {
-                    public static int Property1
-                    {
-                        get
-                        {
-                            return goo;
-                        }
-                    }
-
-                    public static int goo { get; private set; }
-                }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8010")]
-        public async Task TestGenerationFromStaticProperty_Local()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-
-                public class Test
-                {
-                    public static int Property1
-                    {
-                        get
-                        {
-                            return [|goo|];
-                        }
-                    }
-                }
-                """,
-                """
-                using System;
-
-                public class Test
-                {
-                    public static int Property1
-                    {
-                        get
-                        {
-                            int goo = 0;
-                            return goo;
-                        }
-                    }
-                }
-                """,
-index: LocalIndex);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8358")]
-        public async Task TestSameNameAsInstanceVariableInContainingType()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Outer
-                {
-                    int _field;
-
-                    class Inner
-                    {
-                        public Inner(int field)
-                        {
-                            [|_field|] = field;
-                        }
-                    }
-                }
-                """,
-                """
-                class Outer
-                {
-                    int _field;
-
-                    class Inner
-                    {
-                        private int _field;
-
-                        public Inner(int field)
-                        {
-                            _field = field;
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8358")]
-        public async Task TestNotOnStaticWithExistingInstance1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    int _field;
-
-                    void M()
-                    {
-                        C.[|_field|] = 42;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8358")]
-        public async Task TestNotOnStaticWithExistingInstance2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    int _field;
-
-                    static C()
-                    {
-                        [|_field|] = 42;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TupleRead()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method((int, string) i)
-                    {
-                        Method([|tuple|]);
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private (int, string) tuple;
-
-                    void Method((int, string) i)
-                    {
-                        Method(tuple);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TupleWithOneNameRead()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method((int a, string) i)
-                    {
-                        Method([|tuple|]);
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private (int a, string) tuple;
-
-                    void Method((int a, string) i)
-                    {
-                        Method(tuple);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TupleWrite()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|tuple|] = (1, "hello");
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private (int, string) tuple;
-
-                    void Method()
-                    {
-                        tuple = (1, "hello");
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TupleWithOneNameWrite()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        [|tuple|] = (a: 1, "hello");
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private (int a, string) tuple;
-
-                    void Method()
-                    {
-                        tuple = (a: 1, "hello");
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TupleRefReturnProperties()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                class C
-                {
-                    public void Goo()
-                    {
-                        ref int i = ref this.[|Bar|];
-                    }
-                }
-                """,
-                """
-                using System;
-                class C
-                {
-                    public ref int Bar => throw new NotImplementedException();
-
-                    public void Goo()
-                    {
-                        ref int i = ref this.Bar;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TupleRefWithField()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                class C
-                {
-                    public void Goo()
-                    {
-                        ref int i = ref this.[|bar|];
-                    }
-                }
-                """,
-                """
-                using System;
-                class C
-                {
-                    private int bar;
-
-                    public void Goo()
-                    {
-                        ref int i = ref this.bar;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17621")]
-        public async Task TestWithMatchingTypeName1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                public class Goo
-                {
-                    public Goo(String goo)
-                    {
-                        [|String|] = goo;
-                    }
-                }
-                """,
-                """
-                using System;
-
-                public class Goo
-                {
-                    public Goo(String goo)
-                    {
-                        String = goo;
-                    }
-
-                    public string String { get; }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17621")]
-        public async Task TestWithMatchingTypeName2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                public class Goo
-                {
-                    public Goo(String goo)
-                    {
-                        [|String|] = goo;
-                    }
-                }
-                """,
-                """
-                using System;
-
-                public class Goo
-                {
-                    public Goo(String goo)
-                    {
-                        String = goo;
-                    }
-
-                    public string String { get; private set; }
-                }
-                """, index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18275")]
-        public async Task TestContextualKeyword1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                namespace N
-                {
-                    class nameof
-                    {
-                    }
-                }
-
-                class C
-                {
-                    void M()
-                    {
-                        [|nameof|]
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestPreferReadOnlyIfAfterReadOnlyAssignment()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    private readonly int _goo;
-
-                    public Class()
-                    {
-                        _goo = 0;
-                        [|_bar|] = 1;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private readonly int _goo;
-                    private readonly int _bar;
-
-                    public Class()
-                    {
-                        _goo = 0;
-                        _bar = 1;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestPreferReadOnlyIfBeforeReadOnlyAssignment()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    private readonly int _goo;
-
-                    public Class()
-                    {
-                        [|_bar|] = 1;
-                        _goo = 0;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private readonly int _bar;
-                    private readonly int _goo;
-
-                    public Class()
-                    {
-                        _bar = 1;
-                        _goo = 0;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19239")]
-        public async Task TestGenerateReadOnlyPropertyInConstructor()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    public Class()
-                    {
-                        [|Bar|] = 1;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    public Class()
-                    {
-                        Bar = 1;
-                    }
-
-                    public int Bar { get; }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestPlaceFieldBasedOnSurroundingStatements()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    private int _goo;
-                    private int _quux;
-
-                    public Class()
-                    {
-                        _goo = 0;
-                        [|_bar|] = 1;
-                        _quux = 2;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private int _goo;
-                    private int _bar;
-                    private int _quux;
-
-                    public Class()
-                    {
-                        _goo = 0;
-                        _bar = 1;
-                        _quux = 2;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestPlaceFieldBasedOnSurroundingStatements2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    private int goo;
-                    private int quux;
-
-                    public Class()
-                    {
-                        this.goo = 0;
-                        this.[|bar|] = 1;
-                        this.quux = 2;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    private int goo;
-                    private int bar;
-                    private int quux;
-
-                    public Class()
-                    {
-                        this.goo = 0;
-                        this.bar = 1;
-                        this.quux = 2;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestPlacePropertyBasedOnSurroundingStatements()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    public int Goo { get; }
-                    public int Quuz { get; }
-
-                    public Class()
-                    {
-                        Goo = 0;
-                        [|Bar|] = 1;
-                        Quux = 2;
-                    }
-                }
-                """,
-                """
-                class Class
-                {
-                    public int Goo { get; }
-                    public int Bar { get; }
-                    public int Quuz { get; }
-
-                    public Class()
-                    {
-                        Goo = 0;
-                        Bar = 1;
-                        Quux = 2;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19575")]
-        public async Task TestNotOnGenericCodeParsedAsExpression()
-        {
-            await TestMissingAsync("""
-                class C
-                {
-                    private void GetEvaluationRuleNames()
-                    {
-                        [|IEnumerable|] < Int32 >
-                        return ImmutableArray.CreateRange();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19575")]
-        public async Task TestOnNonGenericExpressionWithLessThan()
-        {
-            await TestInRegularAndScriptAsync("""
-                class C
-                {
-                    private void GetEvaluationRuleNames()
-                    {
-                        [|IEnumerable|] < Int32
-                        return ImmutableArray.CreateRange();
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    public int IEnumerable { get; private set; }
-
-                    private void GetEvaluationRuleNames()
-                    {
-                        IEnumerable < Int32
-                        return ImmutableArray.CreateRange();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18988")]
-        public async Task GroupNonReadonlyFieldsTogether()
-        {
-            await TestInRegularAndScriptAsync("""
-                class C
-                {
-                    public bool isDisposed;
-
-                    public readonly int x;
-                    public readonly int m;
-
-                    public C()
-                    {
-                        this.[|y|] = 0;
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    public bool isDisposed;
-                    private int y;
-                    public readonly int x;
-                    public readonly int m;
-
-                    public C()
-                    {
-                        this.y = 0;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18988")]
-        public async Task GroupReadonlyFieldsTogether()
-        {
-            await TestInRegularAndScriptAsync("""
-                class C
-                {
-                    public readonly int x;
-                    public readonly int m;
-
-                    public bool isDisposed;
-
-                    public C()
-                    {
-                        this.[|y|] = 0;
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    public readonly int x;
-                    public readonly int m;
-                    private readonly int y;
-                    public bool isDisposed;
-
-                    public C()
-                    {
-                        this.y = 0;
-                    }
-                }
-                """, index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20791")]
-        public async Task TestWithOutOverload1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        Goo(out [|goo|]);
-                    }
-
-                    void Goo(int i) { }
-                    void Goo(out bool b) { }
-                }
-                """,
-                """
-                class Class
-                {
-                    private bool goo;
-
-                    void Method()
-                    {
-                        Goo(out goo);
-                    }
-
-                    void Goo(int i) { }
-                    void Goo(out bool b) { }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20791")]
-        public async Task TestWithOutOverload2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        Goo([|goo|]);
-                    }
-
-                    void Goo(out bool b) { }
-                    void Goo(int i) { }
-                }
-                """,
-                """
-                class Class
-                {
-                    private int goo;
-
-                    void Method()
-                    {
-                        Goo(goo);
-                    }
-
-                    void Goo(out bool b) { }
-                    void Goo(int i) { }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20791")]
-        public async Task TestWithRefOverload1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        Goo(ref [|goo|]);
-                    }
-
-                    void Goo(int i) { }
-                    void Goo(ref bool b) { }
-                }
-                """,
-                """
-                class Class
-                {
-                    private bool goo;
-
-                    void Method()
-                    {
-                        Goo(ref goo);
-                    }
-
-                    void Goo(int i) { }
-                    void Goo(ref bool b) { }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20791")]
-        public async Task TestWithRefOverload2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        Goo([|goo|]);
-                    }
-
-                    void Goo(ref bool b) { }
-                    void Goo(int i) { }
-                }
-                """,
-                """
-                class Class
-                {
-                    private int goo;
-
-                    void Method()
-                    {
-                        Goo(goo);
-                    }
-
-                    void Goo(ref bool b) { }
-                    void Goo(int i) { }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGenerateFieldInExpressionBodiedGetter()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    public int Property
-                    {
-                        get => [|_field|];
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private int _field;
-
-                    public int Property
-                    {
-                        get => _field;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGenerateFieldInExpressionBodiedGetterWithDifferentAccessibility()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    public int Property
-                    {
-                        protected get => [|_field|];
-                        set => throw new System.NotImplementedException();
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private int _field;
-
-                    public int Property
-                    {
-                        protected get => _field;
-                        set => throw new System.NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGenerateReadonlyFieldInExpressionBodiedGetter()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    public int Property
-                    {
-                        get => [|_readonlyField|];
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private readonly int _readonlyField;
-
-                    public int Property
-                    {
-                        get => _readonlyField;
-                    }
-                }
-                """,
-index: ReadonlyFieldIndex);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGeneratePropertyInExpressionBodiedGetter()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    public int Property
-                    {
-                        get => [|prop|];
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    public int Property
-                    {
-                        get => prop;
-                    }
-                    public int prop { get; private set; }
-                }
-                """,
-index: PropertyIndex);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGenerateFieldInExpressionBodiedSetterInferredFromType()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    public int Property
-                    {
-                        set => [|_field|] = value;
-                    }
-                }
-                """,
-                """
-                class Program
-                {
-                    private int _field;
-
-                    public int Property
-                    {
-                        set => _field = value;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGenerateFieldInExpressionBodiedLocalFunction()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    public void Method()
+                    Action action = () => 
                     {
                         int Local() => [|_field|];
-                    }
+                    };
                 }
-                """,
-                """
-                class Program
-                {
-                    private int _field;
+            }
+            """,
+            """
+            using System;
 
-                    public void Method()
+            class Program
+            {
+                private int _field;
+
+                public void Method()
+                {
+                    Action action = () => 
                     {
                         int Local() => _field;
-                    }
+                    };
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGenerateReadonlyFieldInExpressionBodiedLocalFunction()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
-                {
-                    public void Method()
-                    {
-                        int Local() => [|_readonlyField|];
-                    }
-                }
-                """,
-                """
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26406")]
+    public Task TestIdentifierInsideLock1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    private readonly int _readonlyField;
-
-                    public void Method()
+                    lock ([|goo|])
                     {
-                        int Local() => _readonlyField;
                     }
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
+            }
+            """,
+            """
+            class Class
+            {
+                private object goo;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGeneratePropertyInExpressionBodiedLocalFunction()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                void Method()
                 {
-                    public void Method()
+                    lock (goo)
                     {
-                        int Local() => [|prop|];
                     }
                 }
-                """,
-                """
-                class Program
-                {
-                    public int prop { get; private set; }
+            }
+            """);
 
-                    public void Method()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26406")]
+    public Task TestIdentifierInsideLock2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    lock ([|goo|])
                     {
-                        int Local() => prop;
                     }
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """,
+            """
+            class Class
+            {
+                private readonly object goo;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27647")]
-        public async Task TestGeneratePropertyInExpressionBodiedAsyncTaskOfTLocalFunction()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                void Method()
                 {
-                    public void Method()
+                    lock (goo)
                     {
-                        async System.Threading.Tasks.Task<int> Local() => [|prop|];
                     }
                 }
-                """,
-                """
-                class Program
-                {
-                    public int prop { get; private set; }
+            }
+            """, index: 1);
 
-                    public void Method()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26406")]
+    public Task TestIdentifierInsideLock3()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
+                {
+                    lock ([|goo|])
                     {
-                        async System.Threading.Tasks.Task<int> Local() => prop;
                     }
                 }
-                """,
-index: PropertyIndex);
-        }
+            }
+            """,
+            """
+            class Class
+            {
+                public object goo { get; private set; }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGenerateFieldInExpressionBodiedLocalFunctionInferredFromType()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                void Method()
                 {
-                    public void Method()
+                    lock (goo)
                     {
-                        int Local() => [|_field|] = 12;
                     }
                 }
-                """,
-                """
-                class Program
-                {
-                    private int _field;
+            }
+            """, index: 2);
 
-                    public void Method()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInIsPattern1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
+                {
+                    object o = null;
+                    if (o is Blah { [|X|]: int i })
                     {
-                        int Local() => _field = 12;
                     }
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGenerateFieldInBlockBodiedLocalFunction()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                class Blah
                 {
-                    public void Method()
-                    {
-                        int Local()
-                        {
-                            return [|_field|];
-                        }
-                    }
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            """
+            class C
+            {
+                void M2()
                 {
-                    private int _field;
-
-                    public void Method()
+                    object o = null;
+                    if (o is Blah { X: int i })
                     {
-                        int Local()
-                        {
-                            return _field;
-                        }
                     }
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGenerateReadonlyFieldInBlockBodiedLocalFunction()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                class Blah
                 {
-                    public void Method()
-                    {
-                        int Local()
-                        {
-                            return [|_readonlyField|];
-                        }
-                    }
+                    public int X { get; internal set; }
                 }
-                """,
-                """
-                class Program
-                {
-                    private readonly int _readonlyField;
+            }
+            """);
 
-                    public void Method()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInIsPattern2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
+                {
+                    Blah o = null;
+                    if (o is { [|X|]: int i })
                     {
-                        int Local()
-                        {
-                            return _readonlyField;
-                        }
                     }
                 }
-                """,
-index: ReadonlyFieldIndex);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGeneratePropertyInBlockBodiedLocalFunction()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                class Blah
                 {
-                    public void Method()
-                    {
-                        int Local()
-                        {
-                            return [|prop|];
-                        }
-                    }
                 }
-                """,
-                """
-                class Program
+            }
+            """,
+            """
+            class C
+            {
+                void M2()
                 {
-                    public int prop { get; private set; }
-
-                    public void Method()
+                    Blah o = null;
+                    if (o is { X: int i })
                     {
-                        int Local()
-                        {
-                            return prop;
-                        }
                     }
                 }
-                """,
-index: PropertyIndex);
-        }
 
-        [Fact]
-        public async Task TestGeneratePropertyInBlockBodiedAsyncTaskOfTLocalFunction()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                class Blah
                 {
-                    public void Method()
-                    {
-                        async System.Threading.Tasks.Task<int> Local()
-                        {
-                            return [|prop|];
-                        }
-                    }
+                    public int X { get; internal set; }
                 }
-                """,
-                """
-                class Program
-                {
-                    public int prop { get; private set; }
+            }
+            """);
 
-                    public void Method()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInIsPattern3()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
+                {
+                    object o = null;
+                    if (o is Blah { X: { [|Y|]: int i } })
                     {
-                        async System.Threading.Tasks.Task<int> Local()
-                        {
-                            return prop;
-                        }
                     }
                 }
-                """,
-index: PropertyIndex);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGenerateFieldInBlockBodiedLocalFunctionInferredFromType()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Program
+                class Frob
                 {
-                    public void Method()
-                    {
-                        int Local() 
-                        {
-                            return [|_field|] = 12;
-                        }
-                    }
                 }
-                """,
-                """
-                class Program
-                {
-                    private int _field;
 
-                    public void Method()
-                    {
-                        int Local() 
-                        {
-                            return _field = 12;
-                        }
-                    }
+                class Blah
+                {
+                    public Frob X;
                 }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGenerateFieldInBlockBodiedLocalFunctionInsideLambdaExpression()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-
-                class Program
+            }
+            """,
+            """
+            class C
+            {
+                void M2()
                 {
-                    public void Method()
+                    object o = null;
+                    if (o is Blah { X: { Y: int i } })
                     {
-                        Action action = () => 
-                        {
-                            int Local()
-                            {
-                                return [|_field|];
-                            }
-                        };
                     }
                 }
-                """,
-                """
-                using System;
 
-                class Program
+                class Frob
                 {
-                    private int _field;
-
-                    public void Method()
-                    {
-                        Action action = () => 
-                        {
-                            int Local()
-                            {
-                                return _field;
-                            }
-                        };
-                    }
+                    public int Y { get; internal set; }
                 }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
-        public async Task TestGenerateFieldInExpressionBodiedLocalFunctionInsideLambdaExpression()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
 
-                class Program
+                class Blah
                 {
-                    public void Method()
-                    {
-                        Action action = () => 
-                        {
-                            int Local() => [|_field|];
-                        };
-                    }
+                    public Frob X;
                 }
-                """,
-                """
-                using System;
+            }
+            """);
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInIsPattern4()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
                 {
-                    private int _field;
-
-                    public void Method()
+                    object o = null;
+                    if (o is Blah { [|X|]: })
                     {
-                        Action action = () => 
-                        {
-                            int Local() => _field;
-                        };
                     }
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26406")]
-        public async Task TestIdentifierInsideLock1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+                class Blah
                 {
-                    void Method()
-                    {
-                        lock ([|goo|])
-                        {
-                        }
-                    }
                 }
-                """,
-                """
-                class Class
+            }
+            """,
+            """
+            class C
+            {
+                void M2()
                 {
-                    private object goo;
-
-                    void Method()
+                    object o = null;
+                    if (o is Blah { X: })
                     {
-                        lock (goo)
-                        {
-                        }
                     }
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26406")]
-        public async Task TestIdentifierInsideLock2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
-                {
-                    void Method()
-                    {
-                        lock ([|goo|])
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class Class
+                class Blah
                 {
-                    private readonly object goo;
-
-                    void Method()
-                    {
-                        lock (goo)
-                        {
-                        }
-                    }
+                    public object X { get; internal set; }
                 }
-                """, index: 1);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26406")]
-        public async Task TestIdentifierInsideLock3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInIsPattern5()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
                 {
-                    void Method()
+                    object o = null;
+                    if (o is Blah { [|X|]: Frob { } })
                     {
-                        lock ([|goo|])
-                        {
-                        }
                     }
                 }
-                """,
-                """
-                class Class
-                {
-                    public object goo { get; private set; }
 
-                    void Method()
-                    {
-                        lock (goo)
-                        {
-                        }
-                    }
+                class Blah
+                {
                 }
-                """, index: 2);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInIsPattern1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                class Frob
                 {
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is Blah { [|X|]: int i })
-                        {
-                        }
-                    }
-
-                    class Blah
-                    {
-                    }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M2()
                 {
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is Blah { X: int i })
-                        {
-                        }
-                    }
-
-                    class Blah
+                    object o = null;
+                    if (o is Blah { X: Frob { } })
                     {
-                        public int X { get; internal set; }
                     }
                 }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInIsPattern2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M2()
-                    {
-                        Blah o = null;
-                        if (o is { [|X|]: int i })
-                        {
-                        }
-                    }
 
-                    class Blah
-                    {
-                    }
-                }
-                """,
-                """
-                class C
+                class Blah
                 {
-                    void M2()
-                    {
-                        Blah o = null;
-                        if (o is { X: int i })
-                        {
-                        }
-                    }
-
-                    class Blah
-                    {
-                        public int X { get; internal set; }
-                    }
+                    public Frob X { get; internal set; }
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInIsPattern3()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                class Frob
                 {
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is Blah { X: { [|Y|]: int i } })
-                        {
-                        }
-                    }
-
-                    class Frob
-                    {
-                    }
-
-                    class Blah
-                    {
-                        public Frob X;
-                    }
                 }
-                """,
-                """
-                class C
-                {
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is Blah { X: { Y: int i } })
-                        {
-                        }
-                    }
-
-                    class Frob
-                    {
-                        public int Y { get; internal set; }
-                    }
+            }
+            """);
 
-                    class Blah
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInIsPattern6()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
+                {
+                    object o = null;
+                    if (o is Blah { [|X|]: (1, 2) })
                     {
-                        public Frob X;
                     }
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInIsPattern4()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                class Blah
                 {
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is Blah { [|X|]: })
-                        {
-                        }
-                    }
-
-                    class Blah
-                    {
-                    }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M2()
                 {
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is Blah { X: })
-                        {
-                        }
-                    }
-
-                    class Blah
+                    object o = null;
+                    if (o is Blah { X: (1, 2) })
                     {
-                        public object X { get; internal set; }
                     }
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInIsPattern5()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                class Blah
                 {
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is Blah { [|X|]: Frob { } })
-                        {
-                        }
-                    }
-
-                    class Blah
-                    {
-                    }
-
-                    class Frob
-                    {
-                    }
+                    public (int, int) X { get; internal set; }
                 }
-                """,
-                """
-                class C
-                {
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is Blah { X: Frob { } })
-                        {
-                        }
-                    }
-
-                    class Blah
-                    {
-                        public Frob X { get; internal set; }
-                    }
+            }
+            """);
 
-                    class Frob
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInIsPattern7()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
+                {
+                    object o = null;
+                    if (o is Blah { [|X|]: (y: 1, z: 2) })
                     {
                     }
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInIsPattern6()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                class Blah
                 {
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is Blah { [|X|]: (1, 2) })
-                        {
-                        }
-                    }
-
-                    class Blah
-                    {
-                    }
                 }
-                """,
-                """
-                class C
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
+            """
+            class C
+            {
+                void M2()
                 {
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is Blah { X: (1, 2) })
-                        {
-                        }
-                    }
-
-                    class Blah
+                    object o = null;
+                    if (o is Blah { X: (y: 1, z: 2) })
                     {
-                        public (int, int) X { get; internal set; }
                     }
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInIsPattern7()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                class Blah
                 {
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is Blah { [|X|]: (y: 1, z: 2) })
-                        {
-                        }
-                    }
-
-                    class Blah
-                    {
-                    }
+                    public (int y, int z) X { get; internal set; }
                 }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                """
-                class C
-                {
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is Blah { X: (y: 1, z: 2) })
-                        {
-                        }
-                    }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
 
-                    class Blah
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInIsPattern8()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
+                {
+                    object o = null;
+                    if (o is Blah { [|X|]: () })
                     {
-                        public (int y, int z) X { get; internal set; }
                     }
                 }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInIsPattern8()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                class Blah
                 {
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is Blah { [|X|]: () })
-                        {
-                        }
-                    }
-
-                    class Blah
-                    {
-                    }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M2()
                 {
-                    void M2()
+                    object o = null;
+                    if (o is Blah { X: () })
                     {
-                        object o = null;
-                        if (o is Blah { X: () })
-                        {
-                        }
                     }
-
-                    class Blah
-                    {
-                        public object X { get; internal set; }
-                    }
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestExtendedPropertyPatternInIsPattern()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                class Blah
                 {
-                    Blah SomeBlah { get; set; }
+                    public object X { get; internal set; }
+                }
+            }
+            """);
 
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is C { SomeBlah.[|X|]: (y: 1, z: 2) })
-                        {
-                        }
-                    }
+    [Fact]
+    public Task TestExtendedPropertyPatternInIsPattern()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                Blah SomeBlah { get; set; }
 
-                    class Blah
+                void M2()
+                {
+                    object o = null;
+                    if (o is C { SomeBlah.[|X|]: (y: 1, z: 2) })
                     {
                     }
                 }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                """
-                class C
-                {
-                    Blah SomeBlah { get; set; }
 
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is C { SomeBlah.X: (y: 1, z: 2) })
-                        {
-                        }
-                    }
+                class Blah
+                {
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs,
+            """
+            class C
+            {
+                Blah SomeBlah { get; set; }
 
-                    class Blah
+                void M2()
+                {
+                    object o = null;
+                    if (o is C { SomeBlah.X: (y: 1, z: 2) })
                     {
-                        public (int y, int z) X { get; internal set; }
                     }
                 }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
-        }
 
-        [Fact]
-        public async Task TestConstantPatternInPropertyPattern()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                class Blah
                 {
-                    Blah SomeBlah { get; set; }
+                    public (int y, int z) X { get; internal set; }
+                }
+            }
+            """ + TestResources.NetFX.ValueTuple.tuplelib_cs, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12)));
 
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is C { SomeBlah: [|MissingConstant|] })
-                        {
-                        }
-                    }
+    [Fact]
+    public Task TestConstantPatternInPropertyPattern()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                Blah SomeBlah { get; set; }
 
-                    class Blah
+                void M2()
+                {
+                    object o = null;
+                    if (o is C { SomeBlah: [|MissingConstant|] })
                     {
                     }
                 }
-                """,
-                """
-                class C
-                {
-                    private const Blah MissingConstant;
 
-                    Blah SomeBlah { get; set; }
+                class Blah
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private const Blah MissingConstant;
 
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is C { SomeBlah: MissingConstant })
-                        {
-                        }
-                    }
+                Blah SomeBlah { get; set; }
 
-                    class Blah
+                void M2()
+                {
+                    object o = null;
+                    if (o is C { SomeBlah: MissingConstant })
                     {
                     }
                 }
-                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
-        }
 
-        [Fact]
-        public async Task TestConstantPatternInExtendedPropertyPattern()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+                class Blah
                 {
-                    C SomeC { get; set; }
-                    Blah SomeBlah { get; set; }
+                }
+            }
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12)));
 
-                    void M2()
-                    {
-                        object o = null;
-                        if (o is C { SomeC.SomeBlah: [|MissingConstant|] })
-                        {
-                        }
-                    }
+    [Fact]
+    public Task TestConstantPatternInExtendedPropertyPattern()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                C SomeC { get; set; }
+                Blah SomeBlah { get; set; }
 
-                    class Blah
+                void M2()
+                {
+                    object o = null;
+                    if (o is C { SomeC.SomeBlah: [|MissingConstant|] })
                     {
                     }
                 }
-                """,
-                """
-                class C
+
+                class Blah
                 {
-                    private const Blah MissingConstant;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private const Blah MissingConstant;
 
-                    C SomeC { get; set; }
-                    Blah SomeBlah { get; set; }
+                C SomeC { get; set; }
+                Blah SomeBlah { get; set; }
 
-                    void M2()
+                void M2()
+                {
+                    object o = null;
+                    if (o is C { SomeC.SomeBlah: MissingConstant })
                     {
-                        object o = null;
-                        if (o is C { SomeC.SomeBlah: MissingConstant })
-                        {
-                        }
                     }
+                }
 
-                    class Blah
-                    {
-                    }
+                class Blah
+                {
                 }
-                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
-        }
+            }
+            """, new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12)));
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInIsPattern9()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInIsPattern9()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
                 {
-                    void M2()
+                    object o = null;
+                    if (o is Blah { [|X|]: (1) })
                     {
-                        object o = null;
-                        if (o is Blah { [|X|]: (1) })
-                        {
-                        }
                     }
+                }
 
-                    class Blah
-                    {
-                    }
+                class Blah
+                {
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M2()
                 {
-                    void M2()
+                    object o = null;
+                    if (o is Blah { X: (1) })
                     {
-                        object o = null;
-                        if (o is Blah { X: (1) })
-                        {
-                        }
                     }
+                }
 
-                    class Blah
-                    {
-                        public int X { get; internal set; }
-                    }
+                class Blah
+                {
+                    public int X { get; internal set; }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInIsPattern10()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInIsPattern10()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
                 {
-                    void M2()
+                    object o = null;
+                    if (o is Blah { [|X|]: (y: 1) })
                     {
-                        object o = null;
-                        if (o is Blah { [|X|]: (y: 1) })
-                        {
-                        }
                     }
+                }
 
-                    class Blah
-                    {
-                    }
+                class Blah
+                {
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M2()
                 {
-                    void M2()
+                    object o = null;
+                    if (o is Blah { X: (y: 1) })
                     {
-                        object o = null;
-                        if (o is Blah { X: (y: 1) })
-                        {
-                        }
                     }
+                }
 
-                    class Blah
-                    {
-                        public object X { get; internal set; }
-                    }
+                class Blah
+                {
+                    public object X { get; internal set; }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInIsPatternWithNullablePattern()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                #nullable enable
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInIsPatternWithNullablePattern()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
 
-                class C
+            class C
+            {
+                void M2()
                 {
-                    void M2()
-                    {
-                        object? o = null;
-                        object? zToMatch = null;
-                        if (o is Blah { [|X|]: (y: 1, z: zToMatch) })
-                        {
-                        }
-                    }
-
-                    class Blah
+                    object? o = null;
+                    object? zToMatch = null;
+                    if (o is Blah { [|X|]: (y: 1, z: zToMatch) })
                     {
                     }
                 }
-                """,
-                """
-                #nullable enable
 
-                class C
+                class Blah
                 {
-                    void M2()
-                    {
-                        object? o = null;
-                        object? zToMatch = null;
-                        if (o is Blah { X: (y: 1, z: zToMatch) })
-                        {
-                        }
-                    }
-
-                    class Blah
-                    {
-                        public (int y, object? z) X { get; internal set; }
-                    }
                 }
-                """);
-        }
+            }
+            """,
+            """
+            #nullable enable
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInCasePattern1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+            class C
+            {
+                void M2()
                 {
-                    void M2()
+                    object? o = null;
+                    object? zToMatch = null;
+                    if (o is Blah { X: (y: 1, z: zToMatch) })
                     {
-                        object o = null;
-                        switch (o)
-                        {
-                            case Blah { [|X|]: int i }:
-                                break;
-                        }
                     }
-
-                    class Blah
-                    {
-                    }
                 }
-                """,
-                """
-                class C
-                {
-                    void M2()
-                    {
-                        object o = null;
-                        switch (o)
-                        {
-                            case Blah { X: int i }:
-                                break;
-                        }
-                    }
 
-                    class Blah
-                    {
-                        public int X { get; internal set; }
-                    }
+                class Blah
+                {
+                    public (int y, object? z) X { get; internal set; }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInCasePattern2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInCasePattern1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
                 {
-                    void M2()
+                    object o = null;
+                    switch (o)
                     {
-                        Blah o = null;
-                        switch (o)
-                        {
-                            case { [|X|]: int i }:
-                                break;
-                        }
+                        case Blah { [|X|]: int i }:
+                            break;
                     }
+                }
 
-                    class Blah
-                    {
-                    }
+                class Blah
+                {
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M2()
                 {
-                    void M2()
+                    object o = null;
+                    switch (o)
                     {
-                        Blah o = null;
-                        switch (o)
-                        {
-                            case { X: int i }:
-                                break;
-                        }
+                        case Blah { X: int i }:
+                            break;
                     }
+                }
 
-                    class Blah
-                    {
-                        public int X { get; internal set; }
-                    }
+                class Blah
+                {
+                    public int X { get; internal set; }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
-        public async Task TestPropertyPatternInIsSwitchExpression1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInCasePattern2()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
                 {
-                    void M2()
+                    Blah o = null;
+                    switch (o)
                     {
-                        object o = null;
-                        _ = o switch { Blah { [|X|]: int i } => 0, _ => 0 };
+                        case { [|X|]: int i }:
+                            break;
                     }
+                }
 
-                    class Blah
-                    {
-                    }
+                class Blah
+                {
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M2()
                 {
-                    void M2()
+                    Blah o = null;
+                    switch (o)
                     {
-                        object o = null;
-                        _ = o switch { Blah { X: int i } => 0, _ => 0 };
+                        case { X: int i }:
+                            break;
                     }
+                }
 
-                    class Blah
-                    {
-                        public int X { get; internal set; }
-                    }
+                class Blah
+                {
+                    public int X { get; internal set; }
                 }
-                """);
-        }
+            }
+            """);
 
-        [Fact]
-        public async Task TestPropertyPatternGenerateConstant()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
+    public Task TestPropertyPatternInIsSwitchExpression1()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
                 {
-                    void M2()
-                    {
-                        object o = null;
-                        _ = o switch { Blah { X: [|Y|] } => 0, _ => 0 };
-                    }
+                    object o = null;
+                    _ = o switch { Blah { [|X|]: int i } => 0, _ => 0 };
+                }
 
-                    class Blah
-                    {
-                        public int X;
-                    }
+                class Blah
+                {
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M2()
                 {
-                    private const int Y;
-
-                    void M2()
-                    {
-                        object o = null;
-                        _ = o switch { Blah { X: Y } => 0, _ => 0 };
-                    }
-
-                    class Blah
-                    {
-                        public int X;
-                    }
+                    object o = null;
+                    _ = o switch { Blah { X: int i } => 0, _ => 0 };
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestAddParameter()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Class
+                class Blah
                 {
-                    void Method()
-                    {
-                        [|goo|];
-                    }
+                    public int X { get; internal set; }
                 }
-                """,
-                """
-                class Class
+            }
+            """);
+
+    [Fact]
+    public Task TestPropertyPatternGenerateConstant()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M2()
                 {
-                    void Method(object goo)
-                    {
-                        goo;
-                    }
+                    object o = null;
+                    _ = o switch { Blah { X: [|Y|] } => 0, _ => 0 };
                 }
-                """, index: Parameter);
-        }
 
-        [Fact]
-        public async Task TestAddParameter_DoesntAddToInterface()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface Interface
+                class Blah
                 {
-                    void Method();
+                    public int X;
                 }
+            }
+            """,
+            """
+            class C
+            {
+                private const int Y;
 
-                class Class
+                void M2()
                 {
-                    public void Method()
-                    {
-                        [|goo|];
-                    }
+                    object o = null;
+                    _ = o switch { Blah { X: Y } => 0, _ => 0 };
                 }
-                """,
-                """
-                interface Interface
+
+                class Blah
                 {
-                    void Method();
+                    public int X;
                 }
+            }
+            """);
 
-                class Class
+    [Fact]
+    public Task TestAddParameter()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method()
                 {
-                    public void Method(object goo)
-                    {
-                        [|goo|];
-                    }
+                    [|goo|];
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                void Method(object goo)
+                {
+                    goo;
                 }
-                """, index: Parameter);
-        }
+            }
+            """, index: Parameter);
+
+    [Fact]
+    public Task TestAddParameter_DoesntAddToInterface()
+        => TestInRegularAndScriptAsync(
+            """
+            interface Interface
+            {
+                void Method();
+            }
 
-        [Fact]
-        public async Task TestAddParameterAndOverrides_AddsToInterface()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface Interface
+            class Class
+            {
+                public void Method()
                 {
-                    void Method();
+                    [|goo|];
                 }
+            }
+            """,
+            """
+            interface Interface
+            {
+                void Method();
+            }
 
-                class Class : Interface
+            class Class
+            {
+                public void Method(object goo)
                 {
-                    public void Method()
-                    {
-                        [|goo|];
-                    }
+                    [|goo|];
                 }
-                """,
-                """
-                interface Interface
+            }
+            """, index: Parameter);
+
+    [Fact]
+    public Task TestAddParameterAndOverrides_AddsToInterface()
+        => TestInRegularAndScriptAsync(
+            """
+            interface Interface
+            {
+                void Method();
+            }
+
+            class Class : Interface
+            {
+                public void Method()
                 {
-                    void Method(object goo);
+                    [|goo|];
                 }
+            }
+            """,
+            """
+            interface Interface
+            {
+                void Method(object goo);
+            }
 
-                class Class : Interface
+            class Class : Interface
+            {
+                public void Method(object goo)
                 {
-                    public void Method(object goo)
-                    {
-                        [|goo|];
-                    }
+                    [|goo|];
                 }
-                """, index: ParameterAndOverrides);
-        }
+            }
+            """, index: ParameterAndOverrides);
 
-        [Fact]
-        public async Task TestAddParameterIsOfCorrectType()
-        {
-            await TestInRegularAndScriptAsync(
-    """
-    class Class
+    [Fact]
+    public Task TestAddParameterIsOfCorrectType()
+        => TestInRegularAndScriptAsync(
+"""
+class Class
+{
+    void Method()
     {
-        void Method()
-        {
-            M1([|goo|]);
-        }
-
-        void M1(int a);
+        M1([|goo|]);
     }
-    """,
-    """
-    class Class
+
+    void M1(int a);
+}
+""",
+"""
+class Class
+{
+    void Method(int goo)
     {
-        void Method(int goo)
-        {
-            M1(goo);
-        }
-
-        void M1(int a);
+        M1(goo);
     }
-    """, index: Parameter);
-        }
 
-        [Fact]
-        public async Task TestAddParameterAndOverrides_IsOfCorrectType()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                interface Interface
+    void M1(int a);
+}
+""", index: Parameter);
+
+    [Fact]
+    public Task TestAddParameterAndOverrides_IsOfCorrectType()
+        => TestInRegularAndScriptAsync(
+            """
+            interface Interface
+            {
+                void Method();
+            }
+
+            class Class : Interface
+            {
+                public void Method()
                 {
-                    void Method();
+                    M1([|goo|]);
                 }
 
-                class Class : Interface
+                void M1(int a);
+            }
+            """,
+            """
+            interface Interface
+            {
+                void Method(int goo);
+            }
+
+            class Class : Interface
+            {
+                public void Method(int goo)
                 {
-                    public void Method()
+                    M1(goo);
+                }
+
+                void M1(int a);
+            }
+            """, index: ParameterAndOverrides);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26502")]
+    public Task TestNoReadOnlyMembersWhenInLambdaInConstructor()
+        => TestExactActionSetOfferedAsync(
+            """
+            using System;
+
+            class C
+            {
+                public C()
+                {
+                    Action a = () =>
                     {
-                        M1([|goo|]);
-                    }
-
-                    void M1(int a);
+                        this.[|Field|] = 1;
+                    };
                 }
-                """,
-                """
-                interface Interface
-                {
-                    void Method(int goo);
-                }
+            }
+            """,
+            [
+                string.Format(CodeFixesResources.Generate_property_0, "Field"),
+                string.Format(CodeFixesResources.Generate_field_0, "Field"),
+            ]);
 
-                class Class : Interface
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26502")]
+    public Task TestNoReadOnlyMembersWhenInLocalFunctionInConstructor()
+        => TestExactActionSetOfferedAsync(
+            """
+            using System;
+
+            class C
+            {
+                public C()
                 {
-                    public void Method(int goo)
+                    void Goo()
                     {
-                        M1(goo);
-                    }
-
-                    void M1(int a);
+                        this.[|Field|] = 1;
+                    };
                 }
-                """, index: ParameterAndOverrides);
-        }
+            }
+            """,
+            [
+                string.Format(CodeFixesResources.Generate_property_0, "Field"),
+                string.Format(CodeFixesResources.Generate_field_0, "Field"),
+            ]);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26502")]
-        public async Task TestNoReadOnlyMembersWhenInLambdaInConstructor()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45367")]
+    public Task DoNotOfferPropertyOrFieldInNamespace()
+        => TestExactActionSetOfferedAsync(
+            """
+            using System;
 
-                class C
+            namespace ConsoleApp5
+            {
+                class MyException: Exception
+
+                internal MyException(int error, int offset, string message) : base(message)
                 {
-                    public C()
-                    {
-                        Action a = () =>
-                        {
-                            this.[|Field|] = 1;
-                        };
-                    }
+                    [|Error|] = error;
+                    Offset = offset;
                 }
-                """,
-[
-    string.Format(FeaturesResources.Generate_property_0, "Field"),
-    string.Format(FeaturesResources.Generate_field_0, "Field"),
-]);
-        }
+            """,
+            [
+                string.Format(CodeFixesResources.Generate_local_0, "Error", "MyException"),
+                string.Format(CodeFixesResources.Generate_parameter_0, "Error", "MyException"),
+            ]);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26502")]
-        public async Task TestNoReadOnlyMembersWhenInLocalFunctionInConstructor()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48172")]
+    public Task TestMissingOfferParameterInTopLevel()
+        => TestMissingAsync("[|Console|].WriteLine();", new TestParameters(Options.Regular));
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47586")]
+    public Task TestGenerateParameterFromLambda()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Diagnostics;
+
+            class Class
+            {
+                private static void AssertSomething()
                 {
-                    public C()
-                    {
-                        void Goo()
-                        {
-                            this.[|Field|] = 1;
-                        };
-                    }
+                    Action<int> call = _ => Debug.Assert([|expected|]);
                 }
-                """,
-[
-    string.Format(FeaturesResources.Generate_property_0, "Field"),
-    string.Format(FeaturesResources.Generate_field_0, "Field"),
-]);
-        }
+            }
+            """,
+            """
+            using System;
+            using System.Diagnostics;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45367")]
-        public async Task DoNotOfferPropertyOrFieldInNamespace()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                using System;
-
-                namespace ConsoleApp5
+            class Class
+            {
+                private static void AssertSomething(bool expected)
                 {
-                    class MyException: Exception
+                    Action<int> call = _ => Debug.Assert(expected);
+                }
+            }
+            """, index: Parameter);
 
-                    internal MyException(int error, int offset, string message) : base(message)
-                    {
-                        [|Error|] = error;
-                        Offset = offset;
-                    }
-                """,
-[
-    string.Format(FeaturesResources.Generate_local_0, "Error", "MyException"),
-    string.Format(FeaturesResources.Generate_parameter_0, "Error", "MyException"),
-]);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47586")]
+    public Task TestGenerateParameterFromLambdaInLocalFunction()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Diagnostics;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48172")]
-        public async Task TestMissingOfferParameterInTopLevel()
-        {
-            await TestMissingAsync("[|Console|].WriteLine();", new TestParameters(Options.Regular));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47586")]
-        public async Task TestGenerateParameterFromLambda()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Diagnostics;
-
-                class Class
+            class Class
+            {
+                private static void AssertSomething()
                 {
-                    private static void AssertSomething()
+                    void M()
                     {
                         Action<int> call = _ => Debug.Assert([|expected|]);
                     }
                 }
-                """,
-                """
-                using System;
-                using System.Diagnostics;
+            }
+            """,
+            """
+            using System;
+            using System.Diagnostics;
 
-                class Class
+            class Class
+            {
+                private static void AssertSomething()
                 {
-                    private static void AssertSomething(bool expected)
+                    void M(bool expected)
                     {
                         Action<int> call = _ => Debug.Assert(expected);
                     }
                 }
-                """, index: Parameter);
-        }
+            }
+            """, index: Parameter);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47586")]
-        public async Task TestGenerateParameterFromLambdaInLocalFunction()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Diagnostics;
-
-                class Class
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
+    [InlineData("yield")]
+    [InlineData("partial")]
+    [InlineData("group")]
+    [InlineData("join")]
+    [InlineData("into")]
+    [InlineData("let")]
+    [InlineData("by")]
+    [InlineData("where")]
+    [InlineData("select")]
+    [InlineData("get")]
+    [InlineData("set")]
+    [InlineData("add")]
+    [InlineData("remove")]
+    [InlineData("orderby")]
+    [InlineData("alias")]
+    [InlineData("on")]
+    [InlineData("equals")]
+    [InlineData("ascending")]
+    [InlineData("descending")]
+    [InlineData("assembly")]
+    [InlineData("module")]
+    [InlineData("type")]
+    [InlineData("global")]
+    [InlineData("field")]
+    [InlineData("method")]
+    [InlineData("param")]
+    [InlineData("property")]
+    [InlineData("typevar")]
+    [InlineData("when")]
+    [InlineData("_")]
+    [InlineData("or")]
+    [InlineData("and")]
+    [InlineData("not")]
+    [InlineData("with")]
+    [InlineData("init")]
+    [InlineData("record")]
+    [InlineData("managed")]
+    [InlineData("unmanaged")]
+    [InlineData("dynamic")]
+    public Task TestContextualKeywordsThatDoNotProbablyStartSyntacticConstructs_ReturnStatement(string keyword)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            class C
+            {
+                int M()
                 {
-                    private static void AssertSomething()
-                    {
-                        void M()
-                        {
-                            Action<int> call = _ => Debug.Assert([|expected|]);
-                        }
-                    }
+                    [|return {{keyword}}|];
                 }
-                """,
-                """
-                using System;
-                using System.Diagnostics;
+            }
+            """,
+            $$"""
+            class C
+            {
+                private int {{keyword}};
 
-                class Class
+                int M()
                 {
-                    private static void AssertSomething()
-                    {
-                        void M(bool expected)
-                        {
-                            Action<int> call = _ => Debug.Assert(expected);
-                        }
-                    }
+                    return {{keyword}};
                 }
-                """, index: Parameter);
-        }
+            }
+            """);
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
-        [InlineData("yield")]
-        [InlineData("partial")]
-        [InlineData("group")]
-        [InlineData("join")]
-        [InlineData("into")]
-        [InlineData("let")]
-        [InlineData("by")]
-        [InlineData("where")]
-        [InlineData("select")]
-        [InlineData("get")]
-        [InlineData("set")]
-        [InlineData("add")]
-        [InlineData("remove")]
-        [InlineData("orderby")]
-        [InlineData("alias")]
-        [InlineData("on")]
-        [InlineData("equals")]
-        [InlineData("ascending")]
-        [InlineData("descending")]
-        [InlineData("assembly")]
-        [InlineData("module")]
-        [InlineData("type")]
-        [InlineData("global")]
-        [InlineData("field")]
-        [InlineData("method")]
-        [InlineData("param")]
-        [InlineData("property")]
-        [InlineData("typevar")]
-        [InlineData("when")]
-        [InlineData("_")]
-        [InlineData("or")]
-        [InlineData("and")]
-        [InlineData("not")]
-        [InlineData("with")]
-        [InlineData("init")]
-        [InlineData("record")]
-        [InlineData("managed")]
-        [InlineData("unmanaged")]
-        [InlineData("dynamic")]
-        public async Task TestContextualKeywordsThatDoNotProbablyStartSyntacticConstructs_ReturnStatement(string keyword)
-        {
-            await TestInRegularAndScriptAsync(
-$@"class C
-{{
-    int M()
-    {{
-        [|return {keyword}|];
-    }}
-}}",
-$@"class C
-{{
-    private int {keyword};
-
-    int M()
-    {{
-        return {keyword};
-    }}
-}}");
-        }
-
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
-        [InlineData("from")]
-        [InlineData("nameof")]
-        [InlineData("async")]
-        [InlineData("await")]
-        [InlineData("var")]
-        public async Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_ReturnStatement(string keyword)
-        {
-            await TestMissingInRegularAndScriptAsync(
-$@"class C
-{{
-    int M()
-    {{
-        [|return {keyword}|];
-    }}
-}}");
-        }
-
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
-        [InlineData("from")]
-        [InlineData("nameof")]
-        [InlineData("async")]
-        [InlineData("await")]
-        [InlineData("var")]
-        public async Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_OnTheirOwn(string keyword)
-        {
-            await TestMissingInRegularAndScriptAsync(
-$@"class C
-{{
-    int M()
-    {{
-        [|{keyword}|]
-    }}
-}}");
-        }
-
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
-        [InlineData("from")]
-        [InlineData("nameof")]
-        [InlineData("async")]
-        [InlineData("await")]
-        [InlineData("var")]
-        public async Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_Local(string keyword)
-        {
-            await TestMissingInRegularAndScriptAsync(
-$@"class Program
-{{
-    void Main()
-    {{
-        var x = [|{keyword}|];
-    }}");
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60842")]
-        public async Task TestGenerateParameterBeforeCancellationToken_OneParameter()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
-
-                class C
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
+    [InlineData("from")]
+    [InlineData("nameof")]
+    [InlineData("async")]
+    [InlineData("await")]
+    [InlineData("var")]
+    public Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_ReturnStatement(string keyword)
+        => TestMissingInRegularAndScriptAsync(
+            $$"""
+            class C
+            {
+                int M()
                 {
-                    public async Task M(CancellationToken cancellationToken)
-                    {
-                        await Task.Delay([|time|]);
-                    }
+                    [|return {{keyword}}|];
                 }
-                """,
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
+            }
+            """);
 
-                class C
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
+    [InlineData("from")]
+    [InlineData("nameof")]
+    [InlineData("async")]
+    [InlineData("await")]
+    [InlineData("var")]
+    public Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_OnTheirOwn(string keyword)
+        => TestMissingInRegularAndScriptAsync(
+            $$"""
+            class C
+            {
+                int M()
                 {
-                    public async Task M(System.TimeSpan time, CancellationToken cancellationToken)
-                    {
-                        await Task.Delay(time);
-                    }
+                    [|{{keyword}}|]
                 }
-                """, index: 4);
-        }
+            }
+            """);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60842")]
-        public async Task TestGenerateParameterBeforeCancellationToken_SeveralParameters()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
-
-                class C
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
+    [InlineData("from")]
+    [InlineData("nameof")]
+    [InlineData("async")]
+    [InlineData("await")]
+    [InlineData("var")]
+    public Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_Local(string keyword)
+        => TestMissingInRegularAndScriptAsync(
+            $$"""
+            class Program
+            {
+                void Main()
                 {
-                    public async Task M(string someParameter, CancellationToken cancellationToken)
-                    {
-                        await Task.Delay([|time|]);
-                    }
+                    var x = [|{{keyword}}|];
                 }
-                """,
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
+            """);
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60842")]
+    public Task TestGenerateParameterBeforeCancellationToken_OneParameter()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async Task M(CancellationToken cancellationToken)
                 {
-                    public async Task M(string someParameter, System.TimeSpan time, CancellationToken cancellationToken)
-                    {
-                        await Task.Delay(time);
-                    }
+                    await Task.Delay([|time|]);
                 }
-                """, index: 4);
-        }
+            }
+            """,
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
 
-        [Fact]
-        public async Task TestGenerateParameterBeforeCancellationTokenAndOptionalParameter()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
-
-                class C
+            class C
+            {
+                public async Task M(System.TimeSpan time, CancellationToken cancellationToken)
                 {
-                    public async Task M(bool someParameter = true, CancellationToken cancellationToken)
-                    {
-                        await Task.Delay([|time|]);
-                    }
+                    await Task.Delay(time);
                 }
-                """,
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
+            }
+            """, index: 4);
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60842")]
+    public Task TestGenerateParameterBeforeCancellationToken_SeveralParameters()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async Task M(string someParameter, CancellationToken cancellationToken)
                 {
-                    public async Task M(System.TimeSpan time, bool someParameter = true, CancellationToken cancellationToken)
-                    {
-                        await Task.Delay(time);
-                    }
+                    await Task.Delay([|time|]);
                 }
-                """, index: 4);
-        }
+            }
+            """,
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
 
-        [Fact]
-        public async Task TestGenerateParameterBeforeCancellationTokenAndOptionalParameter_MultipleParameters()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
-
-                class C
+            class C
+            {
+                public async Task M(string someParameter, System.TimeSpan time, CancellationToken cancellationToken)
                 {
-                    public async Task M(int value, bool someParameter = true, CancellationToken cancellationToken)
-                    {
-                        await Task.Delay([|time|]);
-                    }
+                    await Task.Delay(time);
                 }
-                """,
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
+            }
+            """, index: 4);
 
-                class C
+    [Fact]
+    public Task TestGenerateParameterBeforeCancellationTokenAndOptionalParameter()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async Task M(bool someParameter = true, CancellationToken cancellationToken)
                 {
-                    public async Task M(int value, System.TimeSpan time, bool someParameter = true, CancellationToken cancellationToken)
-                    {
-                        await Task.Delay(time);
-                    }
+                    await Task.Delay([|time|]);
                 }
-                """, index: 4);
-        }
+            }
+            """,
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
 
-        [Fact]
-        public async Task TestGenerateParameterBeforeOptionalParameter()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
-
-                class C
+            class C
+            {
+                public async Task M(System.TimeSpan time, bool someParameter = true, CancellationToken cancellationToken)
                 {
-                    public async Task M(bool someParameter = true)
-                    {
-                        await Task.Delay([|time|]);
-                    }
+                    await Task.Delay(time);
                 }
-                """,
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
+            }
+            """, index: 4);
 
-                class C
+    [Fact]
+    public Task TestGenerateParameterBeforeCancellationTokenAndOptionalParameter_MultipleParameters()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async Task M(int value, bool someParameter = true, CancellationToken cancellationToken)
                 {
-                    public async Task M(System.TimeSpan time, bool someParameter = true)
-                    {
-                        await Task.Delay(time);
-                    }
+                    await Task.Delay([|time|]);
                 }
-                """, index: 4);
-        }
+            }
+            """,
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
 
-        [Fact]
-        public async Task TestGenerateParameterBeforeParamsParameter()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
-
-                class C
+            class C
+            {
+                public async Task M(int value, System.TimeSpan time, bool someParameter = true, CancellationToken cancellationToken)
                 {
-                    public async Task M(params double[] x)
-                    {
-                        await Task.Delay([|time|]);
-                    }
+                    await Task.Delay(time);
                 }
-                """,
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
+            }
+            """, index: 4);
 
-                class C
+    [Fact]
+    public Task TestGenerateParameterBeforeOptionalParameter()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async Task M(bool someParameter = true)
                 {
-                    public async Task M(System.TimeSpan time, params double[] x)
-                    {
-                        await Task.Delay(time);
-                    }
+                    await Task.Delay([|time|]);
                 }
-                """, index: 4);
-        }
+            }
+            """,
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
 
-        [Fact]
-        public async Task TestGenerateParameterBeforeThisParameter()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
-
-                public static class TestClass
+            class C
+            {
+                public async Task M(System.TimeSpan time, bool someParameter = true)
                 {
-                    public static int Method(this CancellationToken cancellationToken)
-                    {
-                        return [|test|];
-                    }
+                    await Task.Delay(time);
                 }
-                """,
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
+            }
+            """, index: 4);
 
-                public static class TestClass
+    [Fact]
+    public Task TestGenerateParameterBeforeParamsParameter()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async Task M(params double[] x)
                 {
-                    public static int Method(this CancellationToken cancellationToken, int test)
-                    {
-                        return test;
-                    }
+                    await Task.Delay([|time|]);
                 }
-                """, index: 4);
-        }
+            }
+            """,
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
 
-        [Fact]
-        public async Task TestGenerateParameterBeforeAssortmentOfExceptions()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
-
-                public static class TestClass
+            class C
+            {
+                public async Task M(System.TimeSpan time, params double[] x)
                 {
-                    public static int Method(this CancellationToken cancellationToken, out int x, params bool[] z)
-                    {
-                        return [|test|];
-                    }
+                    await Task.Delay(time);
                 }
-                """,
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
+            }
+            """, index: 4);
 
-                public static class TestClass
+    [Fact]
+    public Task TestGenerateParameterBeforeThisParameter()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            public static class TestClass
+            {
+                public static int Method(this CancellationToken cancellationToken)
                 {
-                    public static int Method(this CancellationToken cancellationToken, int test, out int x, params bool[] z)
-                    {
-                        return test;
-                    }
+                    return [|test|];
                 }
-                """, index: 4);
-        }
+            }
+            """,
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
 
-        [Fact]
-        public async Task TestGenerateParameterBeforeMultipleExceptions_BetweenOutParams()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
-
-                class C
+            public static class TestClass
+            {
+                public static int Method(this CancellationToken cancellationToken, int test)
                 {
-                    public async Task M(out int x, int y, out int z, params double[] x)
-                    {
-                        await Task.Delay([|time|]);
-                    }
+                    return test;
                 }
-                """,
-                """
-                using System.Threading;
-                using System.Threading.Tasks;
+            }
+            """, index: 4);
 
-                class C
+    [Fact]
+    public Task TestGenerateParameterBeforeAssortmentOfExceptions()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            public static class TestClass
+            {
+                public static int Method(this CancellationToken cancellationToken, out int x, params bool[] z)
                 {
-                    public async Task M(out int x, int y, System.TimeSpan time, out int z, params double[] x)
-                    {
-                        await Task.Delay(time);
-                    }
+                    return [|test|];
                 }
-                """, index: 4);
-        }
+            }
+            """,
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50764")]
-        public async Task TestMissingWhenGeneratingFunctionPointer()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                public unsafe class Bar
+            public static class TestClass
+            {
+                public static int Method(this CancellationToken cancellationToken, int test, out int x, params bool[] z)
                 {
-                    public static ZZZ()
-                    {
-                         delegate*<void> i = &[|Goo|];
-                    }
+                    return test;
                 }
-                """);
-        }
+            }
+            """, index: 4);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68322")]
-        public async Task TestImplicitObjectCreationExpression()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class Example
+    [Fact]
+    public Task TestGenerateParameterBeforeMultipleExceptions_BetweenOutParams()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async Task M(out int x, int y, out int z, params double[] x)
                 {
-                    public Example(int argument) { }
-
-                    void M()
-                    {
-                        Example e = new([|_field|]);
-                    }
+                    await Task.Delay([|time|]);
                 }
-                """,
-                """
-                class Example
+            }
+            """,
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public async Task M(out int x, int y, System.TimeSpan time, out int z, params double[] x)
                 {
-                    private int _field;
-
-                    public Example(int argument) { }
-
-                    void M()
-                    {
-                        Example e = new(_field);
-                    }
+                    await Task.Delay(time);
                 }
-                """);
-        }
+            }
+            """, index: 4);
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68322")]
-        public async Task TestImplicitCollectionCreationExpression()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System.Collections.Generic;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50764")]
+    public Task TestMissingWhenGeneratingFunctionPointer()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
 
-                class Example
+            public unsafe class Bar
+            {
+                public static ZZZ()
                 {
-                    void M()
-                    {
-                        List<int> list = new() { [|_field|] };
-                    }
+                     delegate*<void> i = &[|Goo|];
                 }
-                """,
-                """
-                using System.Collections.Generic;
+            }
+            """);
 
-                class Example
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68322")]
+    public Task TestImplicitObjectCreationExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            class Example
+            {
+                public Example(int argument) { }
+
+                void M()
                 {
-                    private int _field;
-
-                    void M()
-                    {
-                        List<int> list = new() { [|_field|] };
-                    }
+                    Example e = new([|_field|]);
                 }
-                """);
-        }
-    }
+            }
+            """,
+            """
+            class Example
+            {
+                private int _field;
+
+                public Example(int argument) { }
+
+                void M()
+                {
+                    Example e = new(_field);
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68322")]
+    public Task TestImplicitCollectionCreationExpression()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class Example
+            {
+                void M()
+                {
+                    List<int> list = new() { [|_field|] };
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class Example
+            {
+                private int _field;
+
+                void M()
+                {
+                    List<int> list = new() { [|_field|] };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58491")]
+    public Task TestGeneratePropertiesFromTopLevel()
+        => TestInRegularAndScriptAsync(
+            """
+            var x = new Test() { [|A|] = 1, B = 1 };
+            class Test
+            {
+            }
+            """,
+            """
+            var x = new Test() { A = 1, B = 1 };
+            class Test
+            {
+                public int A { get; internal set; }
+            }
+            """);
+
+    [Fact]
+    public Task TestNullConditionalAssignment1()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(Class c)
+                {
+                    c?.[|goo|] = 1;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private int goo;
+
+                void Method(Class c)
+                {
+                    c?.goo = 1;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNullConditionalAssignment2()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(Class c)
+                {
+                    c?.[|Goo|] = 1;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public int Goo { get; private set; }
+
+                void Method(Class c)
+                {
+                    c?.Goo = 1;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNullConditionalAssignment3()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(D c)
+                {
+                    c?.[|Goo|] = 1;
+                }
+            }
+
+            class D
+            {
+            }
+            """,
+            """
+            class Class
+            {
+                void Method(D c)
+                {
+                    c?.Goo = 1;
+                }
+            }
+            
+            class D
+            {
+                public int Goo { get; internal set; }
+            }
+            """);
+
+    [Fact]
+    public Task TestNullConditionalAssignment4()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(D? c)
+                {
+                    c?.[|Goo|] = 1;
+                }
+            }
+
+            struct D
+            {
+            }
+            """,
+            """
+            class Class
+            {
+                void Method(D? c)
+                {
+                    c?.Goo = 1;
+                }
+            }
+            
+            struct D
+            {
+                public int Goo { get; internal set; }
+            }
+            """);
 }

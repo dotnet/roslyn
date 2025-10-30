@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -229,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         string ISymbolInternal.MetadataName => this.MetadataName;
 
-        public Cci.TypeMemberVisibility MetadataVisibility
+        public virtual Cci.TypeMemberVisibility MetadataVisibility
         {
             get
             {
@@ -648,10 +647,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case SymbolKind.NamedType:
-                        if (((NamedTypeSymbol)this).IsSubmissionClass)
+                        var namedType = (NamedTypeSymbol)this;
+                        if (namedType.IsSubmissionClass || namedType.IsExtension)
                         {
                             return false;
                         }
+
                         break;
 
                     case SymbolKind.Property:
@@ -870,20 +871,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Build and add synthesized attributes for this symbol.
         /// </summary>
-        internal virtual void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal virtual void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
         }
 
         /// <summary>
         /// Convenience helper called by subclasses to add a synthesized attribute to a collection of attributes.
         /// </summary>
-        internal static void AddSynthesizedAttribute(ref ArrayBuilder<SynthesizedAttributeData> attributes, SynthesizedAttributeData attribute)
+        internal static void AddSynthesizedAttribute(ref ArrayBuilder<CSharpAttributeData> attributes, CSharpAttributeData attribute)
         {
             if (attribute != null)
             {
                 if (attributes == null)
                 {
-                    attributes = new ArrayBuilder<SynthesizedAttributeData>(1);
+                    attributes = new ArrayBuilder<CSharpAttributeData>(1);
                 }
 
                 attributes.Add(attribute);
@@ -990,6 +991,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable 
+        public string GetEscapedDocumentationCommentId()
+        {
+            return escape(GetDocumentationCommentId());
+
+            static string escape(string s)
+            {
+                Debug.Assert(!s.Contains("&"));
+                return s.Replace("<", "&lt;").Replace(">", "&gt;");
+            }
+        }
+
         /// <summary>
         /// Fetches the documentation comment for this element with a cancellation token.
         /// </summary>
@@ -1236,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return DeriveUseSiteInfoFromType(ref result, param.TypeWithAnnotations, AllowedRequiredModifierType.None) ||
                    DeriveUseSiteInfoFromCustomModifiers(ref result, param.RefCustomModifiers,
                                                               this is MethodSymbol method && method.MethodKind == MethodKind.FunctionPointerSignature ?
-                                                                  AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute | AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute :
+                                                                  AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute | AllowedRequiredModifierType.System_Runtime_InteropServices_OutAttribute :
                                                                   AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute);
         }
 
@@ -1260,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             System_Runtime_CompilerServices_Volatile = 1,
             System_Runtime_InteropServices_InAttribute = 1 << 1,
             System_Runtime_CompilerServices_IsExternalInit = 1 << 2,
-            System_Runtime_CompilerServices_OutAttribute = 1 << 3,
+            System_Runtime_InteropServices_OutAttribute = 1 << 3,
         }
 
         internal bool DeriveUseSiteInfoFromCustomModifiers(ref UseSiteInfo<AssemblySymbol> result, ImmutableArray<CustomModifier> customModifiers, AllowedRequiredModifierType allowedRequiredModifierType)
@@ -1291,10 +1303,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         current = AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
                     }
-                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute) != 0 &&
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_InteropServices_OutAttribute) != 0 &&
                         modifierType.IsWellKnownTypeOutAttribute())
                     {
-                        current = AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute;
+                        current = AllowedRequiredModifierType.System_Runtime_InteropServices_OutAttribute;
                     }
 
                     if (current == AllowedRequiredModifierType.None ||
@@ -1519,6 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ScopedRefAttribute = 1 << 12,
             RefSafetyRulesAttribute = 1 << 13,
             RequiresLocationAttribute = 1 << 14,
+            ExtensionMarkerAttribute = 1 << 15,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1595,6 +1608,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RefSafetyRulesAttribute))
             {
             }
+            else if ((reserved & ReservedAttributes.ExtensionMarkerAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.ExtensionMarkerAttribute))
+            {
+            }
             else
             {
                 return false;
@@ -1668,7 +1685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.AddValue(((ParameterSymbol)this).TypeWithAnnotations);
                     break;
                 case SymbolKind.TypeParameter:
-                    if (this is SourceTypeParameterSymbolBase typeParameter)
+                    if (this is SourceTypeParameterSymbol typeParameter)
                     {
                         builder.AddValue(typeParameter.GetSynthesizedNullableAttributeValue());
                         foreach (var constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
@@ -1738,6 +1755,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(variable.Kind);
+            }
+
+            if (containingSymbol.IsExtensionBlockMember()
+                && variable is ParameterSymbol { ContainingSymbol: NamedTypeSymbol { IsExtension: true } })
+            {
+                // An extension member doesn't capture the extension parameter
+                return false;
             }
 
             // Walk up the containing symbols until we find the target function, in which

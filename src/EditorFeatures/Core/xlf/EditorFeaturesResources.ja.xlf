@@ -2,24 +2,44 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../EditorFeaturesResources.resx">
     <body>
-      <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
-        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
-        <target state="translated">識別子 '{0}' のインラインの名前変更セッションがアクティブです。追加オプションにアクセスするには、インラインの名前変更をもう一度呼び出します。名前を変更する識別子はいつでも引き続き編集できます。</target>
-        <note>For screenreaders. {0} is the identifier being renamed.</note>
+      <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
+        <source>An error occurred while generating documentation for this code.</source>
+        <target state="translated">このコードのドキュメントの生成中にエラーが発生しました。</target>
+        <note />
       </trans-unit>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">変更の適用</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">カレットの下のシンボルに移動できません。</target>
-        <note />
+      <trans-unit id="Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset">
+        <source>Chat limit reached, [upgrade now] or wait for the limit to reset.</source>
+        <target state="translated">チャットの制限に達しました。[今すぐアップグレード] するか、制限がリセットされるまでお待ちください。</target>
+        <note>The text surrounded by "[" and "]" characters will be hyperlinked. Please ensure the localized text still has "[" and "]" characters.</note>
       </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">'フィールドのカプセル化' 情報を計算中</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot">
+        <source>Copilot</source>
+        <target state="translated">Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot_thinking">
+        <source>Copilot thinking...</source>
+        <target state="translated">Copilot は考え中です...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="translated">Copilot で説明する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="translated">参照されているドキュメントが組織によって除外されているため、'Copilot で説明' は使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -56,6 +76,11 @@
         <source>Filter</source>
         <target state="translated">フィルター</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
+      </trans-unit>
+      <trans-unit id="Generate_summary_with_Copilot">
+        <source>Generate summary with Copilot (might be inaccurate)</source>
+        <target state="translated">Copilot で要約を生成する (不正確になる可能性があります)</target>
+        <note />
       </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
@@ -204,7 +229,12 @@
       </trans-unit>
       <trans-unit id="Obsolete_symbol">
         <source>Obsolete symbol</source>
-        <target state="new">Obsolete symbol</target>
+        <target state="translated">古い記号</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="On_the_fly_documentation">
+        <source>On-the-fly documentation</source>
+        <target state="translated">オンザフライのドキュメント</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -299,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Run">
         <source>Run</source>
-        <target state="new">Run</target>
+        <target state="translated">実行</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_comment">
@@ -602,9 +632,19 @@
         <target state="translated">{0} 個の競合が解決されます</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_declarations_and_interceptors">
+        <source>'{0}' declarations and interceptors</source>
+        <target state="translated">'{0}' 宣言とインターセプター</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
         <target state="translated">'{0}' が実装されたメンバー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_intercepted_locations">
+        <source>'{0}' intercepted locations</source>
+        <target state="translated">'{0}' が傍受された場所</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
@@ -750,11 +790,6 @@
       <trans-unit id="Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated">
         <source>Rename operation was not properly completed. Some file might not have been updated.</source>
         <target state="translated">名前の変更操作は正常に終了しませんでした。ファイルのいくつかは更新されなかった可能性があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">'{0}' を '{1}' に名前変更</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">
@@ -942,11 +977,6 @@
         <target state="translated">前の兄弟の範囲を検索しています...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_colon_0">
-        <source>Rename: {0}</source>
-        <target state="translated">{0} の名前変更</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">インタラクティブ ウィンドウにエンジンを関連付ける必要があります。</target>
@@ -1029,8 +1059,8 @@
       </trans-unit>
       <trans-unit id="Change_Signature">
         <source>Change Signature</source>
-        <target state="translated">署名の変更</target>
-        <note />
+        <target state="needs-review-translation">署名の変更</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Preview_Changes_0">
         <source>Preview Changes - {0}</source>
@@ -1062,17 +1092,10 @@
         <target state="translated">自動書式</target>
         <note />
       </trans-unit>
-      <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
-        <source>We can fix the error by not making struct "out/ref" parameter(s).
-Do you want to proceed?</source>
-        <target state="translated">構造体の "out/ref" パラメーターを作成しないことによって、エラーを解決できます。
-続行しますか?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_Signature_colon">
         <source>Change Signature:</source>
-        <target state="translated">署名の変更:</target>
-        <note />
+        <target state="needs-review-translation">署名の変更:</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
@@ -1127,11 +1150,6 @@ Do you want to proceed?</source>
       <trans-unit id="Preview_changes1">
         <source>_Preview changes</source>
         <target state="translated">変更のプレビュー(_P)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply3">
-        <source>Apply</source>
-        <target state="translated">適用</target>
         <note />
       </trans-unit>
       <trans-unit id="Cancel">
@@ -1202,16 +1220,6 @@ Do you want to proceed?</source>
       <trans-unit id="Go_To_Implementation">
         <source>Go To Implementation</source>
         <target state="translated">実装に移動</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_name_colon_0">
-        <source>New name: {0}</source>
-        <target state="translated">新しい名前: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modify_any_highlighted_location_to_begin_renaming">
-        <source>Modify any highlighted location to begin renaming.</source>
-        <target state="translated">名前の変更を始めるには、強調表示された場所を変更してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste">

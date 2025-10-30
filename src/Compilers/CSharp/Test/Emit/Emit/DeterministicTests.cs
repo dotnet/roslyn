@@ -373,7 +373,7 @@ using System.Runtime.CompilerServices;
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "Static execution is runtime defined and this tests Clr behavior only")]
+        [ConditionalFact(typeof(NotOnAnyMono), Reason = "Static execution is runtime defined and this tests Clr behavior only")]
         public void TestPartialPartsDeterministic()
         {
             var x1 =

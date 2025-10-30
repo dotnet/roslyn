@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class StaticKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class StaticKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.StaticKeyword)
 {
     private static readonly ISet<SyntaxKind> s_validTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
@@ -73,11 +73,6 @@ internal class StaticKeywordRecommender : AbstractSyntacticSingleKeywordRecommen
         SyntaxKind.UnsafeKeyword
     };
 
-    public StaticKeywordRecommender()
-        : base(SyntaxKind.StaticKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return
@@ -110,7 +105,7 @@ internal class StaticKeywordRecommender : AbstractSyntacticSingleKeywordRecommen
     {
         return context.IsTypeDeclarationContext(
             validModifiers: s_validTypeModifiers,
-            validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+            validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
             canBePartial: false,
             cancellationToken: cancellationToken);
     }

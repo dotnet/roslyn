@@ -1048,7 +1048,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateStringLiteral(
-                                            syntax As VisualBasicSyntaxNode,
+                                            syntax As SyntaxNode,
                                             str As String,
                                             compilerGenerated As Boolean,
                                             diagnostics As BindingDiagnosticBag,
@@ -1636,6 +1636,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return _originalDefinition.GetOverloadResolutionPriority()
+        End Function
+
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
                 Return False
@@ -1852,6 +1856,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End Get
             End Property
+
+            Public Overrides Function GetOverloadResolutionPriority() As Integer
+                Return _originalDefinition.GetOverloadResolutionPriority()
+            End Function
 
             Public Overrides ReadOnly Property IsOverridable As Boolean
                 Get

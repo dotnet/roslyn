@@ -132,7 +132,7 @@ internal readonly struct SerializableReferenceLocation(
     TextSpan location,
     bool isImplicit,
     SymbolUsageInfo symbolUsageInfo,
-    ImmutableDictionary<string, string> additionalProperties,
+    ImmutableArray<(string key, string value)> additionalProperties,
     CandidateReason candidateReason)
 {
     [DataMember(Order = 0)]
@@ -151,7 +151,7 @@ internal readonly struct SerializableReferenceLocation(
     public readonly SymbolUsageInfo SymbolUsageInfo = symbolUsageInfo;
 
     [DataMember(Order = 5)]
-    public readonly ImmutableDictionary<string, string> AdditionalProperties = additionalProperties;
+    public readonly ImmutableArray<(string key, string value)> AdditionalProperties = additionalProperties;
 
     [DataMember(Order = 6)]
     public readonly CandidateReason CandidateReason = candidateReason;
@@ -180,10 +180,10 @@ internal readonly struct SerializableReferenceLocation(
             document,
             aliasSymbol,
             CodeAnalysis.Location.Create(syntaxTree, Location),
-            isImplicit: IsImplicit,
-            symbolUsageInfo: SymbolUsageInfo,
-            additionalProperties: additionalProperties ?? ImmutableDictionary<string, string>.Empty,
-            candidateReason: CandidateReason);
+            IsImplicit,
+            SymbolUsageInfo,
+            additionalProperties,
+            CandidateReason);
     }
 
     private async Task<IAliasSymbol?> RehydrateAliasAsync(
@@ -198,10 +198,10 @@ internal readonly struct SerializableReferenceLocation(
 }
 
 [DataContract]
-internal class SerializableSymbolGroup(HashSet<SerializableSymbolAndProjectId> symbols) : IEquatable<SerializableSymbolGroup>
+internal sealed class SerializableSymbolGroup(HashSet<SerializableSymbolAndProjectId> symbols) : IEquatable<SerializableSymbolGroup>
 {
     [DataMember(Order = 0)]
-    public readonly HashSet<SerializableSymbolAndProjectId> Symbols = new HashSet<SerializableSymbolAndProjectId>(symbols);
+    public readonly HashSet<SerializableSymbolAndProjectId> Symbols = [.. symbols];
 
     private int _hashCode;
 
@@ -234,8 +234,7 @@ internal class SerializableSymbolGroup(HashSet<SerializableSymbolAndProjectId> s
 
     public static SerializableSymbolGroup Dehydrate(Solution solution, SymbolGroup group, CancellationToken cancellationToken)
     {
-        return new SerializableSymbolGroup(new HashSet<SerializableSymbolAndProjectId>(
-            group.Symbols.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken))));
+        return new SerializableSymbolGroup([.. group.Symbols.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken))]);
     }
 }
 

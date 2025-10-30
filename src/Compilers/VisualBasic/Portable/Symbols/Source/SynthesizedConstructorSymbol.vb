@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._debuggable = isDebuggable
         End Sub
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             ' Dev11 emits DebuggerNonUserCodeAttribute. This attribute is not needed since we don't emit any debug info for the constructor.

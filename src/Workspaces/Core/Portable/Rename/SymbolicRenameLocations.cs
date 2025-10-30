@@ -2,20 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename;
@@ -43,7 +38,7 @@ internal sealed partial class SymbolicRenameLocations
         ImmutableArray<ReferenceLocation> implicitLocations,
         ImmutableArray<ISymbol> referencedSymbols)
     {
-        Debug.Assert(locations.Distinct().Count() == locations.Length, "Locations should be unique");
+        Debug.Assert(locations.Distinct().Length == locations.Length, "Locations should be unique");
         Contract.ThrowIfTrue(locations.IsDefault);
         Contract.ThrowIfTrue(implicitLocations.IsDefault);
         Contract.ThrowIfTrue(referencedSymbols.IsDefault);
@@ -123,7 +118,7 @@ internal sealed partial class SymbolicRenameLocations
         foreach (var overloadedSymbol in RenameUtilities.GetOverloadedSymbols(symbol))
             overloadsResult.Add(await AddLocationsReferenceSymbolsAsync(overloadedSymbol, solution, cancellationToken).ConfigureAwait(false));
 
-        return overloadsResult.ToImmutable();
+        return overloadsResult.ToImmutableAndClear();
     }
 
     private static async Task<SearchResult> AddLocationsReferenceSymbolsAsync(
@@ -142,12 +137,13 @@ internal sealed partial class SymbolicRenameLocations
 
             locations.AddAll(
                 await referencedSymbol.Locations.SelectManyInParallelAsync(
-                    (l, c) => ReferenceProcessing.GetRenamableReferenceLocationsAsync(referencedSymbol.Definition, symbol, l, solution, c),
+                    (l, c) => ReferenceProcessing.GetRenamableReferenceLocationsAsync(
+                        referencedSymbol.Definition, symbol, l, solution, c),
                     cancellationToken).ConfigureAwait(false));
         }
 
-        var implicitLocations = referenceSymbols.SelectMany(refSym => refSym.Locations).Where(loc => loc.IsImplicit).ToImmutableArray();
-        var referencedSymbols = referenceSymbols.Select(r => r.Definition).Where(r => !r.Equals(symbol)).ToImmutableArray();
+        var implicitLocations = referenceSymbols.SelectMany(refSym => refSym.Locations).WhereAsArray(loc => loc.IsImplicit);
+        var referencedSymbols = referenceSymbols.Select(r => r.Definition).WhereAsArray(r => !r.Equals(symbol));
 
         return new SearchResult(locations.ToImmutable(), implicitLocations, referencedSymbols);
     }

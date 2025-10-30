@@ -6,11 +6,9 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.UseIsNullCheck
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
@@ -34,7 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
                 document As Document,
                 diagnostics As ImmutableArray(Of Diagnostic),
                 editor As SyntaxEditor,
-                fallbackOptions As CodeActionOptionsProvider,
                 cancellationToken As CancellationToken) As Task
 
             For Each diagnostic In diagnostics

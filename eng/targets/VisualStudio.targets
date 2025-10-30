@@ -45,7 +45,7 @@
 
   <!--
     Disable auto-including referenced libraries to VSIX by default.
-    Instead, set IncludeInVsix="true" on PackageReference items to include them.
+    Instead, set ForceIncludeInVsix="true" on PackageReference items to include them.
   -->
 
   <PropertyGroup>
@@ -59,7 +59,7 @@
       We join PackageReference list with ReferenceCopyLocalPaths items to get the list of dlls to include in the VSIX.
     -->
     <ItemGroup>
-      <_NuGetPackageToIncludeInVsix Include="@(PackageReference)" Condition="'%(PackageReference.IncludeInVsix)' == 'true' or '%(PackageReference.PkgDefEntry)' != ''"/>
+      <_NuGetPackageToIncludeInVsix Include="@(PackageReference)" Condition="'%(PackageReference.ForceIncludeInVsix)' == 'true' or '%(PackageReference.PkgDefEntry)' != ''"/>
       
       <_RuntimeAssetsByPackageId Include="@(ReferenceCopyLocalPaths->'%(NuGetPackageId)')" Condition="%(ReferenceCopyLocalPaths.AssetType) == 'runtime'">
         <Path>%(ReferenceCopyLocalPaths.Identity)</Path>
@@ -73,7 +73,7 @@
 
     <ItemGroup>
       <!-- Include runtime assets in the VSIX -->
-      <VSIXCopyLocalReferenceSourceItem Include="@(_RuntimeAssetsWithMetadata->'%(Path)')" Condition="'%(_RuntimeAssetsWithMetadata.IncludeInVsix)' == 'true'">
+      <VSIXCopyLocalReferenceSourceItem Include="@(_RuntimeAssetsWithMetadata->'%(Path)')" Condition="'%(_RuntimeAssetsWithMetadata.ForceIncludeInVsix)' == 'true'">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
         <Ngen Condition="'%(_RuntimeAssetsWithMetadata.Optimization)' == 'true'">true</Ngen>
@@ -86,7 +86,7 @@
       <PkgDefCodeBase Include="@(_RuntimeAssetsWithMetadata->'%(Path)')" Condition="'%(_RuntimeAssetsWithMetadata.PkgDefEntry)' == 'CodeBase'" />
 
       <!-- Check that _NuGetPackageToIncludeInVsix doesn't list unreferenced package -->
-      <_UnknownAssets Include="@(_NuGetPackageToIncludeInVsix)" Condition="'%(_NuGetPackageToIncludeInVsix.IncludeInVsix)' == 'true'" />
+      <_UnknownAssets Include="@(_NuGetPackageToIncludeInVsix)" Condition="'%(_NuGetPackageToIncludeInVsix.ForceIncludeInVsix)' == 'true'" />
       <_UnknownAssets Remove="@(_RuntimeAssetsWithMetadata)" />
     </ItemGroup>
 
@@ -142,17 +142,56 @@
            Condition="$([MSBuild]::ValueOrDefault('$(ExtensionsPath)', '').Contains('16.0'))"/>
   </Target>
 
-  <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
+  <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
+
+  <!-- Import workarounds for the fast up to date check, but only if VsSdkTargetsImported is set which is set in the VS SDK targets themselves;
+       if we don't have that condition, we might try to include it when we don't have some targets we depend on, and things will break -->
+  <Import Project="VisualStudio.FastUpToDateCheckWorkarounds.targets" Condition="'$(VsSdkTargetsImported)' == 'true'"/>
 
   <!--
-    TODO: Workaround for a bug in Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk
-    Remove once we can update to a version that includes the fix.
+    Workaround for missing dependency publishing feature in the VS SDK.
+    
+    Relies on the following convention: When a project reference publish outputs (i.e. more than standard build outputs) need to be packaged into a VSIX,
+    the project should define PublishedProjectOutputGroup target and include it in ProjectRefrence.IncludeOutputGroupsInVSIX.
 
-    Replaces ExtensionJsonOutputGroup target defined in Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk.props
+    PublishedProjectOutputGroup target may gather all the publishing items to be packaged into the VSIX using PublishItemsOutputGroup target,
+    but should not depend on Publish target (i.e. invoking PublishedProjectOutputGroup target should not trigger actual publishing).
+
+    Target PublishProjectReferencesForVsixCreation will take care of publishing for all ProjectReferences with PublishedProjectOutputGroup.
   -->
-  <Target Name="ExtensionJsonOutputGroup" Returns="@(ExtensionJsonOutputGroupOutput)" DependsOnTargets="IncludeGeneratedExtensionManifests">
+  
+  <PropertyGroup>
+    <CreateVsixContainerDependsOn>$(CreateVsixContainerDependsOn);PublishProjectReferencesForVsixCreation</CreateVsixContainerDependsOn>
+    <CollectUpToDateCheckInputDesignTimeDependsOn>$(CollectUpToDateCheckInputDesignTimeDependsOn);AddUpToDateCheckItemsForPublishProjectReferences</CollectUpToDateCheckInputDesignTimeDependsOn>
+  </PropertyGroup>
+
+  <Target Name="PublishProjectReferencesForVsixCreation">
     <ItemGroup>
-      <ExtensionJsonOutputGroupOutput Include="$(OutDir)\.vsextension\extension.json" Condition="Exists('$(OutDir)\.vsextension\extension.json')" TargetPath=".vsextension\extension.json" />
+      <_ProjectsToPublish Include="@(ProjectReference)" Condition="$([MSBuild]::ValueOrDefault('%(ProjectReference.IncludeOutputGroupsInVSIX)', '').Contains('PublishedProjectOutputGroup'))"/>
+    </ItemGroup>
+
+    <MSBuild Projects="@(_ProjectsToPublish)"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="%(_ProjectsToPublish.SetConfiguration);%(_ProjectsToPublish.SetPlatform);%(_ProjectsToPublish.SetTargetFramework)"
+             Targets="PublishVsixItems"
+             RebaseOutputs="true" />
+  </Target>
+
+  <Target Name="AddUpToDateCheckItemsForPublishProjectReferences">
+    <ItemGroup>
+      <_ProjectsToPublishForUpToDateCheck Include="@(ProjectReference)" Condition="$([MSBuild]::ValueOrDefault('%(ProjectReference.IncludeOutputGroupsInVSIX)', '').Contains('PublishedProjectOutputGroup'))"/>
+    </ItemGroup>
+    <MSBuild Projects="@(_ProjectsToPublishForUpToDateCheck)"
+           BuildInParallel="$(BuildInParallel)"
+           Properties="%(_ProjectsToPublishForUpToDateCheck.SetConfiguration);%(_ProjectsToPublishForUpToDateCheck.SetPlatform);%(_ProjectsToPublishForUpToDateCheck.SetTargetFramework)"
+           Targets="PublishItemsOutputGroup"
+           RebaseOutputs="true"
+           ContinueOnError="$(ContinueOnError)">
+      <Output TaskParameter="TargetOutputs" ItemName="_PublishUpToDateInputs" />
+    </MSBuild>
+
+    <ItemGroup>
+      <UpToDateCheckInput Include="@(_PublishUpToDateInputs)" Set="VsixItems" />
     </ItemGroup>
   </Target>
 </Project>

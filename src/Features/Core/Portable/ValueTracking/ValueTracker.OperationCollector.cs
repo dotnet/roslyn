@@ -10,12 +10,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValueTracking;
 
 internal static partial class ValueTracker
 {
-    private class OperationCollector(ValueTrackingProgressCollector progressCollector, Solution solution)
+    private sealed class OperationCollector(ValueTrackingProgressCollector progressCollector, Solution solution)
     {
         public ValueTrackingProgressCollector ProgressCollector { get; } = progressCollector;
         public Solution Solution { get; } = solution;
@@ -180,16 +182,14 @@ internal static partial class ValueTracker
         private async Task TrackArgumentsAsync(ImmutableArray<IArgumentOperation> argumentOperations, CancellationToken cancellationToken)
         {
             var collectorsAndArgumentMap = argumentOperations
-                .Where(ShouldTrackArgument)
                 // Clone the collector here to allow each argument to report multiple items.
                 // See Clone() docs for more details
-                .Select(argument => (collector: Clone(), argument))
-                .ToImmutableArray();
+                .SelectAsArray(ShouldTrackArgument, argument => (collector: Clone(), argument));
 
-            var tasks = collectorsAndArgumentMap
-                .Select(pair => Task.Run(() => pair.collector.VisitAsync(pair.argument, cancellationToken)));
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await Parallel.ForEachAsync(
+                collectorsAndArgumentMap,
+                cancellationToken,
+                async (pair, cancellationToken) => await pair.collector.VisitAsync(pair.argument.Value, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
 
             var items = collectorsAndArgumentMap
                 .Select(pair => pair.collector.ProgressCollector)

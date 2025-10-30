@@ -10,10 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
@@ -30,8 +28,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
     }
 
     public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-        => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project,
-            FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType);
+        => [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType];
 
     public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         => DefaultFixAllProviderHelpers.GetFixAsync(
@@ -155,7 +152,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                 // Create a context that will add the reported code actions into this
                 using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
                 var action = GetRegisterCodeFixAction(fixAllContext.CodeActionEquivalenceKey, codeActions);
-                var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, [diagnostic], action, fixAllContext.State.CodeActionOptionsProvider, cancellationToken);
+                var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, [diagnostic], action, cancellationToken);
 
                 // Wait for the all the code actions to be reported for this diagnostic.
                 var registerTask = fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
@@ -167,7 +164,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                 foreach (var codeAction in codeActions)
                 {
                     var changedSolution = await codeAction.GetChangedSolutionInternalAsync(
-                        solution, fixAllContext.Progress, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        solution, fixAllContext.Progress, cancellationToken).ConfigureAwait(false);
                     if (changedSolution != null)
                     {
                         var changedDocumentIds = new SolutionChanges(changedSolution, solution).GetProjectChanges().SelectMany(p => p.GetChangedDocuments());
@@ -175,7 +172,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                     }
                 }
 
-                return changedDocuments.ToImmutable();
+                return changedDocuments.ToImmutableAndClear();
             }, cancellationToken));
         }
 
@@ -188,7 +185,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
         foreach (var task in tasks)
             result.AddRange(await task.ConfigureAwait(false));
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -236,9 +233,8 @@ internal sealed class BatchFixAllProvider : FixAllProvider
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var builder);
             builder.Push(action);
-            while (builder.Count > 0)
+            while (builder.TryPop(out var currentAction))
             {
-                var currentAction = builder.Pop();
                 if (currentAction is { EquivalenceKey: var equivalenceKey }
                     && codeActionEquivalenceKey == equivalenceKey)
                 {
@@ -254,15 +250,10 @@ internal sealed class BatchFixAllProvider : FixAllProvider
 
     private static async Task<Solution> ApplyChangesAsync(
         Solution currentSolution,
-        ImmutableArray<(DocumentId, TextChangeMerger)> docIdsAndMerger,
+        ImmutableArray<(DocumentId documentId, TextChangeMerger merger)> docIdsAndMerger,
         CancellationToken cancellationToken)
     {
-        foreach (var (documentId, textMerger) in docIdsAndMerger)
-        {
-            var newText = await textMerger.GetFinalMergedTextAsync(cancellationToken).ConfigureAwait(false);
-            currentSolution = currentSolution.WithDocumentText(documentId, newText);
-        }
-
-        return currentSolution;
+        var docIdsAndTexts = await docIdsAndMerger.SelectAsArrayAsync(async t => (t.documentId, await t.merger.GetFinalMergedTextAsync(cancellationToken).ConfigureAwait(false))).ConfigureAwait(false);
+        return currentSolution.WithDocumentTexts(docIdsAndTexts);
     }
 }

@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -89,7 +88,7 @@ internal abstract class AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringP
             if (!blockFacts.IsExecutableBlock(ifOrElseIf.Parent))
             {
                 // In order to insert a new statement, we have to be inside a block.
-                editor.ReplaceNode(ifOrElseIf, (currentNode, _) => generator.ScopeBlock(ImmutableArray.Create(currentNode)));
+                editor.ReplaceNode(ifOrElseIf, (currentNode, _) => generator.ScopeBlock([currentNode]));
             }
 
             editor.InsertAfter(ifOrElseIf, secondIfStatement);

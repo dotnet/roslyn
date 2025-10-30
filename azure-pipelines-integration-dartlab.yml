@@ -24,6 +24,14 @@ resources:
     trigger:
     - main
 
+parameters:
+  - name: prNumber
+    type: string
+    default: 'None'
+  - name: sha
+    type: string
+    default: 'None'
+
 variables:
 - name: XUNIT_LOGS
   value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
@@ -35,6 +43,7 @@ variables:
 stages:
 - template: \stages\visual-studio\agent.yml@DartLabTemplates
   parameters:
+    name: VSIntegration
     displayName: VS Integration
     testLabPoolName: VS-Platform
     visualStudioBootstrapperURI: https://vsdrop.corp.microsoft.com/file/v1/$(VisualStudio.BuildUnderTest.ProductsDropName);bootstrappers/Enterprise/vs_enterprise.exe
@@ -67,6 +76,8 @@ stages:
         arguments: -DropNamePrefix 'Products' -VstsDropUrlsJson '$(Pipeline.Workspace)\VisualStudioBuildUnderTest\BuildArtifacts\VstsDropUrls.json' -OutVariableName 'VisualStudio.BuildUnderTest.ProductsDropName'
     deployAndRunTestsStepList:
     - checkout: RoslynMirror
+      fetchDepth: 1
+      fetchTags: false
     - template: eng/pipelines/test-integration-job.yml
       parameters:
         configuration: $(_configuration)

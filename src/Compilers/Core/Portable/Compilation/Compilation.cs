@@ -24,11 +24,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -42,6 +40,13 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract partial class Compilation
     {
+        /// <summary>
+        /// Optional data collected during testing only.
+        /// Used for instance for nullable analysis (NullableWalker.NullableAnalysisData)
+        /// and inferred delegate types (InferredDelegateTypeData).
+        /// </summary>
+        internal object? TestOnlyCompilationData;
+
         /// <summary>
         /// Returns true if this is a case sensitive compilation, false otherwise.  Case sensitivity
         /// affects compilation features such as name lookup as well as choosing what names to emit
@@ -62,6 +67,8 @@ namespace Microsoft.CodeAnalysis
 
         // Protected for access in CSharpCompilation.WithAdditionalFeatures
         protected readonly IReadOnlyDictionary<string, string> _features;
+
+        private readonly Lazy<int?> _lazyDataSectionStringLiteralThreshold;
 
         public ScriptCompilationInfo? ScriptCompilationInfo => CommonScriptCompilationInfo;
         internal abstract ScriptCompilationInfo? CommonScriptCompilationInfo { get; }
@@ -84,6 +91,7 @@ namespace Microsoft.CodeAnalysis
 
             _lazySubmissionSlotIndex = isSubmission ? SubmissionSlotIndexToBeAllocated : SubmissionSlotIndexNotApplicable;
             _features = features;
+            _lazyDataSectionStringLiteralThreshold = new Lazy<int?>(ComputeDataSectionStringLiteralThreshold);
         }
 
         protected static IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
@@ -371,6 +379,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract INamespaceSymbol CommonCreateErrorNamespaceSymbol(INamespaceSymbol container, string name);
+
+        /// <summary>
+        /// Returns a new IPreprocessingSymbol representing a preprocessing symbol with the given name.
+        /// </summary>
+        public IPreprocessingSymbol CreatePreprocessingSymbol(string name)
+            => CommonCreatePreprocessingSymbol(name ?? throw new ArgumentNullException(nameof(name)));
+
+        protected abstract IPreprocessingSymbol CommonCreatePreprocessingSymbol(string name);
 
         #region Name
 
@@ -3077,6 +3093,24 @@ namespace Microsoft.CodeAnalysis
             Stream ilStream,
             Stream pdbStream,
             CancellationToken cancellationToken = default(CancellationToken))
+            => EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, EmitDifferenceOptions.Default, cancellationToken);
+
+        /// <summary>
+        /// Emit the differences between the compilation and the previous generation
+        /// for Edit and Continue. The differences are expressed as added and changed
+        /// symbols, and are emitted as metadata, IL, and PDB deltas. A representation
+        /// of the current compilation is returned as an EmitBaseline for use in a
+        /// subsequent Edit and Continue.
+        /// </summary>
+        public EmitDifferenceResult EmitDifference(
+            EmitBaseline baseline,
+            IEnumerable<SemanticEdit> edits,
+            Func<ISymbol, bool> isAddedSymbol,
+            Stream metadataStream,
+            Stream ilStream,
+            Stream pdbStream,
+            EmitDifferenceOptions options,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             if (baseline == null)
             {
@@ -3111,7 +3145,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(pdbStream));
             }
 
-            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, testData: null, cancellationToken);
+            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, options, testData: null, cancellationToken);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -3122,6 +3156,7 @@ namespace Microsoft.CodeAnalysis
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
+            EmitDifferenceOptions options,
             CompilationTestData? testData,
             CancellationToken cancellationToken);
 
@@ -3400,11 +3435,74 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
+        /// <summary>
+        /// Return a version of the baseline with all definitions mapped to this compilation.
+        /// Definitions from the initial generation, from metadata, are not mapped since
+        /// the initial generation is always included as metadata. That is, the symbols from
+        /// types, methods, ... in the TypesAdded, MethodsAdded, ... collections are replaced
+        /// by the corresponding symbols from the current compilation.
+        /// </summary>
+        internal EmitBaseline MapToCompilation(CommonPEModuleBuilder moduleBeingBuilt)
+        {
+            var previousGeneration = moduleBeingBuilt.PreviousGeneration;
+            Debug.Assert(previousGeneration != null);
+            Debug.Assert(previousGeneration.Compilation != this);
+
+            if (previousGeneration.Ordinal == 0)
+            {
+                // Initial generation, nothing to map. (Since the initial generation
+                // is always loaded from metadata in the context of the current
+                // compilation, there's no separate mapping step.)
+                return previousGeneration;
+            }
+
+            Debug.Assert(previousGeneration.Compilation != null);
+            Debug.Assert(previousGeneration.PEModuleBuilder != null);
+            Debug.Assert(moduleBeingBuilt.EncSymbolChanges != null);
+
+            var currentSynthesizedTypes = moduleBeingBuilt.GetAllSynthesizedTypes();
+            var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
+            var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.DeletedMembers;
+
+            // Mapping from previous compilation to the current.
+            var matcher = CreatePreviousToCurrentSourceAssemblyMatcher(
+                previousGeneration,
+                currentSynthesizedTypes,
+                currentSynthesizedMembers,
+                currentDeletedMembers);
+
+            var mappedSynthesizedTypes = matcher.MapSynthesizedTypes(previousGeneration.SynthesizedTypes, currentSynthesizedTypes);
+
+            var mappedSynthesizedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, isDeletedMemberMapping: false);
+
+            // Deleted members are mapped the same way as synthesized members, so we can just call the same method.
+            var mappedDeletedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, isDeletedMemberMapping: true);
+
+            // TODO: can we reuse some data from the previous matcher?
+            var matcherWithAllSynthesizedTypesAndMembers = CreatePreviousToCurrentSourceAssemblyMatcher(
+                previousGeneration,
+                mappedSynthesizedTypes,
+                mappedSynthesizedMembers,
+                mappedDeletedMembers);
+
+            return matcherWithAllSynthesizedTypesAndMembers.MapBaselineToCompilation(
+                previousGeneration,
+                this,
+                moduleBeingBuilt,
+                mappedSynthesizedTypes,
+                mappedSynthesizedMembers,
+                mappedDeletedMembers);
+        }
+
+        private protected abstract SymbolMatcher CreatePreviousToCurrentSourceAssemblyMatcher(
+            EmitBaseline previousGeneration,
+            SynthesizedTypeMaps otherSynthesizedTypes,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherSynthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherDeletedMembers);
+
         internal EmitBaseline? SerializeToDeltaStreams(
             CommonPEModuleBuilder moduleBeingBuilt,
-            EmitBaseline baseline,
             DefinitionMap definitionMap,
-            SymbolChanges changes,
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
@@ -3424,6 +3522,13 @@ namespace Microsoft.CodeAnalysis
             using (nativePdbWriter)
             {
                 var context = new EmitContext(moduleBeingBuilt, diagnostics, metadataOnly: false, includePrivateMembers: true);
+
+                // Map the definitions from the previous compilation to the current compilation.
+                // This must be done after compiling since synthesized definitions (generated when compiling method bodies)
+                // may be required. Must also be done after determining deleted method definitions
+                // since doing so may synthesize HotReloadException symbol.
+
+                var baseline = MapToCompilation(moduleBeingBuilt);
                 var encId = Guid.NewGuid();
 
                 try
@@ -3434,7 +3539,6 @@ namespace Microsoft.CodeAnalysis
                         baseline,
                         encId,
                         definitionMap,
-                        changes,
                         cancellationToken);
 
                     moduleBeingBuilt.TestData?.SetMetadataWriter(writer);
@@ -3468,6 +3572,13 @@ namespace Microsoft.CodeAnalysis
                     diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, e.PropertyName, e.Message));
                     return null;
                 }
+                finally
+                {
+                    foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMemberDefinitions())
+                    {
+                        builder.Free();
+                    }
+                }
             }
         }
 
@@ -3486,6 +3597,33 @@ namespace Microsoft.CodeAnalysis
         /// When that flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
         /// </summary>
         internal bool CatchAnalyzerExceptions => Feature("debug-analyzers") == null;
+
+        internal int? DataSectionStringLiteralThreshold => _lazyDataSectionStringLiteralThreshold.Value;
+
+        private int? ComputeDataSectionStringLiteralThreshold()
+        {
+            if (Feature("experimental-data-section-string-literals") is { } s)
+            {
+                if (s == "off")
+                {
+                    // disabled
+                    return null;
+                }
+
+                if (int.TryParse(s, out var i) && i >= 0)
+                {
+                    // custom non-negative threshold
+                    // 0 can be used to enable for all strings
+                    return i;
+                }
+
+                // default value
+                return 100;
+            }
+
+            // disabled
+            return null;
+        }
 
         #endregion
 

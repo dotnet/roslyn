@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,6 +13,9 @@ internal readonly struct RudeEditDiagnostic
     [DataMember(Order = 0)]
     public readonly RudeEditKind Kind;
 
+    /// <summary>
+    /// Span in the new document. May be <c>default</c> if the document (or its entire content) has been deleted.
+    /// </summary>
     [DataMember(Order = 1)]
     public readonly TextSpan Span;
 
@@ -36,9 +38,9 @@ internal readonly struct RudeEditDiagnostic
     {
     }
 
-    internal Diagnostic ToDiagnostic(SyntaxTree tree)
+    internal Diagnostic ToDiagnostic(SyntaxTree? tree)
     {
         var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(Kind);
-        return Diagnostic.Create(descriptor, tree.GetLocation(Span), Arguments);
+        return Diagnostic.Create(descriptor, tree?.GetLocation(Span) ?? Location.None, Arguments);
     }
 }

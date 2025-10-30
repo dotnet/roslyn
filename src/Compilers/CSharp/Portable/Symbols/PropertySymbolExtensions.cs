@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class PropertySymbolExtensions
     {
+        public static bool IsParams(this PropertySymbol property)
+        {
+            return property.ParameterCount != 0 && property.Parameters[property.ParameterCount - 1].IsParams;
+        }
+
         /// <summary>
         /// If the property has a GetMethod, return that.  Otherwise check the overridden
         /// property, if any.  Repeat for each overridden property.

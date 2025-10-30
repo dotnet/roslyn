@@ -4,13 +4,13 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp;
 
 internal partial class CSharpTypeInferenceService
 {
-    private class TypeInferrer : AbstractTypeInferrer
+    private sealed class TypeInferrer : AbstractTypeInferrer
     {
         internal TypeInferrer(
             SemanticModel semanticModel,
@@ -114,9 +114,7 @@ internal partial class CSharpTypeInferenceService
                     }
 
                     if (IsUsableTypeFunc(typeInferenceInfo))
-                    {
-                        return SpecializedCollections.SingletonEnumerable(typeInferenceInfo);
-                    }
+                        return [typeInferenceInfo];
                 }
             }
 
@@ -276,46 +274,50 @@ internal partial class CSharpTypeInferenceService
                     return [];
             }
 
-            if (argument.Parent != null)
+            if (argument is { Parent.Parent: ConstructorInitializerSyntax initializer })
             {
-                if (argument.Parent.Parent is ConstructorInitializerSyntax initializer)
-                {
-                    var index = initializer.ArgumentList.Arguments.IndexOf(argument);
-                    return InferTypeInConstructorInitializer(initializer, index, argument);
-                }
+                var index = initializer.ArgumentList.Arguments.IndexOf(argument);
+                return InferTypeInConstructorInitializer(initializer, index, argument);
+            }
 
-                if (argument.Parent?.Parent is InvocationExpressionSyntax invocation)
-                {
-                    var index = invocation.ArgumentList.Arguments.IndexOf(argument);
-                    return InferTypeInInvocationExpression(invocation, index, argument);
-                }
+            if (argument is { Parent.Parent: InvocationExpressionSyntax invocation })
+            {
+                var index = invocation.ArgumentList.Arguments.IndexOf(argument);
+                return InferTypeInInvocationExpression(invocation, index, argument);
+            }
 
-                if (argument.Parent?.Parent is BaseObjectCreationExpressionSyntax creation)
-                {
-                    // new Outer(Goo());
-                    //
-                    // new Outer(a: Goo());
-                    //
-                    // etc.
-                    var index = creation.ArgumentList.Arguments.IndexOf(argument);
-                    return InferTypeInObjectCreationExpression(creation, index, argument);
-                }
+            if (argument is { Parent.Parent: BaseObjectCreationExpressionSyntax creation })
+            {
+                // new Outer(Goo());
+                //
+                // new Outer(a: Goo());
+                //
+                // etc.
+                var index = creation.ArgumentList.Arguments.IndexOf(argument);
+                return InferTypeInObjectCreationExpression(creation, index, argument);
+            }
 
-                if (argument.Parent?.Parent is ElementAccessExpressionSyntax elementAccess)
-                {
-                    // Outer[Goo()];
-                    //
-                    // Outer[a: Goo()];
-                    //
-                    // etc.
-                    var index = elementAccess.ArgumentList.Arguments.IndexOf(argument);
-                    return InferTypeInElementAccessExpression(elementAccess, index, argument);
-                }
+            if (argument is { Parent.Parent: PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType })
+            {
+                // class C() : Base(Goo());
+                var index = primaryConstructorBaseType.ArgumentList.Arguments.IndexOf(argument);
+                return InferTypeInPrimaryConstructorBaseType(primaryConstructorBaseType, index, argument);
+            }
 
-                if (argument?.Parent is TupleExpressionSyntax tupleExpression)
-                {
-                    return InferTypeInTupleExpression(tupleExpression, argument);
-                }
+            if (argument is { Parent.Parent: ElementAccessExpressionSyntax elementAccess })
+            {
+                // Outer[Goo()];
+                //
+                // Outer[a: Goo()];
+                //
+                // etc.
+                var index = elementAccess.ArgumentList.Arguments.IndexOf(argument);
+                return InferTypeInElementAccessExpression(elementAccess, index, argument);
+            }
+
+            if (argument is { Parent: TupleExpressionSyntax tupleExpression })
+            {
+                return InferTypeInTupleExpression(tupleExpression, argument);
             }
 
             if (argument.Parent.IsParentKind(SyntaxKind.ImplicitElementAccess) &&
@@ -446,6 +448,18 @@ internal partial class CSharpTypeInferenceService
                 // that type.
                 return CreateResult(type);
             }
+
+            var constructors = type.InstanceConstructors.Where(m => m.Parameters.Length > index);
+            return InferTypeInArgument(index, constructors, argumentOpt, parentInvocationExpressionToTypeInfer: null);
+        }
+
+        private IEnumerable<TypeInferenceInfo> InferTypeInPrimaryConstructorBaseType(
+            PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType, int index, ArgumentSyntax argumentOpt = null)
+        {
+            var info = SemanticModel.GetTypeInfo(primaryConstructorBaseType.Type, CancellationToken);
+
+            if (info.Type is not INamedTypeSymbol type)
+                return [];
 
             var constructors = type.InstanceConstructors.Where(m => m.Parameters.Length > index);
             return InferTypeInArgument(index, constructors, argumentOpt, parentInvocationExpressionToTypeInfer: null);
@@ -1609,8 +1623,7 @@ internal partial class CSharpTypeInferenceService
                 if (invoke != null)
                 {
                     var isAsync = anonymousFunction.AsyncKeyword.Kind() != SyntaxKind.None;
-                    return SpecializedCollections.SingletonEnumerable(
-                        new TypeInferenceInfo(UnwrapTaskLike(invoke.ReturnType, isAsync)));
+                    return [new TypeInferenceInfo(UnwrapTaskLike(invoke.ReturnType, isAsync))];
                 }
             }
 
@@ -1711,13 +1724,13 @@ internal partial class CSharpTypeInferenceService
             // then we can figure out what 'goo' should be based on teh await
             // context.
             var name = memberAccessExpression.Name.Identifier.Value;
-            if (name.Equals(nameof(Task<int>.ConfigureAwait)) &&
+            if (name.Equals(nameof(Task<>.ConfigureAwait)) &&
                 memberAccessExpression?.Parent is InvocationExpressionSyntax invocation &&
                 memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression))
             {
                 return InferTypes(invocation);
             }
-            else if (name.Equals(nameof(Task<int>.ContinueWith)))
+            else if (name.Equals(nameof(Task<>.ContinueWith)))
             {
                 // goo.ContinueWith(...)
                 // We want to infer Task<T>.  For now, we'll just do Task<object>,
@@ -1979,7 +1992,7 @@ internal partial class CSharpTypeInferenceService
             // We don't care what the type is, as long as it has 1 type argument. This will work for IEnumerable, IEnumerator,
             // IAsyncEnumerable, IAsyncEnumerator and it's also good for error recovery in case there is a missing using.
             return memberType is INamedTypeSymbol namedType && namedType.TypeArguments.Length == 1
-                ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(namedType.TypeArguments[0]))
+                ? [new TypeInferenceInfo(namedType.TypeArguments[0])]
                 : [];
         }
 
@@ -2031,7 +2044,7 @@ internal partial class CSharpTypeInferenceService
             var isAsync = symbol is IMethodSymbol methodSymbol && methodSymbol.IsAsync;
 
             return type != null
-                ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(UnwrapTaskLike(type, isAsync)))
+                ? [new TypeInferenceInfo(UnwrapTaskLike(type, isAsync))]
                 : [];
         }
 
@@ -2242,8 +2255,8 @@ internal partial class CSharpTypeInferenceService
                         return inferredFutureUsage.Length > 0 ? inferredFutureUsage[0].InferredType : Compilation.ObjectType;
                     });
 
-                    return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(
-                        Compilation.CreateTupleTypeSymbol(elementTypes, elementNames)));
+                    return [new TypeInferenceInfo(
+                        Compilation.CreateTupleTypeSymbol(elementTypes, elementNames))];
                 }
 
                 return GetTypes(declExpr.Type);
@@ -2358,7 +2371,7 @@ internal partial class CSharpTypeInferenceService
             if (previousToken.HasValue && previousToken.Value != whenClause.WhenKeyword)
                 return [];
 
-            return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(Compilation.GetSpecialType(SpecialType.System_Boolean)));
+            return [new TypeInferenceInfo(Compilation.GetSpecialType(SpecialType.System_Boolean))];
         }
 
         private IEnumerable<TypeInferenceInfo> InferTypeInWhileStatement(WhileStatementSyntax whileStatement, SyntaxToken? previousToken = null)

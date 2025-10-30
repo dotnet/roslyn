@@ -58,7 +58,7 @@ internal abstract class AbstractAddDebuggerDisplayCodeRefactoringProvider<
 
         context.RegisterRefactoring(CodeAction.Create(
             FeaturesResources.Add_DebuggerDisplay_attribute,
-            c => ApplyAsync(document, type, debuggerAttributeTypeSymbol, c),
+            cancellationToken => ApplyAsync(document, type, debuggerAttributeTypeSymbol, cancellationToken),
             nameof(FeaturesResources.Add_DebuggerDisplay_attribute),
             priority));
     }
@@ -125,12 +125,11 @@ internal abstract class AbstractAddDebuggerDisplayCodeRefactoringProvider<
             {
                 attributeArgument = generator.InterpolatedStringExpression(
                     generator.CreateInterpolatedStringStartToken(isVerbatim: false),
-                    new SyntaxNode[]
-                    {
+                    [
                         generator.InterpolatedStringText(generator.InterpolatedStringTextToken("{{", "{{")),
                         generator.Interpolation(generator.NameOfExpression(generator.IdentifierName(DebuggerDisplayMethodName))),
                         generator.InterpolatedStringText(generator.InterpolatedStringTextToken("(),nq}}", "(),nq}}")),
-                    },
+                    ],
                     generator.CreateInterpolatedStringEndToken());
             }
             else

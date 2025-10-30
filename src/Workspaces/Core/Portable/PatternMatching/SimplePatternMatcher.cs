@@ -4,14 +4,13 @@
 
 #nullable disable
 
-using System;
 using System.Globalization;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;
 
-internal partial class PatternMatcher
+internal abstract partial class PatternMatcher
 {
     internal sealed partial class SimplePatternMatcher : PatternMatcher
     {

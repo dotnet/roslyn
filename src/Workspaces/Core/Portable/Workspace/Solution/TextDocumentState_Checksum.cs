@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class TextDocumentState
+internal abstract partial class TextDocumentState
 {
     public bool TryGetStateChecksums([NotNullWhen(returnValue: true)] out DocumentStateChecksums? stateChecksums)
         => _lazyChecksums.TryGetValue(out stateChecksums);
@@ -36,11 +36,9 @@ internal partial class TextDocumentState
         {
             using (Logger.LogBlock(FunctionId.DocumentState_ComputeChecksumsAsync, FilePath, cancellationToken))
             {
-                var serializer = solutionServices.GetRequiredService<ISerializerService>();
-
                 var infoChecksum = this.Attributes.Checksum;
                 var serializableText = await SerializableSourceText.FromTextDocumentStateAsync(this, cancellationToken).ConfigureAwait(false);
-                var textChecksum = serializer.CreateChecksum(serializableText, cancellationToken);
+                var textChecksum = serializableText.ContentChecksum;
 
                 return new DocumentStateChecksums(this.Id, infoChecksum, textChecksum);
             }

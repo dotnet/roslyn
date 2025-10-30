@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -27,7 +28,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TObjectCreationExpressionSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
-        Match<TStatementSyntax>, TAnalyzer>
+        CollectionMatch<SyntaxNode>, TAnalyzer>
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
     where TObjectCreationExpressionSyntax : TExpressionSyntax
@@ -47,28 +48,45 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
+    protected bool _analyzeForCollectionExpression;
+
     protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
     protected abstract bool HasExistingInvalidInitializerForCollection();
-    protected abstract bool ValidateMatchesForCollectionExpression(ArrayBuilder<Match<TStatementSyntax>> matches, CancellationToken cancellationToken);
+    protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
+        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
+        ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
+        out bool mayChangeSemantics,
+        CancellationToken cancellationToken);
 
     protected abstract IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> SyntaxHelper { get; }
 
-    public ImmutableArray<Match<TStatementSyntax>> Analyze(
+    protected override void Clear()
+    {
+        base.Clear();
+        _analyzeForCollectionExpression = false;
+    }
+
+    public AnalysisResult Analyze(
         SemanticModel semanticModel,
         ISyntaxFacts syntaxFacts,
         TObjectCreationExpressionSyntax objectCreationExpression,
         bool analyzeForCollectionExpression,
         CancellationToken cancellationToken)
     {
-        var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression, cancellationToken);
-        if (state is null)
+        _analyzeForCollectionExpression = analyzeForCollectionExpression;
+        var state = TryInitializeState(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
+
+        // If we didn't find something we're assigned to, then we normally can't continue.  However, we always support
+        // converting a `new List<int>()` collection over to a collection expression.  We just won't analyze later
+        // statements.  
+        if (state.ValuePattern == default && !analyzeForCollectionExpression)
             return default;
 
-        this.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression);
-        var result = this.AnalyzeWorker(cancellationToken);
+        this.Initialize(state, objectCreationExpression);
+        var (preMatches, postMatches, mayChangeSemantics) = this.AnalyzeWorker(cancellationToken);
 
         // If analysis failed entirely, immediately bail out.
-        if (result.IsDefault)
+        if (preMatches.IsDefault || postMatches.IsDefault)
             return default;
 
         // Analysis succeeded, but the result may be empty or non empty.
@@ -80,15 +98,19 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         // other words, we don't want to suggest changing `new List<int>()` to `new List<int>() { }` as that's just
         // noise.  So convert empty results to an invalid result here.
         if (analyzeForCollectionExpression)
-            return result;
+            return new(preMatches, postMatches, mayChangeSemantics);
 
         // Downgrade an empty result to a failure for the normal collection-initializer case.
-        return result.IsEmpty ? default : result;
+        return postMatches.IsEmpty ? default : new(preMatches, postMatches, mayChangeSemantics);
     }
 
     protected sealed override bool TryAddMatches(
-        ArrayBuilder<Match<TStatementSyntax>> matches, CancellationToken cancellationToken)
+        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
+        ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
+        out bool mayChangeSemantics,
+        CancellationToken cancellationToken)
     {
+        mayChangeSemantics = false;
         var seenInvocation = false;
         var seenIndexAssignment = false;
 
@@ -121,17 +143,20 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 if (match is null)
                     break;
 
-                matches.Add(match.Value);
+                postMatches.Add(match.Value);
             }
         }
 
         if (_analyzeForCollectionExpression)
-            return ValidateMatchesForCollectionExpression(matches, cancellationToken);
+        {
+            return AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
+                preMatches, postMatches, out mayChangeSemantics, cancellationToken);
+        }
 
         return true;
     }
 
-    private Match<TStatementSyntax>? TryAnalyzeStatement(
+    private CollectionMatch<SyntaxNode>? TryAnalyzeStatement(
         TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment, CancellationToken cancellationToken)
     {
         return _analyzeForCollectionExpression
@@ -139,7 +164,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
             : TryAnalyzeStatementForCollectionInitializer(statement, ref seenInvocation, ref seenIndexAssignment, cancellationToken);
     }
 
-    private Match<TStatementSyntax>? TryAnalyzeStatementForCollectionInitializer(
+    private CollectionMatch<SyntaxNode>? TryAnalyzeStatementForCollectionInitializer(
         TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment, CancellationToken cancellationToken)
     {
         // At least one of these has to be false.
@@ -161,7 +186,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 this.State.ValuePatternMatches(instance))
             {
                 seenInvocation = true;
-                return new Match<TStatementSyntax>(expressionStatement, UseSpread: false);
+                return new(expressionStatement, UseSpread: false);
             }
         }
 
@@ -171,7 +196,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 this.State.ValuePatternMatches(instance))
             {
                 seenIndexAssignment = true;
-                return new Match<TStatementSyntax>(expressionStatement, UseSpread: false);
+                return new(expressionStatement, UseSpread: false);
             }
         }
 
@@ -183,17 +208,21 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         if (this.HasExistingInvalidInitializerForCollection())
             return false;
 
+        return GetAddMethods(cancellationToken).Any();
+    }
+
+    protected ImmutableArray<IMethodSymbol> GetAddMethods(CancellationToken cancellationToken)
+    {
         var type = this.SemanticModel.GetTypeInfo(_objectCreationExpression, cancellationToken).Type;
         if (type == null)
-            return false;
+            return [];
 
         var addMethods = this.SemanticModel.LookupSymbols(
             _objectCreationExpression.SpanStart,
             container: type,
             name: WellKnownMemberNames.CollectionInitializerAddMethodName,
             includeReducedExtensionMethods: true);
-
-        return addMethods.Any(static m => m is IMethodSymbol methodSymbol && methodSymbol.Parameters.Any());
+        return addMethods.SelectAsArray(s => s is IMethodSymbol { Parameters: [_, ..] }, s => (IMethodSymbol)s);
     }
 
     private bool TryAnalyzeIndexAssignment(

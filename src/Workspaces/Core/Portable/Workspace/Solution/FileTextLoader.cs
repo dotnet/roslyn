@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -244,11 +242,12 @@ public class FileTextLoader : TextLoader
         if (fileLength > MaxFileLength)
         {
             // log max file length which will log to VS telemetry in VS host
-            Logger.Log(FunctionId.FileTextLoader_FileLengthThresholdExceeded, KeyValueLogMessage.Create(m =>
+            Logger.Log(FunctionId.FileTextLoader_FileLengthThresholdExceeded, KeyValueLogMessage.Create(static (m, args) =>
             {
+                var (fileLength, path) = args;
                 m["FileLength"] = fileLength;
                 m["Ext"] = PathUtilities.GetExtension(path);
-            }));
+            }, (fileLength, path)));
 
             var message = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, path, fileLength, MaxFileLength);
             throw new InvalidDataException(message);

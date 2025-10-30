@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -42,7 +39,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         return new WrappingFormattingRule(newOptions);
     }
 
-    public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+    public override void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
     {
         nextOperation.Invoke();
 
@@ -88,7 +85,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         };
     }
 
-    private static void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+    private static void AddSpecificNodesSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         var (firstToken, lastToken) = GetSpecificNodeSuppressionTokenRange(node);
         if (!firstToken.IsKind(SyntaxKind.None) || !lastToken.IsKind(SyntaxKind.None))
@@ -97,7 +94,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         }
     }
 
-    private static void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+    private static void AddStatementExceptBlockSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         if (node is not StatementSyntax statementNode || statementNode.Kind() == SyntaxKind.Block)
         {
@@ -110,7 +107,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
     }
 
-    private static void RemoveSuppressOperationForStatementMethodDeclaration(List<SuppressOperation> list, SyntaxNode node)
+    private static void RemoveSuppressOperationForStatementMethodDeclaration(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         if (!(node is not StatementSyntax statementNode || statementNode.Kind() == SyntaxKind.Block))
         {
@@ -133,7 +130,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         }
     }
 
-    private static void RemoveSuppressOperationForBlock(List<SuppressOperation> list, SyntaxNode node)
+    private static void RemoveSuppressOperationForBlock(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         var bracePair = GetBracePair(node);
         if (!bracePair.IsValidBracketOrBracePair())
@@ -156,17 +153,17 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
 
     private static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracePair(SyntaxNode node)
     {
-        if (node is BaseMethodDeclarationSyntax methodDeclaration && methodDeclaration.Body != null)
+        if (node is BaseMethodDeclarationSyntax { Body: not null } methodDeclaration)
         {
             return (methodDeclaration.Body.OpenBraceToken, methodDeclaration.Body.CloseBraceToken);
         }
 
-        if (node is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.AccessorList != null)
+        if (node is PropertyDeclarationSyntax { AccessorList: not null } propertyDeclaration)
         {
             return (propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken);
         }
 
-        if (node is AccessorDeclarationSyntax accessorDeclaration && accessorDeclaration.Body != null)
+        if (node is AccessorDeclarationSyntax { Body: not null } accessorDeclaration)
         {
             return (accessorDeclaration.Body.OpenBraceToken, accessorDeclaration.Body.CloseBraceToken);
         }
@@ -175,7 +172,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
     }
 
     private static void RemoveSuppressOperation(
-        List<SuppressOperation> list,
+        ArrayBuilder<SuppressOperation> list,
         SyntaxToken startToken,
         SyntaxToken endToken)
     {

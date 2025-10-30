@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#if !NET
 
 using System;
 using System.IO;
@@ -13,31 +13,28 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     internal sealed class DesktopAssemblyLoaderImpl : AssemblyLoaderImpl
     {
-        private readonly Func<string, Assembly, Assembly> _assemblyResolveHandlerOpt;
-
         public DesktopAssemblyLoaderImpl(InteractiveAssemblyLoader loader)
             : base(loader)
         {
-            _assemblyResolveHandlerOpt = loader.ResolveAssembly;
-            CoreLightup.Desktop.AddAssemblyResolveHandler(_assemblyResolveHandlerOpt);
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
         }
 
         public override void Dispose()
         {
-            if (_assemblyResolveHandlerOpt != null)
-            {
-                CoreLightup.Desktop.RemoveAssemblyResolveHandler(_assemblyResolveHandlerOpt);
-            }
+            AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomain_AssemblyResolve;
         }
+
+        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+            => Loader.ResolveAssembly(args.Name, args.RequestingAssembly);
 
         public override Assembly LoadFromStream(Stream peStream, Stream pdbStream)
         {
-            byte[] peImage = new byte[peStream.Length];
+            var peImage = new byte[peStream.Length];
             peStream.TryReadAll(peImage, 0, peImage.Length);
 
             if (pdbStream != null)
             {
-                byte[] pdbImage = new byte[pdbStream.Length];
+                var pdbImage = new byte[pdbStream.Length];
                 pdbStream.TryReadAll(pdbImage, 0, pdbImage.Length);
 
                 return Assembly.Load(peImage, pdbImage);
@@ -52,9 +49,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             // Assembly.LoadFile(string) automatically redirects to GAC if the assembly has a strong name and there is an equivalent assembly in GAC. 
 
             var assembly = Assembly.LoadFile(path);
-            var location = assembly.Location;
-            var fromGac = CoreLightup.Desktop.IsAssemblyFromGlobalAssemblyCache(assembly);
-            return new AssemblyAndLocation(assembly, location, fromGac);
+            return new AssemblyAndLocation(assembly, assembly.Location, assembly.GlobalAssemblyCache);
         }
     }
 }
+#endif

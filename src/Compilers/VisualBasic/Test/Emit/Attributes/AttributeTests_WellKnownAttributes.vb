@@ -8,11 +8,12 @@ Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 #Disable Warning SYSLIB0050 ' 'TypeAttributes.Serializable' is obsolete
@@ -2220,7 +2221,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -5733,7 +5734,7 @@ End Class
             ' Dev10 Runtime Exception:
             ' Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            Dim validator = CompileAndVerifyEx(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=Verification.Fails, targetFramework:=TargetFramework.Mscorlib45)
+            Dim validator = CompileAndVerifyEx(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=Verification.Fails, targetFramework:=TargetFramework.Mscorlib461)
             validator.EmitAndVerify("Type load failed.")
         End Sub
 

@@ -2,9 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -272,7 +272,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}).AssertTheseDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}).AssertTheseDiagnostics(
             <![CDATA[
 BC40008: 'Public Shared Sub ObsoleteMethod1()' is obsolete.
         ObsoleteMethod1()

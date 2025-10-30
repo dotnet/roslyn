@@ -1569,7 +1569,7 @@ DoneWithDiagnostics:
                 If delegateParam.IsByRef OrElse delegateParam.OriginalDefinition.Type.IsTypeParameter() Then
                     Dim restrictedType As TypeSymbol = Nothing
                     If delegateParam.Type.IsRestrictedTypeOrArrayType(restrictedType) Then
-                        ReportDiagnostic(diagnostics, lambda.LambdaSymbol.Parameters(delegateParam.Ordinal).Locations(0),
+                        ReportDiagnostic(diagnostics, lambda.LambdaSymbol.Parameters(delegateParam.Ordinal).GetFirstLocation(),
                                          ERRID.ERR_RestrictedType1, restrictedType)
                     End If
                 End If
@@ -1618,7 +1618,9 @@ DoneWithDiagnostics:
 
             If (convKind And ConversionKind.InterpolatedString) = ConversionKind.InterpolatedString Then
                 Debug.Assert(targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_IFormattable)) OrElse targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_FormattableString)))
-                Return New BoundConversion(tree, node, ConversionKind.InterpolatedString, False, isExplicit, targetType)
+                Return New BoundConversion(tree,
+                                           BindUnconvertedInterpolatedStringToFormattable(tree, node, targetType, diagnostics),
+                                           ConversionKind.InterpolatedString, False, isExplicit, targetType)
             End If
 
             Return node
