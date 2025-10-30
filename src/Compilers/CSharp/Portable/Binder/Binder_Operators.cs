@@ -3364,8 +3364,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         staticOperatorName1, staticOperatorName2Opt,
                         checkedInstanceOperatorName, ordinaryInstanceOperatorName,
                         operand, diagnostics,
-                        out staticExtensionBest, out staticExtensionResultKind, out staticExtensionOriginalUserDefinedOperators,
-                        ref operatorResolutionForReporting);
+                        ref operatorResolutionForReporting, out staticExtensionBest, out staticExtensionResultKind,
+                        out staticExtensionOriginalUserDefinedOperators);
 
                     if (instanceExtensionResult is not null)
                     {
@@ -3691,10 +3691,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string? ordinaryInstanceOperatorName,
                 BoundExpression operand,
                 BindingDiagnosticBag diagnostics,
+                ref OperatorResolutionForReporting operatorResolutionForReporting,
                 out UnaryOperatorAnalysisResult? staticBest,
                 out LookupResultKind staticResultKind,
-                out ImmutableArray<MethodSymbol> staticOriginalUserDefinedOperators,
-                ref OperatorResolutionForReporting operatorResolutionForReporting)
+                out ImmutableArray<MethodSymbol> staticOriginalUserDefinedOperators)
             {
                 Debug.Assert(operand.Type is not null);
 
