@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis
                     if (symbol.TypeParameters.Length > 0)
                     {
                         _builder.Append("``");
-                        _builder.Append(symbol.TypeParameters.Length);
+                        _builder.Append(symbol.TypeParameters.Length.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     }
 
                     AppendParameters(symbol.Parameters);
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis
                     if (symbol.TypeParameters.Length > 0)
                     {
                         _builder.Append('`');
-                        _builder.Append(symbol.TypeParameters.Length);
+                        _builder.Append(symbol.TypeParameters.Length.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     }
 
                     return true;
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis
                     if (symbol.OriginalDefinition == symbol)
                     {
                         _builder.Append('`');
-                        _builder.Append(symbol.TypeParameters.Length);
+                        _builder.Append(symbol.TypeParameters.Length.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     }
                     else if (symbol.TypeArguments.Length > 0)
                     {
@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis
                 if (symbol.DeclaringMethod != null)
                 {
                     _builder.Append("``");
-                    _builder.Append(symbol.Ordinal);
+                    _builder.Append(symbol.Ordinal.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
                 else
                 {
@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis
                     var container = symbol.ContainingSymbol?.ContainingSymbol;
                     var b = GetTotalTypeParameterCount(container as INamedTypeSymbol);
                     _builder.Append('`');
-                    _builder.Append(b + symbol.Ordinal);
+                    _builder.Append((b + symbol.Ordinal).ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
 
                 return true;

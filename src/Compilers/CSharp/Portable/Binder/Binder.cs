@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsDisallowedExtensionInOlderLangVer(MethodSymbol symbol)
         {
-            return symbol.GetIsNewExtensionMember() && (symbol.IsStatic || symbol.MethodKind != MethodKind.Ordinary);
+            return symbol.IsExtensionBlockMember() && (symbol.IsStatic || symbol.MethodKind != MethodKind.Ordinary);
         }
 
         internal static void ReportDiagnosticsIfDisallowedExtension(BindingDiagnosticBag diagnostics, MethodSymbol method, SyntaxNode syntax)

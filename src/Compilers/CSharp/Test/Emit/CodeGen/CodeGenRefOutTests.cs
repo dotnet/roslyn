@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -830,6 +832,185 @@ unsafe
                 var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: Verification.Fails);
                 verifier.VerifyDiagnostics();
                 verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestExtensionMethodRefReadonlyModifierWithEnumType()
+        {
+            var source = """
+                int i = 0;
+                i.M1();
+                
+                E e = (E)0;
+                e.M2();
+                
+                enum E;
+                
+                static class Extensions
+                {
+                    public static void M1(this ref readonly int e)
+                    {
+                        System.Console.WriteLine("int");
+                    }
+                
+                    public static void M2(this ref readonly E e)
+                    {
+                        System.Console.WriteLine("enum");
+                    }
+                }
+                """;
+
+            var comp = CompileAndVerify(source, symbolValidator: validate, expectedOutput: """
+                int
+                enum
+                """);
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.Equal(
+                    RefKind.RefReadOnlyParameter,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.M1").Parameters.Single().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.RefReadOnlyParameter,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.M2").Parameters.Single().RefKind);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestExtensionBlockRefReadonlyModifierWithEnumType()
+        {
+            var source = """
+                int i = 0;
+                i.M1();
+                _ = i.P1;
+                i.P1 = 0;
+                _ = i + new object();
+                
+                E e = (E)0;
+                e.M1();
+                _ = e.P1;
+                e.P1 = 0;
+                _ = e + new object();
+                
+                enum E;
+                
+                static class IntExtensions
+                {
+                    extension(ref readonly int i)
+                    {
+                        public void M1()
+                        {
+                            System.Console.WriteLine("method_int");
+                        }
+
+                        public int P1
+                        {
+                            get
+                            {
+                                System.Console.WriteLine("property_get_int");
+                                return 0;
+                            }
+                
+                            set
+                            {
+                                System.Console.WriteLine("property_set_int");
+                            }
+                        }
+
+                        public static int operator +(in int a, object b)
+                        {
+                            System.Console.WriteLine("operator_int");
+                            return 0;
+                        }
+                    }
+                }
+                
+                static class EnumExtensions
+                {
+                    extension(ref readonly E e)
+                    {
+                        public void M1()
+                        {
+                            System.Console.WriteLine("method_enum");
+                        }
+
+                        public int P1
+                        {
+                            get
+                            {
+                                System.Console.WriteLine("property_get_enum");
+                                return 0;
+                            }
+
+                            set
+                            {
+                                System.Console.WriteLine("property_set_enum");
+                            }
+                        }
+
+                        public static int operator +(in E a, object b)
+                        {
+                            System.Console.WriteLine("operator_enum");
+                            return 0;
+                        }
+                    }   
+                }
+                """;
+
+            var comp = CompileAndVerify(source, symbolValidator: validate, expectedOutput: """
+                method_int
+                property_get_int
+                property_set_int
+                operator_int
+                method_enum
+                property_get_enum
+                property_set_enum
+                operator_enum
+                """);
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.Equal(
+                    RefKind.RefReadOnlyParameter,
+                    m.GlobalNamespace.GetTypeMember("IntExtensions").GetTypeMembers().Single().ExtensionParameter.RefKind);
+
+                AssertEx.Equal(
+                    RefKind.RefReadOnlyParameter,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("IntExtensions.M1").Parameters.Single().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.RefReadOnlyParameter,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("IntExtensions.get_P1").Parameters.Single().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.RefReadOnlyParameter,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("IntExtensions.set_P1").Parameters.First().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.In,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("IntExtensions.op_Addition").Parameters.First().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.RefReadOnlyParameter,
+                    m.GlobalNamespace.GetTypeMember("EnumExtensions").GetTypeMembers().Single().ExtensionParameter.RefKind);
+
+                AssertEx.Equal(
+                    RefKind.RefReadOnlyParameter,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("EnumExtensions.M1").Parameters.Single().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.RefReadOnlyParameter,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("EnumExtensions.get_P1").Parameters.Single().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.RefReadOnlyParameter,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("EnumExtensions.set_P1").Parameters.First().RefKind);
+
+                AssertEx.Equal(
+                    RefKind.In,
+                    m.GlobalNamespace.GetMember<MethodSymbol>("EnumExtensions.op_Addition").Parameters.First().RefKind);
             }
         }
     }

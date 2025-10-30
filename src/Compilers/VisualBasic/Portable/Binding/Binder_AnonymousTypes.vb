@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If String.IsNullOrEmpty(fieldName) Then
                         ' since the field does not have name, we generate a pseudo name to be used in template
-                        fieldName = "$"c & fieldIndex.ToString()
+                        fieldName = "$"c & fieldIndex.ToString(Globalization.CultureInfo.InvariantCulture)
 
                     Else
                         ' check the name for duplications (in System.Object and in the list of fields)

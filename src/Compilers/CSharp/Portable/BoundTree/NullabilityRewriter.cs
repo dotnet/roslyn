@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundBinaryOperator binary => binary.Update(
                         binary.OperatorKind,
-                        binary.Data?.WithUpdatedMethod(GetUpdatedSymbol(binary, binary.Method)),
+                        binary.BinaryOperatorMethod is { } binaryOperatorMethod ? binary.Data?.WithUpdatedMethod(GetUpdatedSymbol(binary, binaryOperatorMethod)) : binary.Data,
                         binary.ResultKind,
                         leftChild,
                         right,
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (updatedDelegateType is null)
                 {
                     Debug.Assert(updatedContaining is object);
-                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedContaining, lambda.ReturnTypeWithAnnotations, lambda.ParameterTypesWithAnnotations, lambda.ParameterRefKinds, lambda.RefKind);
+                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedContaining, lambda.ReturnTypeWithAnnotations, lambda.ParameterTypesWithAnnotations, lambda.ParameterRefKinds, lambda.RefKind, lambda.RefCustomModifiers);
                 }
                 else
                 {

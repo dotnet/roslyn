@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Sub
 
             Public Overrides Function ToString() As String
-                Return "[" & Me.Start.ToString() & ", " & Me.End.ToString() & ")"
+                Return "[" & Me.Start.ToString(Globalization.CultureInfo.InvariantCulture) & ", " & Me.End.ToString(Globalization.CultureInfo.InvariantCulture) & ")"
             End Function
 
             ''' <summary>

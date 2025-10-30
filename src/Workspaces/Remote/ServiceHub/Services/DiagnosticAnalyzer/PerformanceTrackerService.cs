@@ -153,7 +153,7 @@ internal sealed class PerformanceTrackerService : IPerformanceTrackerService
         using var pooledObject = SharedPools.Default<StringBuilder>().GetPooledObject();
         var sb = pooledObject.Object;
 
-        sb.Append(unitCount);
+        sb.Append(unitCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
         sb.Append('(');
         sb.Append(forSpan ? "SpanAnalysis" : "DocumentAnalysis");
@@ -164,9 +164,9 @@ internal sealed class PerformanceTrackerService : IPerformanceTrackerService
             sb.Append('|');
             sb.Append(snapshot.AnalyzerId);
             sb.Append(':');
-            sb.Append(snapshot.BuiltIn);
+            sb.Append(snapshot.BuiltIn.ToString(System.Globalization.CultureInfo.InvariantCulture));
             sb.Append(':');
-            sb.Append(snapshot.TimeSpan.TotalMilliseconds);
+            sb.Append(snapshot.TimeSpan.TotalMilliseconds.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
 
         sb.Append('*');

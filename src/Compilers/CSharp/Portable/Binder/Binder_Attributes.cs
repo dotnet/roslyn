@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(!attributeConstructor.GetIsNewExtensionMember());
+                    Debug.Assert(!attributeConstructor.IsExtensionBlockMember());
                     binder.BindDefaultArguments(
                         node,
                         attributeConstructor.Parameters,
