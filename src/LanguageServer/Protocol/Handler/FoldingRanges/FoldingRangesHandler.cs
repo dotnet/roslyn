@@ -176,6 +176,10 @@ internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<F
                     };
                 }
 
+                // These are explicitly ignored by the client when lineFoldingOnly is true, so no need to serialize them.
+                updatedRange.StartCharacter = null;
+                updatedRange.EndCharacter = null;
+
                 startLineToFoldingRange[foldingRange.StartLine] = updatedRange;
             }
 
