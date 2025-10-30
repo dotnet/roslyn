@@ -315,7 +315,7 @@ console.WriteLine();
 console.MarkupLine("[purple]Pull Requests[/] (point of snap)");
 console.WriteLine();
 
-var lastMergedSearchFilter = $"is:merged base:{sourceBranchName}";
+var lastMergedSearchFilter = $"is:merged base:{sourceBranchName} sort:updated-desc";
 var lastMergedPullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list",
         "--repo", sourceRepoShort,
@@ -338,7 +338,7 @@ console.MarkupLineInterpolated($" - ... for more, run [grey]gh pr list --repo {s
 
 // Find PRs in milestone Next.
 
-var milestoneSearchFilter = $"is:merged milestone:{nextMilestoneName} base:{sourceBranchName}";
+var milestoneSearchFilter = $"is:merged milestone:{nextMilestoneName} base:{sourceBranchName} sort:updated-desc";
 var milestonePullRequests = (await Cli.Wrap("gh")
     .WithArguments(["pr", "list",
         "--repo", sourceRepoShort,
