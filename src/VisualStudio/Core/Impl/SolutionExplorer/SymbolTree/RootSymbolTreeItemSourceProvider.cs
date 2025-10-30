@@ -187,7 +187,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             return null;
 
         if (item.HierarchyIdentity.NestedHierarchy.GetGuidProperty(
-                item.HierarchyIdentity.ItemID,
+                item.HierarchyIdentity.NestedItemID,
                 (int)__VSHPROPID.VSHPROPID_TypeGuid,
                 out var guid) != VSConstants.S_OK)
         {

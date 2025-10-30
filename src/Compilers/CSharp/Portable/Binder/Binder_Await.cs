@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (qualified is not BoundPropertyAccess { PropertySymbol: { } propertySymbol } || propertySymbol.GetIsNewExtensionMember())
+            if (qualified is not BoundPropertyAccess { PropertySymbol: { } propertySymbol } || propertySymbol.IsExtensionBlockMember())
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.IsCompleted);
                 isCompletedProperty = null;
@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!call.IsErroneousNode);
 
             getResultMethod = call.Method;
-            if (getResultMethod.IsExtensionMethod || getResultMethod.GetIsNewExtensionMember())
+            if (getResultMethod.IsExtensionMethod || getResultMethod.IsExtensionBlockMember())
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.GetResult);
                 getResultMethod = null;

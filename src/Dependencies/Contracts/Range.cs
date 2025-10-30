@@ -63,7 +63,7 @@ namespace System
             return $"{getFromEndSpecifier(Start)}{toString(Start)}..{getFromEndSpecifier(End)}{toString(End)}";
 
             static string getFromEndSpecifier(Index index) => index.IsFromEnd ? "^" : string.Empty;
-            static string toString(Index index) => ((uint)index.Value).ToString();
+            static string toString(Index index) => ((uint)index.Value).ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
 
         /// <summary>Create a Range object starting from start index to the end of the collection.</summary>

@@ -282,6 +282,11 @@ function BuildSolution {
     test_runtime_args="--debug"
   fi
 
+  local msbuild_warn_as_error=""
+  if [[ "$warn_as_error" == true ]]; then
+    msbuild_warn_as_error="/warnAsError"
+  fi
+
   local generate_documentation_file=""
   if [[ "$skip_documentation" == true ]]; then
     generate_documentation_file="/p:GenerateDocumentationFile=false"
@@ -291,11 +296,6 @@ function BuildSolution {
   if [[ "$ci" == true ]]; then
     roslyn_use_hard_links="/p:ROSLYNUSEHARDLINKS=true"
   fi
-
-  # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
-  # We don't pass /warnaserror to msbuild (warn_as_error is set to false by default above), but set 
-  # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
-  # Warnings reported from other msbuild tasks are not treated as errors for now.
 
   MSBuild $toolset_build_proj \
     $bl \
@@ -312,13 +312,14 @@ function BuildSolution {
     /p:RunAnalyzersDuringBuild=$run_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
-    /p:TreatWarningsAsErrors=true \
+    /p:TreatWarningsAsErrors=$warn_as_error \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
     /p:DotNetBuildSourceOnly=$source_build \
     /p:DotNetBuild=$product_build \
     /p:DotNetBuildFromVMR=$from_vmr \
     $test_runtime \
     $mono_tool \
+    $msbuild_warn_as_error \
     $generate_documentation_file \
     $roslyn_use_hard_links \
     ${properties[@]+"${properties[@]}"}

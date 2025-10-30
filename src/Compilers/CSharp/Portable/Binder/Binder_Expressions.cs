@@ -1509,7 +1509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsPropertyWithBackingField(PEPropertySymbol property, [NotNullWhen(true)] out FieldSymbol? backingField)
         {
-            if (!property.GetIsNewExtensionMember() &&
+            if (!property.IsExtensionBlockMember() &&
                 property.ContainingType.GetMembers(GeneratedNames.MakeBackingFieldName(property.Name)) is [FieldSymbol candidateField] &&
                 candidateField.RefKind == property.RefKind &&
                 candidateField.IsStatic == property.IsStatic &&
@@ -3803,7 +3803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             placeholderType = receiver.Type;
                             break;
                         case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
-                            Debug.Assert(methodResult.Member.GetIsNewExtensionMember());
+                            Debug.Assert(methodResult.Member.IsExtensionBlockMember());
                             var receiverParameter = ((NamedTypeSymbol)methodResult.Member.ContainingSymbol).ExtensionParameter;
                             Debug.Assert(receiverParameter is not null);
                             refKind = receiverParameter.RefKind;
@@ -5080,7 +5080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     primaryConstructor.SetParametersPassedToTheBase(parametersPassedToBase);
                 }
 
-                Debug.Assert(!resultMember.GetIsNewExtensionMember());
+                Debug.Assert(!resultMember.IsExtensionBlockMember());
                 BindDefaultArguments(nonNullSyntax, resultMember.Parameters, extensionReceiver: null, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
@@ -6823,7 +6823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var method = memberResolutionResult.Member;
-            Debug.Assert(!method.GetIsNewExtensionMember());
+            Debug.Assert(!method.IsExtensionBlockMember());
 
             bool hasError = false;
 
@@ -8765,7 +8765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             inapplicable = true;
                         }
-                        else if (method.GetIsNewExtensionMember()
+                        else if (method.IsExtensionBlockMember()
                             && SourceNamedTypeSymbol.ReduceExtensionMember(binder.Compilation, method, receiverType, wasExtensionFullyInferred: out _) is null)
                         {
                             inapplicable = true;
@@ -10932,7 +10932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Note: we only care about methods. If the expression resolved to a non-method extension member, we wouldn't get here to compute the function type for the expression.
                         if (extensionMember is MethodSymbol m)
                         {
-                            if (m.GetIsNewExtensionMember())
+                            if (m.IsExtensionBlockMember())
                             {
                                 // Note: new extension methods are subject to more stringent checks
                                 var substituted = (MethodSymbol?)extensionMember.GetReducedAndFilteredSymbol(typeArguments, receiver.Type, Compilation, checkFullyInferred: true);
