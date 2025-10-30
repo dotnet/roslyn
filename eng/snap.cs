@@ -209,9 +209,8 @@ console.MarkupLine("[purple]Subscriptions[/]");
 console.WriteLine();
 
 var darc = new DarcHelper(console);
-var vmrRepoUrl = "https://github.com/dotnet/dotnet";
 var printers = await Task.WhenAll([
-    darc.ListSubscriptionsAsync(sourceRepoUrl, vmrRepoUrl, "VMR"),
+    darc.ListSubscriptionsAsync(sourceRepoUrl, DarcHelper.VmrRepoUrl, "VMR"),
     darc.ListBackflowsAsync(sourceRepoUrl),
     darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/sdk", "SDK"),
     darc.ListSubscriptionsAsync(sourceRepoUrl, "https://github.com/dotnet/runtime", "runtime"),
@@ -228,7 +227,7 @@ if (console.Confirm("Change some subscriptions in this snap script run?", defaul
     var existingSourceBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
         flow.SourceRepoUrl == sourceRepoUrl &&
         flow.SourceBranch == sourceBranchName &&
-        flow.TargetRepoUrl == vmrRepoUrl);
+        flow.TargetRepoUrl == DarcHelper.VmrRepoUrl);
     var sourceChannelAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{sourceBranchName}[/] should publish to darc channel",
         defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsDarcChannelName()));
     var sourceVmrBranchAfterSnap = console.Prompt(TextPrompt<string>.Create("And flow to VMR branch",
@@ -237,19 +236,19 @@ if (console.Confirm("Change some subscriptions in this snap script run?", defaul
         SourceRepoUrl: sourceRepoUrl,
         SourceBranch: sourceBranchName,
         Channel: sourceChannelAfterSnap,
-        TargetRepoUrl: vmrRepoUrl,
+        TargetRepoUrl: DarcHelper.VmrRepoUrl,
         TargetBranch: sourceVmrBranchAfterSnap));
 
     // VMR -> Source
     var existingSourceBranchBackFlow = darc.FoundFlows.FirstOrDefault(flow =>
-        flow.SourceRepoUrl == vmrRepoUrl &&
+        flow.SourceRepoUrl == DarcHelper.VmrRepoUrl &&
         flow.TargetRepoUrl == sourceRepoUrl &&
         flow.SourceBranch == sourceVmrBranchAfterSnap);
     var suggestedSourceBranchBackFlowChannel = existingSourceBranchBackFlow?.Channel
-        ?? await darc.TryGetDefaultChannelAsync(vmrRepoUrl, sourceVmrBranchAfterSnap)
+        ?? await darc.TryGetDefaultChannelAsync(DarcHelper.VmrRepoUrl, sourceVmrBranchAfterSnap)
         ?? console.Prompt(new TextPrompt<string>($"After snap, [teal]{sourceBranchName}[/] should flow back from VMR's [teal]{sourceVmrBranchAfterSnap}[/] via darc channel:"));
     suggestSubscriptionChange(existingFlow: existingSourceBranchBackFlow, expectedFlow: new Flow(
-        SourceRepoUrl: vmrRepoUrl,
+        SourceRepoUrl: DarcHelper.VmrRepoUrl,
         SourceBranch: sourceVmrBranchAfterSnap,
         Channel: suggestedSourceBranchBackFlowChannel,
         TargetRepoUrl: sourceRepoUrl,
@@ -259,9 +258,9 @@ if (console.Confirm("Change some subscriptions in this snap script run?", defaul
     var existingTargetBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
         flow.SourceRepoUrl == sourceRepoUrl &&
         flow.SourceBranch == targetBranchName &&
-        flow.TargetRepoUrl == vmrRepoUrl) ?? darc.FoundFlows.FirstOrDefault(flow =>
+        flow.TargetRepoUrl == DarcHelper.VmrRepoUrl) ?? darc.FoundFlows.FirstOrDefault(flow =>
         flow.SourceRepoUrl == sourceRepoUrl &&
-        flow.TargetRepoUrl == vmrRepoUrl);
+        flow.TargetRepoUrl == DarcHelper.VmrRepoUrl);
     var targetChannelAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should publish to darc channel",
         defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsDarcChannelName()));
     var targetVmrBranchAfterSnap = console.Prompt(TextPrompt<string>.Create("And flow to VMR branch",
@@ -270,19 +269,19 @@ if (console.Confirm("Change some subscriptions in this snap script run?", defaul
         SourceRepoUrl: sourceRepoUrl,
         SourceBranch: targetBranchName,
         Channel: targetChannelAfterSnap,
-        TargetRepoUrl: vmrRepoUrl,
+        TargetRepoUrl: DarcHelper.VmrRepoUrl,
         TargetBranch: targetVmrBranchAfterSnap));
 
     // VMR -> Target
     var existingTargetBranchBackFlow = darc.FoundFlows.FirstOrDefault(flow =>
-        flow.SourceRepoUrl == vmrRepoUrl &&
+        flow.SourceRepoUrl == DarcHelper.VmrRepoUrl &&
         flow.TargetRepoUrl == sourceRepoUrl &&
         flow.SourceBranch == targetVmrBranchAfterSnap);
     var suggestedTargetBranchBackFlowChannel = existingTargetBranchBackFlow?.Channel
-        ?? await darc.TryGetDefaultChannelAsync(vmrRepoUrl, targetVmrBranchAfterSnap)
+        ?? await darc.TryGetDefaultChannelAsync(DarcHelper.VmrRepoUrl, targetVmrBranchAfterSnap)
         ?? console.Prompt(new TextPrompt<string>($"After snap, [teal]{targetBranchName}[/] should flow back from VMR's [teal]{targetVmrBranchAfterSnap}[/] via darc channel:"));
     suggestSubscriptionChange(existingFlow: existingTargetBranchBackFlow, expectedFlow: new Flow(
-        SourceRepoUrl: vmrRepoUrl,
+        SourceRepoUrl: DarcHelper.VmrRepoUrl,
         SourceBranch: targetVmrBranchAfterSnap,
         Channel: suggestedTargetBranchBackFlowChannel,
         TargetRepoUrl: sourceRepoUrl,
@@ -298,13 +297,14 @@ if (console.Confirm("Change some subscriptions in this snap script run?", defaul
         {
             if (existingFlow != null)
             {
-                if (actions.Add($"Update flow {existingFlow.ToFullString()} {Flow.DescribeChanges(existingFlow, expectedFlow)}", () => expectedFlow.UpdateAsync(console, existingFlow)))
+                if (actions.Add($"Update flow {existingFlow.ToFullString()} {Flow.DescribeChanges(existingFlow, expectedFlow)}",
+                    () => darc.UpdateFlowAsync(existingFlow: existingFlow, expectedFlow: expectedFlow)))
                 {
                     return;
                 }
             }
 
-            actions.Add($"Add flow {expectedFlow.ToFullString()}", () => expectedFlow.AddAsync(console));
+            actions.Add($"Add flow {expectedFlow.ToFullString()}", () => darc.SetupNewFlowAsync(expectedFlow));
         }
     }
 }
@@ -732,6 +732,20 @@ file sealed class GitHubUtil(
                 console.MarkupLineInterpolated($"[green]Note:[/] Pushed to [teal]{updateBranchName}[/].");
             }
         });
+    }
+
+    /// <summary>
+    /// For <c>"https://github.com/dotnet/roslyn"</c>, returns <c>"roslyn"</c>.
+    /// </summary>
+    public static string GetRepoNameFromUrl(string repoUrl)
+    {
+        var uri = new Uri(repoUrl);
+        var segments = uri.AbsolutePath.Trim('/').Split('/');
+        if (segments.Length != 2)
+        {
+            throw new InvalidOperationException($"Cannot extract repo name from URL '{repoUrl}'");
+        }
+        return segments[1];
     }
 }
 
@@ -1328,6 +1342,8 @@ file sealed class LoggingRenderHook(Logger logger) : IRenderHook
 
 file sealed class DarcHelper(IAnsiConsole console)
 {
+    public const string VmrRepoUrl = "https://github.com/dotnet/dotnet";
+
     private readonly BarApiClient _barApiClient = new(
         buildAssetRegistryPat: null,
         managedIdentityId: null,
@@ -1357,7 +1373,8 @@ file sealed class DarcHelper(IAnsiConsole console)
             from channel in defaultChannels
             join subscription in subscriptions on channel.Channel.Id equals subscription.Channel.Id
             where subscription.Enabled
-            select new Flow(SourceRepoUrl: sourceRepoUrl,
+            select new Flow(
+                SourceRepoUrl: sourceRepoUrl,
                 SourceBranch: channel.Branch,
                 Channel: channel.Channel.Name,
                 TargetRepoUrl: targetRepoUrl,
@@ -1382,6 +1399,112 @@ file sealed class DarcHelper(IAnsiConsole console)
     public Task<Action> ListBackflowsAsync(string targetRepoUrl, string sourceRepoUrl = "https://github.com/dotnet/dotnet", string sourceRepoFriendlyName = "VMR")
     {
         return ListSubscriptionsAsync(sourceRepoUrl, targetRepoUrl, sourceRepoFriendlyName, "back flows from");
+    }
+
+    private async Task DeleteDefaultChannelsAsync(string? repository = null, string? branch = null, string? channel = null)
+    {
+        var defaultChannels = (await _barApiClient.GetDefaultChannelsAsync(repository, branch, channel)).ToArray();
+        if (defaultChannels.Length == 0)
+        {
+            console.MarkupLineInterpolated($"No default channels found for repository [teal]{repository ?? "N/A"}[/], branch [teal]{branch ?? "N/A"}[/], channel [teal]{channel ?? "N/A"}[/], skipping deletion");
+            return;
+        }
+
+        foreach (var defaultChannel in defaultChannels)
+        {
+            console.MarkupLineInterpolated($"Deleting default channel [teal]{defaultChannel.Id}[/teal] for repository [teal]{defaultChannel.Repository}[/], branch [teal]{defaultChannel.Branch}[/], channel [teal]{defaultChannel.Channel.Name}[/]");
+            await _barApiClient.DeleteDefaultChannelAsync(defaultChannel.Id);
+        }
+    }
+
+    private async Task SetDefaultChannelAsync(Flow flow)
+    {
+        console.MarkupLineInterpolated($"Only one branch should publish to a given channel, deleting other default channel associations for repository [teal]{flow.SourceRepoUrl}[/] and channel [teal]{flow.Channel}[/]");
+        await DeleteDefaultChannelsAsync(
+            repository: flow.SourceRepoUrl,
+            branch: null,
+            channel: flow.Channel);
+
+        console.MarkupLineInterpolated($"Adding default channel [teal]{flow.Channel}[/] for repository [teal]{flow.SourceRepoUrl}[/] and branch [teal]{flow.SourceBranch}[/]");
+        await _barApiClient.AddDefaultChannelAsync(
+            repository: flow.SourceRepoUrl,
+            branch: flow.SourceBranch,
+            channel: flow.Channel);
+    }
+
+    private async Task CreateSubscriptionAsync(Flow flow)
+    {
+        var updateFrequency = UpdateFrequency.EveryDay;
+        var targetDirectory = flow.TargetRepoUrl == VmrRepoUrl ? GitHubUtil.GetRepoNameFromUrl(flow.SourceRepoUrl) : "";
+        var sourceDirectory = flow.SourceRepoUrl == VmrRepoUrl ? GitHubUtil.GetRepoNameFromUrl(flow.TargetRepoUrl) : "";
+        var sourceEnabled = targetDirectory != "" || sourceDirectory != "";
+        console.MarkupLineInterpolated($"Creating subscription (source repository: [teal]{flow.SourceRepoUrl}[/], channel: [teal]{flow.Channel}[/], target repository: [teal]{flow.TargetRepoUrl}[/], target branch: [teal]{flow.TargetBranch}[/], source enabled: [teal]{sourceEnabled}[/], source directory: [teal]'{sourceDirectory}'[/], target directory: [teal]'{targetDirectory}'[/])");
+        var subscription = await _barApiClient.CreateSubscriptionAsync(
+            channelName: flow.Channel,
+            sourceRepo: flow.SourceRepoUrl,
+            targetRepo: flow.TargetRepoUrl,
+            targetBranch: flow.TargetBranch,
+            updateFrequency: updateFrequency.ToString(),
+            batchable: false,
+            mergePolicies: [],
+            failureNotificationTags: "",
+            sourceEnabled: sourceEnabled,
+            sourceDirectory: sourceDirectory,
+            targetDirectory: targetDirectory,
+            excludedAssets: []);
+        console.MarkupLineInterpolated($"=> [teal]{subscription.Id}[/]");
+    }
+
+    private async Task<Subscription> FindSubscriptionAsync(Flow flow)
+    {
+        var subscriptions = await _barApiClient.GetSubscriptionsAsync(
+            sourceRepo: flow.SourceRepoUrl,
+            targetRepo: flow.TargetRepoUrl);
+        return subscriptions.FirstOrDefault(s =>
+            s.Channel.Name == flow.Channel &&
+            s.TargetBranch == flow.TargetBranch)
+            ?? throw new InvalidOperationException($"Subscription not found for flow {flow}");
+    }
+
+    private async Task UpdateSubscriptionAsync(Guid id, string channelName)
+    {
+        console.MarkupLineInterpolated($"Updating subscription [teal]{id}[/] to have channel [teal]{channelName}[/]");
+        await _barApiClient.UpdateSubscriptionAsync(id, new SubscriptionUpdate
+        {
+            ChannelName = channelName,
+        });
+    }
+
+    public async Task SetupNewFlowAsync(Flow flow)
+    {
+        await SetDefaultChannelAsync(flow);
+        await CreateSubscriptionAsync(flow);
+    }
+
+    public async Task UpdateFlowAsync(Flow existingFlow, Flow expectedFlow)
+    {
+        if (existingFlow.SourceBranch != expectedFlow.SourceBranch ||
+            existingFlow.Channel != expectedFlow.Channel)
+        {
+            await SetDefaultChannelAsync(expectedFlow);
+        }
+
+        if (existingFlow.Channel != expectedFlow.Channel)
+        {
+            if (existingFlow.TargetBranch == expectedFlow.TargetBranch)
+            {
+                var subscription = await FindSubscriptionAsync(existingFlow);
+                await UpdateSubscriptionAsync(subscription.Id, expectedFlow.Channel);
+            }
+            else
+            {
+                await CreateSubscriptionAsync(expectedFlow);
+            }
+        }
+        else if (existingFlow.TargetBranch != expectedFlow.TargetBranch)
+        {
+            await CreateSubscriptionAsync(expectedFlow);
+        }
     }
 }
 
@@ -1413,19 +1536,6 @@ file sealed record Flow(string SourceRepoUrl, string SourceBranch, string Channe
         {
             yield return $"to target branch [teal]{expectedFlow.TargetBranch}[/]";
         }
-    }
-
-    public async Task AddAsync(IAnsiConsole console)
-    {
-        console.MarkupLine("[red]TODO: Not implemented yet[/]");
-        await Task.Yield();
-    }
-
-    public async Task UpdateAsync(IAnsiConsole console, Flow existingFlow)
-    {
-        _ = existingFlow;
-        console.MarkupLine("[red]TODO: Not implemented yet[/]");
-        await Task.Yield();
     }
 
     public string ToShortString() => $"{SourceBranch} -> {Channel} -> {TargetBranch}";
