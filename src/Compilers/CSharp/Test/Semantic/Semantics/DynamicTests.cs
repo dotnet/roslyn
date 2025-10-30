@@ -3714,6 +3714,35 @@ class Test
         }
 
         [Fact]
+        public void DynamicBooleanExpression_ClassWithoutOperator()
+        {
+            // Ensure the class case still works correctly (regression test)
+            const string source = @"
+class C0 { }
+
+class C1 : C0
+{
+    public static C1 operator &(C1 x, C1 y) => x;
+    public static bool operator true(C1 x) => false;
+    public static bool operator false(C1 x) => false;
+}
+
+class Test
+{
+    void M()
+    {
+        C0 x = new C1();
+        dynamic y = new C1();
+        _ = x && y;
+    }
+}";
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
+                // (17,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C0' must define operator 'false'.
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x").WithArguments("C0", "false")
+            );
+        }
+
+        [Fact]
         public void DynamicConstructorCall1()
         {
             // If there are one or more applicable ctors then we do a dynamic binding.
