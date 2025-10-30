@@ -455,7 +455,7 @@ if (milestonePullRequests is [var defaultLastMilestonePr, ..])
             .Validate(prNumber => milestonePullRequests.Any(pr => pr.Number == prNumber)
                 ? ValidationResult.Success()
                 : ValidationResult.Error($"No PR with number {prNumber} found in milestone {nextMilestoneName}")));
-        lastMilestonePr = milestonePullRequests.First(pr => pr.Number == lastPrNumber);
+        lastMilestonePr = milestonePullRequests.First(pr => pr.Number == lastMilestonePrNumber);
     }
     var lastMilestonePrIndex = milestonePullRequests.IndexOf(lastMilestonePr);
     Debug.Assert(lastMilestonePrIndex >= 0);
