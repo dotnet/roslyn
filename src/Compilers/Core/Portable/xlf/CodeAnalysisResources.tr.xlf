@@ -173,11 +173,6 @@
         <target state="translated">Yöntem sembolü bekleniyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="MissingTokenListItem">
-        <source>The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</source>
-        <target state="new">The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">Modülde geçersiz öznitelikler var.</target>
@@ -799,7 +794,7 @@
       </trans-unit>
       <trans-unit id="MissingListItem">
         <source>The item specified is not the element of a list.</source>
-        <target state="needs-review-translation">Belirtilen öğe, bir liste öğesi değil.</target>
+        <target state="translated">Belirtilen öğe, bir liste öğesi değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidPublicKey">

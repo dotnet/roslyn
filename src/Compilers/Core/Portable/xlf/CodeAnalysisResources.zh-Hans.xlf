@@ -173,11 +173,6 @@
         <target state="translated">应为方法符号</target>
         <note />
       </trans-unit>
-      <trans-unit id="MissingTokenListItem">
-        <source>The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</source>
-        <target state="new">The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">模块具有无效属性。</target>
@@ -799,7 +794,7 @@
       </trans-unit>
       <trans-unit id="MissingListItem">
         <source>The item specified is not the element of a list.</source>
-        <target state="needs-review-translation">指定的项不是列表的元素。</target>
+        <target state="translated">指定的项不是列表的元素。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidPublicKey">
