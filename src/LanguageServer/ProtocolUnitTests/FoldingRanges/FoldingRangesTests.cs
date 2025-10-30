@@ -135,21 +135,20 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
         string collapsedText = null,
         bool lineFoldingOnly = false)
     {
-        var clientCapabilities = new LSP.ClientCapabilities();
-        if (lineFoldingOnly)
+        var clientCapabilities = new LSP.ClientCapabilities
         {
-            clientCapabilities.TextDocument = new LSP.TextDocumentClientCapabilities
+            TextDocument = new LSP.TextDocumentClientCapabilities
             {
                 FoldingRange = new LSP.FoldingRangeSetting
                 {
-                    LineFoldingOnly = true
+                    LineFoldingOnly = lineFoldingOnly
                 }
-            };
-        }
+            }
+        };
 
         var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expected = testLspServer.GetLocations()
-            .SelectMany(kvp => kvp.Value.Select(location => CreateFoldingRange(kvp.Key, location.Range, collapsedText ?? "...")))
+            .SelectMany(kvp => kvp.Value.Select(location => CreateFoldingRange(kvp.Key, location.Range, collapsedText ?? "...", lineFoldingOnly)))
             .OrderByDescending(range => range.StartLine)
             .ThenByDescending(range => range.StartCharacter)
             .ToArray();
@@ -170,7 +169,7 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
             request, CancellationToken.None);
     }
 
-    private static LSP.FoldingRange CreateFoldingRange(string kind, LSP.Range range, string collapsedText)
+    private static LSP.FoldingRange CreateFoldingRange(string kind, LSP.Range range, string collapsedText, bool lineFoldingOnly)
         => new()
         {
             Kind = kind switch
@@ -179,8 +178,8 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
                 null => null,
                 _ => new(kind)
             },
-            StartCharacter = range.Start.Character,
-            EndCharacter = range.End.Character,
+            StartCharacter = lineFoldingOnly ? null : range.Start.Character,
+            EndCharacter = lineFoldingOnly ? null : range.End.Character,
             StartLine = range.Start.Line,
             EndLine = range.End.Line,
             CollapsedText = collapsedText
