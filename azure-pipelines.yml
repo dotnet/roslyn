@@ -435,7 +435,7 @@ stages:
 
   - job: Correctness_TodoCheck
     pool:
-      poolName: $(PoolName)
+      name: $(PoolName)
       demands: ImageOverride -equals $(UbuntuQueueName)
     timeoutInMinutes: 10
     steps:
