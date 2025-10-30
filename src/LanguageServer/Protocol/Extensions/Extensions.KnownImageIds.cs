@@ -111,5 +111,7 @@ internal static partial class Extensions
 
         public const int VBFileNode = 3361;
         public const int VBProjectNode = 3380;
+
+        public const int SparkleNoColor = 4069;
     }
 }
