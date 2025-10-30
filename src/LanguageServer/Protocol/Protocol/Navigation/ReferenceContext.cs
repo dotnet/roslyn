@@ -16,7 +16,8 @@ internal sealed class ReferenceContext
 {
     /// <summary>
     /// Include the declaration of the current symbol.
+    /// Defaults to true if not specified.
     /// </summary>
     [JsonPropertyName("includeDeclaration")]
-    public bool IncludeDeclaration { get; set; }
+    public bool? IncludeDeclaration { get; set; }
 }

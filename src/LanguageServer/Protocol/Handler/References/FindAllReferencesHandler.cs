@@ -60,7 +60,9 @@ internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandl
 
         using var progress = BufferedProgress.Create(referenceParams.PartialResultToken);
 
-        await FindReferencesAsync(progress, workspace, document, linePosition, clientCapabilities.HasVisualStudioLspCapability(), _globalOptions, _metadataAsSourceFileService, _asyncListener, cancellationToken).ConfigureAwait(false);
+        // Per LSP spec, includeDeclaration defaults to true when not specified
+        var includeDeclaration = referenceParams.Context?.IncludeDeclaration ?? true;
+        await FindReferencesAsync(progress, workspace, document, linePosition, clientCapabilities.HasVisualStudioLspCapability(), includeDeclaration, _globalOptions, _metadataAsSourceFileService, _asyncListener, cancellationToken).ConfigureAwait(false);
 
         return progress.GetFlattenedValues();
     }
@@ -71,6 +73,7 @@ internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandl
         Document document,
         LinePosition linePosition,
         bool supportsVSExtensions,
+        bool includeDeclaration,
         IGlobalOptionService globalOptions,
         IMetadataAsSourceFileService metadataAsSourceFileService,
         IAsynchronousOperationListener asyncListener,
@@ -80,7 +83,7 @@ internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandl
         var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
 
         var findUsagesContext = new FindUsagesLSPContext(
-            progress, workspace, document, position, metadataAsSourceFileService, asyncListener, globalOptions, supportsVSExtensions, cancellationToken);
+            progress, workspace, document, position, metadataAsSourceFileService, asyncListener, globalOptions, supportsVSExtensions, includeDeclaration, cancellationToken);
 
         // Finds the references for the symbol at the specific position in the document, reporting them via streaming to the LSP client.
         var classificationOptions = globalOptions.GetClassificationOptionsProvider();
