@@ -320,7 +320,7 @@ stages:
     parameters:
       jobName: Determine_Changes
       poolName: $(PoolName)
-      vmImageName: ubuntu-latest
+      queueName: $(UbuntuQueueName)
       paths:
         - subset: compilers
           include:
@@ -435,7 +435,8 @@ stages:
 
   - job: Correctness_TodoCheck
     pool:
-      vmImage: ubuntu-20.04
+      poolName: $(PoolName)
+      demands: ImageOverride -equals $(UbuntuQueueName)
     timeoutInMinutes: 10
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
