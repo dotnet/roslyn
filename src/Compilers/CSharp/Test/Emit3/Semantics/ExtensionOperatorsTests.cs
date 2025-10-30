@@ -30092,9 +30092,9 @@ public class C2 { }
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (1,5): error CS0034: Operator '==' is ambiguous on operands of type 'C1' and 'C2'
+                // (1,14): error CS9342: Operator resolution is ambiguous between the following members: 'E1.extension(C1).operator ==(C1, C2)' and 'E2.extension(C1).operator ==(C1, C2)'
                 // _ = new C1() == new C2();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C1() == new C2()").WithArguments("==", "C1", "C2").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "==").WithArguments("E1.extension(C1).operator ==(C1, C2)", "E2.extension(C1).operator ==(C1, C2)").WithLocation(1, 14));
         }
 
         [Fact]

@@ -1237,8 +1237,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             originalUserDefinedOperators = extensionOriginalUserDefinedOperators;
                             foundOperator = bindSimpleBinaryOperatorPartsContinue(node, diagnostics, left, right, kind, ref resultKind, ref originalUserDefinedOperators, out resultSignature, ref best, isChecked, name1, name2Opt, ref operatorResolutionForReporting);
                         }
-
-                        operatorResolutionForReporting.Free();
                     }
                 }
 
@@ -1299,7 +1297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (operatorResolutionForReporting.TryReportDiagnostics(node, diagnostics, this, operand.Display, null))
+            if (operatorResolutionForReporting.TryReportDiagnostics(node, this, operand.Display, null, diagnostics))
             {
                 return;
             }
@@ -1334,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportBinaryOperatorError(ExpressionSyntax node, BindingDiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right,
             LookupResultKind resultKind, ref OperatorResolutionForReporting operatorResolutionForReporting)
         {
-            if (operatorResolutionForReporting.TryReportDiagnostics(node, diagnostics, this, left.Display, right.Display))
+            if (operatorResolutionForReporting.TryReportDiagnostics(node, this, left.Display, right.Display, diagnostics))
             {
                 return;
             }
