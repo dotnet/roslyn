@@ -22,13 +22,13 @@
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
   </ItemGroup>
-  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
     <PackageReference Include="Microsoft.Build" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Framework" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">
     <!-- Reference MSBuild directly to avoid redistributing its package closure and including the dependencies in deps.json file. -->
     <PackageDownloadAndReference Include="Microsoft.Build" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
     <PackageDownloadAndReference Include="Microsoft.Build.Framework" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
@@ -36,7 +36,7 @@
     <PackageDownloadAndReference Include="Microsoft.Build.Utilities.Core" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
   </ItemGroup>
   <!-- For net6.0 and net7.0 builds of the BuildHost we will reference the ref/net6.0 folder -->
-  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' AND '$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true' AND '$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
     <!-- Reference MSBuild directly to avoid redistributing its package closure and including the dependencies in deps.json file. -->
     <PackageDownloadAndReference Include="Microsoft.Build" Version="$(_MsbuildVersion)" Folder="ref/net6.0" />
     <PackageDownloadAndReference Include="Microsoft.Build.Framework" Version="$(_MsbuildVersion)" Folder="ref/net6.0" />
@@ -48,7 +48,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
     <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonFixedVersion)" PrivateAssets="All" Condition="'$(DotnetBuildFromSource)' != 'true'"/>
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonFixedVersion)" PrivateAssets="All" Condition="'$(DotNetBuildFromSource)' != 'true'"/>
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
   </ItemGroup>
   <ItemGroup>
