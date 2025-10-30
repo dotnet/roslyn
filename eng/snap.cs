@@ -1701,7 +1701,7 @@ file sealed class ActionList(IAnsiConsole console)
                     }
                     catch (Exception ex)
                     {
-                        console.MarkupLineInterpolated($"[red]Error:[/] Action [teal]{action.Name}[/] failed: {Markup.Escape(ex.ToString())}");
+                        console.MarkupLineInterpolated($"[red]Error:[/] Action [teal]{Markup.Remove(action.Name)}[/] failed: {ex.ToString()}");
                         if (!console.Confirm($"Continue executing the remaining actions?", defaultValue: true))
                         {
                             return;
