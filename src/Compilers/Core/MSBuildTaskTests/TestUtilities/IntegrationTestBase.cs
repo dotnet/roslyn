@@ -133,7 +133,7 @@ public abstract class IntegrationTestBase : TestBase
             return;
         }
 
-        var originalAppHost = Path.Combine(ManagedToolTask.GetToolDirectory(), "csc.exe");
+        var originalAppHost = Path.Combine(ManagedToolTask.GetToolDirectory(), $"csc{PlatformInformation.ExeExtension}");
         var backupAppHost = originalAppHost + ".bak";
         if (!useAppHost)
         {
@@ -147,7 +147,7 @@ public abstract class IntegrationTestBase : TestBase
         {
             result = RunMsbuild(
                 "/v:n /m /nr:false /t:Build /restore Test.csproj" +
-                    (overrideToolExe ? " /p:CscToolExe=csc.exe" : ""),
+                    (overrideToolExe ? $" /p:CscToolExe=csc{PlatformInformation.ExeExtension}" : ""),
                 _tempDirectory,
                 new Dictionary<string, string>
                 {
@@ -205,7 +205,7 @@ public abstract class IntegrationTestBase : TestBase
             return;
         }
 
-        var originalAppHost = Path.Combine(ManagedToolTask.GetToolDirectory(), "vbc.exe");
+        var originalAppHost = Path.Combine(ManagedToolTask.GetToolDirectory(), $"vbc{PlatformInformation.ExeExtension}");
         var backupAppHost = originalAppHost + ".bak";
         if (!useAppHost)
         {
@@ -218,7 +218,7 @@ public abstract class IntegrationTestBase : TestBase
         {
             result = RunMsbuild(
                 "/v:n /m /nr:false /t:Build /restore Test.vbproj" +
-                    (overrideToolExe ? " /p:VbcToolExe=vbc.exe" : ""),
+                    (overrideToolExe ? $" /p:VbcToolExe=vbc{PlatformInformation.ExeExtension}" : ""),
                 _tempDirectory,
                 new Dictionary<string, string>
                 {
