@@ -126,9 +126,9 @@ internal sealed class LoadedProject : IDisposable
         return _mostRecentFileInfo.TargetFramework;
     }
 
-    public ProjectSystemProject GetProjectSystemProject()
+    public ProjectId GetProjectSystemProjectId()
     {
-        return _projectSystemProject;
+        return _projectSystemProject.Id;
     }
 
     /// <summary>

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 /// Handles loading miscellaneous files that are not file-based programs.
 /// These files are loaded into a canonical project backed by an empty .cs file in temp.
 /// </summary>
-internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoader
+internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoader, IDisposable
 {
     private readonly Lazy<string> _canonicalDocumentPath;
 
@@ -85,7 +86,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
 
                     // We always expect that the canonical project is either Primordial, or loaded with exactly 1 target (1 TFM).
                     Contract.ThrowIfFalse(loadedTargets.LoadedProjectTargets.Length == 1, "Expected exactly one loaded target for canonical project");
-                    var loadedProjectId = loadedTargets.LoadedProjectTargets.Single().GetProjectSystemProject().Id;
+                    var loadedProjectId = loadedTargets.LoadedProjectTargets.Single().GetProjectSystemProjectId();
                     return await AddDocumentToLoadedProjectAsync(documentPath, documentText, loadedProjectId, cancellationToken);
                 }
                 else
@@ -99,7 +100,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             else
             {
                 // Case 3: Project doesn't exist at all
-                return CreatePrimordialProjectAndAddDocument(documentPath, documentText);
+                return CreatePrimordialProjectAndAddDocument_NoLock(documentPath, documentText);
             }
         }, cancellationToken);
     }
@@ -181,7 +182,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         return addedDocument;
     }
 
-    private TextDocument CreatePrimordialProjectAndAddDocument(string documentPath, SourceText documentText)
+    private TextDocument CreatePrimordialProjectAndAddDocument_NoLock(string documentPath, SourceText documentText)
     {
         var canonicalDocumentPath = _canonicalDocumentPath.Value;
 
@@ -313,5 +314,20 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
             .Single(p => PathUtilities.Comparer.Equals(p.FilePath, _canonicalDocumentPath.Value));
 
         return project;
+    }
+
+    public void Dispose()
+    {
+        if (_canonicalDocumentPath.IsValueCreated)
+        {
+            var canonicalTempDirectory = Path.GetDirectoryName(_canonicalDocumentPath.Value);
+            IOUtilities.PerformIO(() =>
+            {
+                if (Directory.Exists(canonicalTempDirectory))
+                {
+                    Directory.Delete(canonicalTempDirectory, recursive: true);
+                }
+            });
+        }
     }
 }

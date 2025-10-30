@@ -217,10 +217,6 @@ internal abstract class LanguageServerProjectLoader
     /// Called when transitioning from a primordial project to loaded targets.
     /// Subclasses can override this to transfer documents or perform other operations before the primordial project is removed.
     /// </summary>
-    /// <param name="projectPath">The path to the project being loaded.</param>
-    /// <param name="primordialProjectFactory">The factory that created the primordial project.</param>
-    /// <param name="primordialProjectId">The ID of the primordial project.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     protected abstract ValueTask TransitionPrimordialProjectToLoadedAsync(
         string projectPath,
         ProjectSystemProjectFactory primordialProjectFactory,

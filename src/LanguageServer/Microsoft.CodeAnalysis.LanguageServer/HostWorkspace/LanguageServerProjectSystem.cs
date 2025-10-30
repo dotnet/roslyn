@@ -112,8 +112,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         ProjectId primordialProjectId,
         CancellationToken cancellationToken)
     {
-        await primordialProjectFactory.ApplyChangeToWorkspaceAsync(
-            workspace => workspace.OnProjectRemoved(primordialProjectId),
-            cancellationToken);
+        throw ExceptionUtilities.Unreachable();
     }
 }

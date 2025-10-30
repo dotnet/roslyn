@@ -100,6 +100,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         // Verify the document is loaded in the canonical project.
         var (_, canonicalDocumentOne) = await GetLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.NotNull(canonicalDocumentOne);
+        Assert.NotEqual(looseDocumentOne, canonicalDocumentOne);
         // Should have the appropriate generated files now that we ran a design time build
         Assert.Contains(canonicalDocumentOne.Project.Documents, d => d.Name == "Canonical.AssemblyInfo.cs");
 

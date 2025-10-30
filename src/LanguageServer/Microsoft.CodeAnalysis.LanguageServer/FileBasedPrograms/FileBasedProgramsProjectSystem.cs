@@ -22,12 +22,20 @@ using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>Handles loading both miscellaneous files and file-based program projects.</summary>
-internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider
+internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider, IDisposable
 {
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
     private readonly Lazy<CanonicalMiscFilesProjectLoader> _canonicalMiscFilesLoader;
+
+    public void Dispose()
+    {
+        if (_canonicalMiscFilesLoader.IsValueCreated)
+        {
+            _canonicalMiscFilesLoader.Value.Dispose();
+        }
+    }
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
