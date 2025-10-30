@@ -65,7 +65,7 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
             }|}
             """);
 
-    [Theory, CombinatorialData]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7974")]
     public Task TestGetFoldingRangeAsync_LineFoldingOnly_NoOverlappingRanges(bool mutatingLspWorkspace)
         => AssertFoldingRanges(mutatingLspWorkspace, """
             class C{|foldingRange:
@@ -81,7 +81,7 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
             }|}
             """, lineFoldingOnly: true);
 
-    [Theory, CombinatorialData]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7974")]
     public Task TestGetFoldingRangeAsync_LineFoldingOnly_StartLineOverlapsChoosesInner(bool mutatingLspWorkspace)
         => AssertFoldingRanges(mutatingLspWorkspace, """
             class C { public void M1() {|implementation:{
@@ -90,7 +90,7 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
             }
             """, lineFoldingOnly: true);
 
-    [Theory, CombinatorialData]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7974")]
     public Task TestGetFoldingRangeAsync_LineFoldingOnly_EndLineOverlaps(bool mutatingLspWorkspace)
         => AssertFoldingRanges(mutatingLspWorkspace, """
             class C{|foldingRange:
@@ -102,7 +102,7 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
                     }|}}|}}|}
             """, lineFoldingOnly: true);
 
-    [Theory, CombinatorialData]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7974")]
     public Task TestGetFoldingRangeAsync_LineFoldingOnly_EndLineOverlapsStartLine(bool mutatingLspWorkspace)
         => AssertFoldingRanges(mutatingLspWorkspace, """
             class C{|foldingRange:
@@ -116,6 +116,18 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
                 }|}
             }|}
             """, lineFoldingOnly: true);
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7974")]
+    public Task TestGetFoldingRangeAsync_WithoutLineFoldingOnly_AllowsRangesOnSameLine(bool mutatingLspWorkspace)
+        => AssertFoldingRanges(mutatingLspWorkspace, """
+            class C {|foldingRange:{ public void M1() {|implementation:{
+                    if (true){|foldingRange:
+                    {
+                    }|} else{|foldingRange: {
+                    }|}
+                }|}
+            }|}
+            """, lineFoldingOnly: false);
 
     private async Task AssertFoldingRanges(
         bool mutatingLspWorkspace,

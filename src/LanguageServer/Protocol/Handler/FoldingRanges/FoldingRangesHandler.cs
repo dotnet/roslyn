@@ -91,9 +91,8 @@ internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<F
 
         using var _ = ArrayBuilder<FoldingRange>.GetInstance(out var foldingRanges);
 
-        for (var i = 0; i < blockStructure.Spans.Length; i++)
+        foreach (var span in blockStructure.Spans)
         {
-            var span = blockStructure.Spans[i];
             if (!span.IsCollapsible)
             {
                 continue;
