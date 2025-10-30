@@ -3400,6 +3400,10 @@ parse_member_name:;
 
         private ConstructorInitializerSyntax ParseConstructorInitializer()
         {
+            // Normally called for `:` but also in some error recovery circumstances for `=>`. EatTokenAsKind handles
+            // both cases properly, producing the right errors we need in the latter case, and always consuming
+            // whichever token we're coming into this method on.
+            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.ColonToken or SyntaxKind.EqualsGreaterThanToken);
             var colon = this.EatTokenAsKind(SyntaxKind.ColonToken);
 
             var token = this.CurrentToken.Kind is SyntaxKind.BaseKeyword or SyntaxKind.ThisKeyword
