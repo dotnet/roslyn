@@ -60,8 +60,7 @@ internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandl
 
         using var progress = BufferedProgress.Create(referenceParams.PartialResultToken);
 
-        // Per LSP spec, includeDeclaration defaults to true when not specified
-        var includeDeclaration = referenceParams.Context?.IncludeDeclaration ?? true;
+        var includeDeclaration = referenceParams.Context.IncludeDeclaration;
         await FindReferencesAsync(progress, workspace, document, linePosition, clientCapabilities.HasVisualStudioLspCapability(), includeDeclaration, _globalOptions, _metadataAsSourceFileService, _asyncListener, cancellationToken).ConfigureAwait(false);
 
         return progress.GetFlattenedValues();
