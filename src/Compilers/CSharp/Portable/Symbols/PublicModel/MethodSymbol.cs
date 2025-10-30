@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         IMethodSymbol? IMethodSymbol.ReduceExtensionMember(ITypeSymbol receiverType)
         {
-            if (_underlying.GetIsNewExtensionMember() && SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(_underlying))
+            if (_underlying.IsExtensionBlockMember() && SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(_underlying))
             {
                 var csharpReceiver = receiverType.EnsureCSharpSymbolOrNull(nameof(receiverType));
                 return (IMethodSymbol?)SourceNamedTypeSymbol.ReduceExtensionMember(compilation: null, _underlying, csharpReceiver, wasExtensionFullyInferred: out _).GetPublicSymbol();
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                if (!_underlying.GetIsNewExtensionMember())
+                if (!_underlying.IsExtensionBlockMember())
                 {
                     return null;
                 }

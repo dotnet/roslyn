@@ -19238,7 +19238,7 @@ class C
 
                         g.VerifyTypeDefNames("HotReloadException");
                         g.VerifyMethodDefNames("F", "<F>g__L|0_0", "<F>g__M|0_1#1", ".ctor");
-                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Action`1");
+                        g.VerifyTypeRefNames("Object", "InAttribute", "CompilerGeneratedAttribute", "Exception", "Action`1");
 
                         g.VerifyMemberRefNames(".ctor", ".ctor", "Invoke");
 
@@ -19356,7 +19356,7 @@ class C
 
                         g.VerifyTypeDefNames("<>c__DisplayClass0#3_0#3");
                         g.VerifyMethodDefNames("F", "<F>g__N|0#3_1#3", ".ctor", "<F>g__O|0#3", "<F>b__2#3");
-                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "InAttribute");
                         g.VerifyMemberRefNames(".ctor", ".ctor", "x", "<F>g__O|0#3", ".ctor", "<F>g__N|0#3_1#3");
 
                         g.VerifyCustomAttributes(
@@ -19451,7 +19451,7 @@ class C
                         // Only lambdas that were not deleted before are updated:
                         g.VerifyMethodDefNames("F", "<F>g__N|0#3_1#3", "<F>g__O|0#3", "<F>b__2#3");
 
-                        g.VerifyTypeRefNames("Object");
+                        g.VerifyTypeRefNames("Object", "InAttribute");
                         g.VerifyMemberRefNames();
 
                         g.VerifyCustomAttributes("[System.Runtime.CompilerServices.MetadataUpdateDeletedAttribute..ctor] C`1.F");

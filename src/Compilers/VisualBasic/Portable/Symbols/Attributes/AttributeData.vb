@@ -259,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim arg As ArgumentSyntax = nodeOpt.ArgumentList.Arguments(argumentIndex)
                     Return (arg.ToString(), arg.GetLocation())
                 Else
-                    Return (value.ToString(), nodeOpt.GetLocation())
+                    Return (value.ToString(Globalization.CultureInfo.InvariantCulture), nodeOpt.GetLocation())
                 End If
             Else
                 Return ("", NoLocation.Singleton)

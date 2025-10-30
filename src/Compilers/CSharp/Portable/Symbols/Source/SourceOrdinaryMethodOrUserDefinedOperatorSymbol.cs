@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
 
-            if (this.GetIsNewExtensionMember())
+            if (this.IsExtensionBlockMember())
             {
                 if (MethodKind != MethodKind.Ordinary)
                 {

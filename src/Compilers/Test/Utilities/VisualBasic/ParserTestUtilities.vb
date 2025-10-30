@@ -570,7 +570,7 @@ Public Module VerificationHelpers
         With errorString.Builder
             .Append(vbTab)
             .Append("<error id=""")
-            .Append(id)
+            .Append(id.ToString(Globalization.CultureInfo.InvariantCulture))
             .Append("""")
             If message IsNot Nothing Then
                 .Append(" message=""")

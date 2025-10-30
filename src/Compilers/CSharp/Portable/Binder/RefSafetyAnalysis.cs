@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return method.Parameters is [{ } firstParameter, ..] ? firstParameter : null;
                 }
-                else if (method.GetIsNewExtensionMember())
+                else if (method.IsExtensionBlockMember())
                 {
                     return method.ContainingType.ExtensionParameter;
                 }
@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
 
-            VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.Receiver, methodInvocationInfo.ArgsOpt, node.Method.GetIsNewExtensionMember());
+            VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.Receiver, methodInvocationInfo.ArgsOpt, node.Method.IsExtensionBlockMember());
 
             if (!node.HasErrors)
             {
@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodInvocationInfo = MethodInvocationInfo.FromObjectCreation(node);
             methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
-            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, methodInvocationInfo.ArgsOpt, isNewExtensionMethod: node.Constructor.GetIsNewExtensionMember());
+            VisitArgumentsAndGetArgumentPlaceholders(receiverOpt: null, methodInvocationInfo.ArgsOpt, isNewExtensionMethod: node.Constructor.IsExtensionBlockMember());
             Visit(node.InitializerExpressionOpt);
 
             if (node.HasErrors)
@@ -1044,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodInvocationInfo = MethodInvocationInfo.FromIndexerAccess(node);
             methodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
             Visit(methodInvocationInfo.Receiver);
-            VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.Receiver, methodInvocationInfo.ArgsOpt, node.Indexer.GetIsNewExtensionMember());
+            VisitArgumentsAndGetArgumentPlaceholders(methodInvocationInfo.Receiver, methodInvocationInfo.ArgsOpt, node.Indexer.IsExtensionBlockMember());
 
             if (!node.HasErrors)
             {
@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var parameters = methodInvocationInfo.Parameters;
             int n = variables.Count;
-            int offset = invocation.InvokedAsExtensionMethod || invocation.Method.GetIsNewExtensionMember() ? 1 : 0;
+            int offset = invocation.InvokedAsExtensionMethod || invocation.Method.IsExtensionBlockMember() ? 1 : 0;
             Debug.Assert(parameters.Length - offset == n);
 
             for (int i = 0; i < n; i++)
