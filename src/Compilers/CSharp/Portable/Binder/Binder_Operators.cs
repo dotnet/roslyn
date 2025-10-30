@@ -176,8 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         staticOperatorName1, staticOperatorName2Opt,
                         checkedInstanceOperatorName, ordinaryInstanceOperatorName,
                         left, right, diagnostics,
-                        out staticExtensionBest, out staticExtensionResultKind, out staticExtensionOriginalUserDefinedOperators,
-                        ref operatorResolutionForReporting);
+                        ref operatorResolutionForReporting,
+                        out staticExtensionBest, out staticExtensionResultKind, out staticExtensionOriginalUserDefinedOperators);
 
                     if (instanceExtensionResult is not null)
                     {
@@ -581,10 +581,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression left,
                 BoundExpression right,
                 BindingDiagnosticBag diagnostics,
+                ref OperatorResolutionForReporting operatorResolutionForReporting,
                 out BinaryOperatorAnalysisResult? staticBest,
                 out LookupResultKind staticResultKind,
-                out ImmutableArray<MethodSymbol> staticOriginalUserDefinedOperators,
-                ref OperatorResolutionForReporting operatorResolutionForReporting)
+                out ImmutableArray<MethodSymbol> staticOriginalUserDefinedOperators)
             {
                 staticBest = null;
                 staticResultKind = LookupResultKind.Empty;
@@ -3333,7 +3333,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(ordinaryInstanceOperatorName is not null);
 
-                    BoundIncrementOperator? inPlaceResult = tryApplyUserDefinedInstanceOperator(node, operatorToken, kind, mode, isChecked, checkedInstanceOperatorName, ordinaryInstanceOperatorName, operand, ref operatorResolutionForReporting, diagnostics);
+                    BoundIncrementOperator? inPlaceResult = tryApplyUserDefinedInstanceOperator(node, operatorToken, kind, mode, isChecked, checkedInstanceOperatorName, ordinaryInstanceOperatorName,
+                        operand, ref operatorResolutionForReporting, diagnostics);
+
                     if (inPlaceResult is not null)
                     {
                         return inPlaceResult;
@@ -3364,8 +3366,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         staticOperatorName1, staticOperatorName2Opt,
                         checkedInstanceOperatorName, ordinaryInstanceOperatorName,
                         operand, diagnostics,
-                        ref operatorResolutionForReporting, out staticExtensionBest, out staticExtensionResultKind,
-                        out staticExtensionOriginalUserDefinedOperators);
+                        ref operatorResolutionForReporting,
+                        out staticExtensionBest, out staticExtensionResultKind, out staticExtensionOriginalUserDefinedOperators);
 
                     if (instanceExtensionResult is not null)
                     {
