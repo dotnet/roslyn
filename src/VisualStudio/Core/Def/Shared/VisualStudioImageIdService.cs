@@ -44,6 +44,7 @@ internal sealed class VisualStudioImageIdService(IThreadingContext threadingCont
 
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IVsImageService2 _imageService = (IVsImageService2)serviceProvider.GetService(typeof(SVsImageService));
+    private readonly Lazy<ImageId> _copilotGlyph = new(() => KnownMonikers.SparkleNoColor.ToImageId());
 
     // We have to keep the image handles around to keep the compound glyph alive.
     private readonly List<CompositeImage> _compositeImages = [];
@@ -65,6 +66,8 @@ internal sealed class VisualStudioImageIdService(IThreadingContext threadingCont
                 return GetCompositedImageId(
                     CreateLayer(Glyph.Reference.GetImageMoniker(), virtualXOffset: 1, virtualYOffset: 2),
                     CreateLayer(KnownMonikers.PendingAddNode, virtualWidth: 7, virtualXOffset: -1, virtualYOffset: -2));
+            case Glyph.Copilot:
+                return _copilotGlyph.Value;
         }
 
         return glyph.GetImageId();
