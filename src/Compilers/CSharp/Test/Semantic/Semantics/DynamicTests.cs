@@ -3650,6 +3650,70 @@ class C
         }
 
         [Fact]
+        public void DynamicBooleanExpression_InterfaceOperator_And()
+        {
+            const string source = @"
+interface I1
+{
+    static bool operator true(I1 x) => false;
+    static bool operator false(I1 x) => false;
+}
+
+class C1 : I1
+{
+    public static C1 operator &(C1 x, C1 y) => x;
+    public static bool operator true(C1 x) => false;
+    public static bool operator false(C1 x) => false;
+}
+
+class Test
+{
+    void M()
+    {
+        I1 x = new C1();
+        dynamic y = new C1();
+        _ = x && y;
+    }
+}";
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (21,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'I1' must define operator 'false'.
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x").WithArguments("I1", "false")
+            );
+        }
+
+        [Fact]
+        public void DynamicBooleanExpression_InterfaceOperator_Or()
+        {
+            const string source = @"
+interface I1
+{
+    static bool operator true(I1 x) => false;
+    static bool operator false(I1 x) => false;
+}
+
+class C1 : I1
+{
+    public static C1 operator |(C1 x, C1 y) => x;
+    public static bool operator true(C1 x) => false;
+    public static bool operator false(C1 x) => false;
+}
+
+class Test
+{
+    void M()
+    {
+        I1 x = new C1();
+        dynamic y = new C1();
+        _ = x || y;
+    }
+}";
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (21,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'I1' must define operator 'true'.
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x").WithArguments("I1", "true")
+            );
+        }
+
+        [Fact]
         public void DynamicConstructorCall1()
         {
             // If there are one or more applicable ctors then we do a dynamic binding.

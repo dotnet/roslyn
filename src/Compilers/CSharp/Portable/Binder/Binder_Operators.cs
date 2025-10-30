@@ -1632,6 +1632,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var conversion = this.Conversions.ClassifyConversionFromType(argumentType, op.GetParameterType(0), isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                             if (conversion.IsImplicit)
                             {
+                                // Operators defined on interfaces cannot be used with dynamic binding at runtime,
+                                // so we don't consider them as applicable.
+                                if (op.ContainingType.IsInterface)
+                                {
+                                    continue;
+                                }
+
                                 @operator = op;
                                 operators.Free();
                                 return true;
