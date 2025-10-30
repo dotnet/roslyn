@@ -127,10 +127,17 @@ public abstract class IntegrationTestBase : TestBase
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
     public void SdkBuild_Csc(bool useSharedCompilation, bool overrideToolExe, bool useAppHost)
     {
-        var originalAppHost = "../bincore/csc.exe";
+        if (!ManagedToolTask.IsBuiltinToolRunningOnCoreClr && !useAppHost)
+        {
+            _output.WriteLine("Skipping test case: netfx compiler always uses apphost.");
+            return;
+        }
+
+        var originalAppHost = Path.Combine(ManagedToolTask.GetToolDirectory(), "csc.exe");
         var backupAppHost = originalAppHost + ".bak";
         if (!useAppHost)
         {
+            _output.WriteLine($"Apphost: {originalAppHost}");
             File.Move(originalAppHost, backupAppHost);
         }
 
@@ -192,7 +199,13 @@ public abstract class IntegrationTestBase : TestBase
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
     public void SdkBuild_Vbc(bool useSharedCompilation, bool overrideToolExe, bool useAppHost)
     {
-        var originalAppHost = "../bincore/vbc.exe";
+        if (!ManagedToolTask.IsBuiltinToolRunningOnCoreClr && !useAppHost)
+        {
+            _output.WriteLine("Skipping test case: netfx compiler always uses apphost.");
+            return;
+        }
+
+        var originalAppHost = Path.Combine(ManagedToolTask.GetToolDirectory(), "vbc.exe");
         var backupAppHost = originalAppHost + ".bak";
         if (!useAppHost)
         {

@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return items;
         }
 
-        private static string GetToolDirectory()
+        internal static string GetToolDirectory()
         {
             var buildTaskDirectory = GetBuildTaskDirectory();
 #if NET
