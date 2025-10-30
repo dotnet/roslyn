@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>$(SourceBuildToolsetTargetFramework);net472</TargetFrameworks>
+    <TargetFrameworks>$(SourceBuildTargetFrameworks);net472</TargetFrameworks>
     <!-- We'll always be running our build host with the same host that is used to launch the language server process directly, so we don't need to create another one -->
     <UseAppHost>false</UseAppHost>
     <!-- Set to false since it's also set in Microsoft.CodeAnalysis.LanguageServer -->
@@ -28,12 +28,20 @@
     <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">
     <!-- Reference MSBuild directly to avoid redistributing its package closure and including the dependencies in deps.json file. -->
     <PackageDownloadAndReference Include="Microsoft.Build" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
     <PackageDownloadAndReference Include="Microsoft.Build.Framework" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
     <PackageDownloadAndReference Include="Microsoft.Build.Tasks.Core" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
     <PackageDownloadAndReference Include="Microsoft.Build.Utilities.Core" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
+  </ItemGroup>
+  <!-- For net6.0 and net7.0 builds of the BuildHost we will reference the ref/net6.0 folder -->
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' AND '$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+    <!-- Reference MSBuild directly to avoid redistributing its package closure and including the dependencies in deps.json file. -->
+    <PackageDownloadAndReference Include="Microsoft.Build" Version="$(_MsbuildVersion)" Folder="ref/net6.0" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Framework" Version="$(_MsbuildVersion)" Folder="ref/net6.0" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Tasks.Core" Version="$(_MsbuildVersion)" Folder="ref/net6.0" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Utilities.Core" Version="$(_MsbuildVersion)" Folder="ref/net6.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" PrivateAssets="All" />
