@@ -17,7 +17,7 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
         var (_, tree, allChars) = JustParseTree(stringText, JsonOptions.Strict, conversionFailureOk: false);
         Assert.NotNull(tree);
         Contract.ThrowIfNull(tree);
-        var actualTree = TreeToText(tree!).Replace("""
+        var actualTree = TreeToText(tree).Replace("""
             "
             """, """
             ""

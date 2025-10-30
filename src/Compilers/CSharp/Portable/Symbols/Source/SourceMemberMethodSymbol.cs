@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (this.GetIsNewExtensionMember() && ContainingType.ExtensionParameter is { } extensionParameter)
+            if (this.IsExtensionBlockMember() && ContainingType.ExtensionParameter is { } extensionParameter)
             {
                 if (!extensionParameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
                 {
@@ -815,14 +815,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-        }
-
         public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
@@ -844,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             thisParameter = _lazyThisParameter;
-            if ((object)thisParameter != null || IsStatic || this.GetIsNewExtensionMember())
+            if ((object)thisParameter != null || IsStatic || this.IsExtensionBlockMember())
             {
                 return true;
             }

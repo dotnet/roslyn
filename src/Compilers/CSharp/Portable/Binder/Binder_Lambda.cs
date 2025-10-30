@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> types = default;
             ImmutableArray<EqualsValueClauseSyntax?> defaultValues = default;
             RefKind returnRefKind = RefKind.None;
+            ImmutableArray<CustomModifier> refCustomModifiers = [];
             TypeWithAnnotations returnType = default;
             ImmutableArray<SyntaxList<AttributeListSyntax>> parameterAttributes = default;
 
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var paren = (ParenthesizedLambdaExpressionSyntax)syntax;
                     if (paren.ReturnType is { } returnTypeSyntax)
                     {
-                        (returnRefKind, returnType) = BindExplicitLambdaReturnType(returnTypeSyntax, diagnostics);
+                        (returnRefKind, refCustomModifiers, returnType) = BindExplicitLambdaReturnType(returnTypeSyntax, diagnostics);
                     }
 
                     parameterSyntaxListOpt = paren.ParameterList.Parameters;
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxListOpt, defaultValues, isAsync: isAsync, isStatic: isStatic);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, refCustomModifiers, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxListOpt, defaultValues, isAsync: isAsync, isStatic: isStatic);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
@@ -288,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
-        private (RefKind, TypeWithAnnotations) BindExplicitLambdaReturnType(TypeSyntax syntax, BindingDiagnosticBag diagnostics)
+        private (RefKind, ImmutableArray<CustomModifier> refCustomModifiers, TypeWithAnnotations) BindExplicitLambdaReturnType(TypeSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureLambdaReturnType.CheckFeatureAvailability(diagnostics, syntax);
 
@@ -311,7 +312,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.Location, type);
             }
 
-            return (refKind, returnType);
+            ImmutableArray<CustomModifier> refCustomModifiers = [];
+            if (refKind == RefKind.RefReadOnly)
+            {
+                refCustomModifiers = [CSharpCustomModifier.CreateRequired(Binder.GetWellKnownType(Compilation, WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.Location))];
+            }
+
+            return (refKind, refCustomModifiers, returnType);
         }
 
         private static void CheckParenthesizedLambdaParameters(

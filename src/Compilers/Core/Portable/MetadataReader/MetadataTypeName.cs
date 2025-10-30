@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return String.Format("{{{0},{1},{2},{3}}}", NamespaceName, TypeName, UseCLSCompliantNameArityEncoding.ToString(), _forcedArity.ToString());
+                return String.Format("{{{0},{1},{2},{3}}}", NamespaceName, TypeName, UseCLSCompliantNameArityEncoding.ToString(), _forcedArity.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
         }
     }

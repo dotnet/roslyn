@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceMethod = TryCast(method, SourceMethodSymbol)
             If sourceMethod IsNot Nothing Then
                 Return BinderBuilder.CreateBinderForMethodBody(DirectCast(sourceMethod.ContainingModule, SourceModuleSymbol),
-                                                               sourceMethod.ContainingType.Locations(0).PossiblyEmbeddedOrMySourceTree(),
+                                                               sourceMethod.ContainingType.GetFirstLocation().PossiblyEmbeddedOrMySourceTree(),
                                                                sourceMethod)
             End If
 

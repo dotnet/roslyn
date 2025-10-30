@@ -12,19 +12,14 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.PopulateSwitch;
 
 internal abstract class AbstractPopulateSwitchExpressionCodeFixProvider<
-    TExpressionSyntax, TSwitchSyntax, TSwitchArmSyntax, TMemberAccessExpressionSyntax>
+    TExpressionSyntax, TSwitchSyntax, TSwitchArmSyntax, TMemberAccessExpressionSyntax>()
     : AbstractPopulateSwitchCodeFixProvider<
-        ISwitchExpressionOperation, TSwitchSyntax, TSwitchArmSyntax, TMemberAccessExpressionSyntax>
+        ISwitchExpressionOperation, TSwitchSyntax, TSwitchArmSyntax, TMemberAccessExpressionSyntax>(IDEDiagnosticIds.PopulateSwitchExpressionDiagnosticId)
     where TExpressionSyntax : SyntaxNode
     where TSwitchSyntax : TExpressionSyntax
     where TSwitchArmSyntax : SyntaxNode
     where TMemberAccessExpressionSyntax : TExpressionSyntax
 {
-    protected AbstractPopulateSwitchExpressionCodeFixProvider()
-        : base(IDEDiagnosticIds.PopulateSwitchExpressionDiagnosticId)
-    {
-    }
-
     protected sealed override void FixOneDiagnostic(
         Document document, SyntaxEditor editor, SemanticModel semanticModel,
         bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,

@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.MemberSymbol is PropertySymbol property)
             {
-                if (_inExpressionLambda && property.GetIsNewExtensionMember())
+                if (_inExpressionLambda && property.IsExtensionBlockMember())
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, node);
                 }
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
-            if (_inExpressionLambda && (node.AddMethod.IsStatic || node.AddMethod.GetIsNewExtensionMember()))
+            if (_inExpressionLambda && (node.AddMethod.IsStatic || node.AddMethod.IsExtensionBlockMember()))
             {
                 Error(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, node);
             }
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
                 }
-                else if (property.GetIsNewExtensionMember())
+                else if (property.IsExtensionBlockMember())
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, node);
                 }
@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
                 }
 
-                if (binary.GetIsNewExtensionMember())
+                if (binary.IsExtensionBlockMember())
                 {
                     // An expression tree factory isn't happy in this case. It throws
                     //            System.ArgumentException : The user-defined operator method 'op_BitwiseOr' for operator 'OrElse' must have associated boolean True and False operators.
@@ -768,8 +768,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(!node.TrueOperator.GetIsNewExtensionMember());
-                    Debug.Assert(!node.FalseOperator.GetIsNewExtensionMember());
+                    Debug.Assert(!node.TrueOperator.IsExtensionBlockMember());
+                    Debug.Assert(!node.FalseOperator.IsExtensionBlockMember());
                 }
             }
 

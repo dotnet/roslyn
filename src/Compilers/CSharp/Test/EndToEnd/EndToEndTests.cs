@@ -859,13 +859,13 @@ $@"        if (F({i}))
 
             builder.AppendLine(preamble);
 
-            builder.Append(0);
+            builder.Append(0.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             for (int i = 1; i < numBinaryExpressions; i++)
             {
                 builder.Append(append);
                 // Make sure the emitter has to handle lots of nodes
-                builder.Append(i * 2);
+                builder.Append((i * 2).ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
 
             builder.AppendLine(postscript);
@@ -892,11 +892,13 @@ $@"        if (F({i}))
         public void ManyBinaryPatterns_02()
         {
             const int numOfEnumMembers = 5_000;
-            const int capacity = 97953;
+            const int capacity = 97973;
 
             var builder = new StringBuilder(capacity);
 
             builder.Append("""
+#nullable enable
+
 class ErrorFacts
 {
     static bool Test(E code)
@@ -942,7 +944,7 @@ _{i},
             var source = builder.ToString();
             RunInThread(() =>
             {
-                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false), parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
 
                 var tree = comp.SyntaxTrees.Single();
                 var model = comp.GetSemanticModel(tree);
@@ -959,10 +961,72 @@ _{i},
                 Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)operation));
 
                 model.GetDiagnostics().Verify(
-                    // (5,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(E)5000' is not covered.
+                    // (7,21): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(E)5000' is not covered.
                     //         return code switch
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(E)" + numOfEnumMembers).WithLocation(5, 21)
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(E)" + numOfEnumMembers).WithLocation(7, 21)
                     );
+            });
+        }
+
+        [Fact]
+        public void ManyBinaryPatterns_03()
+        {
+            const int numOfEnumMembers = 4_000;
+            const int capacity = 47065;
+
+            var builder = new StringBuilder(capacity);
+
+            builder.Append("""
+#nullable enable
+
+class ErrorFacts
+{
+    static bool Test(E code)
+    {
+        return code switch
+        {
+            E._0
+""");
+
+            for (int i = 1; i < numOfEnumMembers; i++)
+            {
+                builder.Append($"""
+
+or E._{i}
+""");
+            }
+
+            builder.Append("""
+                    => false,
+        };
+    }
+}
+""");
+
+            Assert.Equal(capacity, builder.Length);
+
+            var source = builder.ToString();
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
+
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+                var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().First();
+                SymbolInfo symbolInfo = model.GetSymbolInfo(node1);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                var node2 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Last();
+                symbolInfo = model.GetSymbolInfo(node2);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+
+                var operation = model.GetOperation(node1);
+                Assert.NotNull(operation);
+
+                for (; operation.Parent is not null; operation = operation.Parent) { }
+
+                Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)operation));
             });
         }
     }

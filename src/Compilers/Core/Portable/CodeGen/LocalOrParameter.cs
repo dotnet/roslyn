@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private string GetDebuggerDisplay()
         {
-            return (Local != null) ? Local.GetDebuggerDisplay() : ParameterIndex.ToString();
+            return (Local != null) ? Local.GetDebuggerDisplay() : ParameterIndex.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
     }
 }

@@ -1569,7 +1569,7 @@ DoneWithDiagnostics:
                 If delegateParam.IsByRef OrElse delegateParam.OriginalDefinition.Type.IsTypeParameter() Then
                     Dim restrictedType As TypeSymbol = Nothing
                     If delegateParam.Type.IsRestrictedTypeOrArrayType(restrictedType) Then
-                        ReportDiagnostic(diagnostics, lambda.LambdaSymbol.Parameters(delegateParam.Ordinal).Locations(0),
+                        ReportDiagnostic(diagnostics, lambda.LambdaSymbol.Parameters(delegateParam.Ordinal).GetFirstLocation(),
                                          ERRID.ERR_RestrictedType1, restrictedType)
                     End If
                 End If

@@ -4160,5 +4160,330 @@ public static class C
                 //         c.M = 42;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "c.M").WithArguments("M", "method group").WithLocation(7, 9));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestInModifier()
+        {
+            var source = """
+                struct S;
+                enum E;
+                class C;
+                interface I;
+                delegate void D();
+
+                static class Extensions
+                {
+                    public static void M1(this in S s) { }
+                    public static void M2(this in E e) { }
+                    public static void M3(this in C c) { }
+                    public static void M4(this in I i) { }
+                    public static void M5(this in D d) { }
+                    public static void M6(this in S[] s) { }
+                    public static void M7<T>(this in T t) where T : struct { }
+                    public static unsafe void M8(this in int* ptr) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (11,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M3' must be a concrete (non-generic) value type.
+                //     public static void M3(this in C c) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M3").WithArguments("M3").WithLocation(11, 24),
+                // (12,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M4' must be a concrete (non-generic) value type.
+                //     public static void M4(this in I i) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M4").WithArguments("M4").WithLocation(12, 24),
+                // (13,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M5' must be a concrete (non-generic) value type.
+                //     public static void M5(this in D d) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M5").WithArguments("M5").WithLocation(13, 24),
+                // (14,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M6' must be a concrete (non-generic) value type.
+                //     public static void M6(this in S[] s) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M6").WithArguments("M6").WithLocation(14, 24),
+                // (15,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M7' must be a concrete (non-generic) value type.
+                //     public static void M7<T>(this in T t) where T : struct { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M7").WithArguments("M7").WithLocation(15, 24),
+                // (16,42): error CS1103: The receiver parameter of an extension cannot be of type 'int*'
+                //     public static unsafe void M8(this in int* ptr) { }
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(16, 42));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestRefReadonlyModifier()
+        {
+            var source = """
+                struct S;
+                enum E;
+                class C;
+                interface I;
+                delegate void D();
+                
+                static class Extensions
+                {
+                    public static void M1(this ref readonly S s) { }
+                    public static void M2(this ref readonly E e) { }
+                    public static void M3(this ref readonly C c) { }
+                    public static void M4(this ref readonly I i) { }
+                    public static void M5(this ref readonly D d) { }
+                    public static void M6(this ref readonly S[] s) { }
+                    public static void M7<T>(this ref readonly T t) where T : struct { }
+                    public static unsafe void M8(this ref readonly int* ptr) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (11,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M3' must be a concrete (non-generic) value type.
+                //     public static void M3(this ref readonly C c) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M3").WithArguments("M3").WithLocation(11, 24),
+                // (12,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M4' must be a concrete (non-generic) value type.
+                //     public static void M4(this ref readonly I i) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M4").WithArguments("M4").WithLocation(12, 24),
+                // (13,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M5' must be a concrete (non-generic) value type.
+                //     public static void M5(this ref readonly D d) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M5").WithArguments("M5").WithLocation(13, 24),
+                // (14,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M6' must be a concrete (non-generic) value type.
+                //     public static void M6(this ref readonly S[] s) { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M6").WithArguments("M6").WithLocation(14, 24),
+                // (15,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'M7' must be a concrete (non-generic) value type.
+                //     public static void M7<T>(this ref readonly T t) where T : struct { }
+                Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "M7").WithArguments("M7").WithLocation(15, 24),
+                // (16,52): error CS1103: The receiver parameter of an extension cannot be of type 'int*'
+                //     public static unsafe void M8(this ref readonly int* ptr) { }
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(16, 52));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestInModifierInExtensionBlock()
+        {
+            var source = """
+                struct S;
+                enum E;
+                class C;
+                interface I;
+                delegate void D();
+
+                static unsafe class Extensions
+                {
+                    extension(in S s) { }
+                    extension(in E e) { }
+                    extension(in C c) { }
+                    extension(in I i) { }
+                    extension(in D d) { }
+                    extension(in S[] s) { }
+                    extension<T>(in T t) where T : struct { }
+                    extension(in int* ptr) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (11,18): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(in C c) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "C").WithLocation(11, 18),
+                // (12,18): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(in I i) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "I").WithLocation(12, 18),
+                // (13,18): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(in D d) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "D").WithLocation(13, 18),
+                // (14,18): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(in S[] s) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "S[]").WithLocation(14, 18),
+                // (15,21): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(in T t) where T : struct { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(15, 21),
+                // (16,18): error CS1103: The receiver parameter of an extension cannot be of type 'int*'
+                //     extension(in int* ptr) { }
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(16, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestRefReadonlyModifierInExtensionBlock()
+        {
+            var source = """
+                struct S;
+                enum E;
+                class C;
+                interface I;
+                delegate void D();
+                
+                static unsafe class Extensions
+                {
+                    extension(ref readonly S s) { }
+                    extension(ref readonly E e) { }
+                    extension(ref readonly C c) { }
+                    extension(ref readonly I i) { }
+                    extension(ref readonly D d) { }
+                    extension(ref readonly S[] s) { }
+                    extension<T>(ref readonly T t) where T : struct { }
+                    extension(ref readonly int* ptr) { }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (11,28): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(ref readonly C c) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "C").WithLocation(11, 28),
+                // (12,28): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(ref readonly I i) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "I").WithLocation(12, 28),
+                // (13,28): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(ref readonly D d) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "D").WithLocation(13, 28),
+                // (14,28): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension(ref readonly S[] s) { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "S[]").WithLocation(14, 28),
+                // (15,31): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
+                //     extension<T>(ref readonly T t) where T : struct { }
+                Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(15, 31),
+                // (16,28): error CS1103: The receiver parameter of an extension cannot be of type 'int*'
+                //     extension(ref readonly int* ptr) { }
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "int*").WithArguments("int*").WithLocation(16, 28));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestPointerExtensionParameterType()
+        {
+            var source = """
+                unsafe
+                {
+                    int* ptr = null;
+                    ptr.M();
+                }
+                """;
+
+            // Equivalent to:
+            // public static class Extensions {
+            //     public static void M(this int* ptr) { }
+            // }
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit Extensions
+                    extends [mscorlib]System.Object
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig static 
+                        void M (
+                            int32* ptr
+                        ) cil managed 
+                    {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Method begins at RVA 0x2050
+                        // Code size 1 (0x1)
+                        .maxstack 8
+
+                        IL_0000: ret
+                    } // end of method Extensions::M
+
+                } // end of class Extensions
+                """;
+
+            var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugExe);
+            comp.VerifyDiagnostics(
+                // (4,9): error CS1061: 'int*' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int*' could be found (are you missing a using directive or an assembly reference?)
+                //     ptr.M();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int*", "M").WithLocation(4, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestDynamicExtensionParameterType()
+        {
+            var source = """
+                object obj = null;
+                obj.M();
+                """;
+
+            // Equivalent to:
+            // public static class Extensions {
+            //     public static void M(this dynamic obj) { }
+            // }
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit Extensions
+                    extends [mscorlib]System.Object
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig static 
+                        void M (
+                            object obj
+                        ) cil managed 
+                    {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        .param [1]
+                            .custom instance void [mscorlib]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+                        // Method begins at RVA 0x2050
+                        // Code size 1 (0x1)
+                        .maxstack 8
+
+                        IL_0000: ret
+                    } // end of method Extensions::M
+
+                } // end of class Extensions
+                """;
+
+            var comp = CreateCompilationWithIL(source, ilSource);
+            comp.VerifyDiagnostics(
+                // (2,5): error CS1061: 'object' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // obj.M();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("object", "M").WithLocation(2, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73746")]
+        public void TestFunctionPointerExtensionParameterType()
+        {
+            var source = """
+                unsafe
+                {
+                    delegate*<void> ptr = null;
+                    ptr.M();
+                }
+                """;
+
+            // Equivalent to:
+            // public static class Extensions {
+            //     public static unsafe void M(this delegate*<void> ptr) { }
+            // }
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit Extensions
+                    extends [mscorlib]System.Object
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                        01 00 00 00
+                    )
+                    // Methods
+                    .method public hidebysig static 
+                        void M (
+                            method void *() ptr
+                        ) cil managed 
+                    {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Method begins at RVA 0x2050
+                        // Code size 1 (0x1)
+                        .maxstack 8
+
+                        IL_0000: ret
+                    } // end of method Extensions::M
+
+                } // end of class Extensions
+                """;
+
+            var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugExe);
+            comp.VerifyDiagnostics(
+                // (4,9): error CS1061: 'delegate*<void>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'delegate*<void>' could be found (are you missing a using directive or an assembly reference?)
+                //     ptr.M();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("delegate*<void>", "M").WithLocation(4, 9));
+        }
     }
 }

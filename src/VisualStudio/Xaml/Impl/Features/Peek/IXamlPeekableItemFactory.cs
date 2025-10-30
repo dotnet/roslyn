@@ -30,4 +30,6 @@ internal interface IXamlPeekableItemFactory
 internal sealed class XamlPeekableItemFactory(
     IMetadataAsSourceFileService metadataAsSourceFileService,
     IGlobalOptionService globalOptions,
-    IThreadingContext threadingContext) : PeekableItemFactory(metadataAsSourceFileService, globalOptions, threadingContext);
+    IThreadingContext threadingContext)
+    : PeekableItemFactory(metadataAsSourceFileService, globalOptions, threadingContext)
+    , IXamlPeekableItemFactory;
