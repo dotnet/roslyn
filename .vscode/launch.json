@@ -70,7 +70,27 @@
       "program": "C:/Program Files/Microsoft Visual Studio/2022/Preview/MSBuild/Current/Bin/amd64/MSBuild.exe",
       "args": [
         "-restore",
+        "-p:RoslynCompilerType=Custom",
         "-p:RoslynTargetsPath=${workspaceFolder}/artifacts/bin/Microsoft.Net.Compilers.Toolset.Package/Debug/tasks/net472",
+        "-t:Rebuild",
+      ],
+      // A simple project that can be used to debug the build tasks against.
+      "cwd": "${workspaceFolder}/src/Tools/Source/CompilerGeneratorTools/Source/BoundTreeGenerator",
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    },
+    {
+      "name": "Launch Microsoft.Build.Tasks.CodeAnalysis.dll via MSBuild.exe (netfx bridge)",
+      "type": "clr",
+      "request": "launch",
+      "preLaunchTask": "build toolset",
+      "program": "C:/Program Files/Microsoft Visual Studio/2022/Preview/MSBuild/Current/Bin/amd64/MSBuild.exe",
+      "args": [
+        "-restore",
+        "-p:RoslynCompilerType=Custom",
+        "-p:RoslynTargetsPath=${workspaceFolder}/artifacts/bin/Microsoft.Net.Compilers.Toolset.Package/Debug/tasks/net472",
+        "-p:RoslynTasksAssembly=${workspaceFolder}/artifacts/bin/Microsoft.Net.Compilers.Toolset.Package/Debug/tasks/netcore/binfx/Microsoft.Build.Tasks.CodeAnalysis.Sdk.dll",
+        "-t:Rebuild",
       ],
       // A simple project that can be used to debug the build tasks against.
       "cwd": "${workspaceFolder}/src/Tools/Source/CompilerGeneratorTools/Source/BoundTreeGenerator",
@@ -85,7 +105,9 @@
       "program": "C:/Program Files/Microsoft Visual Studio/2022/Preview/MSBuild/Current/Bin/amd64/MSBuild.exe",
       "args": [
         "-restore",
+        "-p:RoslynCompilerType=Custom",
         "-p:RoslynTargetsPath=${workspaceFolder}/artifacts/bin/Microsoft.Net.Compilers.Toolset.Package/Debug/tasks/netcore",
+        "-t:Rebuild",
       ],
       // A simple project that can be used to debug the build tasks against.
       "cwd": "${workspaceFolder}/src/Tools/Source/CompilerGeneratorTools/Source/BoundTreeGenerator",
@@ -100,7 +122,9 @@
       "program": "dotnet",
       "args": [
         "build",
+        "-p:RoslynCompilerType=Custom",
         "-p:RoslynTargetsPath=${workspaceFolder}/artifacts/bin/Microsoft.Net.Compilers.Toolset.Package/Debug/tasks/netcore",
+        "-t:Rebuild",
       ],
       // A simple project that can be used to debug the build tasks against.
       "cwd": "${workspaceFolder}/src/Tools/Source/CompilerGeneratorTools/Source/BoundTreeGenerator",
