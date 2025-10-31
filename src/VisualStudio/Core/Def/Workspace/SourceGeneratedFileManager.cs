@@ -198,7 +198,8 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 openFile = new OpenSourceGeneratedFile(this, textBuffer, documentIdentity);
                 _openFiles.Add(moniker, openFile);
 
-                _threadingContext.JoinableTaskFactory.Run(() => openFile.RefreshFileAsync(CancellationToken.None).AsTask());
+                // Don't block the UI thread during initial file refresh to avoid potential reentrancy issues.
+                _ = _threadingContext.JoinableTaskFactory.RunAsync(async () => await openFile.RefreshFileAsync(CancellationToken.None));
 
                 // Update the RDT flags to ensure the file can't be saved or appears in any MRUs as it's a temporary generated file name.
                 var runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_threadingContext.JoinableTaskFactory);
@@ -211,7 +212,12 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame)
     {
         if (_openFiles.TryGetValue(moniker, out var openFile))
-            _threadingContext.JoinableTaskFactory.Run(() => openFile.SetWindowFrameAsync(windowFrame));
+        {
+            // Don't block the UI thread to avoid potential reentrancy issues during window frame setup.
+            // Blocking here could allow other events to be processed, potentially causing the window frame
+            // to be associated with the wrong document.
+            _ = _threadingContext.JoinableTaskFactory.RunAsync(() => openFile.SetWindowFrameAsync(windowFrame));
+        }
     }
 
     void IOpenTextBufferEventListener.OnCloseDocument(string moniker)
