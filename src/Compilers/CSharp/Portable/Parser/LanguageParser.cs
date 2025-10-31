@@ -13905,7 +13905,10 @@ done:
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.LetKeyword);
             return _syntaxFactory.LetClause(
                 this.EatContextualToken(SyntaxKind.LetKeyword),
-                this.ParseIdentifierToken(),
+                // If we see a keyword followed by '=', use EatTokenAsKind to produce a better error message and recover well.
+                SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.EqualsToken
+                    ? this.EatTokenAsKind(SyntaxKind.IdentifierToken)
+                    : this.ParseIdentifierToken(),
                 this.EatToken(SyntaxKind.EqualsToken),
                 this.ParseExpressionCore());
         }
