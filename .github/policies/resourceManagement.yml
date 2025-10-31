@@ -24,6 +24,22 @@ configuration:
       - closeIssue
       - addReply:
           reply: "Closing this issue as we've seen no reply to the request for more information. If you are able to get the requested information, please add it to the issue and we will retriage it. "
+   
+    - description: Close stale PRs
+      frequencies:
+      - daily:
+          time: 12:00
+      filters:
+      - isOpen
+      - isPullRequest
+      - not:
+          - isDraft
+      - noActivitySince:
+          days: 45
+      actions:
+      - closePullRequest
+      - addReply:
+          reply: "Looks like this PR hasn't been active for 14 days and the codebase could have been changed in the meantime.\nTo make reviewing PRs more manageable, this PR will be closed. Please reopen when it's ready for review. Thank you for the change!"
 
     eventResponderTasks:
 
