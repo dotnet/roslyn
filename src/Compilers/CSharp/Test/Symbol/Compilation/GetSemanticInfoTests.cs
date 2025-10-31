@@ -5031,45 +5031,11 @@ public class T
         public void GetPreprocessingSymbolInfoOnUnrelatedDirective()
         {
             const string sourceCode = """
-                #define Z
-
-                #region Z //bind region
-                #endregion Z //bind endregion
-
                 #pragma warning disable Z //bind pragma warning disable
-                #warning Z //bind warning
-                #error Z //bind error
                 """;
 
-            var compilation = CreateCompilation(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
-
-            var symbolInfo = symbolInfoAt("Z //bind region");
+            var symbolInfo = GetPreprocessingSymbolInfoForTest(sourceCode, "Z //bind pragma warning disable");
             Assert.Null(symbolInfo.Symbol);
-
-            symbolInfo = symbolInfoAt("Z //bind endregion");
-            Assert.Null(symbolInfo.Symbol);
-
-            symbolInfo = symbolInfoAt("Z //bind pragma warning disable");
-            Assert.Null(symbolInfo.Symbol);
-
-            symbolInfo = symbolInfoAt("Z //bind warning");
-            Assert.Null(symbolInfo.Symbol);
-
-            symbolInfo = symbolInfoAt("Z //bind error");
-            Assert.Null(symbolInfo.Symbol);
-
-            PreprocessingSymbolInfo symbolInfoAt(string substringToMatch)
-            {
-                var position = sourceCode.IndexOf(substringToMatch, StringComparison.Ordinal);
-                var nameSyntaxToBind = tree.GetRoot().FindToken(position, findInsideTrivia: true).Parent as IdentifierNameSyntax;
-
-                if (nameSyntaxToBind is null)
-                    return PreprocessingSymbolInfo.None;
-
-                return model.GetPreprocessingSymbolInfo(nameSyntaxToBind);
-            }
         }
 
         [Fact, WorkItem(720566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720566")]
