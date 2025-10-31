@@ -159,6 +159,11 @@ namespace BuildBoss
                 yield return $"$({name}FixedVersion)";
                 yield return $"$(RefOnly{name}Version)";
             }
+
+            if (packageReference.Name.StartsWith("Microsoft.Build"))
+            {
+                yield return "$(_MsbuildVersion)";
+            }
         }
 
         private bool CheckInternalsVisibleTo(TextWriter textWriter)
