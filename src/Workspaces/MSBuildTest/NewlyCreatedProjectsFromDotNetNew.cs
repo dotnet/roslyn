@@ -71,7 +71,15 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 return;
             }
 
-            await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
+            string[] ignoredDiagniostics = templateName switch
+            {
+                // We expect the following error until it is resolved in 17.12. See https://github.com/dotnet/roslyn/issues/74511
+                // error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Microsoft.AspNetCore.Http.Generated</InterceptorsPreviewNamespaces>' to your project.
+                "webapiaot" => ["CS9137"],
+                _ => [],
+            };
+
+            await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp, ignoredDiagniostics);
         }
 
         [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
