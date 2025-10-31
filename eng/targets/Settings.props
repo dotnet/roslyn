@@ -16,6 +16,9 @@
     <!-- TODO: https://github.com/dotnet/roslyn/issues/71667 -->
     <NoWarn>$(NoWarn);NU1507</NoWarn>
 
+    <!-- This branch builds against net6.0 and net7.0 so we expect EOL TFMs -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
     <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
 
@@ -58,7 +61,7 @@
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <EnforceExtendedAnalyzerRules Condition="'$(IsAnalyzer)' == 'true'">true</EnforceExtendedAnalyzerRules>
 
-    <!-- TODO --> 
+    <!-- TODO -->
     <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
 
     <!--
@@ -80,7 +83,7 @@
     <DeterministicSourcePaths>false</DeterministicSourcePaths>
     <EnableXlfLocalization>false</EnableXlfLocalization>
   </PropertyGroup>
-  
+
   <!--
     Disable Xliff if it's not necessary to generate satellite assemblies.
   -->
