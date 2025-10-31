@@ -17,7 +17,9 @@ using Microsoft.CodeAnalysis.GoOrFind;
 using Microsoft.CodeAnalysis.GoToBase;
 using Microsoft.CodeAnalysis.GoToImplementation;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionExplorer;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -54,6 +56,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     /// </summary>
     private readonly AsyncBatchingWorkQueue<string> _updateSourcesQueue;
     private readonly Workspace _workspace;
+    private readonly IGlobalOptionService _globalOptionService;
 
     private readonly IGoOrFindNavigationService _goToBaseNavigationService;
     private readonly IGoOrFindNavigationService _goToImplementationNavigationService;
@@ -70,6 +73,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     public RootSymbolTreeItemSourceProvider(
         IThreadingContext threadingContext,
         VisualStudioWorkspace workspace,
+        IGlobalOptionService globalOptionService,
         GoToBaseNavigationService goToBaseNavigationService,
         GoToImplementationNavigationService goToImplementationNavigationService,
         FindReferencesNavigationService findReferencesNavigationService,
@@ -77,6 +81,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     {
         ThreadingContext = threadingContext;
         _workspace = workspace;
+        _globalOptionService = globalOptionService;
         _goToBaseNavigationService = goToBaseNavigationService;
         _goToImplementationNavigationService = goToImplementationNavigationService;
         _findReferencesNavigationService = findReferencesNavigationService;
@@ -170,6 +175,10 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
 
     protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
     {
+        // Check if the option to show symbols is enabled
+        if (!_globalOptionService.GetSolutionExplorerOptions().ShowLanguageSymbolsInsideSolutionExplorerFiles)
+            return null;
+
         if (item == null ||
             item.IsDisposed ||
             item.HierarchyIdentity == null ||

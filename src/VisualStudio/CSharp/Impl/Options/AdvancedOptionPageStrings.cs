@@ -365,4 +365,10 @@ internal static class AdvancedOptionPageStrings
 
     public static string Option_Balanced_Run_generators_after_saving_or_building
         => ServicesVSResources.Balanced_Run_generators_after_saving_or_building;
+
+    public static string Option_Solution_Explorer
+        => ServicesVSResources.Solution_Explorer;
+
+    public static string Option_Show_language_symbols_inside_solution_explorer_files
+        => ServicesVSResources.Show_language_symbols_inside_solution_explorer_files;
 }

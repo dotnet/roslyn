@@ -423,5 +423,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_source_generator_execution", new RoamingProfileStorage("TextEditor.Roslyn.Specific.SourceGeneratorExecution")},
         {"xaml_enable_lsp_intellisense", new FeatureFlagStorage(@"Xaml.EnableLspIntelliSense")},
         {"razor_use_cohosting", new FeatureFlagStorage("Razor.LSP.UseRazorCohostServer")},
+        {"dotnet_solution_explorer_show_language_symbols_inside_solution_explorer_files", new RoamingProfileStorage("TextEditor.Specific.SolutionExplorer.ShowLanguageSymbolsInsideSolutionExplorerFiles")},
     };
 }
