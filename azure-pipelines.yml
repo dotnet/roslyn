@@ -48,17 +48,17 @@ variables:
     ${{ else }}:
       value: windows.vs2022preview.amd64
 
-  - name: Vs2022QueueName
-    ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: windows.vs2022.amd64.open
-    ${{ else }}:
-      value: windows.vs2022.amd64
-
   - name: UbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: Build.Ubuntu.2004.Amd64.Open
     ${{ else }}:
       value: Build.Ubuntu.2004.Amd64
+
+  - name: WindowsQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: 1es-windows-2022-open
+    ${{ else }}:
+      value: 1es-windows-2022
 
   - name: HelixWindowsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -84,6 +84,25 @@ variables:
     ${{ else }}:
       value: OSX.13.Amd64
 
+parameters:
+  # These pools allow us to configure the pools once for multiple jobs.
+  # We have to use parameters here as these are object typed.
+  - name: ubuntuPool
+    type: object
+    default:
+      name: $(PoolName)
+      demands: ImageOverride -equals $(UbuntuQueueName)
+  - name: windowsPool
+    type: object
+    default:
+      name: $(PoolName)
+      demands: ImageOverride -equals $(WindowsQueueName)
+  - name: vs2022PreviewPool
+    type: object
+    default:
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
+
 stages:
 - stage: Windows_Debug_Build
   dependsOn: []
@@ -93,8 +112,7 @@ stages:
       jobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      poolName: $(PoolName)
-      queueName: $(Vs2022PreviewQueueName)
+      poolParameters: ${{ parameters.vs2022PreviewPool }}
       restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
@@ -106,8 +124,7 @@ stages:
       jobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      poolName: $(PoolName)
-      queueName: $(Vs2022PreviewQueueName)
+      poolParameters: ${{ parameters.vs2022PreviewPool }}
       restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
@@ -118,9 +135,7 @@ stages:
     parameters:
       jobName: Build_Unix_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
-      configuration: Debug
-      poolName: $(PoolName)
-      queueName: $(UbuntuQueueName)
+      poolParameters: ${{ parameters.ubuntuPool }}
 
 - stage: Source_Build
   dependsOn: []
@@ -162,6 +177,7 @@ stages:
         testArguments: -testDesktop -testArch x86
         helixQueueName: $(HelixWindowsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
+        poolParameters: ${{ parameters.windowsPool }}
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -172,6 +188,7 @@ stages:
       testArguments: -testDesktop -testArch x64
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
+      poolParameters: ${{ parameters.windowsPool }}
 
 - stage: Windows_Release_Desktop
   dependsOn: Windows_Release_Build
@@ -188,6 +205,7 @@ stages:
       testArguments: -testDesktop -testArch x86
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
+      poolParameters: ${{ parameters.windowsPool }}
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -199,6 +217,7 @@ stages:
         testArguments: -testDesktop -testArch x64
         helixQueueName: $(HelixWindowsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
+        poolParameters: ${{ parameters.windowsPool }}
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -209,6 +228,7 @@ stages:
       testArguments: -testDesktop -testArch x64
       helixQueueName: $(HelixWindowsSpanishQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
+      poolParameters: ${{ parameters.windowsPool }}
 
 - stage: Windows_Debug_CoreClr
   dependsOn: Windows_Debug_Build
@@ -225,6 +245,7 @@ stages:
       testArguments: -testCoreClr
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
+      poolParameters: ${{ parameters.windowsPool }}
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job-single-machine.yml
@@ -233,8 +254,7 @@ stages:
         jobName: Test_Windows_CoreClr_Debug_Single_Machine
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
-        poolName: $(PoolName)
-        queueName: $(Vs2022QueueName)
+        poolParameters: ${{ parameters.vs2022PreviewPool }}
         testArguments: -testCoreClr
 
   - template: eng/pipelines/test-windows-job.yml
@@ -246,6 +266,7 @@ stages:
       testArguments: -testCoreClr -testIOperation -testCompilerOnly
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
+      poolParameters: ${{ parameters.windowsPool }}
 
   # This leg runs almost all the compiler tests supported on CoreCLR, but
   #  with additional validation for used assemblies and GetEmitDiagnostics
@@ -258,6 +279,7 @@ stages:
       testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
+      poolParameters: ${{ parameters.windowsPool }}
 
 - stage: Windows_Release_CoreClr
   dependsOn: Windows_Release_Build
@@ -274,6 +296,7 @@ stages:
       testArguments: -testCoreClr
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
+      poolParameters: ${{ parameters.windowsPool }}
 
 - stage: Unix_Debug_CoreClr
   dependsOn: Unix_Build
@@ -290,6 +313,7 @@ stages:
       testArguments: --testCoreClr
       helixQueueName: $(HelixUbuntuQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
+      poolParameters: ${{ parameters.ubuntuPool }}
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-unix-job-single-machine.yml
@@ -299,8 +323,7 @@ stages:
         testArtifactName: Transport_Artifacts_Unix_Debug
         configuration: Debug
         testArguments: --testCoreClr
-        poolName: $(PoolName)
-        queueName: $(UbuntuQueueName)
+        poolParameters: ${{ parameters.ubuntuPool }}
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-unix-job.yml
@@ -312,6 +335,7 @@ stages:
         testArguments: --testCoreClr 
         helixQueueName: $(HelixMacOsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
+        poolParameters: ${{ parameters.ubuntuPool }}
 
 - stage: Correctness
   dependsOn: []
@@ -319,8 +343,7 @@ stages:
   - template: eng/pipelines/evaluate-changed-files.yml
     parameters:
       jobName: Determine_Changes
-      poolName: $(PoolName)
-      vmImageName: ubuntu-latest
+      poolParameters: ${{ parameters.ubuntuPool }}
       paths:
         - subset: compilers
           include:
@@ -332,9 +355,7 @@ stages:
 
   - job: Correctness_Build_Artifacts
     dependsOn: Determine_Changes
-    pool:
-      name: $(PoolName)
-      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
+    pool: ${{ parameters.vs2022PreviewPool }}
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -382,9 +403,7 @@ stages:
   - job: Correctness_Determinism
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
-    pool:
-      name: $(PoolName)
-      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
+    pool: ${{ parameters.vs2022PreviewPool }}
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -404,9 +423,7 @@ stages:
   - job: Correctness_Bootstrap_Build_Default
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
-    pool:
-      name: $(PoolName)
-      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
+    pool: ${{ parameters.vs2022PreviewPool }}
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -420,9 +437,7 @@ stages:
   - job: Correctness_Bootstrap_Build_Framework
     dependsOn: Determine_Changes
     condition: ne(variables['Build.Reason'], 'Pull Request')
-    pool:
-      name: $(PoolName)
-      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
+    pool: ${{ parameters.vs2022PreviewPool }}
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -434,8 +449,7 @@ stages:
           bootstrapToolset: Framework
 
   - job: Correctness_TodoCheck
-    pool:
-      vmImage: ubuntu-20.04
+    pool: ${{ parameters.ubuntuPool }}
     timeoutInMinutes: 10
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
@@ -446,9 +460,7 @@ stages:
   - job: Correctness_Rebuild
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
-    pool:
-      name: $(PoolName)
-      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
+    pool: ${{ parameters.vs2022PreviewPool }}
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -475,9 +487,7 @@ stages:
           configuration: Release
 
   - job: Correctness_Analyzers
-    pool:
-      name: $(PoolName)
-      demands: ImageOverride -equals $(UbuntuQueueName)
+    pool: ${{ parameters.ubuntuPool }}
     timeoutInMinutes: 35
     variables:
       - template: eng/pipelines/variables-build.yml
