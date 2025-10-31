@@ -351,7 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// An async-iterator state machine has a flag indicating "dispose mode".
-        /// We enter dispose mode by calling DisposeAsync() when the state machine is paused on a `yield return`.
+        /// We enter dispose mode by calling DisposeAsync() when the state machine is paused on a `yield return`,
+        /// or by reaching a `yield break`.
         /// DisposeAsync() will resume execution of the state machine from that state (using existing dispatch mechanism
         /// to restore execution from a given state, without executing other code to get there).
         ///
@@ -366,21 +367,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
             var savedDisposalLabel = _currentDisposalLabel;
+            LabelSymbol tryEnd = null;
             if (node.FinallyBlockOpt is object)
             {
-                var finallyEntry = F.GenerateLabel("finallyEntry");
-                _currentDisposalLabel = finallyEntry;
-
-                // Add finallyEntry label:
-                //  try
-                //  {
-                //      ...
-                //      finallyEntry:
-                //  }
-
-                node = node.Update(
-                    tryBlock: F.Block(node.TryBlock, F.Label(finallyEntry)),
-                    node.CatchBlocks, node.FinallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
+                tryEnd = F.GenerateLabel("tryEnd");
+                _currentDisposalLabel = tryEnd;
             }
             else if (node.FinallyLabelOpt is object)
             {
@@ -388,6 +379,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var result = (BoundStatement)base.VisitTryStatement(node);
+
+            if (tryEnd != null)
+            {
+                // Append a label at the end of the `try`, which disposal within `try` can jump to to execute the `finally` (if any):
+                //  tryEnd:
+                result = F.Block(result, F.Label(tryEnd));
+            }
 
             _currentDisposalLabel = savedDisposalLabel;
 
