@@ -290,6 +290,37 @@ internal class SnippetExpansionClient : IVsExpansionClient
                 SubjectBuffer.Delete(new Span(line.Start.Position, line.Length));
                 _ = SubjectBuffer.CurrentSnapshot.GetSpan(new Span(line.Start.Position, 0));
             }
+            else
+            {
+                // If the line is not entirely whitespace, check if there's trailing whitespace
+                // before the $end$ position that should be removed. This handles cases where
+                // snippet templates have "$selected$ $end$" pattern, leaving unwanted trailing
+                // whitespace after the selected text.
+                var endPositionInLine = endSnapshotSpan.Start.Position - line.Start.Position;
+                if (endPositionInLine > 0 && endPositionInLine <= lineText.Length)
+                {
+                    // Scan backwards from the $end$ position to find any trailing whitespace
+                    var startOfTrailingWhitespace = endPositionInLine;
+                    while (startOfTrailingWhitespace > 0 && char.IsWhiteSpace(lineText[startOfTrailingWhitespace - 1]))
+                    {
+                        startOfTrailingWhitespace--;
+                    }
+
+                    // Only remove whitespace if:
+                    // 1. We found trailing whitespace (startOfTrailingWhitespace < endPositionInLine)
+                    // 2. There's non-whitespace content before it (startOfTrailingWhitespace > 0)
+                    // This ensures we don't remove leading indentation.
+                    var hasTrailingWhitespace = startOfTrailingWhitespace < endPositionInLine;
+                    var hasContentBeforeWhitespace = startOfTrailingWhitespace > 0;
+                    
+                    if (hasTrailingWhitespace && hasContentBeforeWhitespace)
+                    {
+                        var trailingWhitespaceStart = line.Start.Position + startOfTrailingWhitespace;
+                        var trailingWhitespaceLength = endPositionInLine - startOfTrailingWhitespace;
+                        SubjectBuffer.Delete(new Span(trailingWhitespaceStart, trailingWhitespaceLength));
+                    }
+                }
+            }
         }
     }
 
