@@ -14,12 +14,12 @@
 | `/doc`{`+`&#124;`-`} | Generates XML documentation file.
 | `/doc:`*file* | Generates XML documentation file to *file*.
 | **INPUT FILES**
-| `/addmodule:`*file_list* | Reference metadata from the specified modules
-| `/link:`*file_list* | Embed metadata from the specified interop assembly. (Short form: `/l`)
+| `/addmodule:`*file_list* | Reference metadata from the specified modules. Separate multiple files with commas or semicolons.
+| `/link:`*file_list* | Embed metadata from the specified interop assembly. Separate multiple files with commas or semicolons. (Short form: `/l`)
 | `/recurse:`*wildcard* | Include all files in the current directory and subdirectories according to the wildcard specifications.
-| `/reference:`*file_list* | Reference metadata from the specified assembly. (Short form: `/r`)
-| `/analyzer:`*file_list* | Run the analyzers from this assembly (Short form: `/a`)
-| `/additionalfile:`*file list* | Additional files that don't directly affect code generation but may be used by analyzers for producing errors or warnings.
+| `/reference:`*file_list* | Reference metadata from the specified assembly. Separate multiple files with commas or semicolons. (Short form: `/r`)
+| `/analyzer:`*file_list* | Run the analyzers from this assembly. Separate multiple files with commas or semicolons. (Short form: `/a`)
+| `/additionalfile:`*file list* | Additional files that don't directly affect code generation but may be used by analyzers for producing errors or warnings. Separate multiple files with commas or semicolons.
 | **RESOURCES**
 | `/linkresource`:*resinfo* | Link the specified resource to this assembly (Short form: `/linkres`) Where the *resinfo* format  is *file*{`,`*string name*{`,``public``|``private`}}
 | `/resource`:*resinfo* | Embed the specified resource (Short form: `/res`)
