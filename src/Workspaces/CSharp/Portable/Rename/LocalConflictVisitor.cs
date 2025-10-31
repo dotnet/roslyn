@@ -111,17 +111,20 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
     {
-        _tracker.AddIdentifier(node.Parameter.Identifier);
+        // Lambdas create a new scope. C# allows variables in the outer scope
+        // to have the same name as lambda parameters, so we don't track the
+        // parameter to prevent false cross-scope conflicts. However, we still
+        // visit the body to detect conflicts within the lambda.
         Visit(node.Body);
-        _tracker.RemoveIdentifier(node.Parameter.Identifier);
     }
 
     public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
     {
-        var tokens = node.ParameterList.Parameters.Select(p => p.Identifier);
-        _tracker.AddIdentifiers(tokens);
+        // Lambdas create a new scope. C# allows variables in the outer scope
+        // to have the same name as lambda parameters, so we don't track the
+        // parameters to prevent false cross-scope conflicts. However, we still
+        // visit the body to detect conflicts within the lambda.
         Visit(node.Body);
-        _tracker.RemoveIdentifiers(tokens);
     }
 
     public override void VisitQueryExpression(QueryExpressionSyntax node)
@@ -179,6 +182,16 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
         _tracker.AddIdentifier(node.Identifier);
         VisitQueryInternal(null, node.Body);
         _tracker.RemoveIdentifier(node.Identifier);
+    }
+
+    public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
+    {
+        // Local functions create a new scope. C# allows variables in the outer scope
+        // to have the same name as parameters or variables in the local function, so
+        // we don't track the parameters to prevent false cross-scope conflicts.
+        // However, we still visit the body to detect conflicts within the local function.
+        Visit(node.Body);
+        Visit(node.ExpressionBody);
     }
 
     public override void VisitSwitchStatement(SwitchStatementSyntax node)
