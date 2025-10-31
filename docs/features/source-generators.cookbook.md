@@ -583,6 +583,21 @@ In the users project file, the user can now annotate the individual additional f
 </ItemGroup>
 ```
 
+Note that MSBuild properties passed to source generators via `CompilerVisibleProperty` are currently dumped verbatim into and read from an INI file, [resulting in data loss for non-trivial property values](https://github.com/dotnet/roslyn/issues/51692). One possible workaround is to use a build task to apply a transport encoding preventing the data loss; as an example a semicolon separated list can be converted to a space separated list (`;` is the INI comment character):
+
+```xml
+<Project>
+    <ItemGroup>
+        <CompilerVisibleProperty Include="_MyInterpolatorsNamespaces" />
+    </ItemGroup>
+    <Task Name="_MyInterpolatorsNamespaces" BeforeTargets="BeforeBuild">
+        <PropertyGroup>
+            <_MyInterpolatorsNamespaces>$([System.String]::Copy('$(InterpolatorsNamespaces)').Replace(';', ' '))</_MyInterpolatorsNamespaces>
+        </PropertyGroup>
+    </Task>
+</Project>
+```
+
 **Full Example:**
 
 MyGenerator.props:
