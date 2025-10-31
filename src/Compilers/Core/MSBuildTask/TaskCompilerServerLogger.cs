@@ -25,4 +25,10 @@ internal sealed class TaskCompilerServerLogger(
         _inner.Log(message);
         _taskLogger.LogMessage(message);
     }
+
+    public void LogWarning(string message)
+    {
+        _inner.LogWarning(message);
+        _taskLogger.LogWarning(message);
+    }
 }

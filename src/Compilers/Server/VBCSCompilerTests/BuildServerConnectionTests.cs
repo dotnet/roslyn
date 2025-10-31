@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -20,9 +21,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     {
         internal TempRoot TempRoot { get; } = new TempRoot();
         internal XunitCompilerServerLogger Logger { get; }
+        internal ITestOutputHelper TestOutputHelper { get; }
 
         public BuildServerConnectionTests(ITestOutputHelper testOutputHelper)
         {
+            TestOutputHelper = testOutputHelper;
             Logger = new XunitCompilerServerLogger(testOutputHelper);
         }
 
@@ -201,5 +204,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
         }
+
+        // Note: We don't have a unit test for the VBCS2023 warning that is logged when the compiler
+        // server fails to start with FrameworkMissingFailure (0x80008096). This would require creating
+        // a mock executable that exits with that specific error code, which is difficult to do in a
+        // cross-platform manner. The warning is tested through integration testing.
     }
 }

@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../ErrorString.resx">
     <body>
+      <trans-unit id="Compiler_FrameworkNotFound_CouldNotStartServer">
+        <source>Failed to start compiler server. The .NET runtime on PATH does not support this compiler. Ensure DOTNET_HOST_PATH is set correctly or update the .NET runtime on PATH. See https://aka.ms/dotnet-host-path for more information.</source>
+        <target state="new">Failed to start compiler server. The .NET runtime on PATH does not support this compiler. Ensure DOTNET_HOST_PATH is set correctly or update the .NET runtime on PATH. See https://aka.ms/dotnet-host-path for more information.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Compiler_UnexpectedException">
         <source>MSB3883: Unexpected exception: </source>
         <target state="translated">MSB3883: 未預期的例外狀況: </target>

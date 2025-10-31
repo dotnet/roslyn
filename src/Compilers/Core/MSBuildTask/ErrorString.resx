@@ -223,4 +223,7 @@
   <data name="ImplicitlySkipAnalyzersMessage" xml:space="preserve">
     <value>Skipping analyzers to speed up the build. You can execute 'Build' or 'Rebuild' command to run analyzers.</value>
   </data>
+  <data name="Compiler_FrameworkNotFound_CouldNotStartServer" xml:space="preserve">
+    <value>Failed to start compiler server. The .NET runtime on PATH does not support this compiler. Ensure DOTNET_HOST_PATH is set correctly or update the .NET runtime on PATH. See https://aka.ms/dotnet-host-path for more information.</value>
+  </data>
 </root>

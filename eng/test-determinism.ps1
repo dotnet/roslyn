@@ -273,6 +273,13 @@ try {
   Push-Location $RepoRoot
   $prepareMachine = $ci
 
+  # We need to make sure DOTNET_HOST_PATH points to that SDK as a workaround for older MSBuild
+  # which will not set it correctly.  Removal is tracked by https://github.com/dotnet/roslyn/issues/80742
+  if (-not $env:DOTNET_HOST_PATH) {
+    $env:DOTNET_HOST_PATH = Ensure-DotnetSdk
+    Write-Host "Setting DOTNET_HOST_PATH to $env:DOTNET_HOST_PATH"
+  }
+
   # Create all of the logging directories
   $errorDir = Join-Path $LogDir "DeterminismFailures"
   $errorDirLeft = Join-Path $errorDir "Left"
