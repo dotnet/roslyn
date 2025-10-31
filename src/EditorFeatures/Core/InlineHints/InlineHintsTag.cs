@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -45,11 +45,12 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         ITextView textView,
         SnapshotSpan span,
         InlineHint hint,
-        InlineHintsTaggerProvider taggerProvider)
+        InlineHintsTaggerProvider taggerProvider,
+        TextFormattingRunProperties format)
         : base(adornment,
                removalCallback: null,
                topSpace: null,
-               baseline: null,
+               baseline: CalculateBaseline(format, adornment),
                textHeight: null,
                bottomSpace: null,
                PositionAffinity.Predecessor,
@@ -73,6 +74,27 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
     }
 
     /// <summary>
+    /// Calculates the baseline for proper vertical alignment of the inline hint
+    /// </summary>
+    private static double CalculateBaseline(TextFormattingRunProperties format, FrameworkElement adornment)
+    {
+        // Calculate the baseline offset to align the inline hint with the text baseline
+        var fontBaseline = format.Typeface.FontFamily.Baseline * format.FontRenderingEmSize;
+        var adornmentHeight = adornment.DesiredSize.Height;
+
+        // If adornment hasn't been measured yet, use a reasonable default
+        if (adornmentHeight == 0)
+        {
+            adornmentHeight = format.FontRenderingEmSize * 0.75; // 75% of the line height
+        }
+
+        // The baseline should position the inline hint so its center aligns with the middle of the text
+        // We want to move it up just enough to center it vertically on the line
+        // Using a smaller offset to avoid pushing it too far up
+        return fontBaseline - (adornmentHeight / 2) + (format.FontRenderingEmSize * 0.25);
+    }
+
+    /// <summary>
     /// Creates the UIElement on call
     /// Uses PositionAffinity.Predecessor because we want the tag to be associated with the preceding character
     /// </summary>
@@ -87,9 +109,17 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         IClassificationFormatMap formatMap,
         bool classify)
     {
+        var element = CreateElement(
+            hint.DisplayParts,
+            textView,
+            format,
+            formatMap,
+            taggerProvider.TypeMap,
+            classify);
+
         return new InlineHintsTag(
-            CreateElement(hint.DisplayParts, textView, format, formatMap, taggerProvider.TypeMap, classify),
-            textView, span, hint, taggerProvider);
+            element,
+            textView, span, hint, taggerProvider, format);
     }
 
     public async Task<ImmutableArray<object>> CreateDescriptionAsync(CancellationToken cancellationToken)
@@ -123,6 +153,8 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         ClassificationTypeMap typeMap,
         bool classify)
     {
+        var textViewLine = textView.TextViewLines.WpfTextViewLines[0];
+
         // Constructs the hint block which gets assigned parameter name and FontStyles according to the options
         // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
         // well with VS at any zoom level or font size.
@@ -134,7 +166,8 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
             Foreground = format.ForegroundBrush,
             // Adds a little bit of padding to the left of the text relative to the border to make the text seem
             // more balanced in the border
-            Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0)
+            Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0),
+            HorizontalAlignment = HorizontalAlignment.Center,
         };
 
         var (trimmedTexts, leftPadding, rightPadding) = Trim(taggedTexts);
@@ -155,42 +188,33 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
 
         block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-        // Encapsulates the TextBlock within a border. Gets foreground/background colors from the options menu.
-        // If the tag is started or followed by a space, we trim that off but represent the space as buffer on hte
-        // left or right side.
-        var left = leftPadding * 5;
-        var right = rightPadding * 5;
+        // Convert padding values from character count to actual pixel widths
+        // This ensures proper spacing around the inline hint based on trimmed whitespace
+        var left = leftPadding * textViewLine.VirtualSpaceWidth;
+        var right = rightPadding * textViewLine.VirtualSpaceWidth;
+
+        // Align hint width with the editor's character grid to prevent visual artifacts/alignment issues
+        // Convert to character units, round to nearest whole character, then back to pixels
+        var width = Math.Round((block.DesiredSize.Width / textViewLine.VirtualSpaceWidth) + 0.5) * textViewLine.VirtualSpaceWidth;
 
         var border = new Border
         {
             Background = format.BackgroundBrush,
             Child = block,
             CornerRadius = new CornerRadius(2),
-            VerticalAlignment = VerticalAlignment.Bottom,
+            VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(left, top: 0, right, bottom: 0),
+            Width = width,
         };
-
-        // gets pixel distance of baseline to top of the font height
-        var dockPanelHeight = format.Typeface.FontFamily.Baseline * format.FontRenderingEmSize;
-        var dockPanel = new DockPanel
-        {
-            Height = dockPanelHeight,
-            LastChildFill = false,
-            // VerticalAlignment is set to Top because it will rest to the top relative to the StackPanel
-            VerticalAlignment = VerticalAlignment.Top
-        };
-
-        dockPanel.Children.Add(border);
-        DockPanel.SetDock(border, Dock.Bottom);
 
         var stackPanel = new StackPanel
         {
-            // Height set to align the baseline of the text within the TextBlock with the baseline of text in the editor
-            Height = dockPanelHeight + (block.DesiredSize.Height - (block.FontFamily.Baseline * block.FontSize)),
-            Orientation = Orientation.Vertical
+            Height = block.DesiredSize.Height,
+            VerticalAlignment = VerticalAlignment.Center,
+            Orientation = Orientation.Horizontal
         };
 
-        stackPanel.Children.Add(dockPanel);
+        stackPanel.Children.Add(border);
         // Need to set these properties to avoid unnecessary reformatting because some dependency properties
         // affect layout
         TextOptions.SetTextFormattingMode(stackPanel, TextOptions.GetTextFormattingMode(textView.VisualElement));
