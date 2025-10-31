@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        internal void AddResponseFileCommandsForSwitchesSinceInitialReleaseThatAreNeededByTheHost(CommandLineBuilderExtension commandLine)
+        internal virtual void AddResponseFileCommandsForSwitchesSinceInitialReleaseThatAreNeededByTheHost(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendPlusOrMinusSwitch("/deterministic", _store, nameof(Deterministic));
             commandLine.AppendPlusOrMinusSwitch("/publicsign", _store, nameof(PublicSign));
