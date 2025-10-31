@@ -1,4 +1,5 @@
 steps:
   - script: |
+      dotnet build ./eng/insert-pr.cs
       dotnet build ./eng/snap.cs
     displayName: Build file-based apps

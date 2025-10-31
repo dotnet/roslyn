@@ -14,9 +14,15 @@
 #:package Microsoft.DotNet.DarcLib
 #:package Spectre.Console
 #:package System.CommandLine
+#:project ./utils
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 
+using CliWrap;
+using Microsoft.DotNet.DarcLib;
+using Microsoft.DotNet.ProductConstructionService.Client.Models;
+using Roslyn.Utils;
+using Spectre.Console;
 using System.Collections.Concurrent;
 using System.CommandLine;
 using System.ComponentModel;
@@ -31,34 +37,14 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Xml;
-using CliWrap;
-using CliWrap.Buffered;
-using Microsoft.DotNet.DarcLib;
-using Microsoft.DotNet.ProductConstructionService.Client.Models;
-using Spectre.Console;
-using Spectre.Console.Rendering;
-using Command = CliWrap.Command;
 
 const string nextMilestoneName = "Next";
 
 var console = AnsiConsole.Console;
 
 // Setup audit logging.
-var logger = new Logger();
-console.MarkupLineInterpolated($"Logging to [grey]{logger.LogFilePath}[/]");
+var logger = new Logger(console, "snap-script");
 logger.Log("Starting snap script run");
-
-AppDomain.CurrentDomain.UnhandledException += (s, e) =>
-{
-    logger.Log($"Unhandled exception: {e.ExceptionObject}");
-};
-
-TaskScheduler.UnobservedTaskException += (s, e) =>
-{
-    logger.Log($"Unobserved task exception: {e.Exception}");
-};
-
-console.Pipeline.Attach(new LoggingRenderHook(logger));
 
 // Parse args.
 var dryRunOption = new Option<bool>("--dry-run");
@@ -131,7 +117,7 @@ console.WriteLine();
 
 var defaultRepo = (await Cli.Wrap("gh")
     .WithArguments(["repo", "set-default", "--view"])
-    .ExecuteBufferedAsync())
+    .ExecuteBufferedAsync(logger))
     .StandardOutput
     .Trim();
 
@@ -193,13 +179,13 @@ var suggestedTargetVsVersionAfterSnap = inferredVsVersion;
 
 var sourceVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{sourceBranchName}[/] should insert to",
     defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsBranchName()));
-var sourceVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{sourceBranchName}[/]?", defaultValue: false);
+var sourceVsAsDraftAfterSnap = console.ConfirmEx($"Should insertion PRs be in draft mode for [teal]{sourceBranchName}[/]?", defaultValue: false);
 var sourceVsPrefixAfterSnap = console.Prompt(TextPrompt<string>.Create($"What prefix should insertion PR titles have for [teal]{sourceBranchName}[/]?",
     defaultValueIfNotNullOrEmpty: suggestedSourceVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? sourcePublishData.Data?.RequiredBranchInfo.InsertionTitlePrefix));
 var sourceVersionsPropsUpdater = sourceVersionsProps.GetUpdater(console, gitHub, sourceBranchName);
 var targetVsBranchAfterSnap = console.Prompt(TextPrompt<string>.Create($"After snap, [teal]{targetBranchName}[/] should insert to",
     defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsBranchName()));
-var targetVsAsDraftAfterSnap = console.Confirm($"Should insertion PRs be in draft mode for [teal]{targetBranchName}[/]?", defaultValue: false);
+var targetVsAsDraftAfterSnap = console.ConfirmEx($"Should insertion PRs be in draft mode for [teal]{targetBranchName}[/]?", defaultValue: false);
 var targetVsPrefixAfterSnap = console.Prompt(TextPrompt<string>.Create($"What prefix should insertion PR titles have for [teal]{targetBranchName}[/]?",
     defaultValueIfNotNullOrEmpty: suggestedTargetVsVersionAfterSnap?.AsVsInsertionTitlePrefix() ?? targetPublishData.Data?.RequiredBranchInfo.InsertionTitlePrefix));
 
@@ -221,7 +207,7 @@ foreach (var printer in printers)
 }
 
 // Determine subscription changes.
-if (console.Confirm("Change some subscriptions in this snap script run?", defaultValue: true))
+if (console.ConfirmEx("Change some subscriptions in this snap script run?", defaultValue: true))
 {
     // Source -> VMR
     var existingSourceBranchFlow = darc.FoundFlows.FirstOrDefault(flow =>
@@ -322,7 +308,7 @@ var lastMergedPullRequests = (await Cli.Wrap("gh")
         "--search", lastMergedSearchFilter,
         "--json", PullRequest.JsonFields,
         "--limit", "5"])
-    .ExecuteBufferedAsync())
+    .ExecuteBufferedAsync(logger))
     .StandardOutput
     .ParseJsonList<PullRequest>()
     ?.OrderByDescending(static pr => pr.MergedAt)
@@ -344,7 +330,7 @@ var milestonePullRequests = (await Cli.Wrap("gh")
         "--repo", sourceRepoShort,
         "--search", milestoneSearchFilter,
         "--json", PullRequest.JsonFields])
-    .ExecuteBufferedAsync())
+    .ExecuteBufferedAsync(logger))
     .StandardOutput
     .ParseJsonList<PullRequest>()
     ?.OrderByDescending(static pr => pr.MergedAt)
@@ -375,7 +361,7 @@ var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumb
     .WithArguments(["pr", "view", $"{lastPrNumber}",
         "--repo", sourceRepoShort,
         "--json", PullRequest.JsonFields])
-    .ExecuteBufferedAsync())
+    .ExecuteBufferedAsync(logger))
     .StandardOutput
     .ParseJsonList<PullRequest>()
     ?.FirstOrDefault()
@@ -383,7 +369,7 @@ var lastPr = lastMergedPullRequests.FirstOrDefault(pr => pr.Number == lastPrNumb
 
 var lastPrCommitDetails = (await Cli.Wrap("gh")
     .WithArguments(["api", $"repos/{sourceRepoShort}/commits/{lastPr.MergeCommit.Oid}"])
-    .ExecuteBufferedAsync())
+    .ExecuteBufferedAsync(logger))
     .StandardOutput
     .ParseJson<CommitDetails>()
     ?? throw new InvalidOperationException($"Null commit details for {lastPr.MergeCommit.Oid}");
@@ -399,7 +385,7 @@ console.MarkupLineInterpolated($"Last included commit will be [teal]{lastPrCommi
 var milestones = (await Cli.Wrap("gh")
     .WithArguments(["api", $"repos/{sourceRepoShort}/milestones", "--paginate",
         "--jq", ".[] | {number:.number,title:.title}"])
-    .ExecuteBufferedAsync())
+    .ExecuteBufferedAsync(logger))
     .StandardOutput
     .ParseJsonNewLineDelimitedList<Milestone>()
     .AssertNonNullElements("Null milestone in list")
@@ -497,7 +483,7 @@ var milestoneIssues = (await Cli.Wrap("gh")
         "--repo", sourceRepoShort,
         "--search", issueMilestoneSearchFilter,
         "--json", Issue.JsonFields])
-    .ExecuteBufferedAsync())
+    .ExecuteBufferedAsync(logger))
     .StandardOutput
     .ParseJsonList<Issue>()
     ?.ToArray()
@@ -1156,53 +1142,9 @@ file static class Extensions
 {
     private static readonly Encoding s_utf8WithBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
-    extension(Command command)
-    {
-        public async Task<BufferedCommandResult> ExecuteBufferedAsync(Logger logger)
-        {
-            logger.Log($"Executing command: {command}");
-
-            var originalValidation = command.Validation;
-            var result = await command.WithValidation(CommandResultValidation.None).ExecuteBufferedAsync();
-
-            logger.Log($"Command completed ({result.ExitCode}):\nStdout:{result.StandardOutput}\nStderr:{result.StandardError}");
-
-            if (!result.IsSuccess && originalValidation == CommandResultValidation.ZeroExitCode)
-            {
-                throw new InvalidOperationException($"Command '{command}' failed with exit code {result.ExitCode}.\nStdout:{result.StandardOutput}\nStderr:{result.StandardError}");
-            }
-
-            return result;
-        }
-    }
-
     extension(Encoding)
     {
         public static Encoding Utf8WithBom => s_utf8WithBom;
-    }
-
-    extension(IAnsiConsole console)
-    {
-        public bool Confirm(string prompt, bool defaultValue)
-        {
-            return new ConfirmationPrompt(prompt)
-            {
-                DefaultValue = defaultValue,
-                DefaultValueStyle = Style.Plain.Foreground(Color.Grey),
-                ChoicesStyle = Style.Plain,
-            }
-            .Show(console);
-        }
-
-        /// <summary>
-        /// Original <see cref="AnsiConsoleExtensions.Progress"/> can overwrite existing text, this avoids that.
-        /// </summary>
-        public Progress ProgressLine()
-        {
-            console.WriteLine();
-            console.WriteLine();
-            return console.Progress();
-        }
     }
 
     extension<T>(IEnumerable<T?> collection)
@@ -1246,53 +1188,6 @@ file static class Extensions
 
         public string GetRepoShortcut() => s.TrimPrefix("https://github.com/");
 
-        public T? ParseJson<T>()
-        {
-            try
-            {
-                return JsonSerializer.Deserialize<T>(s, JsonSerializerOptions.Web);
-            }
-            catch (JsonException e)
-            {
-                throw new Exception($"Cannot deserialize JSON '{s}'", e);
-            }
-        }
-
-        public T[]? ParseJsonList<T>()
-        {
-            try
-            {
-                return JsonSerializer.Deserialize<T[]>(s, JsonSerializerOptions.Web);
-            }
-            catch (JsonException e)
-            {
-                throw new Exception($"Cannot deserialize JSON '{s}'", e);
-            }
-        }
-
-        public List<T?> ParseJsonNewLineDelimitedList<T>()
-        {
-            var result = new List<T?>();
-            foreach (var line in s.EnumerateLines())
-            {
-                if (line.IsWhiteSpace())
-                {
-                    continue;
-                }
-
-                try
-                {
-                    result.Add(JsonSerializer.Deserialize<T>(line, JsonSerializerOptions.Web));
-                }
-                catch (JsonException e)
-                {
-                    throw new Exception($"Cannot deserialize JSON '{line}'", e);
-                }
-            }
-
-            return result;
-        }
-
         public string TrimPrefix(string prefix)
         {
             if (s.StartsWith(prefix, StringComparison.Ordinal))
@@ -1301,40 +1196,6 @@ file static class Extensions
             }
 
             return s;
-        }
-    }
-
-    extension<T>(TextPrompt<T>)
-    {
-        /// <summary>
-        /// Use this instead of <see cref="TextPromptExtensions.DefaultValue"/> to work around
-        /// <see href="https://github.com/spectreconsole/spectre.console/issues/1181"/>.
-        /// </summary>
-        public static TextPrompt<T> Create(string text, T defaultValue)
-        {
-            return new TextPrompt<T>($"{text} [grey](default: {Markup.Escape($"{defaultValue}")})[/]:")
-                .DefaultValue(defaultValue)
-                .HideDefaultValue();
-        }
-    }
-
-    extension<T>(TextPrompt<T>) where T : struct
-    {
-        public static TextPrompt<T> Create(string text, T? defaultValueIfNotNull)
-        {
-            return defaultValueIfNotNull is { } v
-                ? TextPrompt<T>.Create(text, defaultValue: v)
-                : new TextPrompt<T>($"{text}:");
-        }
-    }
-
-    extension(TextPrompt<string>)
-    {
-        public static TextPrompt<string> Create(string text, string? defaultValueIfNotNullOrEmpty)
-        {
-            return !string.IsNullOrEmpty(defaultValueIfNotNullOrEmpty)
-                ? TextPrompt<string>.Create(text, defaultValue: defaultValueIfNotNullOrEmpty)
-                : new TextPrompt<string>($"{text}:");
         }
     }
 
@@ -1366,33 +1227,6 @@ file static class Extensions
             return document.FindSingleNode(localName)
                 ?? throw new InvalidOperationException($"{localName} not found");
         }
-    }
-}
-
-file sealed class LoggingRenderHook(Logger logger) : IRenderHook
-{
-    private long _lastOffset;
-
-    public IEnumerable<IRenderable> Process(RenderOptions options, IEnumerable<IRenderable> renderables)
-    {
-        // Timestamp will be added on each intercepted newline,
-        // but not if someone from the outside wrote to the log in the meantime.
-        if (_lastOffset != logger.Writer.BaseStream.Position)
-        {
-            logger.Writer.Write($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] ");
-        }
-
-        foreach (var renderable in renderables)
-        {
-            var segments = renderable.Render(options, int.MaxValue).ToArray();
-            var text = string.Concat(segments.Select(static s => s.Text));
-            text = text.ReplaceLineEndings($"\n[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] ");
-            logger.Writer.Write(text);
-        }
-
-        _lastOffset = logger.Writer.BaseStream.Position;
-
-        return renderables;
     }
 }
 
@@ -1629,37 +1463,6 @@ file sealed record Flow(string SourceRepoUrl, string SourceBranch, string Channe
     public override string ToString() => ToFullString();
 }
 
-file sealed class Logger
-{
-    public Logger()
-    {
-        LogFilePath = Path.Join(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "snap-script", "log.txt");
-        Directory.CreateDirectory(Path.GetDirectoryName(LogFilePath)!);
-        // This is disposed inside ProcessExit event, not here in Main, so it can be also used in UnhandledException handler.
-        Writer = new StreamWriter(File.Open(LogFilePath, FileMode.Append, FileAccess.Write, FileShare.Read))
-        {
-            AutoFlush = true,
-        };
-        Writer.WriteLine();
-        Writer.WriteLine();
-
-        AppDomain.CurrentDomain.ProcessExit += (s, e) =>
-        {
-            Writer.Dispose();
-        };
-    }
-
-    public StreamWriter Writer { get; }
-    public string LogFilePath { get; }
-
-    public void Log(string message)
-    {
-        Writer.WriteLine($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss K}] {message}");
-    }
-}
-
 file sealed class ActionList(IAnsiConsole console)
 {
     private readonly List<(string Name, Func<Task> Func)> _actions = [];
@@ -1668,7 +1471,7 @@ file sealed class ActionList(IAnsiConsole console)
 
     public bool Add(string title, Func<Task> func)
     {
-        if (console.Confirm($"[green]Add to plan:[/] {title}?", defaultValue: true))
+        if (console.ConfirmEx($"[green]Add to plan:[/] {title}?", defaultValue: true))
         {
             var funcWithProgress = () =>
             {
@@ -1691,7 +1494,7 @@ file sealed class ActionList(IAnsiConsole console)
         else
         {
             var actionList = string.Join("\n", _actions.Select(static a => $"- {a.Name}"));
-            if (console.Confirm($"[red]Perform actions added to plan?[/]\n{actionList}\nContinue?", defaultValue: true))
+            if (console.ConfirmEx($"[red]Perform actions added to plan?[/]\n{actionList}\nContinue?", defaultValue: true))
             {
                 foreach (var action in _actions)
                 {
@@ -1702,7 +1505,7 @@ file sealed class ActionList(IAnsiConsole console)
                     catch (Exception ex)
                     {
                         console.MarkupLineInterpolated($"[red]Error:[/] Action [teal]{Markup.Remove(action.Name)}[/] failed: {ex.ToString()}");
-                        if (!console.Confirm($"Continue executing the remaining actions?", defaultValue: true))
+                        if (!console.ConfirmEx($"Continue executing the remaining actions?", defaultValue: true))
                         {
                             return;
                         }
