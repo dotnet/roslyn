@@ -28,7 +28,7 @@ This document provides guidance for thinking about language interactions and tes
     - AnalyzeStatementDataFlow 
     - ClassifyConversion
     - GetOperation (`IOperation`)
-    - GetCFG (`ControlFlowGraph`)
+    - GetCFG (`ControlFlowGraph`), including a scenario with some nested conditional
     - DocumentationCommentId APIs
 - VB/F# interop
 - C++/CLI interop (particularly for metadata format changes, e.g. DIMs, static abstracts in interfaces, or generic attributes)
