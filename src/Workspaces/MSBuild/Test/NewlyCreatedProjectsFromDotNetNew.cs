@@ -63,11 +63,6 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
     [MemberData(nameof(GetCSharpProjectTemplateNames), DisableDiscoveryEnumeration = false)]
     public Task ValidateCSharpTemplateProjects(string templateName)
     {
-        if (templateName is "blazor" or "blazorwasm")
-        {
-            // https://github.com/dotnet/roslyn/issues/80263
-            return Task.CompletedTask;
-        }
         return AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
     }
 
@@ -220,7 +215,17 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
         async Task AssertProjectLoadsCleanlyAsync(string projectFilePath, string[] ignoredDiagnostics)
         {
             using var workspace = CreateMSBuildWorkspace();
-            var project = await workspace.OpenProjectAsync(projectFilePath, cancellationToken: CancellationToken.None);
+
+            string binlogPath;
+            if (Environment.GetEnvironmentVariable("HELIX_DUMP_FOLDER") is string helixDumpFolder && !string.IsNullOrEmpty(helixDumpFolder))
+                binlogPath = Path.Combine(helixDumpFolder, Path.ChangeExtension(Path.GetFileName(projectFilePath), ".binlog"));
+            else
+                binlogPath = Path.ChangeExtension(projectFilePath, ".binlog");
+
+            LoggerFactory.CreateLogger(nameof(CreateNewProject)).LogInformation($"Creating binlog at {binlogPath}");
+
+            var logger = new Microsoft.Build.Logging.BinaryLogger { Parameters = binlogPath };
+            var project = await workspace.OpenProjectAsync(projectFilePath, msbuildLogger: logger, cancellationToken: CancellationToken.None);
 
             AssertEx.Empty(workspace.Diagnostics, $"The following workspace diagnostics are being reported for the template.");
 
