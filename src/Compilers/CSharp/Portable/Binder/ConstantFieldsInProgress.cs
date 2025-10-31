@@ -6,68 +6,53 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// This is used while computing the values of constant fields.  Since they can depend on each
+/// other, we need to keep track of which ones we are currently computing in order to avoid (and
+/// report) cycles.
+/// </summary>
+internal sealed class ConstantFieldsInProgress
 {
+    private readonly SourceFieldSymbol _fieldOpt;
+    private readonly HashSet<SourceFieldSymbolWithSyntaxReference> _dependencies;
+
     /// <summary>
-    /// This is used while computing the values of constant fields.  Since they can depend on each
-    /// other, we need to keep track of which ones we are currently computing in order to avoid (and
-    /// report) cycles.
+    /// Stores the last dependency that was added to the set. This is used to check if
+    /// the dependency that was added is not after all a dependency after successful rebinding
+    /// in Color Color resolution, i.e. `public const Color Color = Color.Red;`
     /// </summary>
-    internal sealed class ConstantFieldsInProgress
+    private SourceFieldSymbolWithSyntaxReference _lastDependency;
+
+    internal static readonly ConstantFieldsInProgress Empty = new ConstantFieldsInProgress(null, null);
+
+    internal ConstantFieldsInProgress(
+        SourceFieldSymbol fieldOpt,
+        HashSet<SourceFieldSymbolWithSyntaxReference> dependencies)
     {
-        private readonly SourceFieldSymbol _fieldOpt;
-        private readonly HashSet<SourceFieldSymbolWithSyntaxReference> _dependencies;
+        _fieldOpt = fieldOpt;
+        _dependencies = dependencies;
+    }
 
-        private SourceFieldSymbolWithSyntaxReference _recentDependency;
+    public bool IsEmpty
+    {
+        get { return (object)_fieldOpt == null; }
+    }
 
-        internal static readonly ConstantFieldsInProgress Empty = new ConstantFieldsInProgress(null, null);
+    internal void AddDependency(SourceFieldSymbolWithSyntaxReference field)
+    {
+        _dependencies.Add(field);
+        _lastDependency = field;
+    }
 
-        internal ConstantFieldsInProgress(
-            SourceFieldSymbol fieldOpt,
-            HashSet<SourceFieldSymbolWithSyntaxReference> dependencies)
+    internal void RemoveIfLastDependency(SourceFieldSymbolWithSyntaxReference field)
+    {
+        if (_lastDependency is not null && _lastDependency == (object)field)
         {
-            _fieldOpt = fieldOpt;
-            _dependencies = dependencies;
-        }
-
-        public bool IsEmpty
-        {
-            get { return (object)_fieldOpt == null; }
-        }
-
-        internal void AddDependency(SourceFieldSymbolWithSyntaxReference field)
-        {
-            _dependencies.Add(field);
-            _recentDependency = field;
-        }
-
-        internal void RemoveDepencency(SourceFieldSymbolWithSyntaxReference field)
-        {
-            _dependencies?.Remove(field);
-        }
-
-        private void RemoveRecentDependency()
-        {
-            if (_recentDependency is not null)
-            {
-                _dependencies.Remove(_recentDependency);
-                _recentDependency = null;
-            }
-        }
-
-        private bool EqualsRecentDependency(SourceFieldSymbolWithSyntaxReference field)
-        {
-            return _recentDependency == field;
-        }
-
-        internal void RemoveIfEqualsRecentDependency(SourceFieldSymbolWithSyntaxReference field)
-        {
-            if (EqualsRecentDependency(field))
-            {
-                RemoveRecentDependency();
-            }
+            _dependencies.Remove(_lastDependency);
+            _lastDependency = null;
         }
     }
 }

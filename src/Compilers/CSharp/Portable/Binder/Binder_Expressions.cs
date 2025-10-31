@@ -7549,7 +7549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 if (leftSymbol is SourceFieldSymbolWithSyntaxReference fieldLeft)
                                 {
-                                    ConstantFieldsInProgress.RemoveIfEqualsRecentDependency(fieldLeft);
+                                    ConstantFieldsInProgress.RemoveIfLastDependency(fieldLeft);
                                 }
 
                                 // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
