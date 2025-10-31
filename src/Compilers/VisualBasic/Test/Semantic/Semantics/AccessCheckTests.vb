@@ -2646,7 +2646,5 @@ End Class
             Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedNonEmbeddedPublicSymbol, otherClassSymbol))
             Assert.True(DirectCast(comp2, Compilation).IsSymbolAccessibleWithin(nestedNonEmbeddedPublicSymbol, assembly2Symbol))
         End Sub
-
-
     End Class
 End Namespace
