@@ -106,15 +106,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 if (!returnFinalTarget) throw new NotSupportedException();
 
-                path = Path.GetFullPath(path);
-
                 using var handle = CreateFileW(
                     lpFileName: path,
                     dwDesiredAccess: FILE_READ_ATTRIBUTES,
                     dwShareMode: FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                     lpSecurityAttributes: IntPtr.Zero,
                     dwCreationDisposition: OPEN_EXISTING,
-                    dwFlagsAndAttributes: FILE_FLAG_BACKUP_SEMANTICS,
+                    dwFlagsAndAttributes: FILE_FLAG_BACKUP_SEMANTICS, // needed for directories
                     hTemplateFile: IntPtr.Zero);
 
                 if (handle.IsInvalid)
@@ -143,16 +141,21 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return s;
         }
 
+        // https://learn.microsoft.com/en-us/windows/win32/fileio/file-access-rights-constants
         private const uint FILE_READ_ATTRIBUTES = 0x0080;
+
+        // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew
         private const uint FILE_SHARE_READ = 0x00000001;
         private const uint FILE_SHARE_WRITE = 0x00000002;
         private const uint FILE_SHARE_DELETE = 0x00000004;
         private const uint OPEN_EXISTING = 3;
         private const uint FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
 
+        // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfinalpathnamebyhandlew
         private const uint VOLUME_NAME_DOS = 0x0;
         private const uint FILE_NAME_NORMALIZED = 0x0;
 
+        // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern SafeFileHandle CreateFileW(
             string lpFileName,
@@ -163,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             uint dwFlagsAndAttributes,
             IntPtr hTemplateFile);
 
+        // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfinalpathnamebyhandlew
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern uint GetFinalPathNameByHandleW(
             SafeFileHandle hFile,

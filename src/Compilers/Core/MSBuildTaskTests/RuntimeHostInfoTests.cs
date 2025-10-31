@@ -80,6 +80,7 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output)
     }
 }
 
+#if !NET
 file static class NativeMethods
 {
     extension(File)
@@ -108,3 +109,4 @@ file static class NativeMethods
 
     private const uint SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE = 0x2;
 }
+#endif
