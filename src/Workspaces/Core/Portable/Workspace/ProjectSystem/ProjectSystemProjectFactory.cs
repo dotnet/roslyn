@@ -176,6 +176,8 @@ internal sealed partial class ProjectSystemProjectFactory
                 onAfterUpdate: null);
         }).ConfigureAwait(false);
 
+        CodeAnalysisEventSource.Log.ProjectCreated(projectSystemName, creationInfo.FilePath);
+
         // Set this value early after solution is created so it is available to Razor.  This will get updated
         // when the command line is set, but we want a non-null value to be available as soon as possible.
         //
