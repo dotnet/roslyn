@@ -181,7 +181,7 @@ struct S
         }
 
         [Fact]
-        public void RefReassignLifetimeIsLHS()
+        public void RefReassignLifetimeIsRHS()
         {
             var comp = CreateCompilation(@"
 class C
