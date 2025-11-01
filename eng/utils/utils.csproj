@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(NetRoslynNext)</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Roslyn.Utils</RootNamespace>
+
+    <!-- CA2007: Consider calling ConfigureAwait on the awaited task -->
+    <NoWarn>$(NoWarn);CA2007</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CliWrap" />
+    <PackageReference Include="Spectre.Console" />
+  </ItemGroup>
+
+</Project>
