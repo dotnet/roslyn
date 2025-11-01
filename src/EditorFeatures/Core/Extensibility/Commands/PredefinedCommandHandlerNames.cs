@@ -191,4 +191,19 @@ internal static class PredefinedCommandHandlerNames
     /// Command handler name for showing the Callstack Explorer tool window.
     /// </summary>
     public const string ShowCallstackExplorer = "Show Callstack Explorer";
+
+    /// <summary>
+    /// Command handler name for LSP Go To Definition.
+    /// </summary>
+    public const string LspGoToDefinition = "LSP GoToDefinitionCommandHandler";
+
+    /// <summary>
+    /// Command handler name for LSP Find References.
+    /// </summary>
+    public const string LspFindReferences = "LSP FindReferenceCommandHandler";
+
+    /// <summary>
+    /// Command handler name for LSP Go To Implementation.
+    /// </summary>
+    public const string LspGoToImplementation = "LSP GoToImplementationCommandHandler";
 }

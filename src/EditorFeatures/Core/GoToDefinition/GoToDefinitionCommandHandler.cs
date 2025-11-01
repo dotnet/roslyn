@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition;
 [Export(typeof(ICommandHandler))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [Name(PredefinedCommandHandlerNames.GoToDefinition)]
+[Order(Before = PredefinedCommandHandlerNames.LspGoToDefinition)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class GoToDefinitionCommandHandler(
