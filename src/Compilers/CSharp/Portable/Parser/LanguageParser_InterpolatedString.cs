@@ -5,16 +5,88 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class LanguageParser
     {
+        private LiteralExpressionSyntax ParseRawStringToken()
+        {
+            var originalToken = this.EatToken();
+
+            var expressionKind = SyntaxFacts.GetLiteralExpression(originalToken.Kind);
+            Debug.Assert(expressionKind != SyntaxKind.None);
+
+            // We want to share as much code as possible with raw-interpolated-strings.  Especially the code for dealing
+            // with indentation removal and determining the 'value' of the string.  As such, we will reinterpret this
+            // raw string as an interpolated string with no $'s and no holes, and then extract out the content token
+            // from that.
+
+            var originalText = originalToken.Text;
+            Debug.Assert(originalText[0] is '"');
+            Debug.Assert(originalText[1] is '"');
+            Debug.Assert(originalText[2] is '"');
+
+            var interpolatedString = ParseInterpolatedOrRawStringToken(
+                originalToken, originalText, originalText.AsSpan(), isInterpolatedString: false);
+
+            // Because there are no actual interpolations, we expect to only see a single text content node containing
+            // the interpreted value of the raw string.
+            Debug.Assert(interpolatedString.StringStartToken.Kind is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken);
+            Debug.Assert(interpolatedString.Contents.Count == 1);
+            Debug.Assert(interpolatedString.Contents[0] is InterpolatedStringTextSyntax);
+
+            var interpolatedText = (InterpolatedStringTextSyntax)interpolatedString.Contents[0]!;
+            var textToken = interpolatedText.TextToken;
+
+            // Based on how ParseInterpolatedOrRawStringToken works we should never get a diagnostic on the actual
+            // interpolated string text token (since we create it, and immediately add it to the InterpolatedStringText
+            // node).
+            Debug.Assert(!textToken.ContainsDiagnostics);
+
+            var diagnosticsBuilder = ArrayBuilder<DiagnosticInfo>.GetInstance();
+            // Move any diagnostics on the original token to the new token.
+            // diagnosticsBuilder.AddRange(token.GetDiagnostics());
+            // And any diagnostics from the interpolated string as a whole.
+            diagnosticsBuilder.AddRange(interpolatedString.GetDiagnostics());
+            // If there are any diagnostics on the interpolated text node, move those over too.  However, move them as
+            // they are relative to the text token, and now need to be relative to the start of the token as a whole.
+            var textTokenDiagnostics = MoveDiagnostics(interpolatedText.GetDiagnostics(), interpolatedString.StringStartToken.Width);
+            if (textTokenDiagnostics != null)
+                diagnosticsBuilder.AddRange(textTokenDiagnostics);
+
+            // if the original token had diagnostics, then we absolutely must have produced some diagnostics creating
+            // the interpolated version.  Note: the converse does not hold.  Producing the interpolation may produce
+            // indentation diagnostics, which are not something the lexer would have produced.
+            if (originalToken.ContainsDiagnostics)
+                Debug.Assert(diagnosticsBuilder.Count > 0);
+
+            // We preserve everything from the original raw token.  Except we use the computed value text from the
+            // interpolated text token instead as long as we got no diagnostics for this raw string.
+            var finalToken = SyntaxFactory
+                .Literal(originalToken.GetLeadingTrivia(), originalToken.Text, originalToken.Kind, getTokenValue(), originalToken.GetTrailingTrivia())
+                .WithDiagnosticsGreen(diagnosticsBuilder.ToArrayAndFree());
+
+            return _syntaxFactory.LiteralExpression(expressionKind, finalToken);
+
+            string getTokenValue()
+            {
+                if (diagnosticsBuilder.Count == 0)
+                    return textToken.GetValueText();
+
+                // Preserve what the lexer used to do here.  In the presence of any diagnostics, the text of the raw
+                // string minus the starting quotes is used as the value.
+                var startIndex = 0;
+                while (startIndex < originalText.Length && originalText[startIndex] is '"')
+                    startIndex++;
+
+                return originalText[startIndex..];
+            }
+        }
+
         private ExpressionSyntax ParseInterpolatedStringToken()
         {
             // We don't want to make the scanner stateful (between tokens) if we can possibly avoid it.
@@ -41,9 +113,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var originalToken = this.EatToken();
 
             var originalText = originalToken.ValueText; // this is actually the source text
-            var originalTextSpan = originalText.AsSpan();
             Debug.Assert(originalText[0] == '$' || originalText[0] == '@');
 
+            return ParseInterpolatedOrRawStringToken(
+                originalToken, originalText, originalText.AsSpan(), isInterpolatedString: true);
+        }
+
+        private InterpolatedStringExpressionSyntax ParseInterpolatedOrRawStringToken(
+            SyntaxToken originalToken,
+            string originalText,
+            ReadOnlySpan<char> originalTextSpan,
+            bool isInterpolatedString)
+        {
             // compute the positions of the interpolations in the original string literal, if there was an error or not,
             // and where the open and close quotes can be found.
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
@@ -67,7 +148,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 using var tempLexer = new Lexer(SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false);
                 var info = default(Lexer.TokenInfo);
-                tempLexer.ScanInterpolatedStringLiteralTop(ref info, out error, out kind, out openQuoteRange, interpolations, out closeQuoteRange);
+                tempLexer.ScanInterpolatedOrRawStringLiteralTop(
+                    ref info, isInterpolatedString, out error, out kind, out openQuoteRange, interpolations, out closeQuoteRange);
+
+                Debug.Assert(isInterpolatedString || interpolations.Count == 0, "Non-interpolated parsing should never produce interpolations");
             }
 
             SyntaxToken getOpenQuote()
@@ -146,8 +230,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             InterpolatedStringContentSyntax? makeContent(
                 ReadOnlySpan<char> indentationWhitespace, StringBuilder content, bool isFirst, bool isLast, ReadOnlySpan<char> text)
             {
-                if (text.Length == 0)
-                    return null;
+                if (text.IsEmpty)
+                {
+                    // For the raw string case, always include an InterpolatedStringText token, even if empty. This
+                    // allows the caller to uniformly assume there is always at least one text token that it can 
+                    // extract data from.
+                    return isInterpolatedString
+                        ? null
+                        : SyntaxFactory.InterpolatedStringText(
+                            SyntaxFactory.Literal(leading: null, "", SyntaxKind.InterpolatedStringTextToken, "", trailing: null));
+
+                }
 
                 // If we're not dedenting then just make a standard interpolated text token.  Also, we can short-circuit
                 // if the indentation whitespace is empty (nothing to dedent in that case).
@@ -285,6 +378,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        /// <summary>
+        /// Converts a whitespace character to its string representation for error messages.
+        /// </summary>
+        private static string CharToString(char ch)
+        {
+            return ch switch
+            {
+                '\t' => @"\t",
+                '\v' => @"\v",
+                '\f' => @"\f",
+                _ => @$"\u{(int)ch:x4}",
+            };
+        }
+
+        /// <summary>
+        /// Checks if two whitespace sequences differ at a specific character position where both
+        /// characters are whitespace but different types (e.g., tab vs space).
+        /// </summary>
         private static bool CheckForSpaceDifference(
             ReadOnlySpan<char> currentLineWhitespace,
             ReadOnlySpan<char> indentationLineWhitespace,
@@ -300,8 +411,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     SyntaxFacts.IsWhitespace(currentLineChar) &&
                     SyntaxFacts.IsWhitespace(indentationLineChar))
                 {
-                    currentLineMessage = Lexer.CharToString(currentLineChar);
-                    indentationLineMessage = Lexer.CharToString(indentationLineChar);
+                    currentLineMessage = CharToString(currentLineChar);
+                    indentationLineMessage = CharToString(indentationLineChar);
                     return true;
                 }
             }
@@ -468,9 +579,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        private static DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[] infos, int offset)
+        private static DiagnosticInfo[]? MoveDiagnostics(DiagnosticInfo[]? infos, int offset)
         {
-            Debug.Assert(infos.Length > 0);
+            if (infos is null || infos.Length == 0)
+                return null;
+
             var builder = ArrayBuilder<DiagnosticInfo>.GetInstance(infos.Length);
             foreach (var info in infos)
             {
