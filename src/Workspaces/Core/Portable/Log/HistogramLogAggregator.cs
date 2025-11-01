@@ -81,12 +81,12 @@ internal sealed class HistogramLogAggregator<TKey> : AbstractLogAggregator<TKey,
             var builder = pooledStringBuilder.Builder;
 
             builder.Append('[');
-            builder.Append(_buckets[0]);
+            builder.Append(_buckets[0].ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             for (var i = 1; i < _buckets.Length; ++i)
             {
                 builder.Append(',');
-                builder.Append(_buckets[i]);
+                builder.Append(_buckets[i].ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
 
             builder.Append(']');

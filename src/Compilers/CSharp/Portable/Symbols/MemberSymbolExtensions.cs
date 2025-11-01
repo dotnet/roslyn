@@ -80,25 +80,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal static bool GetIsNewExtensionMember(this Symbol member)
+        internal static bool IsExtensionBlockMember(this Symbol member)
         {
             switch (member.Kind)
             {
                 case SymbolKind.Method:
-                    return GetIsNewExtensionMember((MethodSymbol)member);
+                    return IsExtensionBlockMember((MethodSymbol)member);
                 case SymbolKind.Property:
-                    return GetIsNewExtensionMember((PropertySymbol)member);
+                    return IsExtensionBlockMember((PropertySymbol)member);
                 default:
                     return false;
             }
         }
 
-        internal static bool GetIsNewExtensionMember(this MethodSymbol member)
+        internal static bool IsExtensionBlockMember(this MethodSymbol member)
         {
             return member is { ContainingSymbol: NamedTypeSymbol { IsExtension: true }, OriginalDefinition: not SynthesizedExtensionMarker };
         }
 
-        internal static bool GetIsNewExtensionMember(this PropertySymbol member)
+        internal static bool IsExtensionBlockMember(this PropertySymbol member)
         {
             return member.ContainingSymbol is NamedTypeSymbol { IsExtension: true };
         }
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool TryGetInstanceExtensionParameter(this Symbol symbol, [NotNullWhen(true)] out ParameterSymbol? extensionParameter)
         {
             if (symbol is not null
-                && symbol.GetIsNewExtensionMember()
+                && symbol.IsExtensionBlockMember()
                 && !symbol.IsStatic
                 && symbol.ContainingType.ExtensionParameter is { } foundExtensionParameter)
             {
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static int GetMemberArityIncludingExtension(this Symbol member)
         {
-            if (member.GetIsNewExtensionMember())
+            if (member.IsExtensionBlockMember())
             {
                 return member.ContainingType.Arity + member.GetMemberArity();
             }
@@ -134,14 +134,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (member is MethodSymbol method)
             {
-                return method.GetIsNewExtensionMember()
+                return method.IsExtensionBlockMember()
                     ? method.ContainingType.TypeParameters.Concat(method.TypeParameters)
                     : method.TypeParameters;
             }
 
             if (member is PropertySymbol property)
             {
-                Debug.Assert(property.GetIsNewExtensionMember());
+                Debug.Assert(property.IsExtensionBlockMember());
                 return property.ContainingType.TypeParameters;
             }
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (member is MethodSymbol method)
             {
                 Dictionary<TypeParameterSymbol, int>? ordinals = null;
-                if (method.GetIsNewExtensionMember() && method.Arity > 0 && method.ContainingType.Arity > 0)
+                if (method.IsExtensionBlockMember() && method.Arity > 0 && method.ContainingType.Arity > 0)
                 {
                     Debug.Assert(originalTypeParameters.Length == method.Arity + method.ContainingType.Arity);
 
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, consider optimizing
             if (!skipExtensionIfStatic || !symbol.IsStatic)
             {
-                if (symbol.GetIsNewExtensionMember() && symbol.ContainingType.ExtensionParameter is { } extensionParameter)
+                if (symbol.IsExtensionBlockMember() && symbol.ContainingType.ExtensionParameter is { } extensionParameter)
                 {
                     return [extensionParameter, .. symbol.GetParameters()];
                 }
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static int GetParameterCountIncludingExtensionParameter(this Symbol symbol)
         {
-            bool hasExtensionParameter = symbol.GetIsNewExtensionMember() && symbol.ContainingType.ExtensionParameter is { };
+            bool hasExtensionParameter = symbol.IsExtensionBlockMember() && symbol.ContainingType.ExtensionParameter is { };
             return symbol.GetParameterCount() + (hasExtensionParameter ? 1 : 0);
         }
 
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (member is MethodSymbol method)
             {
-                if (method.GetIsNewExtensionMember())
+                if (method.IsExtensionBlockMember())
                 {
                     NamedTypeSymbol extension = method.ContainingType;
                     if (extension.Arity > 0)
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (member is PropertySymbol property)
             {
-                Debug.Assert(property.GetIsNewExtensionMember());
+                Debug.Assert(property.IsExtensionBlockMember());
                 NamedTypeSymbol extension = property.ContainingType;
                 Debug.Assert(extension.Arity > 0);
                 Debug.Assert(extension.Arity == typeArguments.Length);
@@ -280,10 +280,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else
                     {
-                        Debug.Assert(method.GetIsNewExtensionMember());
-                        constructed = (MethodSymbol?)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, constructed, receiverType);
-
-                        if (checkFullyInferred && constructed?.IsGenericMethod == true && typeArguments.IsDefaultOrEmpty)
+                        Debug.Assert(method.IsExtensionBlockMember());
+                        constructed = (MethodSymbol?)SourceNamedTypeSymbol.ReduceExtensionMember(compilation, constructed, receiverType, out bool wasExtensionFullyInferred);
+                        if (checkFullyInferred && (!wasExtensionFullyInferred || (constructed?.IsGenericMethod == true && typeArguments.IsDefaultOrEmpty)))
                         {
                             return null;
                         }
@@ -296,8 +295,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // infer type arguments based off the receiver type if needed, check applicability
                 Debug.Assert(receiverType is not null);
-                Debug.Assert(property.GetIsNewExtensionMember());
-                return (PropertySymbol?)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, property, receiverType);
+                Debug.Assert(property.IsExtensionBlockMember());
+                var result = (PropertySymbol?)SourceNamedTypeSymbol.ReduceExtensionMember(compilation, property, receiverType, wasExtensionFullyInferred: out bool wasFullyInferred);
+                if (checkFullyInferred && !wasFullyInferred)
+                {
+                    return null;
+                }
+
+                return result;
             }
 
             throw ExceptionUtilities.UnexpectedValue(member.Kind);

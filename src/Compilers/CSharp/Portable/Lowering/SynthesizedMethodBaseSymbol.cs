@@ -193,6 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnTypeWithAnnotations); }
         }
 
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return this.TypeMap.SubstituteCustomModifiers(this.BaseMethod.OriginalDefinition.RefCustomModifiers); }
+        }
+
         public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => BaseMethod.ReturnTypeFlowAnalysisAnnotations;
 
         public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => BaseMethod.ReturnNotNullIfParameterNotNull;

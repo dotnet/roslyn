@@ -115,6 +115,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         IPropertySymbol? IPropertySymbol.PartialImplementationPart => _underlying.PartialImplementationPart.GetPublicSymbol();
 
         bool IPropertySymbol.IsPartialDefinition => (_underlying as SourcePropertySymbol)?.IsPartialDefinition ?? false;
+
+        IPropertySymbol? IPropertySymbol.ReduceExtensionMember(ITypeSymbol receiverType)
+        {
+            if (_underlying.IsExtensionBlockMember() && SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(_underlying))
+            {
+                var csharpReceiver = receiverType.EnsureCSharpSymbolOrNull(nameof(receiverType));
+                return (IPropertySymbol?)SourceNamedTypeSymbol.ReduceExtensionMember(compilation: null, _underlying, csharpReceiver, wasExtensionFullyInferred: out _).GetPublicSymbol();
+            }
+
+            return null;
+        }
 #nullable disable
 
         #region ISymbol Members

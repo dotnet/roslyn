@@ -2575,11 +2575,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">キャプチャした変数の名前を '{0}' から '{1}' に変更するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">匿名型メンバーの名前の変更は、まだサポートされていません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">'{0}' を '{1}' に置き換える</target>
@@ -4150,8 +4145,8 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="translated">署名の変更...</target>
-        <note />
+        <target state="needs-review-translation">署名の変更...</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
         <source>Generate new type...</source>

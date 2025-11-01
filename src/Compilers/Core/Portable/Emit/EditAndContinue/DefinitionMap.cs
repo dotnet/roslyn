@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(
                         MessageProvider.ERR_InvalidDebugInfo,
-                        method.Locations.First(),
+                        method.GetFirstLocation(),
                         method,
                         MetadataTokens.GetToken(methodHandle),
                         method.ContainingAssembly,
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     {
                         diagnostics.Add(MessageProvider.CreateDiagnostic(
                             MessageProvider.ERR_InvalidDebugInfo,
-                            method.Locations.First(),
+                            method.GetFirstLocation(),
                             method,
                             MetadataTokens.GetToken(localSignature),
                             method.ContainingAssembly,
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             diagnostics.Add(MessageProvider.CreateDiagnostic(
                 MessageProvider.ERR_EncUpdateFailedMissingSymbol,
-                method.Locations.First(),
+                method.GetFirstLocation(),
                 CodeAnalysisResources.Attribute,
                 stateMachineAttributeFullName));
         }

@@ -41,6 +41,44 @@ internal static class RenameUtilities
         return token;
     }
 
+    /// <summary>
+    /// Determines if a type symbol is an unrenamable target for an alias.
+    /// Such types include arrays, tuples, pointers, function pointers, and dynamic, which cannot be renamed
+    /// themselves but can be aliased with the "using alias = type" feature.
+    /// </summary>
+    internal static bool IsUnrenamableAliasTarget(ITypeSymbol typeSymbol)
+    {
+        return typeSymbol.IsTupleType ||
+            typeSymbol.TypeKind is TypeKind.Array or TypeKind.Pointer or TypeKind.FunctionPointer or TypeKind.Dynamic;
+    }
+
+    /// <summary>
+    /// Filters symbols to determine which should be used for renaming when both an alias and its target are present.
+    /// For aliases to unrenamable types (like tuples, arrays, pointers, etc.), keeps the alias symbol.
+    /// Otherwise, keeps the non-alias symbols (original behavior).
+    /// </summary>
+    internal static ImmutableArray<ISymbol> FilterAliasSymbols(ImmutableArray<ISymbol> symbols)
+    {
+        if (symbols.Length <= 1)
+            return symbols;
+
+        var aliasSymbol = symbols.FirstOrDefault(s => s.Kind == SymbolKind.Alias);
+        var nonAliasSymbols = symbols.WhereAsArray(s => s.Kind != SymbolKind.Alias);
+
+        // For aliases to types that cannot be renamed (like tuples, arrays, pointers, function pointers),
+        // we should rename the alias itself, not the target type.
+        if (aliasSymbol != null &&
+            nonAliasSymbols is [ITypeSymbol targetType] &&
+            IsUnrenamableAliasTarget(targetType))
+        {
+            // Keep the alias symbol for renaming
+            return [aliasSymbol];
+        }
+
+        // Original behavior: use the non-alias symbols
+        return nonAliasSymbols;
+    }
+
     internal static ImmutableArray<ISymbol> GetSymbolsTouchingPosition(
         int position, SemanticModel semanticModel, SolutionServices services, CancellationToken cancellationToken)
     {
@@ -55,7 +93,7 @@ internal static class RenameUtilities
         // by GetSymbols
         if (symbols.Length > 1)
         {
-            symbols = symbols.WhereAsArray(s => s.Kind != SymbolKind.Alias);
+            symbols = FilterAliasSymbols(symbols);
         }
 
         if (symbols.Length == 0)

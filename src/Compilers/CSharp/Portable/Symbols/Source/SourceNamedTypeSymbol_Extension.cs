@@ -1168,20 +1168,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CodeAnalysis.CodeGen.PrivateImplementationDetails.HashToHex(hash);
         }
 
-        internal static Symbol? GetCompatibleSubstitutedMember(CSharpCompilation compilation, Symbol extensionMember, TypeSymbol receiverType)
+        /// <summary>
+        /// Given a receiver type, check if we can infer type arguments for the extension block and check for compatibility.
+        /// If that is successful, return the substituted extension member and whether the extension block was fully inferred.
+        /// </summary>
+        internal static Symbol? ReduceExtensionMember(CSharpCompilation? compilation, Symbol extensionMember, TypeSymbol receiverType, out bool wasExtensionFullyInferred)
         {
-            Debug.Assert(extensionMember.GetIsNewExtensionMember());
+            Debug.Assert(extensionMember.IsExtensionBlockMember());
 
             NamedTypeSymbol extension = extensionMember.ContainingType;
             if (extension.ExtensionParameter is null)
             {
+                wasExtensionFullyInferred = false;
                 return null;
             }
 
             Symbol result;
             if (extensionMember.IsDefinition)
             {
-                NamedTypeSymbol? constructedExtension = inferExtensionTypeArguments(extension, receiverType, compilation);
+                NamedTypeSymbol? constructedExtension = inferExtensionTypeArguments(extension, receiverType, compilation, out wasExtensionFullyInferred);
                 if (constructedExtension is null)
                 {
                     return null;
@@ -1191,12 +1196,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
+                wasExtensionFullyInferred = true;
                 result = extensionMember;
             }
 
+            ConversionsBase conversions = compilation?.Conversions ?? (ConversionsBase)extensionMember.ContainingAssembly.CorLibrary.TypeConversions;
+
             Debug.Assert(result.ContainingType.ExtensionParameter is not null);
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            Conversion conversion = compilation.Conversions.ConvertExtensionMethodThisArg(parameterType: result.ContainingType.ExtensionParameter.Type, receiverType, ref discardedUseSiteInfo, isMethodGroupConversion: false);
+            Conversion conversion = conversions.ConvertExtensionMethodThisArg(parameterType: result.ContainingType.ExtensionParameter.Type, receiverType, ref discardedUseSiteInfo, isMethodGroupConversion: false);
             if (!conversion.Exists)
             {
                 return null;
@@ -1204,10 +1212,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return result;
 
-            static NamedTypeSymbol? inferExtensionTypeArguments(NamedTypeSymbol extension, TypeSymbol receiverType, CSharpCompilation compilation)
+            static NamedTypeSymbol? inferExtensionTypeArguments(NamedTypeSymbol extension, TypeSymbol receiverType, CSharpCompilation? compilation, out bool wasExtensionFullyInferred)
             {
                 if (extension.Arity == 0)
                 {
+                    wasExtensionFullyInferred = true;
                     return extension;
                 }
 
@@ -1219,12 +1228,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 ImmutableArray<TypeWithAnnotations> typeArguments = MethodTypeInferrer.InferTypeArgumentsFromReceiverType(extension, receiverValue, compilation, conversions, ref discardedUseSiteInfo);
-                if (typeArguments.IsDefault || typeArguments.Any(t => !t.HasType))
+                if (typeArguments.IsDefault)
                 {
+                    wasExtensionFullyInferred = false;
                     return null;
                 }
 
-                var result = extension.Construct(typeArguments);
+                ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = fillNotInferredTypeArguments(extension, typeArguments, out wasExtensionFullyInferred);
+                var result = extension.Construct(typeArgsForConstruct);
 
                 var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false,
                     NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
@@ -1236,6 +1247,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return result;
+            }
+
+            static ImmutableArray<TypeWithAnnotations> fillNotInferredTypeArguments(NamedTypeSymbol extension, ImmutableArray<TypeWithAnnotations> typeArgs, out bool wasFullyInferred)
+            {
+                // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
+                wasFullyInferred = typeArgs.All(static t => t.HasType);
+                if (!wasFullyInferred)
+                {
+                    return typeArgs.ZipAsArray(
+                        extension.TypeParameters,
+                        (t, tp) => t.HasType ? t : TypeWithAnnotations.Create(tp));
+                }
+
+                return typeArgs;
             }
         }
     }

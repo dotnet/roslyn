@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol disposeMethod = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics, out bool expanded);
                     if (disposeMethod is object)
                     {
-                        Debug.Assert(!disposeMethod.IsExtensionMethod && !disposeMethod.GetIsNewExtensionMember(),
+                        Debug.Assert(!disposeMethod.IsExtensionMethod && !disposeMethod.IsExtensionBlockMember(),
                             "No extension disposal. See TryFindDisposePatternMethod");
 
                         diagnostics.AddRangeAndFree(patternDiagnostics);

@@ -396,7 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else
                     {
                         // Inconsistent accessibility: type '{1}' is less accessible than class '{0}'
-                        var lessVisibleTypeLocation = lessVisibleType.GetFirstLocation();
                         diagnostics.Add(ErrorCode.ERR_BadVisBaseType, baseTypeLocation, this, lessVisibleType);
                     }
                 }

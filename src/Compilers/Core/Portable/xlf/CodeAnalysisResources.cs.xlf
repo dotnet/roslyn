@@ -218,6 +218,16 @@
         <target state="translated">Kopie modulu se nedá použít k vytvoření metadat sestavení.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SeparatorTokenMustHaveSameLanguage">
+        <source>New separator must have the same Language as the separator being replaced.</source>
+        <target state="new">New separator must have the same Language as the separator being replaced.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SeparatorTokenMustHaveSameRawKind">
+        <source>New separator must have the same RawKind as the separator being replaced.</source>
+        <target state="new">New separator must have the same RawKind as the separator being replaced.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SigningTempPathUnavailable">
         <source>The temporary path for legacy file signing is unavailable.</source>
         <target state="translated">Dočasná cesta pro podepisování starší verze souboru není k dispozici.</target>

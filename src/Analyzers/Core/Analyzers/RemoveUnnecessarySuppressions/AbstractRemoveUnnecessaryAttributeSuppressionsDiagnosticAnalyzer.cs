@@ -109,7 +109,7 @@ internal abstract class AbstractRemoveUnnecessaryAttributeSuppressionsDiagnostic
                     }
                 }
 
-                reportDiagnostic(Diagnostic.Create(LegacyFormatTargetDescriptor, targetValueOperation.Syntax.GetLocation(), properties!, targetSymbolString));
+                reportDiagnostic(Diagnostic.Create(LegacyFormatTargetDescriptor, targetValueOperation.Syntax.GetLocation(), properties, targetSymbolString));
                 return;
             }
         }

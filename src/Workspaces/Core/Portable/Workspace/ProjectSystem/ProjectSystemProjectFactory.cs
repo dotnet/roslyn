@@ -176,6 +176,8 @@ internal sealed partial class ProjectSystemProjectFactory
                 onAfterUpdate: null);
         }).ConfigureAwait(false);
 
+        CodeAnalysisEventSource.Log.ProjectCreated(projectSystemName, creationInfo.FilePath);
+
         // Set this value early after solution is created so it is available to Razor.  This will get updated
         // when the command line is set, but we want a non-null value to be available as soon as possible.
         //
@@ -838,6 +840,7 @@ internal sealed partial class ProjectSystemProjectFactory
 
                 return (newSolution, newProjectUpdateState);
             },
+            onAfterUpdateAlways: null,
             cancellationToken);
 
     private Task StartRefreshingAnalyzerReferenceForFileAsync(string fullFilePath, CancellationToken cancellationToken)
@@ -858,6 +861,30 @@ internal sealed partial class ProjectSystemProjectFactory
                     solution, projectId, projectUpdateState, [oldAnalyzerFilePath], [newAnalyzerFilePath]);
                 return (newSolution, newProjectUpdateState);
             },
+            onAfterUpdateAlways: state =>
+            {
+                // Okay, an analyzer changed on disk, and we've now ensured the workspace is updated to point at the
+                // latest version of it.  We need to explicitly treat this as something that should force analyzer
+                // to rerun so that all generated documents from it are accurate.
+                //
+                // If we do not do this, we can end up in a situation where we have an observable race for clients
+                // trying to retrieve SG docs.  If the retrieve after a build, but before we've heard about this change
+                // on disk, we will produce documents based on the versions of the references we were pointing at. When
+                // we then hear about the changes on disk, we'll fork the workspace, but keep the SG version map the
+                // same, meaning clients will not get updated results.  If, however, they had waited a little before
+                // asking for SG docs, then we would have updated the version map *and* incorporated the new analyzer
+                // references, so they would see the updated documents.
+                //
+                // This violates our goal that 'build' or adding/removing/changing analyzer references should result
+                // in correct SG documents for the next client that requests them.
+                //
+                // Note: we could technically attempt to smarter here and try to determine precisely which projects were
+                // impacted by the changed analyzer and only update those.  However, that would involve flowing more
+                // state/snapshots around here, and it's just much clearer and easier to set everything to be
+                // regenerated unconditionally.  Given that analyzer changes should be relatively infrequent, this
+                // should hopefully be ok.
+                this.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
+            },
             cancellationToken);
 
     /// <summary>
@@ -870,6 +897,7 @@ internal sealed partial class ProjectSystemProjectFactory
         Func<TReference, string> getFilePath,
         Func<SolutionServices, TReference, TReference> createNewReference,
         Func<Solution, ProjectId, ProjectUpdateState, TReference, TReference, (Solution newSolution, ProjectUpdateState newProjectUpdateState)> update,
+        Action<ProjectUpdateState>? onAfterUpdateAlways,
         CancellationToken cancellationToken)
         where TReference : class
     {
@@ -900,7 +928,7 @@ internal sealed partial class ProjectSystemProjectFactory
             }
 
             return projectUpdateState;
-        }, onAfterUpdateAlways: null).ConfigureAwait(false);
+        }, onAfterUpdateAlways).ConfigureAwait(false);
     }
 
     internal Task RaiseOnDocumentsAddedMaybeAsync(bool useAsync, ImmutableArray<string> filePaths)
