@@ -17,7 +17,7 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
         EnforceOnBuildValues.CopilotImplementNotImplementedException,
         option: null,
         new LocalizableResourceString(
-            nameof(CSharpAnalyzersResources.Implement_with_Copilot), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+            nameof(CSharpAnalyzersResources.Implement), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
         configurable: false)
 {
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

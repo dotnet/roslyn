@@ -32,14 +32,14 @@
         <target state="translated">Copilot 正在思考...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe_with_Copilot">
-        <source>Describe with Copilot</source>
-        <target state="translated">使用 Copilot 进行描述</target>
+      <trans-unit id="Describe">
+        <source>Describe</source>
+        <target state="new">Describe</target>
         <note />
       </trans-unit>
-      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
-        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="translated">“使用 Copilot 描述”不可用，因为你的组织已排除引用的文档。</target>
+      <trans-unit id="Describe_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="new">'Describe' is unavailable since the referenced document is excluded by your organization.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">

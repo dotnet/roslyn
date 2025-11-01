@@ -82,9 +82,9 @@
         <target state="translated">Le istruzioni incorporate devono essere posizionate nella rispettiva riga</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_with_Copilot">
-        <source>Implement with Copilot</source>
-        <target state="new">Implement with Copilot</target>
+      <trans-unit id="Implement">
+        <source>Implement</source>
+        <target state="new">Implement</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">

@@ -57,6 +57,8 @@ public static class WellKnownTags
     internal const string AddReference = nameof(AddReference);
     internal const string NuGet = nameof(NuGet);
     internal const string TargetTypeMatch = nameof(TargetTypeMatch);
+
+    internal const string Copilot = nameof(Copilot);
 }
 
 internal static class WellKnownTagArrays

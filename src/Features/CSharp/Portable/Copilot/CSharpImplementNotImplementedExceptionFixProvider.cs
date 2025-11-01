@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
@@ -66,10 +67,13 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
             // result for the preview window, we'll produce the same value when the fix is actually applied.
             var lazy = AsyncLazy.Create(GetDocumentUpdater(context));
 
-            context.RegisterCodeFix(Create(
-                title: CSharpAnalyzersResources.Implement_with_Copilot,
-                lazy.GetValueAsync,
-                equivalenceKey: nameof(CSharpAnalyzersResources.Implement_with_Copilot)),
+            var codeAction = new CopilotCodeAction(
+                    title: CSharpAnalyzersResources.Implement,
+                    (progress, cancellationToken) => lazy.GetValueAsync(cancellationToken),
+                    equivalenceKey: nameof(CSharpAnalyzersResources.Implement));
+
+            context.RegisterCodeFix(
+                codeAction,
                 context.Diagnostics);
 
             Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Fix_Registered, logLevel: LogLevel.Information);
@@ -150,5 +154,16 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         return member
             .WithLeadingTrivia(newLeadingTrivia)
             .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation);
+    }
+
+    /// <summary>
+    /// Custom code action that wraps the document change with Copilot tag to display the Sparkle icon.
+    /// </summary>
+    private sealed class CopilotCodeAction(
+        string title,
+        Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
+        string? equivalenceKey) : DocumentChangeAction(title, createChangedDocument, equivalenceKey)
+    {
+        public override ImmutableArray<string> Tags { get; } = [WellKnownTags.Copilot];
     }
 }
