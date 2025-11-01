@@ -290,11 +290,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // When both results are WrongArity, prefer reporting errors about generic types
                 // over non-generic types to provide more helpful error messages
-                if (preferGenericOverNonGeneric(this.SingleSymbolOrDefault, result.Symbol))
+                if (isNonGenericVersusGeneric(this.SingleSymbolOrDefault, result.Symbol))
                 {
                     this.SetFrom(result);
                 }
-                else if (!preferGenericOverNonGeneric(result.Symbol, this.SingleSymbolOrDefault))
+                else if (!isNonGenericVersusGeneric(result.Symbol, this.SingleSymbolOrDefault))
                 {
                     // Neither is preferred, add both symbols
                     if ((object)result.Symbol != null)
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _symbolList.Add(result.Symbol);
             }
 
-            static bool preferGenericOverNonGeneric(Symbol firstSymbol, Symbol secondSymbol)
+            static bool isNonGenericVersusGeneric(Symbol firstSymbol, Symbol secondSymbol)
                 => firstSymbol.GetArity() == 0 && secondSymbol.GetArity() > 0;
         }
 
