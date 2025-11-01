@@ -871,14 +871,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Since we have a concrete member in hand, we can resolve the receiver.
                         var typeOrValue = (BoundTypeOrValueExpression)receiver;
                         receiver = otherSymbol.RequiresInstanceReceiver()
-                            ? typeOrValue.Data.ValueExpression
+                            ? ReplaceTypeOrValueReceiver(typeOrValue, useType: false, BindingDiagnosticBag.Discarded)
                             : null; // no receiver required
                     }
+
                     return new BoundBadExpression(
                         expr.Syntax,
                         methodGroup.ResultKind,
                         (object)otherSymbol == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create(otherSymbol),
-                        receiver == null ? ImmutableArray<BoundExpression>.Empty : ImmutableArray.Create(receiver),
+                        receiver == null ? ImmutableArray<BoundExpression>.Empty : ImmutableArray.Create(AdjustBadExpressionChild(receiver)),
                         GetNonMethodMemberType(otherSymbol));
                 }
             }

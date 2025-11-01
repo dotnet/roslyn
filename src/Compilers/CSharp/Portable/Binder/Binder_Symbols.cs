@@ -1515,16 +1515,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMemberOrExtension, right, receiver.Type, plainName);
-                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childBoundNodes: [receiver], receiver.Type, hasErrors: true).MakeCompilerGenerated();
+                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childBoundNodes: [AdjustBadExpressionChild(receiver)], receiver.Type, hasErrors: true).MakeCompilerGenerated();
             }
 
             return receiver;
 
             bool isPossiblyCapturingPrimaryConstructorParameterReference(BoundExpression receiver, out ParameterSymbol parameterSymbol)
             {
-                BoundExpression colorColorValueReceiver = GetValueExpressionIfTypeOrValueReceiver(receiver);
+                Symbol colorColorValueSymbol = GetValueSymbolIfTypeOrValueReceiver(receiver);
 
-                if (colorColorValueReceiver is BoundParameter { ParameterSymbol: { ContainingSymbol: SynthesizedPrimaryConstructor primaryConstructor } parameter } &&
+                if (colorColorValueSymbol is ParameterSymbol { ContainingSymbol: SynthesizedPrimaryConstructor primaryConstructor } parameter &&
                     IsInDeclaringTypeInstanceMember(primaryConstructor) &&
                     !InFieldInitializer &&
                     this.ContainingMember() != (object)primaryConstructor &&
