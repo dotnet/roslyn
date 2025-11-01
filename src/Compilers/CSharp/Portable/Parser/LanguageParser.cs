@@ -10570,11 +10570,9 @@ done:
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                 }
-                else if (list.Any(mod.RawKind))
-                {
-                    // check for duplicates, can only be const
-                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected);
-                }
+                // Note: Duplicate modifiers are not reported here during parsing.
+                // They will be reported during binding (see Binder_Statements.BindDeclarationStatementParts
+                // and ModifierUtils.ToDeclarationModifiers).
 
                 list.Add(mod);
             }
