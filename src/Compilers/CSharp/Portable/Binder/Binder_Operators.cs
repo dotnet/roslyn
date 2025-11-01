@@ -5633,26 +5633,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol leftType = leftOperand.Type;
 
-            var rightOperandTargetType = leftType switch
+            if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {
-                { IsReferenceType: true } or { IsValueType: false, TypeKind: TypeKind.TypeParameter } => leftType,
-                { IsValueType: true } when leftType.IsNullableType() => leftType.GetNullableUnderlyingType(),
-                _ => null
-            };
+                leftOperand = BindToTypeForErrorRecovery(leftOperand);
 
-            // If left operand is bad or right operator is bad and we cannot determine its type, take the default error recovery path
-            if (leftOperand.HasAnyErrors || (rightOperandTargetType is null && rightOperand.HasAnyErrors))
-            {
-                leftOperand = BindToTypeForErrorRecovery(leftOperand);
-                rightOperand = BindToTypeForErrorRecovery(rightOperand);
-                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
-            }
-            // If right operand is bad, but we know its type, make sure conversion is in place for better error recovery
-            else if (rightOperand.HasAnyErrors)
-            {
-                leftOperand = BindToTypeForErrorRecovery(leftOperand);
-                var conversion = GenerateConversionForAssignment(rightOperandTargetType, rightOperand, diagnostics, ConversionForAssignmentFlags.CompoundAssignment);
-                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, conversion, rightOperandTargetType, hasErrors: true);
+                var rightOperandTargetType = leftType switch
+                {
+                    { IsReferenceType: true } or { IsValueType: false, TypeKind: TypeKind.TypeParameter } => leftType,
+                    { IsValueType: true } when leftType.IsNullableType() => leftType.GetNullableUnderlyingType(),
+                    _ => null
+                };
+
+                if (rightOperandTargetType is not null)
+                {
+                    // If we can infer what type of right operand should be, generate a conversion to that type.
+                    // This will massively help with target-typed expressions especially for IDE scenarios, but also
+                    // lead to more consistent binding for error and success cases
+                    var conversion = GenerateConversionForAssignment(rightOperandTargetType, rightOperand, BindingDiagnosticBag.Discarded, ConversionForAssignmentFlags.CompoundAssignment);
+                    return new BoundNullCoalescingAssignmentOperator(node, leftOperand, conversion, rightOperandTargetType, hasErrors: true);
+                }
+                else
+                {
+                    rightOperand = BindToTypeForErrorRecovery(rightOperand);
+                    return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
+                }
             }
 
             // Given a ??= b, the type of a is A, the type of B is b, and if A is a nullable value type, the underlying
