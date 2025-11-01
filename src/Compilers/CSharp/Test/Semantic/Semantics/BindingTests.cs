@@ -4251,5 +4251,27 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (a) .
                 //         MyExpression x;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 22));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24406")]
+        public void TestGenericAndNonGenericMethod()
+        {
+            var text = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        M<int>(default!); 
+                    }
+
+                    void M(object obj) { }
+                    T2 M<T1, T2>(T1 t) => throw null!;
+                }
+                """;
+
+            CreateCompilation(text).VerifyEmitDiagnostics(
+                // (5,9): error CS0305: Using the generic method 'Program.M<T1, T2>(T1)' requires 2 type arguments
+                //         M<int>(default!); 
+                Diagnostic(ErrorCode.ERR_BadArity, "M<int>").WithArguments("Program.M<T1, T2>(T1)", "method", "2").WithLocation(5, 9));
+        }
     }
 }

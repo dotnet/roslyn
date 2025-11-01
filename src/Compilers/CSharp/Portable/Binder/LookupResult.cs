@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             static bool preferGenericOverNonGeneric(Symbol firstSymbol, Symbol secondSymbol)
-                => firstSymbol is NamedTypeSymbol { Arity: 0 } && secondSymbol is NamedTypeSymbol { Arity: > 0 };
+                => firstSymbol.GetArity() == 0 && secondSymbol.GetArity() > 0;
         }
 
         // global pool
