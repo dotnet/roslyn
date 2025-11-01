@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -19,6 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly SourceFieldSymbol _fieldOpt;
         private readonly HashSet<SourceFieldSymbolWithSyntaxReference> _dependencies;
+
+        /// <summary>
+        /// Stores the last dependency that was added to the set. This is used to check if
+        /// the dependency that was added is not after all a dependency after successful rebinding
+        /// in Color Color resolution, i.e. `public const Color Color = Color.Red;`
+        /// </summary>
+        private SourceFieldSymbolWithSyntaxReference _lastDependency;
 
         internal static readonly ConstantFieldsInProgress Empty = new ConstantFieldsInProgress(null, null);
 
@@ -38,6 +44,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void AddDependency(SourceFieldSymbolWithSyntaxReference field)
         {
             _dependencies.Add(field);
+            _lastDependency = field;
+        }
+
+        internal void RemoveIfLastDependency(SourceFieldSymbolWithSyntaxReference field)
+        {
+            if (_lastDependency is not null && _lastDependency == (object)field)
+            {
+                _dependencies.Remove(_lastDependency);
+                _lastDependency = null;
+            }
         }
     }
 }

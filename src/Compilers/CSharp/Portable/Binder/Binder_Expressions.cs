@@ -7560,6 +7560,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert(!leftType.IsDynamic());
                                 Debug.Assert(IsPotentialColorColorReceiver(left, leftType));
 
+                                if (leftSymbol is SourceFieldSymbolWithSyntaxReference fieldLeft)
+                                {
+                                    ConstantFieldsInProgress.RemoveIfLastDependency(fieldLeft);
+                                }
+
                                 // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
                                 boundValue = BindToNaturalType(boundValue, valueDiagnostics);
                                 return new BoundTypeOrValueExpression(left,
