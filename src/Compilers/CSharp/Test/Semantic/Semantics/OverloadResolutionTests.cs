@@ -10586,9 +10586,9 @@ class Program
         Console.WriteLine(a + b);
     }
 }").VerifyDiagnostics(
-                // (15,27): error CS0034: Operator '+' is ambiguous on operands of type 'Test' and 'Test'
+                // (15,29): error CS9342: Operator resolution is ambiguous between the following members: 'Test.operator +(in Test, Test)' and 'Test.operator +(Test, in Test)'
                 //         Console.WriteLine(a + b);
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a + b").WithArguments("+", "Test", "Test").WithLocation(15, 27));
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("Test.operator +(in Test, Test)", "Test.operator +(Test, in Test)").WithLocation(15, 29));
         }
 
         [Fact]
@@ -10611,9 +10611,9 @@ class Program
         Console.WriteLine(a + b);
     }
 }").VerifyDiagnostics(
-                // (15,27): error CS0034: Operator '+' is ambiguous on operands of type 'Test' and 'Test'
-                //         Console.WriteLine(a + b);
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a + b").WithArguments("+", "Test", "Test").WithLocation(15, 27));
+            // (15,29): error CS9342: Operator resolution is ambiguous between the following members: 'Test.operator +(Test, in Test)' and 'Test.operator +(in Test, Test)'
+            //         Console.WriteLine(a + b);
+            Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("Test.operator +(Test, in Test)", "Test.operator +(in Test, Test)").WithLocation(15, 29));
         }
 
         [Fact]

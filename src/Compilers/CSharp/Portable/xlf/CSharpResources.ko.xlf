@@ -72,6 +72,11 @@
         <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigOperator">
+        <source>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">Operator resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
         <target state="translated">'{0}' 식별자는 이 컨텍스트에서 '{1}' 형식과 '{2}' 매개 변수 사이에 모호합니다.</target>
@@ -2385,6 +2390,16 @@
       <trans-unit id="ERR_SimpleProgramNotAnExecutable">
         <source>Program using top-level statements must be an executable.</source>
         <target state="translated">최상위 문을 사용하는 프로그램은 실행 파일이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableBinaryOperator">
+        <source>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</source>
+        <target state="new">Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableUnaryOperator">
+        <source>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</source>
+        <target state="new">Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">

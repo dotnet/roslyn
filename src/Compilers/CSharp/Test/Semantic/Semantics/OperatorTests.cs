@@ -1335,21 +1335,21 @@ class Test
 ";
             string expectedOperationTree = @"
 IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'new C() + new B()')
-  Left: 
-    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C()')
+  Left:
+    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
       Arguments(0)
-      Initializer: 
+      Initializer:
         null
-  Right: 
-    IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B, IsInvalid) (Syntax: 'new B()')
+  Right:
+    IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B) (Syntax: 'new B()')
       Arguments(0)
-      Initializer: 
+      Initializer:
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0034: Operator '+' is ambiguous on operands of type 'C' and 'B'
+                // (16,33): error CS9342: Operator resolution is ambiguous between the following members: 'C.operator +(C, B)' and 'B.operator +(C, B)'
                 //         B b = /*<bind>*/new C() + new B()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new B()").WithArguments("+", "C", "B").WithLocation(16, 25)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C.operator +(C, B)", "B.operator +(C, B)").WithLocation(16, 33)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1541,15 +1541,15 @@ class X
 ";
             string expectedOperationTree = @"
 IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'x + y')
-  Left: 
-    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: D<System.Object>.C, IsInvalid) (Syntax: 'x')
-  Right: 
-    ILocalReferenceOperation: y (OperationKind.LocalReference, Type: D<dynamic>.C, IsInvalid) (Syntax: 'y')
+  Left:
+    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: D<System.Object>.C) (Syntax: 'x')
+  Right:
+    ILocalReferenceOperation: y (OperationKind.LocalReference, Type: D<dynamic>.C) (Syntax: 'y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0034: Operator '+' is ambiguous on operands of type 'D<object>.C' and 'D<dynamic>.C'
+                // (16,29): error CS9342: Operator resolution is ambiguous between the following members: 'D<object>.C.operator +(D<object>.C, D<object>.C)' and 'D<dynamic>.C.operator +(D<dynamic>.C, D<dynamic>.C)'
                 //         var z = /*<bind>*/x + y/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + y").WithArguments("+", "D<object>.C", "D<dynamic>.C").WithLocation(16, 27)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("D<object>.C.operator +(D<object>.C, D<object>.C)", "D<dynamic>.C.operator +(D<dynamic>.C, D<dynamic>.C)").WithLocation(16, 29)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -6163,9 +6163,9 @@ struct S
 ";
             CompileAndVerify(source1, expectedOutput: "1");
             CreateCompilation(source2).VerifyDiagnostics(
-// (16,9): error CS0034: Operator '==' is ambiguous on operands of type 'S?' and '<null>'
-//     if (s == null) s = default(S);
-Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "s == null").WithArguments("==", "S?", "<null>"));
+                // (16,11): error CS9342: Operator resolution is ambiguous between the following members: 'S.operator ==(S?, decimal?)' and 'S.operator ==(S?, double?)'
+                //     if (s == null) s = default(S);
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "==").WithArguments("S.operator ==(S?, decimal?)", "S.operator ==(S?, double?)").WithLocation(16, 11));
         }
 
         [WorkItem(543432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543432")]
