@@ -2577,11 +2577,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 break;
 
                             case SyntaxKind.DelegateKeyword:
-                                switch (this.PeekToken(1).Kind)
+                                // Check if this is an anonymous delegate expression or a delegate type declaration.
+                                // Anonymous delegate: delegate { } or delegate (params) { }
+                                // Delegate declaration: delegate Type Name(params);
+                                if (IsAnonymousDelegateExpression())
                                 {
-                                    case SyntaxKind.OpenParenToken:
-                                    case SyntaxKind.OpenBraceToken:
-                                        return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
+                                    return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
                                 }
                                 break;
 
@@ -8642,6 +8643,62 @@ done:
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Determines if the current 'delegate' keyword starts an anonymous delegate expression
+        /// rather than a delegate type declaration.
+        /// </summary>
+        /// <returns>
+        /// true if this is an anonymous delegate expression (e.g., delegate { } or delegate (params) { }),
+        /// false if this is likely a delegate type declaration (e.g., delegate Type Name(params);)
+        /// </returns>
+        private bool IsAnonymousDelegateExpression()
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.DelegateKeyword);
+
+            var nextToken = this.PeekToken(1);
+
+            // delegate { } is definitely an anonymous delegate
+            if (nextToken.Kind == SyntaxKind.OpenBraceToken)
+            {
+                return true;
+            }
+
+            // If not followed by '(', it's a delegate type declaration
+            if (nextToken.Kind != SyntaxKind.OpenParenToken)
+            {
+                return false;
+            }
+
+            // Now we have 'delegate (' - need to distinguish:
+            // - Anonymous delegate: delegate (params) { }
+            // - Delegate declaration: delegate (TupleType) Name(params);
+            //
+            // Try to parse what's in the parentheses as a tuple type, and check if
+            // it's followed by an identifier (which would indicate a delegate declaration).
+
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            // Skip 'delegate'
+            this.EatToken();
+
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenParenToken);
+            // Skip '('
+            this.EatToken();
+
+            // Try to scan as a tuple type
+            var scanResult = this.ScanTupleType(out _);
+
+            // If it successfully scanned as a tuple type and is followed by an identifier,
+            // it's a delegate type declaration with a tuple return type.
+            if (scanResult == ScanTypeFlags.TupleType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+            {
+                return false;
+            }
+
+            // Otherwise, assume it's an anonymous delegate expression.
+            return true;
         }
 
         private bool IsPossibleNewExpression()
