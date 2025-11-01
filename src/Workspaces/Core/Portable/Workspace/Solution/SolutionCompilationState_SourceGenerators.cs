@@ -60,6 +60,15 @@ internal sealed partial class SolutionCompilationState
         return map is null ? [] : map.SourceGenerators;
     }
 
+    private static GeneratorDriver UpdateGeneratorDriverToMatchState(GeneratorDriver driver, ProjectState projectState)
+    {
+        return driver
+            .ReplaceAdditionalTexts(projectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText))
+            .WithUpdatedParseOptions(projectState.ParseOptions!)
+            .WithUpdatedAnalyzerConfigOptions(projectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider)
+            .ReplaceGenerators(GetSourceGenerators(projectState));
+    }
+
     /// <summary>
     /// This method should only be called in a .net core host like our out of process server.
     /// </summary>

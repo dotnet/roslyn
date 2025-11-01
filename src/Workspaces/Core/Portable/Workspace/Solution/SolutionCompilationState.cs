@@ -1524,6 +1524,8 @@ internal sealed partial class SolutionCompilationState
                 if (newTracker != existingTracker)
                     newIdToTrackerMapBuilder[projectId] = newTracker;
             }
+
+            GeneratorDriverCreationCache.Instance.EmptyCacheForProject(projectId);
         }
 
         if (!changed)
@@ -1903,6 +1905,11 @@ internal sealed partial class SolutionCompilationState
             return this;
 
         return this.WithDocumentTexts(changedDocuments.ToImmutableAndClear(), mode);
+    }
+
+    internal void ClearGeneratorDriverCaches()
+    {
+        GeneratorDriverCreationCache.Instance.EmptyCacheForSolution(this);
     }
 
     internal TestAccessor GetTestAccessor()
