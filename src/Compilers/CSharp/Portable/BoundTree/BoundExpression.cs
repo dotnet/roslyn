@@ -672,23 +672,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     //       A BoundTypeOrValueExpression should never have errors if it is present in the tree.
     internal readonly struct BoundTypeOrValueData : System.IEquatable<BoundTypeOrValueData>
     {
+        public Binder Binder { get; }
         public Symbol ValueSymbol { get; }
-        public BoundExpression ValueExpression { get; }
-        public ReadOnlyBindingDiagnostic<AssemblySymbol> ValueDiagnostics { get; }
-        public BoundExpression TypeExpression { get; }
-        public ReadOnlyBindingDiagnostic<AssemblySymbol> TypeDiagnostics { get; }
 
-        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, ReadOnlyBindingDiagnostic<AssemblySymbol> valueDiagnostics, BoundExpression typeExpression, ReadOnlyBindingDiagnostic<AssemblySymbol> typeDiagnostics)
+        public BoundTypeOrValueData(Binder binder, Symbol valueSymbol)
         {
+            Debug.Assert(binder != null, "Field 'binder' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(valueSymbol != null, "Field 'valueSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(valueExpression != null, "Field 'valueExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(typeExpression != null, "Field 'typeExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.Binder = binder;
             this.ValueSymbol = valueSymbol;
-            this.ValueExpression = valueExpression;
-            this.ValueDiagnostics = valueDiagnostics;
-            this.TypeExpression = typeExpression;
-            this.TypeDiagnostics = typeDiagnostics;
         }
 
         // operator==, operator!=, GetHashCode, and Equals are needed by the generated bound tree.
@@ -696,10 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool operator ==(BoundTypeOrValueData a, BoundTypeOrValueData b)
         {
             return (object)a.ValueSymbol == (object)b.ValueSymbol &&
-                (object)a.ValueExpression == (object)b.ValueExpression &&
-                a.ValueDiagnostics == b.ValueDiagnostics &&
-                (object)a.TypeExpression == (object)b.TypeExpression &&
-                a.TypeDiagnostics == b.TypeDiagnostics;
+                (object)a.Binder == (object)b.Binder;
         }
 
         public static bool operator !=(BoundTypeOrValueData a, BoundTypeOrValueData b)
@@ -714,10 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override int GetHashCode()
         {
-            return Hash.Combine(ValueSymbol.GetHashCode(),
-                Hash.Combine(ValueExpression.GetHashCode(),
-                Hash.Combine(ValueDiagnostics.GetHashCode(),
-                Hash.Combine(TypeExpression.GetHashCode(), TypeDiagnostics.GetHashCode()))));
+            return Hash.Combine(ValueSymbol.GetHashCode(), Binder.GetHashCode());
         }
 
         bool System.IEquatable<BoundTypeOrValueData>.Equals(BoundTypeOrValueData b)
