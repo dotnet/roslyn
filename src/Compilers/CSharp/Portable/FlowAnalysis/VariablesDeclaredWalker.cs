@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -45,12 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void Free()
         {
             base.Free();
-            _variablesDeclared = null;
+            _variablesDeclared = null!;
         }
 
         public override void VisitPattern(BoundPattern pattern)
         {
-            base.VisitPattern(pattern);
+            // TODO2: We don't want to be split before visiting expressions within 'pattern'. But do we need to Split afterwards?
             NoteDeclaredPatternVariables(pattern);
         }
 
@@ -69,37 +68,110 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void NoteDeclaredPatternVariables(BoundPattern pattern)
         {
-            if (IsInside)
+            visitPattern(pattern);
+
+            void visitPattern(BoundPattern pattern)
             {
                 switch (pattern)
                 {
-                    case BoundRecursivePattern r:
-                        foreach (var subpattern in r.Deconstruction.NullToEmpty())
-                        {
-                            NoteDeclaredPatternVariables(subpattern.Pattern);
-                        }
+                    case BoundDeclarationPattern declarationPattern:
+                        noteOneVariable(declarationPattern.Variable);
+                        break;
 
-                        foreach (var subpattern in r.Properties.NullToEmpty())
-                        {
-                            NoteDeclaredPatternVariables(subpattern.Pattern);
-                        }
+                    case BoundRecursivePattern recursivePattern:
+                        foreach (var subpattern in recursivePattern.Deconstruction.NullToEmpty())
+                            visitPattern(subpattern.Pattern);
+
+                        foreach (var subpattern in recursivePattern.Properties.NullToEmpty())
+                            visitPattern(subpattern.Pattern);
+
+                        noteOneVariable(recursivePattern.Variable);
                         break;
-                    case BoundObjectPattern p:
+
+                    case BoundITuplePattern ituplePattern:
+                        foreach (var subpattern in ituplePattern.Subpatterns)
+                            visitPattern(subpattern.Pattern);
+
+                        break;
+
+                    case BoundListPattern listPattern:
+                        foreach (var elementPattern in listPattern.Subpatterns)
+                            visitPattern(elementPattern);
+
+                        noteOneVariable(listPattern.Variable);
+                        break;
+
+                    case BoundConstantPattern constantPattern:
+                        // It is possible for the region to be the expression within a pattern.
+                        Visit(constantPattern.Value);
+                        break;
+
+                    case BoundRelationalPattern relationalPattern:
+                        // It is possible for the region to be the expression within a pattern.
+                        Visit(relationalPattern.Value);
+                        break;
+
+                    case BoundNegatedPattern negatedPattern:
+                        visitPattern(negatedPattern.Negated);
+                        break;
+
+                    case BoundSlicePattern slicePattern:
+                        if (slicePattern.Pattern != null)
+                            visitPattern(slicePattern.Pattern);
+
+                        break;
+
+                    case BoundDiscardPattern or BoundTypePattern:
+                        // Does not contain variables or expressions. Nothing to visit.
+                        break;
+
+                    case BoundBinaryPattern:
                         {
-                            // The variable may be null if it is a discard designation `_`.
-                            if (p.Variable?.Kind == SymbolKind.Local)
+                            // Allow assigning null to 'binaryPattern'.
+                            var binaryPattern = (BoundBinaryPattern)pattern;
+                            if (binaryPattern.Left is not BoundBinaryPattern)
                             {
-                                // Because this API only returns local symbols and parameters,
-                                // we exclude pattern variables that have become fields in scripts.
-                                _variablesDeclared.Add(p.Variable);
+                                visitPattern(binaryPattern.Left);
+                                visitPattern(binaryPattern.Right);
+                                break;
                             }
+
+                            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+                            var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+                            do
+                            {
+                                stack.Push(binaryPattern);
+                                binaryPattern = binaryPattern.Left as BoundBinaryPattern;
+                            } while (binaryPattern is not null);
+
+                            binaryPattern = stack.Pop();
+                            visitPattern(binaryPattern.Left);
+
+                            do
+                            {
+                                visitPattern(binaryPattern.Right);
+                            } while (stack.TryPop(out binaryPattern));
+
+                            stack.Free();
+                            break;
                         }
-                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
+                }
+            }
+
+            void noteOneVariable(Symbol? symbol)
+            {
+                if (IsInside && symbol?.Kind == SymbolKind.Local)
+                {
+                    // Because this API only returns local symbols and parameters,
+                    // we exclude pattern variables that have become fields in scripts.
+                    _variablesDeclared.Add(symbol);
                 }
             }
         }
 
-        public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
+        public override BoundNode? VisitLocalDeclaration(BoundLocalDeclaration node)
         {
             if (IsInside)
             {
@@ -109,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLocalDeclaration(node);
         }
 
-        public override BoundNode VisitLambda(BoundLambda node)
+        public override BoundNode? VisitLambda(BoundLambda node)
         {
             if (IsInside && !node.WasCompilerGenerated)
             {
@@ -122,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLambda(node);
         }
 
-        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             if (IsInside && !node.WasCompilerGenerated)
             {
@@ -168,11 +240,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitCatchBlock(catchBlock, ref finallyState);
         }
 
-        public override BoundNode VisitQueryClause(BoundQueryClause node)
+        public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
             if (IsInside)
             {
-                if ((object)node.DefinedSymbol != null)
+                if ((object?)node.DefinedSymbol != null)
                 {
                     _variablesDeclared.Add(node.DefinedSymbol);
                 }
@@ -186,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitLocal(node);
         }
 
-        public override BoundNode VisitLocal(BoundLocal node)
+        public override BoundNode? VisitLocal(BoundLocal node)
         {
             if (IsInside && node.DeclarationKind != BoundLocalDeclarationKind.None)
             {
