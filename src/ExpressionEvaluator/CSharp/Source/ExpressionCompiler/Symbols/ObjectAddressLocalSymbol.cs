@@ -44,5 +44,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(TypeSymbol.Equals(call.Type, this.Type, TypeCompareKind.ConsiderEverything2));
             return call;
         }
+
+        public override bool Equals(Symbol other, TypeCompareKind compareKind)
+        {
+            return other is ObjectAddressLocalSymbol otherLocal && ContainingSymbol == otherLocal.ContainingSymbol && _address == otherLocal._address;
+        }
+
+        public override int GetHashCode()
+        {
+            return _address.GetHashCode();
+        }
     }
 }
