@@ -135,6 +135,10 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>d48732057be73512b3bac9c01eeacd59398c16d5</Sha>
     </Dependency>
+    <Dependency Name="Microsoft.DotNet.DarcLib" Version="1.1.0-beta.25503.1">
+      <Uri>https://github.com/dotnet/arcade-services</Uri>
+      <Sha>cc62b9386f210bc9e9498ee2fc55f3005c90db30</Sha>
+    </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.0-preview.25375.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
       <Sha>dd67b33c8b4164fa2c2c1dd13b616aea3948f7da</Sha>
