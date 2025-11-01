@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitPattern(BoundPattern pattern)
         {
-            // TODO2: We don't want to be split before visiting expressions within 'pattern'. But do we need to Split afterwards?
             NoteDeclaredPatternVariables(pattern);
         }
 
@@ -127,7 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundBinaryPattern:
                         {
-                            // Allow assigning null to 'binaryPattern'.
                             var binaryPattern = (BoundBinaryPattern)pattern;
                             if (binaryPattern.Left is not BoundBinaryPattern)
                             {

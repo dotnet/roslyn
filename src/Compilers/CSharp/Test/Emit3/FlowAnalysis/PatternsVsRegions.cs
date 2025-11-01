@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         if (doLogic)
                         {
-                            if (/*<bind>*/M() is (var outer, (true, var errorMessage))/*</bind>*/)
+                            if (/*<bind>*/M() is (var outer, (true, var errorMessage) tuple)/*</bind>*/)
                             {
                                 Console.Error.WriteLine(errorMessage);
                             }
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 """);
             VerifyDataFlowAnalysis("""
-                VariablesDeclared: outer, errorMessage
+                VariablesDeclared: outer, errorMessage, tuple
                 AlwaysAssigned: 
                 Captured: 
                 CapturedInside: 
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DefinitelyAssignedOnExit: doLogic
                 ReadInside: 
                 ReadOutside: doLogic, errorMessage
-                WrittenInside: outer, errorMessage
+                WrittenInside: outer, errorMessage, tuple
                 WrittenOutside: doLogic
                 """, dataFlowAnalysisResults);
         }
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         if (doLogic)
                         {
-                            if (/*<bind>*/M() is { result: var outer, Item2: { errorMessage: var errorMessage } })/*</bind>*/)
+                            if (/*<bind>*/M() is { result: var outer, Item2: { errorMessage: var errorMessage } tuple })/*</bind>*/)
                             {
                                 Console.Error.WriteLine(errorMessage);
                             }
@@ -326,18 +326,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 """);
             VerifyDataFlowAnalysis("""
-                VariablesDeclared: outer, errorMessage
-                AlwaysAssigned: outer, errorMessage
+                VariablesDeclared: outer, errorMessage, tuple
+                AlwaysAssigned: outer, errorMessage, tuple
                 Captured: 
                 CapturedInside: 
                 CapturedOutside: 
                 DataFlowsIn: 
                 DataFlowsOut: errorMessage
                 DefinitelyAssignedOnEntry: doLogic
-                DefinitelyAssignedOnExit: doLogic, outer, errorMessage
+                DefinitelyAssignedOnExit: doLogic, outer, errorMessage, tuple
                 ReadInside: 
                 ReadOutside: doLogic, errorMessage
-                WrittenInside: outer, errorMessage
+                WrittenInside: outer, errorMessage, tuple
                 WrittenOutside: doLogic
                 """, dataFlowAnalysisResults);
         }
@@ -426,6 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 dataFlow);
         }
 
+
         [Fact]
         public void RegionWithinSubpattern03()
         {
@@ -464,6 +465,240 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 dataFlow);
         }
 
-        // TODO2: more tests for different pattern kinds
+        [Fact]
+        public void RegionITuplePattern()
+        {
+            var source = """
+                class Program
+                {
+                    static bool M(object obj)
+                    {
+                        return obj is (object x, string y, int z);
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            compilation.VerifyEmitDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+            Assert.Equal("obj is (object x, string y, int z)", node.ToString());
+            VerifyDataFlowAnalysis("""
+                VariablesDeclared: x, y, z
+                AlwaysAssigned: 
+                Captured: 
+                CapturedInside: 
+                CapturedOutside: 
+                DataFlowsIn: obj
+                DataFlowsOut: 
+                DefinitelyAssignedOnEntry: obj
+                DefinitelyAssignedOnExit: obj
+                ReadInside: obj
+                ReadOutside: 
+                WrittenInside: x, y, z
+                WrittenOutside: obj
+                """,
+                model.AnalyzeDataFlow(node));
+        }
+
+        [Fact]
+        public void RegionListPattern()
+        {
+            var source = """
+                class Program
+                {
+                    static bool M(object[] arr)
+                    {
+                        return arr is [object x, string y, int z] arr1;
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            compilation.VerifyEmitDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+            Assert.Equal("arr is [object x, string y, int z] arr1", node.ToString());
+            VerifyDataFlowAnalysis("""
+                VariablesDeclared: x, y, z, arr1
+                AlwaysAssigned: 
+                Captured: 
+                CapturedInside: 
+                CapturedOutside: 
+                DataFlowsIn: arr
+                DataFlowsOut: 
+                DefinitelyAssignedOnEntry: arr
+                DefinitelyAssignedOnExit: arr
+                ReadInside: arr
+                ReadOutside: 
+                WrittenInside: x, y, z, arr1
+                WrittenOutside: arr
+                """,
+                model.AnalyzeDataFlow(node));
+        }
+
+        [Fact]
+        public void RegionSlicePattern()
+        {
+            var source = """
+                class Program
+                {
+                    static bool M(object[] arr)
+                    {
+                        return arr is [object x, ..object[] y];
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            compilation.VerifyEmitDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+            Assert.Equal("arr is [object x, ..object[] y]", node.ToString());
+            VerifyDataFlowAnalysis("""
+                VariablesDeclared: x, y
+                AlwaysAssigned: 
+                Captured: 
+                CapturedInside: 
+                CapturedOutside: 
+                DataFlowsIn: arr
+                DataFlowsOut: 
+                DefinitelyAssignedOnEntry: arr
+                DefinitelyAssignedOnExit: arr
+                ReadInside: arr
+                ReadOutside: 
+                WrittenInside: x, y
+                WrittenOutside: arr
+                """,
+                model.AnalyzeDataFlow(node));
+        }
+
+        [Fact]
+        public void RegionNotPattern()
+        {
+            var source = """
+                class Program
+                {
+                    static void M(object obj)
+                    {
+                        if (obj is not string s)
+                        {
+                        }
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            compilation.VerifyEmitDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+            Assert.Equal("obj is not string s", node.ToString());
+            VerifyDataFlowAnalysis("""
+                VariablesDeclared: s
+                AlwaysAssigned: 
+                Captured: 
+                CapturedInside: 
+                CapturedOutside: 
+                DataFlowsIn: obj
+                DataFlowsOut: 
+                DefinitelyAssignedOnEntry: obj
+                DefinitelyAssignedOnExit: obj
+                ReadInside: obj
+                ReadOutside: 
+                WrittenInside: s
+                WrittenOutside: obj
+                """,
+                model.AnalyzeDataFlow(node));
+        }
+
+        [Fact]
+        public void RegionOrPattern()
+        {
+            var source = """
+                class Program
+                {
+                    static void M(object obj)
+                    {
+                        if (obj is string s or int i)
+                        {
+                        }
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            compilation.VerifyEmitDiagnostics(
+                // (5,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (obj is string s or int i)
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "s").WithLocation(5, 27),
+                // (5,36): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (obj is string s or int i)
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i").WithLocation(5, 36));
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+            Assert.Equal("obj is string s or int i", node.ToString());
+            VerifyDataFlowAnalysis("""
+                VariablesDeclared: s, i
+                AlwaysAssigned: 
+                Captured: 
+                CapturedInside: 
+                CapturedOutside: 
+                DataFlowsIn: obj
+                DataFlowsOut: 
+                DefinitelyAssignedOnEntry: obj
+                DefinitelyAssignedOnExit: obj
+                ReadInside: obj
+                ReadOutside: 
+                WrittenInside: 
+                WrittenOutside: obj
+                """,
+                model.AnalyzeDataFlow(node));
+        }
+
+        [Fact]
+        public void RegionSplitState()
+        {
+            // TODO2: come up with a scenario where lack of Split in VisitPattern breaks something
+            var source = """
+                class Program
+                {
+                    static void M(object obj)
+                    {
+                        if (obj is var s)
+                        {
+                            throw null!;
+                        }
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            compilation.VerifyEmitDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+            Assert.Equal("obj is var s", node.ToString());
+            VerifyDataFlowAnalysis("""
+                VariablesDeclared: s
+                AlwaysAssigned: s
+                Captured: 
+                CapturedInside: 
+                CapturedOutside: 
+                DataFlowsIn: obj
+                DataFlowsOut: 
+                DefinitelyAssignedOnEntry: obj
+                DefinitelyAssignedOnExit: obj, s
+                ReadInside: obj
+                ReadOutside: 
+                WrittenInside: s
+                WrittenOutside: obj
+                """,
+                model.AnalyzeDataFlow(node));
+        }
     }
 }
