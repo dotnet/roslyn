@@ -2273,7 +2273,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod, lambdaOrMethod.TryGetThisParameter(out var thisParameter) ? thisParameter : null))
+            var thisParameter = lambdaOrMethod.TryGetThisParameter(out var thisParam) ? thisParam : null;
+
+            // Check for ref-safety violations when converting methods to delegates across old/new rule boundaries.
+            // When the delegate uses new rules but the target method uses old rules (or vice versa), the delegate
+            // invocation could bypass ref-safety checks that would otherwise prevent escaping references.
+            if (delegateMethod is not null &&
+                delegateMethod.UseUpdatedEscapeRules != lambdaOrMethod.UseUpdatedEscapeRules &&
+                // Only check methods that could cause ref-safety violations: those that return ref structs,
+                // have ref/out parameters of ref struct type, or similar complex signatures.
+                SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod, thisParameter))
+            {
+                diagnostics.Add(ErrorCode.ERR_RefSafetyInDelegateConversion, syntax.Location,
+                    lambdaOrMethod.Name,
+                    targetType);
+            }
+
+            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod, thisParameter))
             {
                 SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
                     delegateMethod,
