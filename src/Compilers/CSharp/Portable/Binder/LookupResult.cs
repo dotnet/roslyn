@@ -280,35 +280,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (Kind > result.Kind)
             {
-                // existing result is better
+                // Existing result is strictly better.  Ignore what is incoming.  
+                return;
             }
-            else if (result.Kind > Kind)
+
+            if (result.Kind > Kind)
             {
+                // Incoming result is better.  Let it win completely over anything we've built up so far.
                 this.SetFrom(result);
+                return;
             }
-            else if (Kind == LookupResultKind.WrongArity && result.Kind == LookupResultKind.WrongArity)
+
+            if (Kind == LookupResultKind.WrongArity && result.Kind == LookupResultKind.WrongArity)
             {
-                // When both results are WrongArity, prefer reporting errors about generic types
-                // over non-generic types to provide more helpful error messages
+                if (isNonGenericVersusGeneric(result.Symbol, this.SingleSymbolOrDefault))
+                {
+                    // Current result is generic, and incoming is not.  We just want stick with what we currently have
+                    // as the better symbol to be referring to when generics are provided, but arity is wrong.
+                    return;
+                }
+
                 if (isNonGenericVersusGeneric(this.SingleSymbolOrDefault, result.Symbol))
                 {
+                    // Current result is non generic, but incoming is generic.  It's strictly the better symbol to be
+                    // referring to when generics are provided, but arity is wrong.
                     this.SetFrom(result);
+                    return;
                 }
-                else if (!isNonGenericVersusGeneric(result.Symbol, this.SingleSymbolOrDefault))
-                {
-                    // Neither is preferred, add both symbols
-                    if ((object)result.Symbol != null)
-                    {
-                        _symbolList.Add(result.Symbol);
-                    }
-                }
-                // else: existing result is preferred (generic over non-generic), keep it
+
+                // Neither is preferred, fall through and include all symbols.
             }
-            else if ((object)result.Symbol != null)
-            {
-                // Same goodness. Include all symbols
-                _symbolList.Add(result.Symbol);
-            }
+
+            // Same goodness. Include all symbols
+            _symbolList.AddIfNotNull(result.Symbol);
 
             static bool isNonGenericVersusGeneric(Symbol firstSymbol, Symbol secondSymbol)
                 => firstSymbol.GetArity() == 0 && secondSymbol.GetArity() > 0;
