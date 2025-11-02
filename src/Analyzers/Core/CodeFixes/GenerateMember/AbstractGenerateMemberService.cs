@@ -183,18 +183,15 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
     {
         // Check if this expression is the operand of an address-of operator
         // that's being used to create a function pointer
-        if (expression.Parent != null)
-        {
-            var syntaxKinds = semanticDocument.Document.GetLanguageService<ISyntaxKindsService>();
-            if (syntaxKinds != null && expression.Parent.RawKind == syntaxKinds.AddressOfExpression)
-            {
-                var addressOfExpression = expression.Parent;
-                var typeInfo = semanticModel.GetTypeInfo(addressOfExpression, cancellationToken);
-                return typeInfo.Type is IFunctionPointerTypeSymbol;
-            }
-        }
+        if (expression.Parent == null)
+            return false;
 
-        return false;
+        var syntaxKinds = semanticDocument.Document.GetLanguageService<ISyntaxKindsService>();
+        if (syntaxKinds == null || expression.Parent.RawKind != syntaxKinds.AddressOfExpression)
+            return false;
+
+        var typeInfo = semanticModel.GetTypeInfo(expression.Parent, cancellationToken);
+        return typeInfo.Type is IFunctionPointerTypeSymbol;
     }
 
     private static void DetermineTypeToGenerateInWorker(
