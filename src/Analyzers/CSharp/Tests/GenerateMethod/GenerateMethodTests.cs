@@ -10185,7 +10185,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80984")]
     public Task InferMethodFromAddressOfInNonStaticContext()
         => TestInRegularAndScriptAsync(
             """
@@ -10207,6 +10207,37 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 private void M()
                 {
                     delegate* managed<void> x = &M2;
+                }
+
+                private static void M2()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80984")]
+    public Task InferMethodFromAddressOfInNonStaticContextWithQualifiedName()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            unsafe class C
+            {
+                private void M()
+                {
+                    delegate* managed<void> x = &C.[|M2|];
+                }
+            }
+            """,
+            """
+            using System;
+
+            unsafe class C
+            {
+                private void M()
+                {
+                    delegate* managed<void> x = &C.M2;
                 }
 
                 private static void M2()
