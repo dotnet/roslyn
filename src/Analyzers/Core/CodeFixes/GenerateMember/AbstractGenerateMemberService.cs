@@ -168,19 +168,11 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
 
             // If the expression is used in an address-of operator,
             // the method must be static.
-            if (!isStatic && IsInAddressOfContext(syntaxFacts, expression))
+            if (!isStatic && expression.Parent != null && expression.Parent.RawKind == syntaxFacts.SyntaxKinds.AddressOfExpression)
             {
                 isStatic = true;
             }
         }
-    }
-
-    private static bool IsInAddressOfContext(
-        ISyntaxFactsService syntaxFacts,
-        SyntaxNode expression)
-    {
-        // If we're generating a method for an address-of operation, it must always be static
-        return expression.Parent != null && expression.Parent.RawKind == syntaxFacts.SyntaxKinds.AddressOfExpression;
     }
 
     private static void DetermineTypeToGenerateInWorker(
