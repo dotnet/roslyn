@@ -168,7 +168,7 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
 
             // If the expression is used in an address-of operator for a function pointer,
             // the method must be static (CS8759).
-            if (!isStatic && IsInFunctionPointerAddressOfContext(expression, semanticModel, cancellationToken))
+            if (!isStatic && IsInFunctionPointerAddressOfContext(semanticDocument, expression, semanticModel, cancellationToken))
             {
                 isStatic = true;
             }
@@ -176,17 +176,22 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
     }
 
     private static bool IsInFunctionPointerAddressOfContext(
+        SemanticDocument semanticDocument,
         SyntaxNode expression,
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
         // Check if this expression is the operand of an address-of operator
         // that's being used to create a function pointer
-        if (expression.Parent is { RawKind: 8737 }) // SyntaxKind.AddressOfExpression
+        if (expression.Parent != null)
         {
-            var addressOfExpression = expression.Parent;
-            var typeInfo = semanticModel.GetTypeInfo(addressOfExpression, cancellationToken);
-            return typeInfo.Type is IFunctionPointerTypeSymbol;
+            var syntaxKinds = semanticDocument.Document.GetLanguageService<ISyntaxKindsService>();
+            if (syntaxKinds != null && expression.Parent.RawKind == syntaxKinds.AddressOfExpression)
+            {
+                var addressOfExpression = expression.Parent;
+                var typeInfo = semanticModel.GetTypeInfo(addressOfExpression, cancellationToken);
+                return typeInfo.Type is IFunctionPointerTypeSymbol;
+            }
         }
 
         return false;
