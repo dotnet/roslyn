@@ -8533,7 +8533,9 @@ namespace ConsoleApp1
             """
             unsafe class C
             {
-                public void* D
+                class Customer { }
+
+                public Customer* D
                 {
                     get
                     {
@@ -8545,12 +8547,14 @@ namespace ConsoleApp1
             """
             unsafe class C
             {
-                public void* D
+                class Customer { }
+
+                public Customer* D
                 {
                     get
                     {
-                        void* {|Rename:value|} = field;
-                        return value;
+                        Customer* {|Rename:customer|} = field;
+                        return customer;
                     }
                 }
             }
