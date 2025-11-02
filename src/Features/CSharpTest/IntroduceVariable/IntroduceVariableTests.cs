@@ -8526,4 +8526,33 @@ namespace ConsoleApp1
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76851")]
+    public Task TestPointerType()
+        => TestInRegularAndScriptAsync(
+            """
+            unsafe class C
+            {
+                public void* D
+                {
+                    get
+                    {
+                        return [|field|];
+                    }
+                }
+            }
+            """,
+            """
+            unsafe class C
+            {
+                public void* D
+                {
+                    get
+                    {
+                        void* {|Rename:value|} = field;
+                        return value;
+                    }
+                }
+            }
+            """);
 }
