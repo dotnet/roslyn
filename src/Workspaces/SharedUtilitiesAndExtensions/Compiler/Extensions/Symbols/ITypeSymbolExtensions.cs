@@ -343,6 +343,10 @@ internal static partial class ITypeSymbolExtensions
                 case IPointerTypeSymbol pointerType:
                     type = pointerType.PointedAtType;
                     continue;
+                case IFunctionPointerTypeSymbol:
+                    // Function pointer types like "delegate*<void>" don't have meaningful names,
+                    // so use the default parameter name
+                    return capitalize ? DefaultParameterName.ToPascalCase() : DefaultParameterName;
             }
 
             break;
