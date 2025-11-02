@@ -10643,7 +10643,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
             """,
             index: 1);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80979")]
     public Task TestGenerateMethodWithTupleVerbatimIdentifiers()
         => TestInRegularAndScriptAsync(
             """
