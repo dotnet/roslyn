@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitCatchBlock(BoundCatchBlock catchBlock)
+        public override BoundNode? VisitCatchBlock(BoundCatchBlock catchBlock)
         {
             if (IsInside)
             {
