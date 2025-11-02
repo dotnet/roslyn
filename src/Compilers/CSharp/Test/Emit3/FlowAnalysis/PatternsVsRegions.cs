@@ -426,7 +426,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 dataFlow);
         }
 
-
         [Fact]
         public void RegionWithinSubpattern03()
         {
