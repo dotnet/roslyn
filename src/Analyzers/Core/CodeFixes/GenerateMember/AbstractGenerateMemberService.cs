@@ -165,7 +165,31 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
             // Generating into the containing type.
             typeToGenerateIn = containingType;
             isStatic = syntaxFacts.IsInStaticContext(expression);
+
+            // If the expression is used in an address-of operator for a function pointer,
+            // the method must be static (CS8759).
+            if (!isStatic && IsInFunctionPointerAddressOfContext(expression, semanticModel, cancellationToken))
+            {
+                isStatic = true;
+            }
         }
+    }
+
+    private static bool IsInFunctionPointerAddressOfContext(
+        SyntaxNode expression,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
+    {
+        // Check if this expression is the operand of an address-of operator
+        // that's being used to create a function pointer
+        if (expression.Parent is { RawKind: 8737 }) // SyntaxKind.AddressOfExpression
+        {
+            var addressOfExpression = expression.Parent;
+            var typeInfo = semanticModel.GetTypeInfo(addressOfExpression, cancellationToken);
+            return typeInfo.Type is IFunctionPointerTypeSymbol;
+        }
+
+        return false;
     }
 
     private static void DetermineTypeToGenerateInWorker(
