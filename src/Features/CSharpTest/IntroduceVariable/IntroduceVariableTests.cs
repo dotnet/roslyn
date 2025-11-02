@@ -8498,7 +8498,7 @@ namespace ConsoleApp1
             """,
             new(parseOptions: TestOptions.Regular));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76851")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80982")]
     public Task TestFunctionPointerType()
         => TestInRegularAndScriptAsync(
             """
@@ -8527,7 +8527,7 @@ namespace ConsoleApp1
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76851")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80982")]
     public Task TestPointerType()
         => TestInRegularAndScriptAsync(
             """
