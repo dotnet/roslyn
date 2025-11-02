@@ -68,95 +68,90 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void NoteDeclaredPatternVariables(BoundPattern pattern)
         {
-            visitPattern(pattern);
-
-            void visitPattern(BoundPattern pattern)
+            switch (pattern)
             {
-                switch (pattern)
-                {
-                    case BoundDeclarationPattern declarationPattern:
-                        noteOneVariable(declarationPattern.Variable);
-                        break;
+                case BoundDeclarationPattern declarationPattern:
+                    noteOneVariable(declarationPattern.Variable);
+                    break;
 
-                    case BoundRecursivePattern recursivePattern:
-                        foreach (var subpattern in recursivePattern.Deconstruction.NullToEmpty())
-                            visitPattern(subpattern.Pattern);
+                case BoundRecursivePattern recursivePattern:
+                    foreach (var subpattern in recursivePattern.Deconstruction.NullToEmpty())
+                        NoteDeclaredPatternVariables(subpattern.Pattern);
 
-                        foreach (var subpattern in recursivePattern.Properties.NullToEmpty())
-                            visitPattern(subpattern.Pattern);
+                    foreach (var subpattern in recursivePattern.Properties.NullToEmpty())
+                        NoteDeclaredPatternVariables(subpattern.Pattern);
 
-                        noteOneVariable(recursivePattern.Variable);
-                        break;
+                    noteOneVariable(recursivePattern.Variable);
+                    break;
 
-                    case BoundITuplePattern ituplePattern:
-                        foreach (var subpattern in ituplePattern.Subpatterns)
-                            visitPattern(subpattern.Pattern);
+                case BoundITuplePattern ituplePattern:
+                    foreach (var subpattern in ituplePattern.Subpatterns)
+                        NoteDeclaredPatternVariables(subpattern.Pattern);
 
-                        break;
+                    break;
 
-                    case BoundListPattern listPattern:
-                        foreach (var elementPattern in listPattern.Subpatterns)
-                            visitPattern(elementPattern);
+                case BoundListPattern listPattern:
+                    foreach (var elementPattern in listPattern.Subpatterns)
+                        NoteDeclaredPatternVariables(elementPattern);
 
-                        noteOneVariable(listPattern.Variable);
-                        break;
+                    noteOneVariable(listPattern.Variable);
+                    break;
 
-                    case BoundConstantPattern constantPattern:
-                        // It is possible for the region to be the expression within a pattern.
-                        VisitRvalue(constantPattern.Value);
-                        break;
+                case BoundConstantPattern constantPattern:
+                    // It is possible for the region to be the expression within a pattern.
+                    VisitRvalue(constantPattern.Value);
+                    break;
 
-                    case BoundRelationalPattern relationalPattern:
-                        // It is possible for the region to be the expression within a pattern.
-                        VisitRvalue(relationalPattern.Value);
-                        break;
+                case BoundRelationalPattern relationalPattern:
+                    // It is possible for the region to be the expression within a pattern.
+                    VisitRvalue(relationalPattern.Value);
+                    break;
 
-                    case BoundNegatedPattern negatedPattern:
-                        visitPattern(negatedPattern.Negated);
-                        break;
+                case BoundNegatedPattern negatedPattern:
+                    NoteDeclaredPatternVariables(negatedPattern.Negated);
+                    break;
 
-                    case BoundSlicePattern slicePattern:
-                        if (slicePattern.Pattern != null)
-                            visitPattern(slicePattern.Pattern);
+                case BoundSlicePattern slicePattern:
+                    if (slicePattern.Pattern != null)
+                        NoteDeclaredPatternVariables(slicePattern.Pattern);
 
-                        break;
+                    break;
 
-                    case BoundDiscardPattern or BoundTypePattern:
-                        // Does not contain variables or expressions. Nothing to visit.
-                        break;
+                case BoundDiscardPattern or BoundTypePattern:
+                    // Does not contain variables or expressions. Nothing to visit.
+                    break;
 
-                    case BoundBinaryPattern:
+                case BoundBinaryPattern:
+                    {
+                        var binaryPattern = (BoundBinaryPattern)pattern;
+                        if (binaryPattern.Left is not BoundBinaryPattern)
                         {
-                            var binaryPattern = (BoundBinaryPattern)pattern;
-                            if (binaryPattern.Left is not BoundBinaryPattern)
-                            {
-                                visitPattern(binaryPattern.Left);
-                                visitPattern(binaryPattern.Right);
-                                break;
-                            }
-
-                            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
-                            var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
-                            do
-                            {
-                                stack.Push(binaryPattern);
-                                binaryPattern = binaryPattern.Left as BoundBinaryPattern;
-                            } while (binaryPattern is not null);
-
-                            binaryPattern = stack.Pop();
-                            visitPattern(binaryPattern.Left);
-
-                            do
-                            {
-                                visitPattern(binaryPattern.Right);
-                            } while (stack.TryPop(out binaryPattern));
-
-                            stack.Free();
+                            NoteDeclaredPatternVariables(binaryPattern.Left);
+                            NoteDeclaredPatternVariables(binaryPattern.Right);
                             break;
                         }
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
-                }
+
+                        // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+                        var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+                        do
+                        {
+                            stack.Push(binaryPattern);
+                            binaryPattern = binaryPattern.Left as BoundBinaryPattern;
+                        } while (binaryPattern is not null);
+
+                        binaryPattern = stack.Pop();
+                        NoteDeclaredPatternVariables(binaryPattern.Left);
+
+                        do
+                        {
+                            NoteDeclaredPatternVariables(binaryPattern.Right);
+                        } while (stack.TryPop(out binaryPattern));
+
+                        stack.Free();
+                        break;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }
 
             void noteOneVariable(Symbol? symbol)
