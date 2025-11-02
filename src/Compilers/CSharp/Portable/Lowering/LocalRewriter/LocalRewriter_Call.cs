@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (interceptor.GetIsNewExtensionMember())
+            if (interceptor.IsExtensionBlockMember())
             {
                 if (interceptor.TryGetCorrespondingExtensionImplementationMethod() is { } implementationMethod)
                 {
@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 RefKind refKind;
 
-                if (methodOrIndexer.GetIsNewExtensionMember())
+                if (methodOrIndexer.IsExtensionBlockMember())
                 {
                     refKind = GetNewExtensionMemberReceiverCaptureRefKind(rewrittenReceiver, methodOrIndexer);
                 }
@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundAssignmentOperator? extraRefInitialization = null;
 
                 if (receiverTemp.LocalSymbol.IsRef &&
-                   (methodOrIndexer.GetIsNewExtensionMember() ?
+                   (methodOrIndexer.IsExtensionBlockMember() ?
                      !receiverTemp.Type.IsValueType :
                      CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp)) &&
                     !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp) &&
@@ -1327,7 +1327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol;
                 }
 
-                if (methodOrIndexer.GetIsNewExtensionMember())
+                if (methodOrIndexer.IsExtensionBlockMember())
                 {
                     Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is not null);
                     return methodOrIndexer.ContainingType.ExtensionParameter.Type as NamedTypeSymbol;

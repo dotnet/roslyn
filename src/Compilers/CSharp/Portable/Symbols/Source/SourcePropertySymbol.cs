@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (SetMethod is { } setter && this.GetIsNewExtensionMember())
+            if (SetMethod is { } setter && this.IsExtensionBlockMember())
             {
                 if (ContainingType.TypeParameters.Any(static tp => tp.Name == ParameterSymbol.ValueParameterName))
                 {
@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (this.GetIsNewExtensionMember() && ContainingType.ExtensionParameter is { } extensionParameter &&
+            if (this.IsExtensionBlockMember() && ContainingType.ExtensionParameter is { } extensionParameter &&
                 !this.IsNoMoreVisibleThan(extensionParameter.Type, ref useSiteInfo))
             {
                 diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, extensionParameter.Type);

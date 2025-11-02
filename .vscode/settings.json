@@ -38,8 +38,12 @@
     "dotnet.testWindow.disableAutoDiscovery": true,
     "dotnet.testWindow.disableBuildOnRefresh": true,
     "cSpell.words": [
+        "darc",
         "Nerdbank",
         "NETCOREAPP",
+        "renderable",
+        "renderables",
+        "sarif",
         "Unregistration",
         "Unregistrations",
         "Xunit"

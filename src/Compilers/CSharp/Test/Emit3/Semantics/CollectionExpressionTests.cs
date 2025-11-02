@@ -43894,7 +43894,10 @@ partial class Program
                 """;
             var comp = CreateCompilation([sourceA, sourceB]);
             comp.VerifyEmitDiagnostics(
-                // (11,36): error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
+                // (7,31): error CS1061: 'MyCollection<int>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<int>' could be found (are you missing a using directive or an assembly reference?)
+                //         MyCollection<int> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<int>", "Add").WithLocation(7, 31),
+                // (11,36): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
                 //     public static void Add<T>(this dynamic d, T t) { d.__AddInternal(t); }
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(11, 36));
         }

@@ -15854,6 +15854,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
+            // (2,3): error CS1061: 'object' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // o.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("object", "M").WithLocation(2, 3),
+            // (3,3): error CS1061: 'object' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // o.M2();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("object", "M2").WithLocation(3, 3),
             // (7,15): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
             //     extension(dynamic d)
             Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(7, 15),

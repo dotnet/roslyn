@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<ParameterSymbol> parameters = ParameterHelpers.MakeParameters(
                 signatureBinder, this, syntax.ParameterList, out _,
                 allowRefOrOut: true,
-                allowThis: !this.GetIsNewExtensionMember(),
+                allowThis: !this.IsExtensionBlockMember(),
                 addRefReadOnlyModifier: IsVirtual || IsAbstract,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
@@ -222,7 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, _location, Name);
                 }
-                else if (parameter0RefKind is RefKind.In or RefKind.RefReadOnlyParameter && parameter0Type.TypeKind != TypeKind.Struct)
+                else if (parameter0RefKind is RefKind.In or RefKind.RefReadOnlyParameter
+                    && !parameter0Type.Type.IsValidInOrRefReadonlyExtensionParameterType())
                 {
                     diagnostics.Add(ErrorCode.ERR_InExtensionMustBeValueType, _location, Name);
                 }

@@ -60,6 +60,7 @@
         </Grid.RowDefinitions>
         <TextBox x:Uid="SearchTextBox"
                  x:Name="SearchTextBox"
+                 AutomationProperties.Name="{Binding ElementName=dialog, Path=PickMembersSearchLabel}"
                  Grid.Row="0" 
                  TextChanged="SearchTextBox_TextChanged"/>
         <GroupBox x:Uid="MemberSelectionGroupBox"

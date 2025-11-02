@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
+        public override BoundNode VisitCatchBlock(BoundCatchBlock catchBlock)
         {
             if (IsInside)
             {
@@ -231,7 +231,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            base.VisitCatchBlock(catchBlock, ref finallyState);
+            base.VisitCatchBlock(catchBlock);
+
+            return null;
         }
 
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
