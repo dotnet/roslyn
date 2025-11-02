@@ -663,7 +663,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RegionSplitState()
         {
-            // TODO2: come up with a scenario where lack of Split in VisitPattern breaks something
             var source = """
                 class Program
                 {
@@ -673,6 +672,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             throw null!;
                         }
+
+                        return;
                     }
                 }
                 """;

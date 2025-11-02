@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitPattern(BoundPattern pattern)
         {
             NoteDeclaredPatternVariables(pattern);
+            base.VisitPattern(pattern);
         }
 
         protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
@@ -102,12 +103,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundConstantPattern constantPattern:
                         // It is possible for the region to be the expression within a pattern.
-                        Visit(constantPattern.Value);
+                        VisitRvalue(constantPattern.Value);
                         break;
 
                     case BoundRelationalPattern relationalPattern:
                         // It is possible for the region to be the expression within a pattern.
-                        Visit(relationalPattern.Value);
+                        VisitRvalue(relationalPattern.Value);
                         break;
 
                     case BoundNegatedPattern negatedPattern:
