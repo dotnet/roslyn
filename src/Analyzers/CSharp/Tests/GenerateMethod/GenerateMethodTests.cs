@@ -10642,4 +10642,33 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
             }
             """,
             index: 1);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80979")]
+    public Task TestGenerateMethodWithTupleVerbatimIdentifiers()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M1()
+                {
+                    (char @char, int @int) x = [|M2|]();
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M1()
+                {
+                    (char @char, int @int) x = M2();
+                }
+
+                private (char @char, int @int) M2()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
 }
