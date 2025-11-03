@@ -20786,6 +20786,7 @@ public class Class
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(6, 27)
             );
 
+            // Validate all members were parsed as properties (not incomplete members)
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
