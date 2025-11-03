@@ -5878,10 +5878,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    MyCustomCollection<int> c =
-                    [
-                        1
-                    ];
+                    MyCustomCollection<int> c = [1];
                 }
             }
             """);
