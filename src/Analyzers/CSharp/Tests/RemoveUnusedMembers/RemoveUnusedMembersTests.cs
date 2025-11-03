@@ -2647,7 +2647,7 @@ public sealed class RemoveUnusedMembersTests
         await VerifyCS.VerifyCodeFixAsync(code, code);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71523")]
     public async Task DebuggerDisplayAttribute_OnType_NameParameter_ReferencesProperty()
     {
         var code = """
@@ -2662,7 +2662,7 @@ public sealed class RemoveUnusedMembersTests
         await VerifyCS.VerifyCodeFixAsync(code, code);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71523")]
     public async Task DebuggerDisplayAttribute_OnType_TypeParameter_ReferencesMethod()
     {
         var code = """
@@ -2677,7 +2677,7 @@ public sealed class RemoveUnusedMembersTests
         await VerifyCS.VerifyCodeFixAsync(code, code);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71523")]
     public async Task DebuggerDisplayAttribute_OnType_AllParameters_ReferencesMembers()
     {
         var code = """
