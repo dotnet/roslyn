@@ -1224,19 +1224,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RequiredModifierProperty_03()
         {
             UsingDeclaration("required Prop { get; }", options: RequiredMembersOptions,
-                // (1,1): error CS1073: Unexpected token '{'
+                // (1,15): error CS1001: Identifier expected
                 // required Prop { get; }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required Prop").WithArguments("{").WithLocation(1, 1),
-                // (1,15): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-                // required Prop { get; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 15)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 15)
                 );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.PropertyDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "Prop");
+                }
+                M(SyntaxKind.IdentifierToken);
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
             }
             EOF();
@@ -1272,17 +1280,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RequiredModifierProperty_05()
         {
             UsingDeclaration("required required { get; }", options: RequiredMembersOptions,
-                // (1,1): error CS1073: Unexpected token '{'
+                // (1,19): error CS1031: Type expected
                 // required required { get; }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required").WithArguments("{").WithLocation(1, 1),
-                // (1,19): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(1, 19),
+                // (1,19): error CS1001: Identifier expected
                 // required required { get; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 19)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 19)
                 );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.PropertyDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.RequiredKeyword);
+                M(SyntaxKind.IdentifierToken);
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
             EOF();
         }
@@ -1291,20 +1310,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RequiredModifierProperty_06()
         {
             UsingDeclaration("required required Prop { get; }", options: RequiredMembersOptions,
-                // (1,1): error CS1073: Unexpected token '{'
+                // (1,24): error CS1001: Identifier expected
                 // required required Prop { get; }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required Prop").WithArguments("{").WithLocation(1, 1),
-                // (1,24): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-                // required required Prop { get; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 24)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 24)
                 );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.PropertyDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "Prop");
+                }
+                M(SyntaxKind.IdentifierToken);
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
             }
             EOF();
