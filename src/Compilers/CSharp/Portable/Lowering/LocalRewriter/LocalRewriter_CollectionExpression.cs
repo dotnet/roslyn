@@ -1246,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression spanTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                     {
                         Debug.Assert(!useConstantIndices, "Should not have spread elements when using constant indices");
-                        Debug.Assert(indexTemp is { });
+                        Debug.Assert(indexTemp is not null);
 
                         if (PrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
                             return false;
