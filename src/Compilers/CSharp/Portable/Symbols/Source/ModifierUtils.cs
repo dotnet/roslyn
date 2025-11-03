@@ -412,17 +412,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxTokenList modifiers,
             DiagnosticBag diagnostics)
         {
-            CheckForDuplicateModifiers(modifiers, diagnostics, out _, out _);
+            GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics);
         }
 
-        private static void CheckForDuplicateModifiers(
+        private static DeclarationModifiers GetDeclarationModifiersAndCheckForDuplicateModifiers(
             SyntaxTokenList modifiers,
-            DiagnosticBag diagnostics,
-            out DeclarationModifiers allModifiers,
-            out SyntaxToken partialToken)
+            DiagnosticBag diagnostics)
         {
-            partialToken = default;
-            allModifiers = DeclarationModifiers.None;
+            var allModifiers = DeclarationModifiers.None;
 
             var seenNoDuplicates = true;
             foreach (var modifierToken in modifiers)
@@ -436,26 +433,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics);
 
                 allModifiers |= thisModifier;
-
-                if (thisModifier == DeclarationModifiers.Partial)
-                    partialToken = modifierToken;
             }
+
+            return allModifiers;
         }
 
         public static DeclarationModifiers ToDeclarationModifiers(
             this SyntaxTokenList modifiers, bool isForTypeDeclaration, DiagnosticBag diagnostics, bool isOrdinaryMethod = false)
         {
-            CheckForDuplicateModifiers(modifiers, diagnostics, out var result, out var partialToken);
-
-            if (partialToken.Kind() != SyntaxKind.None)
+            var result = GetDeclarationModifiersAndCheckForDuplicateModifiers(modifiers, diagnostics);
+            if ((result & DeclarationModifiers.Partial) == DeclarationModifiers.Partial)
             {
+                var i = modifiers.IndexOf(SyntaxKind.PartialKeyword);
+                var partialToken = modifiers[i];
+
                 var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
                 messageId.CheckFeatureAvailability(diagnostics, partialToken);
 
                 // `partial` must always be the last modifier according to the language.  However, there was a bug
                 // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
                 // backcompat.
-                var i = modifiers.IndexOf(SyntaxKind.PartialKeyword);
                 var isLast = i == modifiers.Count - 1;
                 var isPartialAsyncMethod = isOrdinaryMethod && i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
                 if (!isLast && !isPartialAsyncMethod)
