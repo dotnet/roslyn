@@ -10247,7 +10247,7 @@ done:
             }
 
             var mods = _pool.Allocate();
-            this.ParseDeclarationModifiers(mods, isUsingDeclaration: usingKeyword is not null);
+            this.ParseLocalDeclarationStatementModifiers(mods, isUsingDeclaration: usingKeyword is not null);
 
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
@@ -10541,7 +10541,7 @@ done:
             }
         }
 
-        private void ParseDeclarationModifiers(SyntaxListBuilder list, bool isUsingDeclaration)
+        private void ParseLocalDeclarationStatementModifiers(SyntaxListBuilder list, bool isUsingDeclaration)
         {
             SyntaxKind k;
             while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))

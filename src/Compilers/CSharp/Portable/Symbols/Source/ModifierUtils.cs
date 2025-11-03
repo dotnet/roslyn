@@ -408,41 +408,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public static DeclarationModifiers ToDeclarationModifiers(
-            this SyntaxTokenList modifiers, bool isForTypeDeclaration, DiagnosticBag diagnostics, bool isOrdinaryMethod = false)
+        public static void CheckForDuplicateModifiers(
+            SyntaxTokenList modifiers,
+            DiagnosticBag diagnostics)
         {
-            var result = DeclarationModifiers.None;
-            bool seenNoDuplicates = true;
+            CheckForDuplicateModifiers(modifiers, diagnostics, out _, out _);
+        }
 
-            for (int i = 0; i < modifiers.Count; i++)
+        private static void CheckForDuplicateModifiers(
+            SyntaxTokenList modifiers,
+            DiagnosticBag diagnostics,
+            out DeclarationModifiers allModifiers,
+            out SyntaxToken partialToken)
+        {
+            partialToken = default;
+            allModifiers = DeclarationModifiers.None;
+
+            var seenNoDuplicates = true;
+            foreach (var modifierToken in modifiers)
             {
-                SyntaxToken modifier = modifiers[i];
-                DeclarationModifiers one = ToDeclarationModifier(modifier.ContextualKind());
-
+                var thisModifier = ToDeclarationModifier(modifierToken.ContextualKind());
                 ReportDuplicateModifiers(
-                    modifier, one, result,
+                    modifierToken,
+                    thisModifier,
+                    allModifiers,
                     ref seenNoDuplicates,
                     diagnostics);
 
-                if (one == DeclarationModifiers.Partial)
+                allModifiers |= thisModifier;
+
+                if (thisModifier == DeclarationModifiers.Partial)
+                    partialToken = modifierToken;
+            }
+        }
+
+        public static DeclarationModifiers ToDeclarationModifiers(
+            this SyntaxTokenList modifiers, bool isForTypeDeclaration, DiagnosticBag diagnostics, bool isOrdinaryMethod = false)
+        {
+            CheckForDuplicateModifiers(modifiers, diagnostics, out var result, out var partialToken);
+
+            if (partialToken.Kind() != SyntaxKind.None)
+            {
+                var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
+                messageId.CheckFeatureAvailability(diagnostics, partialToken);
+
+                // `partial` must always be the last modifier according to the language.  However, there was a bug
+                // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
+                // backcompat.
+                var i = modifiers.IndexOf(SyntaxKind.PartialKeyword);
+                var isLast = i == modifiers.Count - 1;
+                var isPartialAsyncMethod = isOrdinaryMethod && i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
+                if (!isLast && !isPartialAsyncMethod)
                 {
-                    var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
-                    messageId.CheckFeatureAvailability(diagnostics, modifier);
-
-                    // `partial` must always be the last modifier according to the language.  However, there was a bug
-                    // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
-                    // backcompat.
-                    var isLast = i == modifiers.Count - 1;
-                    var isPartialAsyncMethod = isOrdinaryMethod && i == modifiers.Count - 2 && modifiers[i + 1].ContextualKind() is SyntaxKind.AsyncKeyword;
-                    if (!isLast && !isPartialAsyncMethod)
-                    {
-                        diagnostics.Add(
-                            ErrorCode.ERR_PartialMisplaced,
-                            modifier.GetLocation());
-                    }
+                    diagnostics.Add(
+                        ErrorCode.ERR_PartialMisplaced,
+                        partialToken.GetLocation());
                 }
-
-                result |= one;
             }
 
             switch (result & DeclarationModifiers.AccessibilityMask)
