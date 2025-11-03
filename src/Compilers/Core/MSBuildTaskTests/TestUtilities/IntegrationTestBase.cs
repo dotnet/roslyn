@@ -183,12 +183,12 @@ public abstract class IntegrationTestBase : TestBase
         if (useAppHost)
         {
             Assert.DoesNotContain("csc.dll", result.Output);
-            Assert.Contains($"csc{PlatformInformation.ExeExtension}", result.Output);
+            Assert.Contains($"csc{PlatformInformation.ExeExtension} ", result.Output);
         }
         else
         {
             Assert.Contains("csc.dll", result.Output);
-            Assert.DoesNotContain("csc.exe", result.Output);
+            Assert.DoesNotContain($"csc{PlatformInformation.ExeExtension} ", result.Output);
         }
     }
 
@@ -258,12 +258,12 @@ public abstract class IntegrationTestBase : TestBase
         if (useAppHost)
         {
             Assert.DoesNotContain("vbc.dll", result.Output);
-            Assert.Contains($"vbc{PlatformInformation.ExeExtension}", result.Output);
+            Assert.Contains($"vbc{PlatformInformation.ExeExtension} ", result.Output);
         }
         else
         {
             Assert.Contains("vbc.dll", result.Output);
-            Assert.DoesNotContain("vbc.exe", result.Output);
+            Assert.DoesNotContain($"vbc{PlatformInformation.ExeExtension} ", result.Output);
         }
     }
 
