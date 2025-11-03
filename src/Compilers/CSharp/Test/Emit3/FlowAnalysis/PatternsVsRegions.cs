@@ -191,34 +191,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79489")]
         public void RegionInSwitch01()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression("""
+            var comp = CreateCompilation("""
                 static void PatternMatchingUsage()
                 {
                   var t = (1, 2);
                   // selection start
                   switch (t)
                   {
-                    case /*<bind>*/(var x, 2)/*</bind>*/:
+                    case (var x, 2):
                       Console.WriteLine(x);
                       break;
                   }
                   // selection end
                 }
                 """);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var dataFlowAnalysisResults = model.AnalyzeDataFlow(@switch);
             VerifyDataFlowAnalysis("""
-                VariablesDeclared: 
+                VariablesDeclared: x
                 AlwaysAssigned: 
                 Captured: 
                 CapturedInside: 
                 CapturedOutside: 
-                DataFlowsIn: 
+                DataFlowsIn: t
                 DataFlowsOut: 
-                DefinitelyAssignedOnEntry: t, x, args
-                DefinitelyAssignedOnExit: t, x, args
-                ReadInside: 
-                ReadOutside: t, x
-                WrittenInside: 
-                WrittenOutside: t, x, args
+                DefinitelyAssignedOnEntry: t, args
+                DefinitelyAssignedOnExit: t, args
+                ReadInside: t, x
+                ReadOutside: 
+                WrittenInside: x
+                WrittenOutside: t, args
                 """, dataFlowAnalysisResults);
         }
 
