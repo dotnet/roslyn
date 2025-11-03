@@ -8497,4 +8497,66 @@ namespace ConsoleApp1
             }
             """,
             new(parseOptions: TestOptions.Regular));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80982")]
+    public Task TestFunctionPointerType()
+        => TestInRegularAndScriptAsync(
+            """
+            unsafe class C
+            {
+                public delegate* managed<void> D
+                {
+                    get
+                    {
+                        return [|field|];
+                    }
+                }
+            }
+            """,
+            """
+            unsafe class C
+            {
+                public delegate* managed<void> D
+                {
+                    get
+                    {
+                        delegate*<void> {|Rename:value|} = field;
+                        return value;
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80982")]
+    public Task TestPointerType()
+        => TestInRegularAndScriptAsync(
+            """
+            unsafe class C
+            {
+                class Customer { }
+
+                public Customer* D
+                {
+                    get
+                    {
+                        return [|field|];
+                    }
+                }
+            }
+            """,
+            """
+            unsafe class C
+            {
+                class Customer { }
+
+                public Customer* D
+                {
+                    get
+                    {
+                        Customer* {|Rename:customer|} = field;
+                        return customer;
+                    }
+                }
+            }
+            """);
 }
