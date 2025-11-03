@@ -144,22 +144,15 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         // CollectionBuilderAttribute has exactly 2 constructor parameters: builderType and methodName
         if (collectionBuilderAttribute.ConstructorArguments is not
             [
-                { Kind: TypedConstantKind.Type, Value: INamedTypeSymbol builderType },
-                { Kind: TypedConstantKind.Primitive, Value: string methodName }
+            { Kind: TypedConstantKind.Type, Value: INamedTypeSymbol builderType },
+            { Kind: TypedConstantKind.Primitive, Value: string methodName }
             ])
         {
             return false;
         }
 
-        // Get the containing method we're currently analyzing using the NewKeyword position for more precision
-        var position = objectCreationExpression switch
-        {
-            ObjectCreationExpressionSyntax objCreation => objCreation.NewKeyword.SpanStart,
-            ImplicitObjectCreationExpressionSyntax implicitObjCreation => implicitObjCreation.NewKeyword.SpanStart,
-            _ => objectCreationExpression.SpanStart
-        };
-
-        var containingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(position, cancellationToken);
+        // Get the containing method we're currently analyzing
+        var containingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(objectCreationExpression.SpanStart, cancellationToken);
         if (containingMethod == null)
             return false;
 
