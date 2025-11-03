@@ -38,6 +38,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
     private readonly IGlobalOptionService _globalOptions;
     private readonly bool _supportsVSExtensions;
+    private readonly bool _includeDeclaration;
 
     /// <summary>
     /// Methods in FindUsagesLSPContext can be called by multiple threads concurrently. We need this semaphore to
@@ -82,6 +83,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
         IAsynchronousOperationListener asyncListener,
         IGlobalOptionService globalOptions,
         bool supportsVSExtensions,
+        bool includeDeclaration,
         CancellationToken cancellationToken)
     {
         _progress = progress;
@@ -91,6 +93,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
         _metadataAsSourceFileService = metadataAsSourceFileService;
         _globalOptions = globalOptions;
         _supportsVSExtensions = supportsVSExtensions;
+        _includeDeclaration = includeDeclaration;
         _workQueue = new AsyncBatchingWorkQueue<SumType<VSInternalReferenceItem, LSP.Location>>(
             DelayTimeSpan.Medium, ReportReferencesAsync, asyncListener, cancellationToken);
     }
@@ -120,9 +123,10 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
 
             if (definitionItem != null)
             {
+                // If includeDeclaration is false, don't report the definition, but still track it for reference association.
                 // If a definition shouldn't be included in the results list if it doesn't have references, we
                 // have to hold off on reporting it until later when we do find a reference.
-                if (definition.DisplayIfNoReferences)
+                if (_includeDeclaration && definition.DisplayIfNoReferences)
                 {
                     _workQueue.AddWork(definitionItem.Value);
                 }
@@ -153,8 +157,8 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
                 if (!_referenceLocations.Add((document.FilePath, reference.SourceSpan.SourceSpan)))
                     continue;
 
-                // If the definition hasn't been reported yet, add it to our list of references to report.
-                if (_definitionsWithoutReference.TryGetValue(definitionId, out var definition))
+                // If the definition hasn't been reported yet and includeDeclaration is true, add it to our list of references to report.
+                if (_includeDeclaration && _definitionsWithoutReference.TryGetValue(definitionId, out var definition))
                 {
                     _workQueue.AddWork(definition);
                     _definitionsWithoutReference.Remove(definitionId);

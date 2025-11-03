@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<TypeWithAnnotations> GetParameterTypesIncludingReceiver(Symbol symbol)
         {
-            Debug.Assert(symbol.GetIsNewExtensionMember());
+            Debug.Assert(symbol.IsExtensionBlockMember());
             // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, consider optimizing
             return [symbol.ContainingType.ExtensionParameter.TypeWithAnnotations, .. symbol.GetParameterTypes()];
         }

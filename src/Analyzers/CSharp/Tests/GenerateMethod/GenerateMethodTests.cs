@@ -10185,6 +10185,68 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80984")]
+    public Task InferMethodFromAddressOfInNonStaticContext()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            unsafe class C
+            {
+                private void M()
+                {
+                    delegate* managed<void> x = &[|M2|];
+                }
+            }
+            """,
+            """
+            using System;
+
+            unsafe class C
+            {
+                private void M()
+                {
+                    delegate* managed<void> x = &M2;
+                }
+
+                private static void M2()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80984")]
+    public Task InferMethodFromAddressOfInNonStaticContextWithQualifiedName()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            unsafe class C
+            {
+                private void M()
+                {
+                    delegate* managed<void> x = &C.[|M2|];
+                }
+            }
+            """,
+            """
+            using System;
+
+            unsafe class C
+            {
+                private void M()
+                {
+                    delegate* managed<void> x = &C.M2;
+                }
+
+                private static void M2()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70565")]
     public Task GenerateInsideStaticLambda1()
         => TestInRegularAndScriptAsync(
@@ -10642,4 +10704,33 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
             }
             """,
             index: 1);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80979")]
+    public Task TestGenerateMethodWithTupleVerbatimIdentifiers()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M1()
+                {
+                    (char @char, int @int) x = [|M2|]();
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M1()
+                {
+                    (char @char, int @int) x = M2();
+                }
+
+                private (char @char, int @int) M2()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
 }
