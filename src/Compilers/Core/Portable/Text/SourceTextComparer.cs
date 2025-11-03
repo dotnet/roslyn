@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Text
                 return 0;
             }
 
-            // GetContentHash returns a 16-byte hash, so reading the first 4 bytes as an int is always safe.
+            // GetContentHash returns a 16-byte, well-distributed, xx-hash-128 value.
+            // So reading the first 4 bytes as an int is always safe, and will give a good hash code back for this instance.
             var contentHash = obj.GetContentHash();
             return MemoryMarshal.Read<int>(contentHash.AsSpan());
         }
