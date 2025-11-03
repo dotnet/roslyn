@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Debug.Assert(indexTemp is { SpecialType: SpecialType.System_Int32 });
+                            Debug.Assert(indexTemp is { Type.SpecialType: SpecialType.System_Int32 });
 
                             // span[index] = element;
                             expressions.Add(
