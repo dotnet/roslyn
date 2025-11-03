@@ -5753,7 +5753,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74268")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70099")]
     public Task TestNotInCollectionBuilderMethod()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -5792,7 +5792,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74268")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70099")]
     public Task TestCollectionBuilderOutsideMethod()
         => TestInRegularAndScriptAsync(
             """
