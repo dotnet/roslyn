@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 // Even if we return full path to tool as "C:\Program Files\dotnet\dotnet.exe" for example,
                 // an MSBuild logic (caller of this function) can turn that into "C:\Program Files\dotnet\csc.exe" if `ToolExe` is set explicitly to "csc.exe".
-                // Resetting `ToolExe` to `null` skips that logic. That is a correct thing to do wince we already checked `UsingBuiltinTool`
+                // Resetting `ToolExe` to `null` skips that logic. That is a correct thing to do since we already checked `UsingBuiltinTool`
                 // which means `ToolExe` is not really overridden by user (yes, the user sets it but basically to its default value).
                 ToolExe = null;
 
