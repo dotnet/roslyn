@@ -46,7 +46,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             var utf8NoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
             // Create byte arrays with and without BOM
-            var bytesWithBOM = utf8WithBOM.GetPreamble().Concat(utf8WithBOM.GetBytes(content)).ToArray();
+            var preamble = utf8WithBOM.GetPreamble();
+            var contentBytes = utf8WithBOM.GetBytes(content);
+            var bytesWithBOM = new byte[preamble.Length + contentBytes.Length];
+            preamble.CopyTo(bytesWithBOM, 0);
+            contentBytes.CopyTo(bytesWithBOM, preamble.Length);
+
             var bytesNoBOM = utf8NoBOM.GetBytes(content);
 
             // Both pass Encoding.UTF8 as the encoding parameter
@@ -149,18 +154,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             // And therefore the same hash code from the comparer
             Assert.Equal(comparer.GetHashCode(text1), comparer.GetHashCode(text2));
-        }
-    }
-
-    // Extension method to make tests more readable
-    internal static class EnumerableExtensions
-    {
-        public static T[] Concat<T>(this T[] first, T[] second)
-        {
-            var result = new T[first.Length + second.Length];
-            first.CopyTo(result, 0);
-            second.CopyTo(result, first.Length);
-            return result;
         }
     }
 }
