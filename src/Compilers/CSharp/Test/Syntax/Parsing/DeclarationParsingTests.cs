@@ -11657,6 +11657,228 @@ I1(x);";
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40879")]
+        public void ConstructorInitializerWithArrowInsteadOfColon_This_WithArg_NoBody()
+        {
+            UsingTree("""
+                class C
+                {
+                    C() => this(1)
+                }
+                """,
+                // (3,9): error CS1003: Syntax error, ':' expected
+                //     C() => this(1)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":").WithLocation(3, 9),
+                // (3,19): error CS1002: ; expected
+                //     C() => this(1)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 19));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ThisConstructorInitializer);
+                        {
+                            M(SyntaxKind.ColonToken);
+                            N(SyntaxKind.ThisKeyword);
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40879")]
+        public void ConstructorInitializerWithArrowInsteadOfColon_This_WithArg_SemicolonBody()
+        {
+            UsingTree("""
+                class C
+                {
+                    C() => this(1);
+                }
+                """,
+                // (3,9): error CS1003: Syntax error, ':' expected
+                //     C() => this(1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":").WithLocation(3, 9));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ThisConstructorInitializer);
+                        {
+                            M(SyntaxKind.ColonToken);
+                            N(SyntaxKind.ThisKeyword);
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40879")]
+        public void ConstructorInitializerWithArrowInsteadOfColon_Base_WithArg_NoBody()
+        {
+            UsingTree("""
+                class C
+                {
+                    C() => base(1)
+                }
+                """,
+                // (3,9): error CS1003: Syntax error, ':' expected
+                //     C() => base(1)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":").WithLocation(3, 9),
+                // (3,19): error CS1002: ; expected
+                //     C() => base(1)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 19));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.BaseConstructorInitializer);
+                        {
+                            M(SyntaxKind.ColonToken);
+                            N(SyntaxKind.BaseKeyword);
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40879")]
+        public void ConstructorInitializerWithArrowInsteadOfColon_Base_WithArg_SemicolonBody()
+        {
+            UsingTree("""
+                class C
+                {
+                    C() => base(1);
+                }
+                """,
+                // (3,9): error CS1003: Syntax error, ':' expected
+                //     C() => base(1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":").WithLocation(3, 9));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.BaseConstructorInitializer);
+                        {
+                            M(SyntaxKind.ColonToken);
+                            N(SyntaxKind.BaseKeyword);
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40879")]
         public void ConstructorInitializerWithArrow_LegalExpressionBodied_ThisIndexer()
         {
             // This should parse as a legal expression-bodied constructor, not trigger the error recovery
