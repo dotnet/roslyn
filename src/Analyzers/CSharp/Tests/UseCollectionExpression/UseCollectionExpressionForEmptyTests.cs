@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
 public sealed class UseCollectionExpressionForEmptyTests
 {
-    private const string CollectionBuilderAttributeDefinition = """
+    public const string CollectionBuilderAttributeDefinition = """
 
         namespace System.Runtime.CompilerServices
         {

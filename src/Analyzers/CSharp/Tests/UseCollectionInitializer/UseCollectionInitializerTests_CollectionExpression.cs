@@ -5,6 +5,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseCollectionExpression;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -5763,15 +5764,6 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             using System.Collections.ObjectModel;
             using System.Runtime.CompilerServices;
 
-            namespace System.Runtime.CompilerServices
-            {
-                [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
-                public sealed class CollectionBuilderAttribute : Attribute
-                {
-                    public CollectionBuilderAttribute(Type builderType, string methodName) { }
-                }
-            }
-
             [CollectionBuilder(typeof(MyCustomCollection), nameof(MyCustomCollection.Create))]
             internal class MyCustomCollection<T> : Collection<T>
             {
@@ -5790,7 +5782,8 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     return collection;
                 }
             }
-            """);
+
+            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70099")]
     public Task TestCollectionBuilderOutsideMethod()
@@ -5801,15 +5794,6 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             using System.Collections.Generic;
             using System.Collections.ObjectModel;
             using System.Runtime.CompilerServices;
-
-            namespace System.Runtime.CompilerServices
-            {
-                [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
-                public sealed class CollectionBuilderAttribute : Attribute
-                {
-                    public CollectionBuilderAttribute(Type builderType, string methodName) { }
-                }
-            }
 
             [CollectionBuilder(typeof(MyCustomCollection), nameof(MyCustomCollection.Create))]
             internal class MyCustomCollection<T> : Collection<T>
@@ -5838,22 +5822,14 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     [|c.Add(|]1);
                 }
             }
-            """,
+
+            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition,
             """
             using System;
             using System.Collections;
             using System.Collections.Generic;
             using System.Collections.ObjectModel;
             using System.Runtime.CompilerServices;
-
-            namespace System.Runtime.CompilerServices
-            {
-                [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
-                public sealed class CollectionBuilderAttribute : Attribute
-                {
-                    public CollectionBuilderAttribute(Type builderType, string methodName) { }
-                }
-            }
 
             [CollectionBuilder(typeof(MyCustomCollection), nameof(MyCustomCollection.Create))]
             internal class MyCustomCollection<T> : Collection<T>
@@ -5881,6 +5857,7 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
                     MyCustomCollection<int> c = [1];
                 }
             }
-            """);
+
+            """ + UseCollectionExpressionForEmptyTests.CollectionBuilderAttributeDefinition);
 }
 
