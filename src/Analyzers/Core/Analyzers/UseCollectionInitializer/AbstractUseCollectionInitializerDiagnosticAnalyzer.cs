@@ -89,6 +89,20 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
     protected abstract bool IsValidContainingStatement(TStatementSyntax node);
 
+    /// <summary>
+    /// Returns true if the diagnostic should be suppressed for the given object creation expression and type.
+    /// This is used to prevent suggesting collection expressions in scenarios where they would cause recursion,
+    /// such as inside CollectionBuilder methods.
+    /// </summary>
+    protected virtual bool ShouldSuppressDiagnostic(
+        SemanticModel semanticModel,
+        TObjectCreationExpressionSyntax objectCreationExpression,
+        ITypeSymbol objectType,
+        CancellationToken cancellationToken)
+    {
+        return false;
+    }
+
     protected sealed override void InitializeWorker(AnalysisContext context)
         => context.RegisterCompilationStartAction(OnCompilationStart);
 
@@ -147,6 +161,10 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         // Object creation can only be converted to collection initializer if it implements the IEnumerable type.
         var objectType = context.SemanticModel.GetTypeInfo(objectCreationExpression, cancellationToken);
         if (objectType.Type == null || !objectType.Type.AllInterfaces.Contains(ienumerableType))
+            return;
+
+        // Check if the diagnostic should be suppressed (e.g., inside CollectionBuilder methods)
+        if (ShouldSuppressDiagnostic(semanticModel, objectCreationExpression, objectType.Type, cancellationToken))
             return;
 
         // Analyze the surrounding statements. First, try a broader set of statements if the language supports

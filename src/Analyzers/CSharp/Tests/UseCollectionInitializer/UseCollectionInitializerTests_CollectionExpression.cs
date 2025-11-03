@@ -5752,4 +5752,138 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74268")]
+    public Task TestNotInCollectionBuilderMethod()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.ObjectModel;
+            using System.Runtime.CompilerServices;
+
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
+                public sealed class CollectionBuilderAttribute : Attribute
+                {
+                    public CollectionBuilderAttribute(Type builderType, string methodName) { }
+                }
+            }
+
+            [CollectionBuilder(typeof(MyCustomCollection), nameof(MyCustomCollection.Create))]
+            internal class MyCustomCollection<T> : Collection<T>
+            {
+            }
+
+            internal static class MyCustomCollection
+            {
+                public static MyCustomCollection<T> Create<T>(ReadOnlySpan<T> items)
+                {
+                    MyCustomCollection<T> collection = new();
+                    foreach (T item in items)
+                    {
+                        collection.Add(item);
+                    }
+
+                    return collection;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74268")]
+    public Task TestCollectionBuilderOutsideMethod()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.ObjectModel;
+            using System.Runtime.CompilerServices;
+
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
+                public sealed class CollectionBuilderAttribute : Attribute
+                {
+                    public CollectionBuilderAttribute(Type builderType, string methodName) { }
+                }
+            }
+
+            [CollectionBuilder(typeof(MyCustomCollection), nameof(MyCustomCollection.Create))]
+            internal class MyCustomCollection<T> : Collection<T>
+            {
+            }
+
+            internal static class MyCustomCollection
+            {
+                public static MyCustomCollection<T> Create<T>(ReadOnlySpan<T> items)
+                {
+                    MyCustomCollection<T> collection = new();
+                    foreach (T item in items)
+                    {
+                        collection.Add(item);
+                    }
+
+                    return collection;
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    MyCustomCollection<int> c = [|new|]();
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Collections.ObjectModel;
+            using System.Runtime.CompilerServices;
+
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = false)]
+                public sealed class CollectionBuilderAttribute : Attribute
+                {
+                    public CollectionBuilderAttribute(Type builderType, string methodName) { }
+                }
+            }
+
+            [CollectionBuilder(typeof(MyCustomCollection), nameof(MyCustomCollection.Create))]
+            internal class MyCustomCollection<T> : Collection<T>
+            {
+            }
+
+            internal static class MyCustomCollection
+            {
+                public static MyCustomCollection<T> Create<T>(ReadOnlySpan<T> items)
+                {
+                    MyCustomCollection<T> collection = new();
+                    foreach (T item in items)
+                    {
+                        collection.Add(item);
+                    }
+
+                    return collection;
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    MyCustomCollection<int> c =
+                    [
+                        1
+                    ];
+                }
+            }
+            """);
 }
+
