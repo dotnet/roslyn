@@ -142,16 +142,11 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
 
         // Get the builder type and method name from the attribute.
         // CollectionBuilderAttribute has exactly 2 constructor parameters: builderType and methodName
-        if (collectionBuilderAttribute.ConstructorArguments.Length < 2)
-            return false;
-
-        var builderTypeArg = collectionBuilderAttribute.ConstructorArguments[0];
-        var methodNameArg = collectionBuilderAttribute.ConstructorArguments[1];
-
-        if (builderTypeArg.Kind != TypedConstantKind.Type ||
-            builderTypeArg.Value is not INamedTypeSymbol builderType ||
-            methodNameArg.Kind != TypedConstantKind.Primitive ||
-            methodNameArg.Value is not string methodName)
+        if (collectionBuilderAttribute.ConstructorArguments is not
+            [
+                { Kind: TypedConstantKind.Type, Value: INamedTypeSymbol builderType },
+                { Kind: TypedConstantKind.Primitive, Value: string methodName }
+            ])
         {
             return false;
         }
