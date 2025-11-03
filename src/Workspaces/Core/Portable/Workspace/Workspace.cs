@@ -2370,7 +2370,7 @@ public abstract partial class Workspace : IDisposable
     }
 
     /// <summary>
-    /// Throws an exception is the project is part of the current solution.
+    /// Throws an exception if the project is part of the current solution.
     /// </summary>
     protected void CheckProjectIsNotInCurrentSolution(ProjectId projectId)
         => CheckProjectIsNotInSolution(this.CurrentSolution, projectId);
