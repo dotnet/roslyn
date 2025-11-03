@@ -3982,7 +3982,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         Debug.Assert(symbol.IsPartialMember());
 
-                        // Skip accessors - they are handled by their associated member
+                        // Skip accessors - they are handled by their associated member.
+                        // Additionally, comparing accessor signatures would trigger computation of parameter types,
+                        // which for event accessors requires checking IsWindowsRuntimeEvent, potentially causing
+                        // infinite recursion during member initialization.
                         if (symbol is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
                         {
                             continue;
@@ -4031,7 +4034,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var symbol = (Symbol)pair.Value;
                     Debug.Assert(symbol.IsPartialMember());
 
-                    // Skip accessors - they are handled by their associated member
+                    // Skip accessors - they are handled by their associated member.
+                    // Additionally, comparing accessor signatures would trigger computation of parameter types,
+                    // which for event accessors requires checking IsWindowsRuntimeEvent, potentially causing
+                    // infinite recursion during member initialization.
                     if (symbol is not (SourcePropertyAccessorSymbol or SourceEventAccessorSymbol))
                     {
                         membersBySignature.Add(symbol, symbol);
