@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -109,5 +110,63 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         // be disposed properly.
         return node is not LocalDeclarationStatementSyntax localDecl ||
             localDecl.UsingKeyword == default;
+    }
+
+    protected override bool ShouldSuppressDiagnostic(
+        SemanticModel semanticModel,
+        BaseObjectCreationExpressionSyntax objectCreationExpression,
+        ITypeSymbol objectType,
+        CancellationToken cancellationToken)
+    {
+        // Check if the type being created has a CollectionBuilder attribute that points to the method we're currently in.
+        // If so, suppress the diagnostic to avoid suggesting a change that would cause infinite recursion.
+        // For example, if we're inside the Create method of a CollectionBuilder, and we have:
+        //   MyCustomCollection<T> collection = new();
+        //   foreach (T item in items) { collection.Add(item); }
+        // We should NOT suggest changing it to:
+        //   MyCustomCollection<T> collection = [.. items];
+        // Because that would recursively call the same Create method.
+
+        if (objectType is not INamedTypeSymbol namedType)
+            return false;
+
+        // Look for CollectionBuilder attribute on the type
+        var collectionBuilderAttribute = namedType.GetAttributes().FirstOrDefault(attr =>
+            attr.AttributeClass?.Name == "CollectionBuilderAttribute" &&
+            attr.AttributeClass.ContainingNamespace?.Name == "CompilerServices" &&
+            attr.AttributeClass.ContainingNamespace.ContainingNamespace?.Name == "Runtime" &&
+            attr.AttributeClass.ContainingNamespace.ContainingNamespace.ContainingNamespace?.Name == "System");
+
+        if (collectionBuilderAttribute == null)
+            return false;
+
+        // Get the builder type and method name from the attribute
+        if (collectionBuilderAttribute.ConstructorArguments.Length < 2)
+            return false;
+
+        var builderTypeArg = collectionBuilderAttribute.ConstructorArguments[0];
+        var methodNameArg = collectionBuilderAttribute.ConstructorArguments[1];
+
+        if (builderTypeArg.Kind != TypedConstantKind.Type ||
+            builderTypeArg.Value is not INamedTypeSymbol builderType ||
+            methodNameArg.Kind != TypedConstantKind.Primitive ||
+            methodNameArg.Value is not string methodName)
+        {
+            return false;
+        }
+
+        // Get the containing method we're currently analyzing
+        var containingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(objectCreationExpression.SpanStart, cancellationToken);
+        if (containingMethod == null)
+            return false;
+
+        // Check if the containing method matches the CollectionBuilder method
+        if (containingMethod.Name == methodName &&
+            SymbolEqualityComparer.Default.Equals(containingMethod.ContainingType, builderType))
+        {
+            return true;
+        }
+
+        return false;
     }
 }
