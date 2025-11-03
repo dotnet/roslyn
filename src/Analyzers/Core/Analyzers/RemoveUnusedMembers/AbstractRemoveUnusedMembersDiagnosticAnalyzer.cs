@@ -784,7 +784,11 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     // Add the Name and Type named parameters
                     foreach (var namedArgument in attribute.NamedArguments)
                     {
-                        if ((namedArgument is { Key: "Name" or "Type", Value: { Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string namedValue } })
+                        if (namedArgument is
+                            {
+                                Key: "Name" or "Type",
+                                Value: { Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string namedValue },
+                            })
                         {
                             builder.Add(namedValue);
                         }
