@@ -3976,18 +3976,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 membersBySignature.Clear();
 
+                // Track if this name has any accessors to avoid false diagnostics for methods with the same name
+                bool hasAccessors = false;
+
                 if (pair.Value is ArrayBuilder<Symbol> arrayBuilder)
                 {
                     foreach (var symbol in arrayBuilder)
                     {
                         Debug.Assert(symbol.IsPartialMember());
 
-                        // Skip accessors - they are handled by their associated member.
-                        // Additionally, comparing accessor signatures would trigger computation of parameter types,
+                        // Skip accessors from signature comparison - they are handled by their associated member.
+                        // Comparing accessor signatures would trigger computation of parameter types,
                         // which for event accessors requires checking IsWindowsRuntimeEvent, potentially causing
                         // infinite recursion during member initialization.
                         if (symbol is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
                         {
+                            hasAccessors = true;
                             continue;
                         }
 
@@ -4034,11 +4038,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var symbol = (Symbol)pair.Value;
                     Debug.Assert(symbol.IsPartialMember());
 
-                    // Skip accessors - they are handled by their associated member.
-                    // Additionally, comparing accessor signatures would trigger computation of parameter types,
-                    // which for event accessors requires checking IsWindowsRuntimeEvent, potentially causing
-                    // infinite recursion during member initialization.
-                    if (symbol is not (SourcePropertyAccessorSymbol or SourceEventAccessorSymbol))
+                    if (symbol is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
+                    {
+                        hasAccessors = true;
+                    }
+                    else
                     {
                         membersBySignature.Add(symbol, symbol);
                     }
@@ -4050,7 +4054,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case SourceOrdinaryMethodSymbol method:
                             // partial implementations not paired with a definition
-                            if (method.IsPartialImplementation && method.OtherPartOfPartial is null)
+                            // Skip diagnostic if there are accessors with the same name (e.g., partial method get_P() coexisting with property P's accessor)
+                            if (!hasAccessors && method.IsPartialImplementation && method.OtherPartOfPartial is null)
                             {
                                 diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.GetFirstLocation(), method);
                             }
