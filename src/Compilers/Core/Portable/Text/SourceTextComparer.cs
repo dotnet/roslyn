@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Roslyn.Utilities;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             var contentHash = obj.GetContentHash();
-            return !contentHash.IsDefault ? Hash.CombineValues(contentHash) : 0;
+            MemoryMarshal.TryRead(contentHash.AsSpan(), out int hashCode);
+            return hashCode;
         }
     }
 }
