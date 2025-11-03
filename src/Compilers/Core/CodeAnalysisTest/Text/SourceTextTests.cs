@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.Equal("span", ex.ParamName);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71006")]
         public void Comparer_EqualityContract_SameContent_DifferentEncodings()
         {
             // Test case from the issue: two SourceText instances with same content but different encodings
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.Equal(comparer.GetHashCode(text1), comparer.GetHashCode(text2));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71006")]
         public void Comparer_EqualityContract_SameContent_WithAndWithoutBOM()
         {
             // Test the case described in the issue comments:
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.Equal(comparer.GetHashCode(textWithBOM), comparer.GetHashCode(textNoBOM));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71006")]
         public void Comparer_EqualityContract_DifferentContent()
         {
             var text1 = SourceText.From("content1");
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             _ = comparer.GetHashCode(text2);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71006")]
         public void Comparer_EqualityContract_NullHandling()
         {
             var text = SourceText.From("content");
@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.Equal(0, comparer.GetHashCode(null));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71006")]
         public void Comparer_EqualityContract_SameContentFromStream()
         {
             const string content = "Stream content";
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.Equal(comparer.GetHashCode(text1), comparer.GetHashCode(text2));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71006")]
         public void Comparer_ContentEquals_MatchesComparerEquals()
         {
             // Verify that SourceTextComparer.Equals aligns with SourceText.ContentEquals
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.Equal(text1.ContentEquals(text2), comparer.Equals(text1, text2));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71006")]
         public void Comparer_GetContentHash_MatchesComparerHashCode()
         {
             // Verify that SourceTextComparer uses content-based hashing
