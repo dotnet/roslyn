@@ -1558,7 +1558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Skip the check for error types that represent truly missing types (not found),
             // but still report for error types due to other issues (e.g., inaccessibility).
-            if (type is ErrorTypeSymbol { ResultKind: LookupResultKind.Empty or LookupResultKind.NotATypeOrNamespace })
+            if (type is ErrorTypeSymbol { ResultKind: LookupResultKind.Empty })
                 return false;
 
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
