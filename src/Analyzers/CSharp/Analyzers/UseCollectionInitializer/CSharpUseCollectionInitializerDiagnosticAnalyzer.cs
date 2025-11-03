@@ -140,7 +140,8 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         if (collectionBuilderAttribute == null)
             return false;
 
-        // Get the builder type and method name from the attribute
+        // Get the builder type and method name from the attribute.
+        // CollectionBuilderAttribute has exactly 2 constructor parameters: builderType and methodName
         if (collectionBuilderAttribute.ConstructorArguments.Length < 2)
             return false;
 
