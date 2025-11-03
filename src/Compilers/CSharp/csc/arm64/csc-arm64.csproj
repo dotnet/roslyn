@@ -15,7 +15,7 @@
 
   <!-- Can't put this in shared project due to https://github.com/dotnet/project-system/issues/8157 -->
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\csc.rsp" Condition="'$(TargetFramework)' == 'net472'">
+    <None Include="$(MSBuildThisFileDirectory)..\csc.rsp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

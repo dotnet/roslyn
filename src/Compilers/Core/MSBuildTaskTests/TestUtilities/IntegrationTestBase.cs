@@ -199,6 +199,7 @@ public abstract class IntegrationTestBase : TestBase
             new Dictionary<string, string>
             {
                 { "File.cs", """
+                    using System.Linq;
                     System.Console.WriteLine("Hello from file");
                     """ },
                 { "Test.csproj", $"""
@@ -240,7 +241,7 @@ public abstract class IntegrationTestBase : TestBase
                 { "File.vb", """
                     Public Module Program
                         Public Sub Main()
-                            System.Console.WriteLine("Hello from file")
+                            Console.WriteLine("Hello from file")
                         End Sub
                     End Module
                     """ },
