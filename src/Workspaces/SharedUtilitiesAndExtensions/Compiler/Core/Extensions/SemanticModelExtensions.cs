@@ -150,17 +150,14 @@ internal static partial class SemanticModelExtensions
         if (type is IPointerTypeSymbol pointerType)
             return GenerateNameFromType(semanticModel, pointerType.PointedAtType, syntaxFacts, capitalize);
 
+        if (type.IsNullable(out var underlyingType))
+            return GenerateNameFromType(semanticModel, underlyingType, syntaxFacts, capitalize);
+
         // Otherwise assume no pluralization, e.g. using 'immutableArray', 'list', etc. instead of their
         // plural forms
-        if (type.IsSpecialType() ||
-            type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-        {
-            return capitalize ? DefaultBuiltInParameterName.ToUpper() : DefaultBuiltInParameterName;
-        }
-        else
-        {
-            return type.CreateParameterName(capitalize);
-        }
+        return type.IsSpecialType()
+            ? capitalize ? DefaultBuiltInParameterName.ToUpper() : DefaultBuiltInParameterName
+            : type.CreateParameterName(capitalize);
     }
 
     private static bool ShouldPluralize(this SemanticModel semanticModel, ITypeSymbol type)
