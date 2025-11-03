@@ -282,11 +282,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 if (privateImpl != null)
                 {
                     yield return privateImpl;
-
-                    foreach (var typeDef in privateImpl.GetAdditionalTopLevelTypes())
-                    {
-                        yield return typeDef;
-                    }
                 }
             }
         }

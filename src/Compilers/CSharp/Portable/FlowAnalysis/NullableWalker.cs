@@ -5339,7 +5339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState rightType,
             BoundBinaryOperator binary)
         {
-            var inferredResult = ReinferAndVisitBinaryOperator(binary, binary.OperatorKind, binary.Method, binary.Type, binary.Left, leftOperand, leftConversion, leftType, binary.Right, rightOperand, rightConversion, rightType);
+            var inferredResult = ReinferAndVisitBinaryOperator(binary, binary.OperatorKind, binary.BinaryOperatorMethod, binary.Type, binary.Left, leftOperand, leftConversion, leftType, binary.Right, rightOperand, rightConversion, rightType);
             SetResult(binary, inferredResult, inferredResult.ToTypeWithAnnotations(compilation));
         }
 
@@ -12293,7 +12293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Visit(node.Right);
                 TypeWithState rightType = ResultType;
-                SetResultType(node, InferResultNullability(node.OperatorKind, node.Method, node.Type, leftType, rightType));
+                SetResultType(node, InferResultNullability(node.OperatorKind, node.BinaryOperatorMethod, node.Type, leftType, rightType));
                 AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(node.Right, isAnd, isBool, ref leftTrue, ref leftFalse);
             }
 
@@ -12958,7 +12958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitCatchBlock(BoundCatchBlock node, ref LocalState finallyState)
+        public override BoundNode? VisitCatchBlock(BoundCatchBlock node)
         {
             TakeIncrementalSnapshot(node);
             if (node.Locals.Length > 0)
@@ -12977,7 +12977,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitWithoutDiagnostics(node.ExceptionSourceOpt);
             }
 
-            base.VisitCatchBlock(node, ref finallyState);
+            base.VisitCatchBlock(node);
+
+            return null;
         }
 
         public override BoundNode? VisitLockStatement(BoundLockStatement node)

@@ -1297,6 +1297,11 @@
         <target state="translated">검색 결과 없음: C# 또는 Visual Basic 프로젝트가 열려 있지 않음</target>
         <note />
       </trans-unit>
+      <trans-unit id="Search_members">
+        <source>Search members</source>
+        <target state="new">Search members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
         <source>Select an appropriate symbol to start value tracking</source>
         <target state="translated">적절한 기호를 선택하여 값 추적 시작</target>

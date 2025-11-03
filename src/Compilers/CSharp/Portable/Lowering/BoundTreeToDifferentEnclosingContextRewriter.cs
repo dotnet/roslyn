@@ -161,8 +161,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Local rewriter should have already rewritten interpolated strings into their final form of calls and gotos
             Debug.Assert(node.InterpolatedStringHandlerData is null);
+            Debug.Assert(!node.OperatorKind.IsDynamic());
 
-            return BoundBinaryOperator.UncommonData.CreateIfNeeded(node.ConstantValueOpt, VisitMethodSymbol(node.Method), VisitType(node.ConstrainedToType), node.OriginalUserDefinedOperatorsOpt);
+            return BoundBinaryOperator.UncommonData.CreateIfNeeded(node.ConstantValueOpt, VisitMethodSymbol(node.BinaryOperatorMethod), VisitType(node.ConstrainedToType), node.OriginalUserDefinedOperatorsOpt);
         }
 
         public override BoundNode? VisitConversion(BoundConversion node)
