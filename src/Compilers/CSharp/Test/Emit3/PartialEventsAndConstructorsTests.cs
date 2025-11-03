@@ -569,6 +569,64 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void DuplicateDeclarations_05()
+    {
+        var source = """
+            partial class C
+            {
+                partial event System.Action E;
+                partial void add_E(System.Action value) { }
+                partial void remove_E(System.Action value) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,33): error CS9275: Partial member 'C.E' must have an implementation part.
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("C.E").WithLocation(3, 33),
+            // (3,33): error CS0082: Type 'C' already reserves a member called 'add_E' with the same parameter types
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "E").WithArguments("add_E", "C").WithLocation(3, 33),
+            // (3,33): error CS0082: Type 'C' already reserves a member called 'remove_E' with the same parameter types
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "E").WithArguments("remove_E", "C").WithLocation(3, 33),
+            // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.add_E(Action)'
+            //     partial void add_E(System.Action value) { }
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "add_E").WithArguments("C.add_E(System.Action)").WithLocation(4, 18),
+            // (5,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.remove_E(Action)'
+            //     partial void remove_E(System.Action value) { }
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "remove_E").WithArguments("C.remove_E(System.Action)").WithLocation(5, 18));
+    }
+
+    [Fact]
+    public void DuplicateDeclarations_06()
+    {
+        var source = """
+            partial class C
+            {
+                partial void add_E(System.Action value) { }
+                partial void remove_E(System.Action value) { }
+                partial event System.Action E;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.add_E(Action)'
+            //     partial void add_E(System.Action value) { }
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "add_E").WithArguments("C.add_E(System.Action)").WithLocation(3, 18),
+            // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.remove_E(Action)'
+            //     partial void remove_E(System.Action value) { }
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "remove_E").WithArguments("C.remove_E(System.Action)").WithLocation(4, 18),
+            // (5,33): error CS9275: Partial member 'C.E' must have an implementation part.
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("C.E").WithLocation(5, 33),
+            // (5,33): error CS0082: Type 'C' already reserves a member called 'add_E' with the same parameter types
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "E").WithArguments("add_E", "C").WithLocation(5, 33),
+            // (5,33): error CS0082: Type 'C' already reserves a member called 'remove_E' with the same parameter types
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "E").WithArguments("remove_E", "C").WithLocation(5, 33));
+    }
+
+    [Fact]
     public void EventInitializer_Single()
     {
         var source = """
@@ -1299,6 +1357,30 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (4,49): error CS0106: The modifier 'required' is not valid for this item
             //     public required partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("required").WithLocation(4, 49));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80986")]
+    public void InterfaceImplementation()
+    {
+        var source = """
+            using System;
+
+            internal interface I
+            {
+                event EventHandler E;
+            }
+
+            partial class C : I
+            {
+                public partial event EventHandler E;
+            }
+
+            partial class C
+            {
+                public partial event EventHandler E { add { } remove { } }
+            }
+            """;
+        CompileAndVerify(source).VerifyDiagnostics();
     }
 
     [Fact]
