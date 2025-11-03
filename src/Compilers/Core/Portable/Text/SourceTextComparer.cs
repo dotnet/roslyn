@@ -32,13 +32,8 @@ namespace Microsoft.CodeAnalysis.Text
                 return 0;
             }
 
-            var checksum = obj.GetChecksum();
-            var contentsHash = !checksum.IsDefault ? Hash.CombineValues(checksum) : 0;
-            var encodingHash = obj.Encoding != null ? obj.Encoding.GetHashCode() : 0;
-
-            return Hash.Combine(obj.Length,
-                Hash.Combine(contentsHash,
-                Hash.Combine(encodingHash, ((int)obj.ChecksumAlgorithm).GetHashCode())));
+            var contentHash = obj.GetContentHash();
+            return !contentHash.IsDefault ? Hash.CombineValues(contentHash) : 0;
         }
     }
 }
