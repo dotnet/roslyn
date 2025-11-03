@@ -2389,17 +2389,23 @@ class M
     public const Color2 Color2 = Color2.Yellow;
 }
 
+class M2
+{
+    public const Color Color = Color.Green | Color.Green;
+}
+
 class Program
 {
     static void Main()
     {
         System.Console.Write(M.Color == Color.Red);
         System.Console.Write(M.Color2 == Color.Yellow);
+        System.Console.Write(M2.Color == Color.Green);
     }
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "TrueTrue")
+            CompileAndVerify(source, expectedOutput: "TrueTrueTrue")
                 .VerifyDiagnostics();
         }
 

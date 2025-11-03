@@ -3633,15 +3633,20 @@ Class M
     Public Const Color2 As Color2 = Color2.Yellow
 End Class
 
+Class M2
+    Public Const Color As Color = Color.Green Or Color.Green
+End Class
+
 Module Program
     Sub Main()
         Console.Write(M.Color = Color.Red)
         Console.Write(M.Color2 = Color.Yellow)
+        Console.Write(M2.Color = Color.Green)
     End Sub
 End Module
 ", options:=TestOptions.DebugExe)
 
-            CompileAndVerify(compilation, expectedOutput:="TrueTrue").
+            CompileAndVerify(compilation, expectedOutput:="TrueTrueTrue").
                 Diagnostics.AssertTheseDiagnostics(
 <expected>
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
