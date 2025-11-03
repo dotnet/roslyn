@@ -163,7 +163,6 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         if (objectType.Type == null || !objectType.Type.AllInterfaces.Contains(ienumerableType))
             return;
 
-        // Check if the diagnostic should be suppressed (e.g., inside CollectionBuilder methods)
         if (ShouldSuppressDiagnostic(semanticModel, objectCreationExpression, objectType.Type, cancellationToken))
             return;
 
