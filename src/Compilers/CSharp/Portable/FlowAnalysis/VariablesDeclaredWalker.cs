@@ -131,7 +131,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         }
 
-                        // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+                        // Use an explicit stack to avoid crashing on deeply nested binary patterns.
+                        // Binary patterns are left-associative, so, a nested pattern like: 'A or B or C or D or E'
+                        // is parsed/bound like: '((((A or B) or C) or D) or E)'
+                        // 1) Push the binary patterns onto stack from outermost to innermost.
+                        // 2) Pop the innermost binary off the stack, and visit its left and right (corresponding to A and B in above example).
+                        // 3) Continue popping binaries off the stack, visiting each right operand (corresponding to C, D, E, ...).
                         var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
                         do
                         {
