@@ -3740,4 +3740,29 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             //     [method: Obsolete] public partial event Action H;
             Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(35, 14));
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76879")]
+    public void PartialEventImplementingInterface_NoStackOverflow()
+    {
+        var source = """
+            using System;
+
+            internal interface IC
+            {
+                event EventHandler E;
+            }
+
+            partial class C : IC
+            {
+                public partial event EventHandler E;
+            }
+
+            partial class C
+            {
+                public partial event EventHandler E { add { } remove { } }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+    }
 }

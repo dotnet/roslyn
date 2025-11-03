@@ -3982,6 +3982,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         Debug.Assert(symbol.IsPartialMember());
 
+                        // Skip accessors - they are handled by their associated member
+                        if (symbol is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
+                        {
+                            continue;
+                        }
+
                         if (!membersBySignature.TryGetValue(symbol, out var prev))
                         {
                             membersBySignature.Add(symbol, symbol);
@@ -4024,7 +4030,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var symbol = (Symbol)pair.Value;
                     Debug.Assert(symbol.IsPartialMember());
-                    membersBySignature.Add(symbol, symbol);
+
+                    // Skip accessors - they are handled by their associated member
+                    if (symbol is not (SourcePropertyAccessorSymbol or SourceEventAccessorSymbol))
+                    {
+                        membersBySignature.Add(symbol, symbol);
+                    }
                 }
 
                 foreach (var symbol in membersBySignature.Values)
