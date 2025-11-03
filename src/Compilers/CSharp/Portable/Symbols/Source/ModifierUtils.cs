@@ -445,10 +445,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((result & DeclarationModifiers.Partial) == DeclarationModifiers.Partial)
             {
                 var i = modifiers.IndexOf(SyntaxKind.PartialKeyword);
-                var partialToken = modifiers[i];
+                var modifier = modifiers[i];
 
                 var messageId = isForTypeDeclaration ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod;
-                messageId.CheckFeatureAvailability(diagnostics, partialToken);
+                messageId.CheckFeatureAvailability(diagnostics, modifier);
 
                 // `partial` must always be the last modifier according to the language.  However, there was a bug
                 // where we allowed `partial async` at the end of modifiers on methods. We keep this behavior for
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(
                         ErrorCode.ERR_PartialMisplaced,
-                        partialToken.GetLocation());
+                        modifier.GetLocation());
                 }
             }
 
