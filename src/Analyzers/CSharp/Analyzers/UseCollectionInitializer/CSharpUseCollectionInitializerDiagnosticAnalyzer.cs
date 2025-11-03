@@ -130,8 +130,11 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         if (objectType is not INamedTypeSymbol namedType)
             return false;
 
+        // For generic types, get the type definition to check for the attribute
+        var typeToCheck = namedType.OriginalDefinition;
+
         // Look for CollectionBuilder attribute on the type
-        var collectionBuilderAttribute = namedType.GetAttributes().FirstOrDefault(attr =>
+        var collectionBuilderAttribute = typeToCheck.GetAttributes().FirstOrDefault(attr =>
             attr.AttributeClass?.Name == "CollectionBuilderAttribute" &&
             attr.AttributeClass.ContainingNamespace?.Name == "CompilerServices" &&
             attr.AttributeClass.ContainingNamespace.ContainingNamespace?.Name == "Runtime" &&
@@ -161,8 +164,9 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
             return false;
 
         // Check if the containing method matches the CollectionBuilder method
+        // We need to compare the original definitions in case the method is generic
         if (containingMethod.Name == methodName &&
-            SymbolEqualityComparer.Default.Equals(containingMethod.ContainingType, builderType))
+            SymbolEqualityComparer.Default.Equals(containingMethod.ContainingType.OriginalDefinition, builderType.OriginalDefinition))
         {
             return true;
         }
