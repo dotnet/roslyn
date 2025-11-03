@@ -10570,9 +10570,9 @@ done:
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                 }
+
                 // Note: Duplicate modifiers are not reported here during parsing.
-                // They will be reported during binding (see Binder_Statements.BindDeclarationStatementParts
-                // and ModifierUtils.ToDeclarationModifiers).
+                // They will be reported during binding (see Binder_Statements.BindDeclarationStatementParts).
 
                 list.Add(mod);
             }
