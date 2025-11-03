@@ -2811,7 +2811,9 @@ parse_member_name:;
                         goto parse_member_name;
                     }
 
-                    Debug.Assert(identifierOrThisOpt != null);
+                    // identifierOrThisOpt may be null if we're doing error recovery for a property with missing identifier
+                    Debug.Assert(identifierOrThisOpt != null || IsStartOfPropertyBody(this.CurrentToken.Kind) || 
+                                 (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && IsStartOfPropertyBody(this.PeekToken(1).Kind)));
 
                     if (TryParseIndexerOrPropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
@@ -2988,6 +2990,15 @@ parse_member_name:;
         {
             if (explicitInterfaceOpt == null && identifierOrThisOpt == null && typeParameterListOpt == null)
             {
+                // Error recovery: if we see a property body (`{` or `=>`), this is likely a property
+                // with a missing identifier, not an incomplete member. Let the property parsing logic handle it.
+                if (IsStartOfPropertyBody(this.CurrentToken.Kind) ||
+                    (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && IsStartOfPropertyBody(this.PeekToken(1).Kind)))
+                {
+                    result = null;
+                    return false;
+                }
+
                 if (attributes.Count == 0 && modifiers.Count == 0 && type.IsMissing && type.Kind != SyntaxKind.RefType)
                 {
                     // we haven't advanced, the caller needs to consume the tokens ahead
@@ -3054,7 +3065,7 @@ parse_member_name:;
                                                           ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt, SyntaxToken identifierOrThisOpt,
                                                           TypeParameterListSyntax typeParameterListOpt, out MemberDeclarationSyntax result)
         {
-            if (identifierOrThisOpt.Kind == SyntaxKind.ThisKeyword)
+            if (identifierOrThisOpt != null && identifierOrThisOpt.Kind == SyntaxKind.ThisKeyword)
             {
                 result = this.ParseIndexerDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
                 return true;
@@ -3065,6 +3076,12 @@ parse_member_name:;
             if (IsStartOfPropertyBody(this.CurrentToken.Kind) ||
                 (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && IsStartOfPropertyBody(this.PeekToken(1).Kind)))
             {
+                // Error recovery: if we see a property body but no identifier, synthesize a missing identifier
+                if (identifierOrThisOpt == null)
+                {
+                    identifierOrThisOpt = this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
+                }
+
                 result = this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
                 return true;
             }
@@ -3227,7 +3244,9 @@ parse_member_name:;
                         goto parse_member_name;
                     }
 
-                    Debug.Assert(identifierOrThisOpt != null);
+                    // identifierOrThisOpt may be null if we're doing error recovery for a property with missing identifier
+                    Debug.Assert(identifierOrThisOpt != null || IsStartOfPropertyBody(this.CurrentToken.Kind) || 
+                                 (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && IsStartOfPropertyBody(this.PeekToken(1).Kind)));
 
                     if (TryParseIndexerOrPropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
