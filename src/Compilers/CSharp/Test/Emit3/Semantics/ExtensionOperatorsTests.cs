@@ -4181,7 +4181,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (11,35): error CS0023: Operator '!' cannot be applied to operand of type 'void*'
+                //     unsafe void* Test(void* x) => !x;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, $"{op}x").WithArguments(op, "void*").WithLocation(11, 35)
                 );
         }
 
@@ -4212,7 +4215,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (14,13): error CS0029: Cannot implicitly convert type 'void*' to 'bool'
+                //         if (x)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("void*", "bool").WithLocation(14, 13)
                 );
         }
 
@@ -6772,7 +6778,10 @@ class Program
             comp.VerifyEmitDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
                 //     extension(dynamic x)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15),
+                // (20,14): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //         c1 = ++c1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++c1").WithArguments("++", "C1").WithLocation(20, 14)
                 );
         }
 
@@ -19487,24 +19496,14 @@ public struct S1;
 
         [Theory]
         [CombinatorialData]
-        public void Binary_144_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_144_ERR_VoidError_ArithmeticAndBitwise([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op)
         {
-            string pairedOp = "";
-
-            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
-            {
-                pairedOp = $$$"""
-        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(void* x, S1 y) => throw null;
-""";
-            }
-
             var src = $$$"""
 unsafe public static class Extensions1
 {
     extension(void*)
     {
         public static void* operator {{{op}}}(void* x, S1 y) => x;
-{{{pairedOp}}}
     }
 }
 
@@ -19520,30 +19519,59 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (13,41): error CS0019: Operator '*' cannot be applied to operands of type 'void*' and 'S1'
+                //     unsafe void* Test(void* x, S1 y) => x * y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, "void*", "S1").WithLocation(13, 41),
+                // (13,41): error CS0242: The operation in question is undefined on void pointers
+                //     unsafe void* Test(void* x, S1 y) => x * y;
+                Diagnostic(ErrorCode.ERR_VoidError, $"x {op} y").WithLocation(13, 41)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void Binary_145_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_145_ERR_VoidError_Comparison([CombinatorialValues(">", "<", ">=", "<=", "==", "!=")] string op)
         {
-            string pairedOp = "";
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static void* operator {{{op}}}(void* x, S1 y) => x;
+        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(void* x, S1 y) => throw null;
+    }
+}
 
-            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
-            {
-                pairedOp = $$$"""
-        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(S1 x, void* y) => throw null;
+public struct S1;
+
+class Program
+{
+    unsafe void* Test(void* x, S1 y) => x {{{op}}} y;
+}
 """;
-            }
 
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (14,41): error CS0019: Operator '>' cannot be applied to operands of type 'void*' and 'S1'
+                //     unsafe void* Test(void* x, S1 y) => x > y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, "void*", "S1").WithLocation(14, 41)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_146_ERR_VoidError_ArithmeticAndBitwise([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^")] string op)
+        {
             var src = $$$"""
 unsafe public static class Extensions1
 {
     extension(void*)
     {
         public static void* operator {{{op}}}(S1 x, void* y) => y;
-{{{pairedOp}}}
     }
 }
 
@@ -19559,13 +19587,52 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (13,41): error CS0019: Operator '^' cannot be applied to operands of type 'S1' and 'void*'
+                //     unsafe void* Test(void* x, S1 y) => y ^ x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op} x").WithArguments(op, "S1", "void*").WithLocation(13, 41),
+                // (13,41): error CS0242: The operation in question is undefined on void pointers
+                //     unsafe void* Test(void* x, S1 y) => y ^ x;
+                Diagnostic(ErrorCode.ERR_VoidError, $"y {op} x").WithLocation(13, 41)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void Binary_146_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_147_ERR_VoidError_Comparison([CombinatorialValues(">", "<", ">=", "<=", "==", "!=")] string op)
+        {
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static void* operator {{{op}}}(S1 x, void* y) => y;
+        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(S1 x, void* y) => throw null;
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe void* Test(void* x, S1 y) => y {{{op}}} x;
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (14,41): error CS0019: Operator '&' cannot be applied to operands of type 'S1' and 'void*'
+                //     unsafe void* Test(void* x, S1 y) => y & x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op} x").WithArguments(op, "S1", "void*").WithLocation(14, 41)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_148_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19609,7 +19676,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_147_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_149_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19651,7 +19718,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_148_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_150_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19695,7 +19762,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_149_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        public void Binary_151_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
         {
             string pairedOp = "";
 
@@ -19737,7 +19804,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_150_ERR_VoidError_Logical([CombinatorialValues("&&", "||")] string op)
+        public void Binary_152_ERR_VoidError_Logical([CombinatorialValues("&&", "||")] string op)
         {
             var src = $$$"""
 unsafe public static class Extensions1
@@ -19760,12 +19827,15 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (13,44): error CS0019: Operator '&&' cannot be applied to operands of type 'void*' and 'void*'
+                //     unsafe void* Test(void* x, void* y) => x && y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, "void*", "void*").WithLocation(13, 44)
                 );
         }
 
         [Fact]
-        public void Binary_151_Consumption_ErrorScenarioCandidates()
+        public void Binary_153_Consumption_ErrorScenarioCandidates()
         {
             var src = $$$"""
 public static class Extensions1
@@ -19813,7 +19883,7 @@ class Program
         }
 
         [Fact]
-        public void Binary_152_Consumption_ErrorScenarioCandidates()
+        public void Binary_154_Consumption_ErrorScenarioCandidates()
         {
             var src = $$$"""
 public static class Extensions1
@@ -22671,7 +22741,13 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
                 //     extension(dynamic x)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15),
+                // (20,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         c1 += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c1 += 1").WithArguments("+=", "C1", "int").WithLocation(20, 9),
+                // (21,14): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         c1 = c1 += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c1 += 1").WithArguments("+=", "C1", "int").WithLocation(21, 14)
                 );
         }
 
@@ -24616,9 +24692,18 @@ static class Extensions
                 // (8,23): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return Y(c += c1);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(8, 23),
+                // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
                 // (12,22): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
                 //         return Y(c = X(c, c1));
                 Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "right").WithLocation(12, 22),
+                // (12,22): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "right").WithLocation(12, 22),
+                // (12,27): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(12, 27),
                 // (12,27): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return Y(c = X(c, c1));
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(12, 27)
@@ -24817,9 +24902,12 @@ static class Extensions
                 // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
                 //         return Y(c = X(c, c1));
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
-                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                // (12,22): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
                 //         return Y(c = X(c, c1));
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "left").WithLocation(12, 22),
+                // (12,24): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(12, 24)
                 );
         }
 
@@ -24866,16 +24954,19 @@ static class Extensions
                 // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
                 //         return Y(c = X(c, c1));
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
-                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                // (12,22): error CS8347: Cannot use a result of 'C.X(C, scoped C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
                 //         return Y(c = X(c, c1));
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, scoped C)", "left").WithLocation(12, 22),
+                // (12,24): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(12, 24)
                 );
         }
 
         /// <summary>
         /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_04
         /// </summary>
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79054")]
         public void CompoundAssignment_089_RefSafety()
         {
             var source = """
@@ -24902,14 +24993,7 @@ static class Extensions
     }
 }
 """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
-                //         return Y(c = X(c, c1));
-                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
-                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
-                //         return Y(c = X(c, c1));
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
-                );
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         /// <summary>
@@ -26997,7 +27081,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (13,40): error CS0019: Operator '>>=' cannot be applied to operands of type 'void*' and 'S1'
+                //     unsafe void Test(void* x, S1 y) => x >>= y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op}= y").WithArguments($"{op}=", "void*", "S1").WithLocation(13, 40)
                 );
         }
 
@@ -27026,7 +27113,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(void*)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (13,40): error CS0019: Operator '^=' cannot be applied to operands of type 'S1' and 'void*'
+                //     unsafe void Test(void* x, S1 y) => y ^= x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"y {op}= x").WithArguments($"{op}=", "S1", "void*").WithLocation(13, 40)
                 );
         }
 
@@ -27184,7 +27274,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (3,19): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
                 //     extension(ref void* x)
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 19)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 19),
+                // (13,40): error CS0019: Operator '<<=' cannot be applied to operands of type 'void*' and 'S1'
+                //     unsafe void Test(void* x, S1 y) => x <<= y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op}= y").WithArguments($"{op}=", "void*", "S1").WithLocation(13, 40)
                 );
         }
 

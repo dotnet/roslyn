@@ -458,10 +458,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var symbol = symbolDeclaredEvent.Symbol;
             var analyzerOptions = this.GetAnalyzerSpecificOptions(analyzer);
-            var addDiagnostic = GetAddDiagnostic(
-                symbol, symbolDeclaredEvent.DeclaringSyntaxReferences, analyzer, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken);
 
-            using var _ = PooledDelegates.GetPooledFunction(
+            using var _1 = PooledDelegates.GetPooledAction(
+                static (diagnostic, tuple) =>
+                {
+                    var (self, analyzer, symbolDeclaredEvent, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken) = tuple;
+                    tuple.self.AddSymbolDiagnostic(symbolDeclaredEvent, diagnostic, analyzer, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken);
+                },
+                (self: this, analyzer, symbolDeclaredEvent, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken),
+                out Action<Diagnostic> addDiagnostic);
+
+            using var _2 = PooledDelegates.GetPooledFunction(
                 static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
                 (self: this, analyzer),
                 out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
@@ -570,9 +577,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var symbol = symbolDeclaredEvent.Symbol;
             var analyzerOptions = this.GetAnalyzerSpecificOptions(analyzer);
-            var addDiagnostic = GetAddDiagnostic(symbol, symbolDeclaredEvent.DeclaringSyntaxReferences, analyzer, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken);
 
-            using var _ = PooledDelegates.GetPooledFunction(
+            using var _1 = PooledDelegates.GetPooledAction(
+                static (diagnostic, tuple) =>
+                {
+                    var (self, analyzer, symbolDeclaredEvent, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken) = tuple;
+                    tuple.self.AddSymbolDiagnostic(symbolDeclaredEvent, diagnostic, analyzer, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken);
+                },
+                (self: this, analyzer, symbolDeclaredEvent, analyzerOptions, getTopMostNodeForAnalysis, cancellationToken),
+                out Action<Diagnostic> addDiagnostic);
+
+            using var _2 = PooledDelegates.GetPooledFunction(
                 static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
                 (self: this, analyzer),
                 out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
@@ -1507,76 +1522,47 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analyzerManager.IsSupportedDiagnostic(analyzer, diagnostic, _isCompilerAnalyzer, this, cancellationToken);
         }
 
-        private Action<Diagnostic> GetAddDiagnostic(
-            ISymbol contextSymbol,
-            ImmutableArray<SyntaxReference> cachedDeclaringReferences,
+        private void AddSymbolDiagnostic(
+            SymbolDeclaredCompilationEvent symbolDeclaredEvent,
+            Diagnostic diagnostic,
             DiagnosticAnalyzer analyzer,
             AnalyzerOptions options,
             Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
             CancellationToken cancellationToken)
         {
-            return GetAddDiagnostic(
-                contextSymbol,
-                cachedDeclaringReferences,
-                Compilation,
-                analyzer,
-                options,
-                _addNonCategorizedDiagnostic,
-                _addCategorizedLocalDiagnostic,
-                _addCategorizedNonLocalDiagnostic,
-                getTopMostNodeForAnalysis,
-                _shouldSuppressGeneratedCodeDiagnostic,
-                cancellationToken);
-        }
-
-        private static Action<Diagnostic> GetAddDiagnostic(
-            ISymbol contextSymbol,
-            ImmutableArray<SyntaxReference> cachedDeclaringReferences,
-            Compilation compilation,
-            DiagnosticAnalyzer analyzer,
-            AnalyzerOptions options,
-            Action<Diagnostic, AnalyzerOptions, CancellationToken>? addNonCategorizedDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer, AnalyzerOptions, bool, CancellationToken>? addCategorizedLocalDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer, AnalyzerOptions, CancellationToken>? addCategorizedNonLocalDiagnostic,
-            Func<ISymbol, SyntaxReference, Compilation, CancellationToken, SyntaxNode> getTopMostNodeForAnalysis,
-            Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
-            CancellationToken cancellationToken)
-        {
-            return diagnostic =>
+            if (_shouldSuppressGeneratedCodeDiagnostic(diagnostic, analyzer, this.Compilation, cancellationToken))
             {
-                if (shouldSuppressGeneratedCodeDiagnostic(diagnostic, analyzer, compilation, cancellationToken))
-                {
-                    return;
-                }
+                return;
+            }
 
-                if (addCategorizedLocalDiagnostic == null)
-                {
-                    Debug.Assert(addNonCategorizedDiagnostic != null);
-                    addNonCategorizedDiagnostic(diagnostic, options, cancellationToken);
-                    return;
-                }
+            if (_addCategorizedLocalDiagnostic == null)
+            {
+                Debug.Assert(_addNonCategorizedDiagnostic != null);
+                _addNonCategorizedDiagnostic(diagnostic, options, cancellationToken);
+                return;
+            }
 
-                Debug.Assert(addNonCategorizedDiagnostic == null);
-                Debug.Assert(addCategorizedNonLocalDiagnostic != null);
+            Debug.Assert(_addNonCategorizedDiagnostic == null);
+            Debug.Assert(_addCategorizedNonLocalDiagnostic != null);
 
-                if (diagnostic.Location.IsInSource)
+            if (diagnostic.Location.IsInSource)
+            {
+                var symbol = symbolDeclaredEvent.Symbol;
+                foreach (var syntaxRef in symbolDeclaredEvent.DeclaringSyntaxReferences)
                 {
-                    foreach (var syntaxRef in cachedDeclaringReferences)
+                    if (syntaxRef.SyntaxTree == diagnostic.Location.SourceTree)
                     {
-                        if (syntaxRef.SyntaxTree == diagnostic.Location.SourceTree)
+                        var syntax = getTopMostNodeForAnalysis(symbol, syntaxRef, this.Compilation, cancellationToken);
+                        if (diagnostic.Location.SourceSpan.IntersectsWith(syntax.FullSpan))
                         {
-                            var syntax = getTopMostNodeForAnalysis(contextSymbol, syntaxRef, compilation, cancellationToken);
-                            if (diagnostic.Location.SourceSpan.IntersectsWith(syntax.FullSpan))
-                            {
-                                addCategorizedLocalDiagnostic(diagnostic, analyzer, options, false, cancellationToken);
-                                return;
-                            }
+                            _addCategorizedLocalDiagnostic(diagnostic, analyzer, options, false, cancellationToken);
+                            return;
                         }
                     }
                 }
+            }
 
-                addCategorizedNonLocalDiagnostic(diagnostic, analyzer, options, cancellationToken);
-            };
+            _addCategorizedNonLocalDiagnostic(diagnostic, analyzer, options, cancellationToken);
         }
 
         private Action<Diagnostic> GetAddCompilationDiagnostic(

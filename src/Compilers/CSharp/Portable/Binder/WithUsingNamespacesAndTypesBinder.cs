@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsValidLookupCandidateInUsings(Symbol symbol)
         {
-            Debug.Assert(!symbol.GetIsNewExtensionMember());
+            Debug.Assert(!symbol.IsExtensionBlockMember());
             switch (symbol.Kind)
             {
                 // lookup via "using namespace" ignores namespaces inside

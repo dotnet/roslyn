@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundBinaryOperator original = stack.Pop();
                 BoundExpression loweredRight = VisitExpression(original.Right);
-                loweredLeft = MakeBinaryOperator(original, original.Syntax, original.OperatorKind, loweredLeft, loweredRight, original.Type, original.Method, original.ConstrainedToType,
+                loweredLeft = MakeBinaryOperator(original, original.Syntax, original.OperatorKind, loweredLeft, loweredRight, original.Type, original.LeftTruthOperatorMethod ?? original.BinaryOperatorMethod, original.ConstrainedToType,
                     applyParentUnaryOperator: (stack.Count == 0) ? applyParentUnaryOperator : null);
             }
 
@@ -536,8 +536,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            Debug.Assert(!operatorKind.IsDynamic());
             return (oldNode != null) ?
-                oldNode.Update(operatorKind, oldNode.ConstantValueOpt, oldNode.Method, oldNode.ConstrainedToType, oldNode.ResultKind, loweredLeft, loweredRight, type) :
+                oldNode.Update(operatorKind, oldNode.ConstantValueOpt, oldNode.BinaryOperatorMethod, oldNode.ConstrainedToType, oldNode.ResultKind, loweredLeft, loweredRight, type) :
                 new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, loweredLeft, loweredRight, type);
         }
 
@@ -2014,7 +2015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (oldNode != null && (loweredLeft.ConstantValueOpt == ConstantValue.Null || loweredRight.ConstantValueOpt == ConstantValue.Null))
             {
-                return oldNode.Update(operatorKind, oldNode.ConstantValueOpt, oldNode.Method, oldNode.ConstrainedToType, oldNode.ResultKind, loweredLeft, loweredRight, type);
+                return oldNode.Update(operatorKind, oldNode.ConstantValueOpt, oldNode.BinaryOperatorMethod, oldNode.ConstrainedToType, oldNode.ResultKind, loweredLeft, loweredRight, type);
             }
 
             var method = UnsafeGetSpecialTypeMethod(syntax, member);

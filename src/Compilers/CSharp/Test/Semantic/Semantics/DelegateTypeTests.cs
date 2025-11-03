@@ -3588,12 +3588,12 @@ class B
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (12,13): error CS0308: The non-generic method 'Program.F0(object)' cannot be used with type arguments
+                // (12,13): error CS0305: Using the generic method 'Program.F0<T>(object)' requires 1 type arguments
                 //         d = F0<int, object>;
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "F0<int, object>").WithArguments("Program.F0(object)", "method").WithLocation(12, 13),
-                // (13,13): error CS0308: The non-generic method 'Program.F1(object)' cannot be used with type arguments
+                Diagnostic(ErrorCode.ERR_BadArity, "F0<int, object>").WithArguments("Program.F0<T>(object)", "method", "1").WithLocation(12, 13),
+                // (13,13): error CS0305: Using the generic method 'Program.F1<T, U>(object)' requires 2 type arguments
                 //         d = F1<int>;
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "F1<int>").WithArguments("Program.F1(object)", "method").WithLocation(13, 13),
+                Diagnostic(ErrorCode.ERR_BadArity, "F1<int>").WithArguments("Program.F1<T, U>(object)", "method", "2").WithLocation(13, 13),
                 // (14,13): error CS8917: The delegate type could not be inferred.
                 //         d = F2;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(14, 13));

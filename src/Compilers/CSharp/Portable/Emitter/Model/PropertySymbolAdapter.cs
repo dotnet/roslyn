@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
 
-                if (AdaptedPropertySymbol.GetIsNewExtensionMember())
+                if (AdaptedPropertySymbol.IsExtensionBlockMember())
                 {
                     var containingType = AdaptedPropertySymbol.ContainingType;
                     return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            if (AdaptedPropertySymbol.GetIsNewExtensionMember())
+            if (AdaptedPropertySymbol.IsExtensionBlockMember())
             {
                 var containingType = AdaptedPropertySymbol.ContainingType;
                 return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);

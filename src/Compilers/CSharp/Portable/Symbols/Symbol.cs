@@ -1248,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return DeriveUseSiteInfoFromType(ref result, param.TypeWithAnnotations, AllowedRequiredModifierType.None) ||
                    DeriveUseSiteInfoFromCustomModifiers(ref result, param.RefCustomModifiers,
                                                               this is MethodSymbol method && method.MethodKind == MethodKind.FunctionPointerSignature ?
-                                                                  AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute | AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute :
+                                                                  AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute | AllowedRequiredModifierType.System_Runtime_InteropServices_OutAttribute :
                                                                   AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute);
         }
 
@@ -1272,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             System_Runtime_CompilerServices_Volatile = 1,
             System_Runtime_InteropServices_InAttribute = 1 << 1,
             System_Runtime_CompilerServices_IsExternalInit = 1 << 2,
-            System_Runtime_CompilerServices_OutAttribute = 1 << 3,
+            System_Runtime_InteropServices_OutAttribute = 1 << 3,
         }
 
         internal bool DeriveUseSiteInfoFromCustomModifiers(ref UseSiteInfo<AssemblySymbol> result, ImmutableArray<CustomModifier> customModifiers, AllowedRequiredModifierType allowedRequiredModifierType)
@@ -1303,10 +1303,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         current = AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
                     }
-                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute) != 0 &&
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_InteropServices_OutAttribute) != 0 &&
                         modifierType.IsWellKnownTypeOutAttribute())
                     {
-                        current = AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute;
+                        current = AllowedRequiredModifierType.System_Runtime_InteropServices_OutAttribute;
                     }
 
                     if (current == AllowedRequiredModifierType.None ||
@@ -1757,7 +1757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(variable.Kind);
             }
 
-            if (containingSymbol.GetIsNewExtensionMember()
+            if (containingSymbol.IsExtensionBlockMember()
                 && variable is ParameterSymbol { ContainingSymbol: NamedTypeSymbol { IsExtension: true } })
             {
                 // An extension member doesn't capture the extension parameter

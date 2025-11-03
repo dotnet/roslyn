@@ -5460,7 +5460,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</value>
   </data>
   <data name="ERR_CompilerAndLanguageVersion" xml:space="preserve">
-    <value>Compiler version: '{0}'. Language version: {1}.</value>
+    <value>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</value>
   </data>
   <data name="IDS_FeatureAsyncMain" xml:space="preserve">
     <value>async main</value>
