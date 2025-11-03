@@ -135,10 +135,7 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
 
         // Look for CollectionBuilder attribute on the type
         var collectionBuilderAttribute = typeToCheck.GetAttributes().FirstOrDefault(attr =>
-            attr.AttributeClass?.Name == "CollectionBuilderAttribute" &&
-            attr.AttributeClass.ContainingNamespace?.Name == "CompilerServices" &&
-            attr.AttributeClass.ContainingNamespace.ContainingNamespace?.Name == "Runtime" &&
-            attr.AttributeClass.ContainingNamespace.ContainingNamespace.ContainingNamespace?.Name == "System");
+            attr.AttributeClass?.IsCollectionBuilderAttribute() == true);
 
         if (collectionBuilderAttribute == null)
             return false;
@@ -158,8 +155,15 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
             return false;
         }
 
-        // Get the containing method we're currently analyzing
-        var containingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(objectCreationExpression.SpanStart, cancellationToken);
+        // Get the containing method we're currently analyzing using the NewKeyword position for more precision
+        var position = objectCreationExpression switch
+        {
+            ObjectCreationExpressionSyntax objCreation => objCreation.NewKeyword.SpanStart,
+            ImplicitObjectCreationExpressionSyntax implicitObjCreation => implicitObjCreation.NewKeyword.SpanStart,
+            _ => objectCreationExpression.SpanStart
+        };
+
+        var containingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(position, cancellationToken);
         if (containingMethod == null)
             return false;
 
