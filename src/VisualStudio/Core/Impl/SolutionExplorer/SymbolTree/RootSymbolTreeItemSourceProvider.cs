@@ -20,9 +20,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Internal.VisualStudio.PlatformUI;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.Utilities.UnifiedSettings;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
@@ -58,6 +60,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     private readonly IGoOrFindNavigationService _goToBaseNavigationService;
     private readonly IGoOrFindNavigationService _goToImplementationNavigationService;
     private readonly IGoOrFindNavigationService _findReferencesNavigationService;
+    private readonly SVsServiceProvider _serviceProvider;
 
     public readonly SolutionExplorerNavigationSupport NavigationSupport;
     public readonly IThreadingContext ThreadingContext;
@@ -65,9 +68,12 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
 
     public readonly IContextMenuController ContextMenuController;
 
+    private bool? _disabled;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public RootSymbolTreeItemSourceProvider(
+        SVsServiceProvider serviceProvider,
         IThreadingContext threadingContext,
         VisualStudioWorkspace workspace,
         GoToBaseNavigationService goToBaseNavigationService,
@@ -75,6 +81,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         FindReferencesNavigationService findReferencesNavigationService,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
+        _serviceProvider = serviceProvider;
         ThreadingContext = threadingContext;
         _workspace = workspace;
         _goToBaseNavigationService = goToBaseNavigationService;
@@ -168,6 +175,35 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             }).ConfigureAwait(false);
     }
 
+    private bool IsDisabled
+    {
+        get
+        {
+            return _disabled ??= ComputeIsDisabled();
+
+            bool ComputeIsDisabled()
+            {
+                try
+                {
+                    var settingsManager = RoslynServiceExtensions.GetService<SVsUnifiedSettingsManager, ISettingsManager>(
+                        _serviceProvider, ThreadingContext.JoinableTaskFactory);
+
+                    // Key provided by the Solution Explorer team.
+                    var setting = settingsManager.GetReader().GetValue<bool>("projectsAndSolutions.general.showLanguageSymbolsInsideSolutionExplorerFiles");
+
+                    // Only if we can actually read the value successfully, and it is false, are we disabled.
+                    // In all other circumstances (value missing, error reading, value true), we are enabled.
+                    return setting.Outcome == SettingRetrievalOutcome.Success && !setting.Value;
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                    // On any error reading from unified settings, just assume we're not disabled.
+                    return false;
+                }
+            }
+        }
+    }
+
     protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
     {
         if (item == null ||
@@ -197,6 +233,9 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         // We only support this for real files that we'll then have Roslyn Documents for.  All the other
         // things in a project (like folders, nested projects, etc) are not supported.
         if (guid != VSConstants.ItemTypeGuid.PhysicalFile_guid)
+            return null;
+
+        if (IsDisabled)
             return null;
 
         var source = new RootSymbolTreeItemCollectionSource(this, item);
