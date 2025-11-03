@@ -1285,12 +1285,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(1, 19),
                 // (1,19): error CS1001: Identifier expected
                 // required required { get; }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 19)
-                );
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 19));
+
             N(SyntaxKind.PropertyDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.RequiredKeyword);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
                 M(SyntaxKind.IdentifierToken);
                 N(SyntaxKind.AccessorList);
                 {

@@ -172,15 +172,9 @@ namespace x
                 // (3,18): error CS1056: Unexpected character '\'
                 //     public class \e
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(3, 18),
-                // (3,19): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (3,20): error CS1001: Identifier expected
                 //     public class \e
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "e").WithLocation(3, 19),
-                // (4,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     {
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(4, 5),
-                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 20));
         }
 
         [Fact]
@@ -205,15 +199,9 @@ namespace x
                 // (3,19): error CS1056: Unexpected character '\'
                 //     public class X\e
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(3, 19),
-                // (3,20): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (3,21): error CS1001: Identifier expected
                 //     public class X\e
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "e").WithLocation(3, 20),
-                // (4,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     {
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(4, 5),
-                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 21));
         }
 
         [Fact]
@@ -241,15 +229,9 @@ namespace x
                 // (3,18): error CS1056: Unexpected character '\'
                 //     public class \eX
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(3, 18),
-                // (3,19): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (3,21): error CS1001: Identifier expected
                 //     public class \eX
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "eX").WithLocation(3, 19),
-                // (4,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     {
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(4, 5),
-                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 21));
         }
 
         [Fact]

@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System.Security.Cryptography.X509Certificates;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal sealed partial class LanguageParser : SyntaxParser
@@ -2812,9 +2813,7 @@ parse_member_name:;
                     }
 
                     // identifierOrThisOpt may be null if we're doing error recovery for a property with missing identifier
-                    Debug.Assert(identifierOrThisOpt != null || IsStartOfPropertyBody(this.CurrentToken.Kind) || 
-                                 (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && IsStartOfPropertyBody(this.PeekToken(1).Kind)));
-
+                    Debug.Assert(identifierOrThisOpt != null || IsStartOfPropertyBody(index: 0));
                     if (TryParseIndexerOrPropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
                         return result;
@@ -2984,16 +2983,19 @@ parse_member_name:;
             return false;
         }
 
-        private bool IsNoneOrIncompleteMember(SyntaxKind parentKind, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, TypeSyntax type,
-                                              ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt, SyntaxToken identifierOrThisOpt, TypeParameterListSyntax typeParameterListOpt,
-                                              out MemberDeclarationSyntax result)
+        private bool IsNoneOrIncompleteMember(
+            SyntaxKind parentKind,
+            SyntaxList<AttributeListSyntax> attributes,
+            SyntaxListBuilder modifiers,
+            TypeSyntax type,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt,
+            SyntaxToken identifierOrThisOpt,
+            TypeParameterListSyntax typeParameterListOpt,
+            out MemberDeclarationSyntax result)
         {
             if (explicitInterfaceOpt == null && identifierOrThisOpt == null && typeParameterListOpt == null)
             {
-                // Error recovery: if we see a property body (`{` or `=>`), this is likely a property
-                // with a missing identifier, not an incomplete member. Let the property parsing logic handle it.
-                if (IsStartOfPropertyBody(this.CurrentToken.Kind) ||
-                    (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && IsStartOfPropertyBody(this.PeekToken(1).Kind)))
+                if (looksLikeStartOfPropertyBody())
                 {
                     result = null;
                     return false;
@@ -3036,6 +3038,43 @@ parse_member_name:;
 
             result = null;
             return false;
+
+            bool looksLikeStartOfPropertyBody()
+            {
+                // Need to see at least some modifiers, or something that strongly looks like a property type in order
+                // for us to at least consider this a property.  Otherwise, we end up cases where errant `{` and `=>`
+                // tokens would lead us to think we're a property in inappropriate places.
+                if (modifiers.Count == 0 && !looksLikePropertyType())
+                    return false;
+
+                if (!IsStartOfPropertyBody(index: 0))
+                    return false;
+
+                return true;
+            }
+
+            bool looksLikePropertyType()
+            {
+                var propertyType = type;
+
+                // We really want to see at least `Type {` or `Type =>` to think of this as a property. And we want the
+                // parser to be confident it got a good return type for the property, not something it was confused
+                // about and already reported errors on.  Otherwise, we can too easily end up in cases where an error is
+                // next to a `{` and we don't want that to be a property.
+                if (propertyType.IsMissing || ContainsErrorDiagnostic(propertyType))
+                    return false;
+
+                if (propertyType is RefTypeSyntax refType)
+                    propertyType = refType.Type;
+
+                // Unlikely cases to actually be a property.  Likely some runaway error recovery case.
+                if (propertyType is IdentifierNameSyntax { Identifier.ValueText: "extension" or "with" })
+                    return false;
+
+                // Can add more cases here if we find ourselves being too eager.
+
+                return true;
+            }
         }
 
         private bool ReconsideredTypeAsAsyncModifier(ref SyntaxListBuilder modifiers, ref TypeSyntax type, ref ResetPoint afterTypeResetPoint,
@@ -3061,11 +3100,16 @@ parse_member_name:;
             return false;
         }
 
-        private bool TryParseIndexerOrPropertyDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, TypeSyntax type,
-                                                          ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt, SyntaxToken identifierOrThisOpt,
-                                                          TypeParameterListSyntax typeParameterListOpt, out MemberDeclarationSyntax result)
+        private bool TryParseIndexerOrPropertyDeclaration(
+            SyntaxList<AttributeListSyntax> attributes,
+            SyntaxListBuilder modifiers,
+            TypeSyntax type,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt,
+            SyntaxToken identifierOrThisOpt,
+            TypeParameterListSyntax typeParameterListOpt,
+            out MemberDeclarationSyntax result)
         {
-            if (identifierOrThisOpt != null && identifierOrThisOpt.Kind == SyntaxKind.ThisKeyword)
+            if (identifierOrThisOpt?.Kind == SyntaxKind.ThisKeyword)
             {
                 result = this.ParseIndexerDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
                 return true;
@@ -3073,14 +3117,10 @@ parse_member_name:;
 
             // `{` or `=>` definitely start a property.  Also allow
             // `; {` and `; =>` as error recovery for a misplaced semicolon.
-            if (IsStartOfPropertyBody(this.CurrentToken.Kind) ||
-                (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && IsStartOfPropertyBody(this.PeekToken(1).Kind)))
+            if (IsStartOfPropertyBody(index: 0))
             {
                 // Error recovery: if we see a property body but no identifier, synthesize a missing identifier
-                if (identifierOrThisOpt == null)
-                {
-                    identifierOrThisOpt = this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
-                }
+                identifierOrThisOpt ??= this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
 
                 result = this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
                 return true;
@@ -3090,8 +3130,24 @@ parse_member_name:;
             return false;
         }
 
-        private static bool IsStartOfPropertyBody(SyntaxKind kind)
-            => kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken;
+        private bool IsStartOfPropertyBody(int index)
+        {
+            var kind = this.PeekToken(index).Kind;
+
+            // If we have `{` or `=>`, definitely a property body.
+            if (kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken)
+                return true;
+
+            // For error recovery, also consider `; {` and `; =>` as starting a property body.
+            if (kind is SyntaxKind.SemicolonToken)
+            {
+                kind = this.PeekToken(index + 1).Kind;
+                if (kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken)
+                    return true;
+            }
+
+            return false;
+        }
 
         // Returns null if we can't parse anything (even partially).
         internal MemberDeclarationSyntax ParseMemberDeclaration(SyntaxKind parentKind)
@@ -3245,9 +3301,7 @@ parse_member_name:;
                     }
 
                     // identifierOrThisOpt may be null if we're doing error recovery for a property with missing identifier
-                    Debug.Assert(identifierOrThisOpt != null || IsStartOfPropertyBody(this.CurrentToken.Kind) || 
-                                 (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && IsStartOfPropertyBody(this.PeekToken(1).Kind)));
-
+                    Debug.Assert(identifierOrThisOpt != null || IsStartOfPropertyBody(index: 0));
                     if (TryParseIndexerOrPropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
                         return result;
@@ -3319,19 +3373,17 @@ parse_member_name:;
             //   b) generic
             //   c) a property
             //   d) a method (unless we already know we're parsing an event)
-            var kind = this.PeekToken(1).Kind;
 
             // Error recovery, don't allow a misplaced semicolon after the name in a property to throw off the entire parse.
             //
             // e.g. `public int MyProperty; { get; set; }` should still be parsed as a property with a skipped token.
             if (!isGlobalScriptLevel &&
-                kind == SyntaxKind.SemicolonToken &&
-                IsStartOfPropertyBody(this.PeekToken(2).Kind))
+                IsStartOfPropertyBody(index: 1))
             {
                 return false;
             }
 
-            switch (kind)
+            switch (this.PeekToken(1).Kind)
             {
                 case SyntaxKind.DotToken:                   // Goo.     explicit
                 case SyntaxKind.ColonColonToken:            // Goo::    explicit
@@ -4150,7 +4202,7 @@ parse_member_name:;
             }
 
             // We know we are parsing a property because we have seen either an open brace or an arrow token
-            Debug.Assert(IsStartOfPropertyBody(this.CurrentToken.Kind));
+            Debug.Assert(IsStartOfPropertyBody(index: 0));
 
             var accessorList = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                 ? this.ParseAccessorList(AccessorDeclaringKind.Property)
