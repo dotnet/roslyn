@@ -831,12 +831,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
 
-            // int index = 0;
-            BoundLocal indexTemp = _factory.StoreToTemp(
-                _factory.Literal(0),
-                out assignmentToTemp);
-            localsBuilder.Add(indexTemp);
-            sideEffects.Add(assignmentToTemp);
+            // When there are no spread elements, we can use constant indices for better codegen.
+            // When there are spread elements, we need a mutable index variable for the CopyTo optimization.
+            bool useConstantIndices = numberIncludingLastSpread == 0;
+            BoundLocal? indexTemp = null;
+
+            if (!useConstantIndices)
+            {
+                // int index = 0;
+                indexTemp = _factory.StoreToTemp(
+                    _factory.Literal(0),
+                    out assignmentToTemp);
+                localsBuilder.Add(indexTemp);
+                sideEffects.Add(assignmentToTemp);
+            }
 
             // ElementType[] array = new ElementType[N + s1.Length + ...];
             BoundLocal arrayTemp = _factory.StoreToTemp(
@@ -848,6 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             localsBuilder.Add(arrayTemp);
             sideEffects.Add(assignmentToTemp);
 
+            int currentElementIndex = 0;
             AddCollectionExpressionElements(
                 elements,
                 arrayTemp,
@@ -857,33 +866,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression arrayTemp, BoundExpression rewrittenValue, bool isLastElement) =>
                 {
                     Debug.Assert(arrayTemp.Type is ArrayTypeSymbol);
-                    Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
 
                     var expressionSyntax = rewrittenValue.Syntax;
                     var elementType = ((ArrayTypeSymbol)arrayTemp.Type).ElementType;
 
-                    // array[index] = element;
-                    expressions.Add(
-                        new BoundAssignmentOperator(
-                            expressionSyntax,
-                            _factory.ArrayAccess(arrayTemp, indexTemp),
-                            rewrittenValue,
-                            isRef: false,
-                            elementType));
-                    if (!isLastElement)
+                    if (useConstantIndices)
                     {
-                        // index = index + 1;
+                        // array[0] = element; array[1] = element; etc.
                         expressions.Add(
                             new BoundAssignmentOperator(
                                 expressionSyntax,
-                                indexTemp,
-                                _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
+                                _factory.ArrayAccess(arrayTemp, _factory.Literal(currentElementIndex)),
+                                rewrittenValue,
                                 isRef: false,
-                                indexTemp.Type));
+                                elementType));
+                        currentElementIndex++;
+                    }
+                    else
+                    {
+                        Debug.Assert(indexTemp is { Type.SpecialType: SpecialType.System_Int32 });
+
+                        // array[index] = element;
+                        expressions.Add(
+                            new BoundAssignmentOperator(
+                                expressionSyntax,
+                                _factory.ArrayAccess(arrayTemp, indexTemp),
+                                rewrittenValue,
+                                isRef: false,
+                                elementType));
+                        if (!isLastElement)
+                        {
+                            // index = index + 1;
+                            expressions.Add(
+                                new BoundAssignmentOperator(
+                                    expressionSyntax,
+                                    indexTemp,
+                                    _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
+                                    isRef: false,
+                                    indexTemp.Type));
+                        }
                     }
                 },
                 tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression arrayTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                 {
+                    Debug.Assert(!useConstantIndices, "Should not have spread elements when using constant indices");
+                    Debug.Assert(indexTemp is not null);
+
                     if (PrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
                         return false;
 
