@@ -39,4 +39,20 @@ internal sealed partial class CSharpIntroduceParameterCodeRefactoringProvider()
 
     protected override SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<ArgumentSyntax> arguments)
         => ((ArgumentListSyntax)argumentList).WithArguments(arguments);
+
+    protected override bool IsAnonymousObjectMemberDeclaratorNameIdentifier(SyntaxNode expression)
+    {
+        // Check if this expression is the name identifier in an anonymous object member declarator.
+        // In C#, the structure is: IdentifierNameSyntax -> NameEqualsSyntax -> AnonymousObjectMemberDeclaratorSyntax
+        // We want to return true when expression is the identifier on the left side of the '=' in something like 'new { a = value }'
+        if (expression is IdentifierNameSyntax identifier &&
+            identifier.Parent is NameEqualsSyntax nameEquals &&
+            nameEquals.Parent is AnonymousObjectMemberDeclaratorSyntax)
+        {
+            // Verify that the identifier is the Name part of NameEqualsSyntax (not some other part)
+            return nameEquals.Name == identifier;
+        }
+
+        return false;
+    }
 }
