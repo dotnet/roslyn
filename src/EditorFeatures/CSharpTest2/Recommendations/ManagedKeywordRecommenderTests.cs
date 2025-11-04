@@ -28,4 +28,13 @@ public sealed class ManagedKeywordRecommenderTests : KeywordRecommenderTests
                 unsafe void N() {
                     delegate*$$
             """);
+
+    [Fact]
+    public Task TestInFunctionPointerDeclarationAfterTyping()
+        => VerifyKeywordAsync(
+            """
+            class Test {
+                unsafe void N() {
+                    delegate*manag$$
+            """);
 }
