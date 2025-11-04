@@ -742,9 +742,17 @@ class C
             Assert.Null(typeInfo.Type);
             Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var trueBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenTrue);
+            var trueBranch = conditionalExpression.WhenTrue;
+            var trueBranchTypeInfo = model.GetTypeInfo(trueBranch);
             Assert.Equal("C", trueBranchTypeInfo.Type.ToTestDisplayString());
             Assert.Equal("C", trueBranchTypeInfo.ConvertedType.ToTestDisplayString());
+            var trueBranchSymbolInfo = model.GetSymbolInfo(trueBranch);
+            Assert.Null(trueBranchSymbolInfo.Symbol);
+            Assert.Collection(trueBranchSymbolInfo.CandidateSymbols,
+                static c => Assert.Equal("C..ctor()", c.ToTestDisplayString()));
+            var trueBranchSymbolGroup = model.GetMemberGroup(trueBranch);
+            Assert.Collection(trueBranchSymbolGroup,
+                static c => Assert.Equal("C..ctor()", c.ToTestDisplayString()));
 
             var falseBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenFalse);
             Assert.Equal("C", falseBranchTypeInfo.Type.ToTestDisplayString());
@@ -778,9 +786,17 @@ class C
             Assert.Null(typeInfo.Type);
             Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var trueBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenTrue);
+            var trueBranch = conditionalExpression.WhenTrue;
+            var trueBranchTypeInfo = model.GetTypeInfo(trueBranch);
             Assert.Equal("C", trueBranchTypeInfo.Type.ToTestDisplayString());
             Assert.Equal("C", trueBranchTypeInfo.ConvertedType.ToTestDisplayString());
+            var trueBranchSymbolInfo = model.GetSymbolInfo(trueBranch);
+            Assert.Null(trueBranchSymbolInfo.Symbol);
+            Assert.Collection(trueBranchSymbolInfo.CandidateSymbols,
+                static c => Assert.Equal("C..ctor()", c.ToTestDisplayString()));
+            var trueBranchSymbolGroup = model.GetMemberGroup(trueBranch);
+            Assert.Collection(trueBranchSymbolGroup,
+                static c => Assert.Equal("C..ctor()", c.ToTestDisplayString()));
 
             var falseBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenFalse);
             Assert.Equal("C", falseBranchTypeInfo.Type.ToTestDisplayString());
@@ -815,9 +831,17 @@ class C
             Assert.Null(typeInfo.Type);
             Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var trueBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenTrue);
+            var trueBranch = conditionalExpression.WhenTrue;
+            var trueBranchTypeInfo = model.GetTypeInfo(trueBranch);
             Assert.Equal("C", trueBranchTypeInfo.Type.ToTestDisplayString());
             Assert.Equal("C", trueBranchTypeInfo.ConvertedType.ToTestDisplayString());
+            var trueBranchSymbolInfo = model.GetSymbolInfo(trueBranch);
+            Assert.Null(trueBranchSymbolInfo.Symbol);
+            Assert.Collection(trueBranchSymbolInfo.CandidateSymbols,
+                static c => Assert.Equal("C..ctor()", c.ToTestDisplayString()));
+            var trueBranchSymbolGroup = model.GetMemberGroup(trueBranch);
+            Assert.Collection(trueBranchSymbolGroup,
+                static c => Assert.Equal("C..ctor()", c.ToTestDisplayString()));
 
             var falseBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenFalse);
             Assert.Equal("C", falseBranchTypeInfo.Type.ToTestDisplayString());
@@ -856,9 +880,17 @@ class C
             Assert.Null(typeInfo.Type);
             Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString());
 
-            var trueBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenTrue);
+            var trueBranch = conditionalExpression.WhenTrue;
+            var trueBranchTypeInfo = model.GetTypeInfo(trueBranch);
             Assert.Equal("C", trueBranchTypeInfo.Type.ToTestDisplayString());
             Assert.Equal("C", trueBranchTypeInfo.ConvertedType.ToTestDisplayString());
+            var trueBranchSymbolInfo = model.GetSymbolInfo(trueBranch);
+            Assert.Null(trueBranchSymbolInfo.Symbol);
+            Assert.Collection(trueBranchSymbolInfo.CandidateSymbols,
+                static c => Assert.Equal("C..ctor()", c.ToTestDisplayString()));
+            var trueBranchSymbolGroup = model.GetMemberGroup(trueBranch);
+            Assert.Collection(trueBranchSymbolGroup,
+                static c => Assert.Equal("C..ctor()", c.ToTestDisplayString()));
 
             var falseBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenFalse);
             Assert.Equal("C", falseBranchTypeInfo.Type.ToTestDisplayString());
@@ -895,9 +927,17 @@ class C
             Assert.Null(typeInfo.Type);
             Assert.Null(typeInfo.ConvertedType);
 
-            var trueBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenTrue);
+            var trueBranch = conditionalExpression.WhenTrue;
+            var trueBranchTypeInfo = model.GetTypeInfo(trueBranch);
             Assert.Equal("C", trueBranchTypeInfo.Type.ToTestDisplayString());
             Assert.Equal("C", trueBranchTypeInfo.ConvertedType.ToTestDisplayString());
+            var trueBranchSymbolInfo = model.GetSymbolInfo(trueBranch);
+            Assert.Null(trueBranchSymbolInfo.Symbol);
+            Assert.Collection(trueBranchSymbolInfo.CandidateSymbols,
+                static c => Assert.Equal("C..ctor()", c.ToTestDisplayString()));
+            var trueBranchSymbolGroup = model.GetMemberGroup(trueBranch);
+            Assert.Collection(trueBranchSymbolGroup,
+                static c => Assert.Equal("C..ctor()", c.ToTestDisplayString()));
 
             var falseBranchTypeInfo = model.GetTypeInfo(conditionalExpression.WhenFalse);
             Assert.Equal("C", falseBranchTypeInfo.Type.ToTestDisplayString());
