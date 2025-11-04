@@ -331,6 +331,7 @@ internal interface ISyntaxFacts
 
     bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node);
     bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? initializedInstance);
+    bool IsAnonymousObjectMemberDeclaratorNameIdentifier([NotNullWhen(true)] SyntaxNode? node);
     bool IsAnyInitializerExpression([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? creationExpression);
 
     bool IsDirective([NotNullWhen(true)] SyntaxNode? node);

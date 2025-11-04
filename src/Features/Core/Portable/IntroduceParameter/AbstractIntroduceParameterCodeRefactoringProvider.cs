@@ -58,7 +58,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
 
         var generator = SyntaxGenerator.GetGenerator(document);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        if (!IsValidExpression(expression, syntaxFacts, this))
+        if (!IsValidExpression(expression, syntaxFacts))
             return;
 
         var containingMethod = expression.FirstAncestorOrSelf<SyntaxNode>(node => generator.GetParameterListNode(node) is not null);
@@ -118,7 +118,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         }
     }
 
-    private bool IsValidExpression(SyntaxNode expression, ISyntaxFactsService syntaxFacts, AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax, TArgumentSyntax> provider)
+    private static bool IsValidExpression(SyntaxNode expression, ISyntaxFactsService syntaxFacts)
     {
         // Need to special case for highlighting of method types because they are also "contained" within a method,
         // but it does not make sense to introduce a parameter in that case.
@@ -137,7 +137,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
 
         // Need to special case for the left-hand side of member initializers in anonymous objects (e.g., 'a' in 'new { a = ... }').
         // This checks if the expression is the name identifier in an anonymous object member declarator.
-        if (provider.IsAnonymousObjectMemberDeclaratorNameIdentifier(expression))
+        if (syntaxFacts.IsAnonymousObjectMemberDeclaratorNameIdentifier(expression))
             return false;
 
         // Need to special case for expressions that are contained within a parameter or attribute argument
