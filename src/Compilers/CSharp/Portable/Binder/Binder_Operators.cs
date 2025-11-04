@@ -1577,7 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (type.Kind != SymbolKind.NamedType || type.IsInterfaceType())
+            if (type is not NamedTypeSymbol { IsInterface: false } namedType)
             {
                 diagnostics.Add(left.Syntax, useSiteInfo);
                 return false;
@@ -1596,7 +1596,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Stack Trace:
             //     at CallSite.Target(Closure, CallSite, Object, Nullable`1)
             //     at System.Dynamic.UpdateDelegates.UpdateAndExecute2[T0,T1,TRet](CallSite site, T0 arg0, T1 arg1)
-            var namedType = type as NamedTypeSymbol;
             var result = hasApplicableBooleanOperator(namedType, isNegative ? WellKnownMemberNames.FalseOperatorName : WellKnownMemberNames.TrueOperatorName, type, ref useSiteInfo, out userDefinedOperator);
 
             if (result)

@@ -3650,6 +3650,7 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80954")]
         public void DynamicBooleanExpression_InterfaceOperator_And()
         {
             const string source = @"
@@ -3682,6 +3683,7 @@ class Test
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80954")]
         public void DynamicBooleanExpression_InterfaceOperator_Or()
         {
             const string source = @"
@@ -3714,6 +3716,7 @@ class Test
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80954")]
         public void DynamicBooleanExpression_ClassWithoutOperator()
         {
             // Ensure the class case still works correctly (regression test)
