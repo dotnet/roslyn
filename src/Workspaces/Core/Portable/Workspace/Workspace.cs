@@ -51,6 +51,11 @@ public abstract partial class Workspace : IDisposable
     private readonly NonReentrantLock _stateLock = new(useThisInstanceForSynchronization: true);
 
     /// <summary>
+    /// Cache for initializing generator drivers across different Solution instances from this Workspace.
+    /// </summary>
+    internal SolutionCompilationState.GeneratorDriverInitializationCache GeneratorDriverCreationCache { get; } = new();
+
+    /// <summary>
     /// Current solution.  Must be locked with <see cref="_serializationLock"/> when writing to it.
     /// </summary>
     private Solution _latestSolution;
@@ -274,6 +279,13 @@ public abstract partial class Workspace : IDisposable
             onAfterUpdate: static (oldSolution, newSolution, data) =>
             {
                 data.onAfterUpdate?.Invoke(oldSolution, newSolution);
+
+                // The GeneratorDriverCreationCache holds onto a primordial GeneratorDriver for a project when we first creat one. That way, if another fork
+                // of the Solution also needs to run generators, it's able to reuse that primordial driver rather than recreating one from scratch. We want to
+                // clean up that cache at some point so we're not holding onto unneeded GeneratorDrivers. We'll clean out some cached entries here for projects
+                // that have a GeneratorDriver held in CurrentSolution. The idea being that once a project has a GeneratorDriver in the CurrentSolution, all future
+                // requests for generated documents will just use the updated generator that project already has, so there will never be another need to create one.
+                data.@this.GeneratorDriverCreationCache.EmptyCacheForProjectsThatHaveGeneratorDriversInSolution(newSolution.CompilationState);
 
                 // Queue the event but don't execute its handlers on this thread.
                 // Doing so under the serialization lock guarantees the same ordering of the events
@@ -2370,7 +2382,7 @@ public abstract partial class Workspace : IDisposable
     }
 
     /// <summary>
-    /// Throws an exception is the project is part of the current solution.
+    /// Throws an exception if the project is part of the current solution.
     /// </summary>
     protected void CheckProjectIsNotInCurrentSolution(ProjectId projectId)
         => CheckProjectIsNotInSolution(this.CurrentSolution, projectId);
