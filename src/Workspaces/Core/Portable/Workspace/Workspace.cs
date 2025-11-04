@@ -280,10 +280,11 @@ public abstract partial class Workspace : IDisposable
             {
                 data.onAfterUpdate?.Invoke(oldSolution, newSolution);
 
-                // We have a cache which we use for running generators in a Solution instance that doesn't already have a GeneratorDriver
-                // for it -- we can potentially reuse a GeneratorDriver created for another instance (after we update it to match.) The
-                // assumption here is by the time we're updating the CurrentSolution to point to a projects that have GeneratorDrivers,
-                // we won't need that cache anymore since any further requests for generated documents will use the properly held GeneratorDriver.
+                // The GeneratorDriverCreationCache holds onto a primordial GeneratorDriver for a project when we first creat one. That way, if another fork
+                // of the Solution also needs to run generators, it's able to reuse that primordial driver rather than recreating one from scratch. We want to
+                // clean up that cache at some point so we're not holding onto unneeded GeneratorDrivers. We'll clean out some cached entries here for projects
+                // that have a GeneratorDriver held in CurrentSolution. The idea being that once a project has a GeneratorDriver in the CurrentSolution, all future
+                // requests for generated documents will just use the updated generator that project already has, so there will never be another need to create one.
                 data.@this.GeneratorDriverCreationCache.EmptyCacheForProjectsThatHaveGeneratorDriversInSolution(newSolution.CompilationState);
 
                 // Queue the event but don't execute its handlers on this thread.
