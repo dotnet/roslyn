@@ -23,36 +23,14 @@ internal sealed partial class CSharpIntroduceParameterCodeRefactoringProvider()
     ArgumentSyntax>
 {
     protected override SyntaxNode GenerateExpressionFromOptionalParameter(IParameterSymbol parameterSymbol)
-    {
-        return ExpressionGenerator.GenerateExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference: true);
-    }
+        => ExpressionGenerator.GenerateExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference: true);
 
     protected override SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl)
-    {
-        return variableDecl.Parent?.Parent as LocalDeclarationStatementSyntax;
-    }
+        => variableDecl.Parent?.Parent as LocalDeclarationStatementSyntax;
 
     protected override bool IsDestructor(IMethodSymbol methodSymbol)
-    {
-        return false;
-    }
+        => false;
 
     protected override SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<ArgumentSyntax> arguments)
         => ((ArgumentListSyntax)argumentList).WithArguments(arguments);
-
-    protected override bool IsAnonymousObjectMemberDeclaratorNameIdentifier(SyntaxNode expression)
-    {
-        // Check if this expression is the name identifier in an anonymous object member declarator.
-        // In C#, the structure is: IdentifierNameSyntax -> NameEqualsSyntax -> AnonymousObjectMemberDeclaratorSyntax
-        // We want to return true when expression is the identifier on the left side of the '=' in something like 'new { a = value }'
-        if (expression is IdentifierNameSyntax identifier &&
-            identifier.Parent is NameEqualsSyntax nameEquals &&
-            nameEquals.Parent is AnonymousObjectMemberDeclaratorSyntax)
-        {
-            // Verify that the identifier is the Name part of NameEqualsSyntax (not some other part)
-            return nameEquals.Name == identifier;
-        }
-
-        return false;
-    }
 }

@@ -667,6 +667,12 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         return false;
     }
 
+    public bool IsAnonymousObjectMemberDeclaratorNameIdentifier([NotNullWhen(true)] SyntaxNode? expression)
+        => expression is IdentifierNameSyntax identifier &&
+           identifier.Parent is NameEqualsSyntax nameEquals &&
+           nameEquals.Parent is AnonymousObjectMemberDeclaratorSyntax &&
+           nameEquals.Name == identifier;
+
     public bool IsAnyInitializerExpression([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? creationExpression)
     {
         if (node is InitializerExpressionSyntax
