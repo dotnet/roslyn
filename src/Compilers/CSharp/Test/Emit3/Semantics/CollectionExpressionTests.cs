@@ -22291,7 +22291,7 @@ partial class Program
             }
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71183")]
         public void ListConstruction_FixedElementsBeforeSpread()
         {
             // Test that when there are fixed elements before a spread element,
