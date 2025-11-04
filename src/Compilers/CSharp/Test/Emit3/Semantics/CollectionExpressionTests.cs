@@ -22291,6 +22291,123 @@ partial class Program
             }
         }
 
+        [Fact]
+        public void ListConstruction_FixedElementsBeforeSpread()
+        {
+            // Test that when there are fixed elements before a spread element,
+            // we use an index variable for ALL elements (not constant indices).
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        List<int> y = [5, 6];
+                        List<int> x = [1, 2, ..y];
+                        x.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                new[] { source, s_collectionExtensionsWithSpan },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 2, 5, 6], "));
+            verifier.VerifyDiagnostics();
+
+            // Verify that we use an index variable (V_6) for all elements, including the fixed elements before the spread
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size      167 (0xa7)
+                  .maxstack  5
+                  .locals init (int V_0,
+                                System.Span<int> V_1,
+                                int V_2,
+                                System.Collections.Generic.List<int> V_3,
+                                int V_4,
+                                System.Span<int> V_5,
+                                int V_6,
+                                System.Span<int> V_7)
+                  IL_0000:  ldc.i4.2
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloc.0
+                  IL_0003:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_0008:  dup
+                  IL_0009:  ldloc.0
+                  IL_000a:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
+                  IL_000f:  dup
+                  IL_0010:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_0015:  stloc.1
+                  IL_0016:  ldloca.s   V_1
+                  IL_0018:  ldc.i4.0
+                  IL_0019:  call       "ref int System.Span<int>.this[int].get"
+                  IL_001e:  ldc.i4.5
+                  IL_001f:  stind.i4
+                  IL_0020:  ldloca.s   V_1
+                  IL_0022:  ldc.i4.1
+                  IL_0023:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0028:  ldc.i4.6
+                  IL_0029:  stind.i4
+                  IL_002a:  ldc.i4.1
+                  IL_002b:  stloc.0
+                  IL_002c:  ldc.i4.2
+                  IL_002d:  stloc.2
+                  IL_002e:  stloc.3
+                  IL_002f:  ldc.i4.2
+                  IL_0030:  ldloc.3
+                  IL_0031:  callvirt   "int System.Collections.Generic.List<int>.Count.get"
+                  IL_0036:  add
+                  IL_0037:  stloc.s    V_4
+                  IL_0039:  ldloc.s    V_4
+                  IL_003b:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_0040:  dup
+                  IL_0041:  ldloc.s    V_4
+                  IL_0043:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
+                  IL_0048:  dup
+                  IL_0049:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_004e:  stloc.s    V_5
+                  IL_0050:  ldc.i4.0
+                  IL_0051:  stloc.s    V_6
+                  IL_0053:  ldloca.s   V_5
+                  IL_0055:  ldloc.s    V_6
+                  IL_0057:  call       "ref int System.Span<int>.this[int].get"
+                  IL_005c:  ldloc.0
+                  IL_005d:  stind.i4
+                  IL_005e:  ldloc.s    V_6
+                  IL_0060:  ldc.i4.1
+                  IL_0061:  add
+                  IL_0062:  stloc.s    V_6
+                  IL_0064:  ldloca.s   V_5
+                  IL_0066:  ldloc.s    V_6
+                  IL_0068:  call       "ref int System.Span<int>.this[int].get"
+                  IL_006d:  ldloc.2
+                  IL_006e:  stind.i4
+                  IL_006f:  ldloc.s    V_6
+                  IL_0071:  ldc.i4.1
+                  IL_0072:  add
+                  IL_0073:  stloc.s    V_6
+                  IL_0075:  ldloc.3
+                  IL_0076:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_007b:  stloc.s    V_7
+                  IL_007d:  ldloca.s   V_7
+                  IL_007f:  ldloca.s   V_5
+                  IL_0081:  ldloc.s    V_6
+                  IL_0083:  ldloca.s   V_7
+                  IL_0085:  call       "int System.Span<int>.Length.get"
+                  IL_008a:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
+                  IL_008f:  call       "void System.Span<int>.CopyTo(System.Span<int>)"
+                  IL_0094:  ldloc.s    V_6
+                  IL_0096:  ldloca.s   V_7
+                  IL_0098:  call       "int System.Span<int>.Length.get"
+                  IL_009d:  add
+                  IL_009e:  stloc.s    V_6
+                  IL_00a0:  ldc.i4.0
+                  IL_00a1:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_00a6:  ret
+                }
+                """);
+        }
+
         [CombinatorialData]
         [Theory]
         public void ListConstruction_02(
