@@ -831,11 +831,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
 
-            // When there are no spread elements, we can use constant indices for better codegen.
-            // When there are spread elements, we need a mutable index variable for the CopyTo optimization.
+            // indexTemp is null when we can use constant compile-time indices.
+            // indexTemp is non-null when we need a runtime-tracked index variable (for spread elements).
             BoundLocal? indexTemp = null;
 
-            if (numberIncludingLastSpread > 0)
+            if (numberIncludingLastSpread != 0)
             {
                 // int index = 0;
                 indexTemp = _factory.StoreToTemp(
@@ -883,8 +883,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
-
                         // array[index] = element;
                         expressions.Add(
                             new BoundAssignmentOperator(
@@ -908,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 },
                 tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression arrayTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                 {
-                    Debug.Assert(indexTemp is not null, "Should not have spread elements when using constant indices");
+                    Debug.Assert(indexTemp is not null);
 
                     if (PrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
                         return false;
@@ -1203,11 +1201,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Populate the span.
                 var spanGetItem = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Item)).AsMember((NamedTypeSymbol)spanTemp.Type);
 
-                // When there are no spread elements, we can use constant indices for better codegen.
-                // When there are spread elements, we need a mutable index variable for the CopyTo optimization.
+                // indexTemp is null when we can use constant compile-time indices.
+                // indexTemp is non-null when we need a runtime-tracked index variable (for spread elements).
                 BoundLocal? indexTemp = null;
 
-                if (numberIncludingLastSpread > 0)
+                if (numberIncludingLastSpread != 0)
                 {
                     // int index = 0;
                     indexTemp = _factory.StoreToTemp(
@@ -1245,8 +1243,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
-
                             // span[index] = element;
                             expressions.Add(
                                 new BoundAssignmentOperator(
@@ -1270,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     },
                     tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression spanTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                     {
-                        Debug.Assert(indexTemp is not null, "Should not have spread elements when using constant indices");
+                        Debug.Assert(indexTemp is not null);
 
                         if (PrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
                             return false;
