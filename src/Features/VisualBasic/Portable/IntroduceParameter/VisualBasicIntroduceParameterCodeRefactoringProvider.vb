@@ -40,17 +40,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceParameter
             ' In VB, the structure for anonymous objects with explicit names is: IdentifierNameSyntax -> NamedFieldInitializerSyntax
             ' We want to return true when expression is the identifier on the left side in something like 'New With { .a = value }'
             Dim identifier = TryCast(expression, IdentifierNameSyntax)
-            If identifier IsNot Nothing AndAlso TypeOf identifier.Parent Is NamedFieldInitializerSyntax Then
-                Dim namedFieldInit = DirectCast(identifier.Parent, NamedFieldInitializerSyntax)
-                ' Check if this is part of an anonymous object (not a regular object initializer)
-                ' Anonymous object initializers are inside AnonymousObjectCreationExpressionSyntax
-                If TypeOf namedFieldInit.Parent Is AnonymousObjectCreationExpressionSyntax Then
-                    ' Verify that the identifier is the Name part of NamedFieldInitializerSyntax
-                    Return namedFieldInit.Name Is identifier
-                End If
+            If identifier Is Nothing Then
+                Return False
             End If
 
-            Return False
+            Dim namedFieldInit = TryCast(identifier.Parent, NamedFieldInitializerSyntax)
+            If namedFieldInit Is Nothing Then
+                Return False
+            End If
+
+            ' Check if this is part of an anonymous object (not a regular object initializer)
+            ' Anonymous object initializers are inside AnonymousObjectCreationExpressionSyntax
+            If Not (TypeOf namedFieldInit.Parent Is AnonymousObjectCreationExpressionSyntax) Then
+                Return False
+            End If
+
+            ' Verify that the identifier is the Name part of NamedFieldInitializerSyntax
+            Return namedFieldInit.Name Is identifier
         End Function
     End Class
 End Namespace
