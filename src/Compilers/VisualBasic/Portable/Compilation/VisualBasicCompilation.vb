@@ -2960,7 +2960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim descriptor = New AnonymousTypeDescriptor(
                 fields.ToImmutableAndFree(), Location.None, isImplicitlyDeclared:=False)
-            Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor)
+            Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor, BindingDiagnosticBag.Discarded)
         End Function
 
         Protected Overrides Function CommonCreateBuiltinOperator(

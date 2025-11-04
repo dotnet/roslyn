@@ -21450,7 +21450,7 @@ public class Helper
                 );
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // https://github.com/dotnet/roslyn/issues/73558: Follow up on used assemblies validation failure. Could be an artifact of https://github.com/dotnet/roslyn/issues/72945.
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/72945")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/73558")]
         public void AnonymousTypeMember_02()
