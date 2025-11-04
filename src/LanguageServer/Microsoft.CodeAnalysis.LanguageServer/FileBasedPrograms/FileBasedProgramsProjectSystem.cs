@@ -152,8 +152,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         };
     }
 
-    protected override async ValueTask OnProjectUnloadedAsync(string projectFilePath)
+    protected override ValueTask OnProjectUnloadedAsync(string projectFilePath)
     {
-        await _projectXmlProvider.UnloadCachedDiagnosticsAsync(projectFilePath);
+        return ValueTask.CompletedTask;
     }
 }
