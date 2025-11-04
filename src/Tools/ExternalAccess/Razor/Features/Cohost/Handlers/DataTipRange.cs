@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 internal static class DataTipRange
 {
-    public static async Task<VSInternalDataTip?> GetDataTipRangeAsync(Document document, LinePosition linePosition, CancellationToken cancellationToken)
-    {
-        return await DataTipRangeHandler.GetDataTipRangeAsync(document, linePosition, cancellationToken).ConfigureAwait(false);
-    }
+    public static Task<VSInternalDataTip?> GetDataTipRangeAsync(Document document, LinePosition linePosition, CancellationToken cancellationToken)
+        => DataTipRangeHandler.GetDataTipRangeAsync(document, linePosition, cancellationToken);
 }
