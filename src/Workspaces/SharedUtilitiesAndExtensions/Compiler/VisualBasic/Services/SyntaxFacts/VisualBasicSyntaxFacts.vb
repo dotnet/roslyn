@@ -676,12 +676,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Dim identifier = TryCast(expression, IdentifierNameSyntax)
             Dim namedFieldInit = TryCast(identifier?.Parent, NamedFieldInitializerSyntax)
 
-            If TypeOf namedFieldInit?.Parent IsNot AnonymousObjectCreationExpressionSyntax Then
-                Return False
-            End If
-
-            ' Verify that the identifier is the Name part of NamedFieldInitializerSyntax
-            Return namedFieldInit.Name Is identifier
+            Return TypeOf namedFieldInit?.Parent Is AnonymousObjectCreationExpressionSyntax AndAlso
+                namedFieldInit.Name Is identifier
         End Function
 
         Public Function IsAnyInitializerExpression(node As SyntaxNode, ByRef creationExpression As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnyInitializerExpression
