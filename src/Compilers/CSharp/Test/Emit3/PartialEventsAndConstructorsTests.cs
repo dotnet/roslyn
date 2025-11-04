@@ -1359,28 +1359,126 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("required").WithLocation(4, 49));
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80986")]
-    public void InterfaceImplementation()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80986")]
+    public void InterfaceImplementation(bool first, bool second)
     {
-        var source = """
+        if (!first && !second)
+        {
+            return;
+        }
+
+        var source = $$"""
             using System;
 
-            internal interface I
+            interface I
             {
                 event EventHandler E;
             }
 
-            partial class C : I
+            partial class C {{(first ? ": I" : "")}}
             {
                 public partial event EventHandler E;
             }
 
-            partial class C
+            partial class C {{(second ? ": I" : "")}}
             {
                 public partial event EventHandler E { add { } remove { } }
             }
             """;
-        CompileAndVerify(source).VerifyDiagnostics();
+        CompileAndVerify(source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: validate,
+            sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = module.GlobalNamespace.GetMember<EventSymbol>("C.E");
+            Assert.False(e.IsWindowsRuntimeEvent);
+
+            var ie = module.GlobalNamespace.GetMember<EventSymbol>("I.E");
+            Assert.False(ie.IsWindowsRuntimeEvent);
+
+            Assert.Same(e, e.ContainingType.FindImplementationForInterfaceMember(ie));
+
+            if (module is SourceModuleSymbol)
+            {
+                Assert.True(e.IsPartialDefinition);
+                Assert.False(((SourceEventSymbol)e).PartialImplementationPart!.IsWindowsRuntimeEvent);
+            }
+        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80986")]
+    public void InterfaceImplementation_WinRt(bool first, bool second)
+    {
+        if (!first && !second)
+        {
+            return;
+        }
+
+        var source1 = """
+            using System;
+
+            public interface I
+            {
+                event EventHandler E;
+            }
+            """;
+
+        var source2 = $$"""
+            using System;
+
+            partial class C {{(first ? ": I" : "")}}
+            {
+                public partial event EventHandler E;
+            }
+
+            partial class C {{(second ? ": I" : "")}}
+            {
+                public partial event EventHandler E { add { return default; } remove { } }
+            }
+            """;
+
+        CompileAndVerifyWithWinRt([source1, source2],
+            options: TestOptions.DebugWinMD.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: static m => validate(m, true),
+            sourceSymbolValidator: static m => validate(m, true)).VerifyDiagnostics();
+
+        // If the interface is WinMD and the class is not WinMD, the event is WinRt
+        CompileAndVerifyWithWinRt(source2,
+            references: [
+                CompileAndVerifyWithWinRt(source1, options: TestOptions.DebugWinMD).VerifyDiagnostics().GetImageReference()
+            ],
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: static m => validate(m, true),
+            sourceSymbolValidator: static m => validate(m, true)).VerifyDiagnostics();
+
+        // If the interface is not WinMD and the class is WinMD, the event is not WinRt
+        CompileAndVerifyWithWinRt(source2.Replace("add { return default; }", "add { }"),
+            references: [
+                CompileAndVerifyWithWinRt(source1, options: TestOptions.DebugDll).VerifyDiagnostics().GetImageReference()
+            ],
+            options: TestOptions.DebugWinMD.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: static m => validate(m, false),
+            sourceSymbolValidator: static m => validate(m, false)).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module, bool isWinRtEvent)
+        {
+            var e = module.GlobalNamespace.GetMember<EventSymbol>("C.E");
+            Assert.Equal(isWinRtEvent, e.IsWindowsRuntimeEvent);
+
+            var i = e.ContainingType.Interfaces().Single();
+            var ie = i.GetMember<EventSymbol>("E");
+            Assert.Equal(isWinRtEvent, ie.IsWindowsRuntimeEvent);
+
+            Assert.Same(e, e.ContainingType.FindImplementationForInterfaceMember(ie));
+
+            if (module is SourceModuleSymbol)
+            {
+                Assert.True(e.IsPartialDefinition);
+                Assert.Equal(isWinRtEvent, ((SourceEventSymbol)e).PartialImplementationPart!.IsWindowsRuntimeEvent);
+            }
+        }
     }
 
     [Fact]
