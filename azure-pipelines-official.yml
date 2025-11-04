@@ -116,7 +116,7 @@ extends:
       autoEnableRoslynWithNewRuleset: false
     sdl:
       sourceAnalysisPool:
-        name: NetCore1ESPool-Svc-Internal
+        name: NetCore1ESPool-Internal
         image: 1es-windows-2022
         os: windows
       sbom:
@@ -129,7 +129,7 @@ extends:
         enabled: true
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
-      name: NetCore1ESPool-Svc-Internal
+      name: NetCore1ESPool-Internal
       image: windows.vs2026preview.scout.amd64
       os: windows
     customBuildTags:
@@ -368,7 +368,7 @@ extends:
           dependsOn:
           - OfficialBuild
           pool:
-            name: NetCore1ESPool-Svc-Internal
+            name: NetCore1ESPool-Internal
             demands: ImageOverride -equals windows.vs2026.amd64
 
       - ${{ if eq(variables.enableSourceIndex, 'true') }}:

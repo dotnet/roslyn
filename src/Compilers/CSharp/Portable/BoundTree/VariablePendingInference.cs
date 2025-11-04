@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (inferenceFailed)
             {
-                type = TypeWithAnnotations.Create(binderOpt!.CreateErrorType("var"));
+                type = TypeWithAnnotations.Create(binderOpt!.Compilation.ImplicitlyTypedVariableInferenceFailedType);
             }
 
             switch (this.VariableSymbol.Kind)

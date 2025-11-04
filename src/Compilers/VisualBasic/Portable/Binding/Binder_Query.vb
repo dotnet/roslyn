@@ -3347,7 +3347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         For i As Integer = 0 To joinConditions.Count - 1
                             fields(i) = New AnonymousTypeField(
-                                "Key" & i.ToString(), outerKeys(i).Type, joinConditions(i).GetLocation(), isKeyOrByRef:=True)
+                                "Key" & i.ToString(Globalization.CultureInfo.InvariantCulture), outerKeys(i).Type, joinConditions(i).GetLocation(), isKeyOrByRef:=True)
                         Next
 
                         Dim descriptor As New AnonymousTypeDescriptor(fields.AsImmutableOrNull(),

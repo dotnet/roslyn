@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
                 Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 Type.CheckAllConstraints(DeclaringCompilation.LanguageVersion,
-                                     Locations(0), diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, sourceModule.ContainingAssembly))
+                                     GetFirstLocation(), diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, sourceModule.ContainingAssembly))
                 sourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.TypeConstraintsChecked, 0, diagnostics)
                 diagnostics.Free()
             End If

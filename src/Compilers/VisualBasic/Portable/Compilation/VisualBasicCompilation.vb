@@ -1596,7 +1596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Global code is the entry point, ignore all other Mains.
                     If ScriptClass IsNot Nothing Then
                         For Each main In entryPointCandidates
-                            diagnostics.Add(ERRID.WRN_MainIgnored, main.Locations.First(), main)
+                            diagnostics.Add(ERRID.WRN_MainIgnored, main.GetFirstLocation(), main)
                         Next
                         Return ScriptClass.GetScriptEntryPoint()
                     End If

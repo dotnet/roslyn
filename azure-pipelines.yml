@@ -327,6 +327,17 @@ stages:
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
 
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows CoreCLR RuntimeAsync Debug'
+      jobName: Test_Windows_CoreClr_RuntimeAsync_Debug
+      testArtifactName: Transport_Artifacts_Windows_Debug
+      configuration: Debug
+      testArguments: -testCoreClr -testRuntimeAsync -testCompilerOnly
+      helixQueueName: $(HelixWindowsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
+      poolParameters: ${{ parameters.windowsPool }}
+
   # This leg runs almost all the compiler tests supported on CoreCLR, but
   #  with additional validation for used assemblies and GetEmitDiagnostics
   - template: eng/pipelines/test-windows-job.yml

@@ -275,10 +275,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                  });
 
             internal void VerifyPdb(IEnumerable<int> methodTokens, string expectedPdb)
-                => Verify(() => generationInfo.CompilationDifference!.VerifyPdb(methodTokens, expectedPdb, expectedIsRawXml: true));
+                => Verify(() => generationInfo.CompilationDifference.VerifyPdb(methodTokens, expectedPdb, expectedIsRawXml: true));
 
             internal void VerifyPdb(string qualifiedMemberName, string expectedPdb, PdbValidationOptions options = default)
-                => Verify(() => generationInfo.CompilationVerifier!.VerifyPdb(qualifiedMemberName, expectedPdb, options: options, expectedIsRawXml: true));
+                => Verify(() => generationInfo.CompilationVerifier.VerifyPdb(qualifiedMemberName, expectedPdb, options: options, expectedIsRawXml: true));
 
             internal void VerifyCustomDebugInformation(string qualifiedMemberName, string expectedPdb)
                 => VerifyPdb(qualifiedMemberName, expectedPdb, PdbValidationOptions.ExcludeDocuments | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeScopes);

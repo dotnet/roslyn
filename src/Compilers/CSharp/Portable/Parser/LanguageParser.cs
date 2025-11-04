@@ -2577,11 +2577,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 break;
 
                             case SyntaxKind.DelegateKeyword:
-                                switch (this.PeekToken(1).Kind)
+                                // Check if this is an anonymous delegate expression or a delegate type declaration.
+                                // Anonymous delegate: delegate { } or delegate (params) { }
+                                // Delegate declaration: delegate Type Name(params);
+                                if (IsAnonymousDelegateExpression())
                                 {
-                                    case SyntaxKind.OpenParenToken:
-                                    case SyntaxKind.OpenBraceToken:
-                                        return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
+                                    return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
                                 }
                                 break;
 
@@ -3361,6 +3362,8 @@ parse_member_name:;
             return true;
         }
 
+#nullable enable
+
         private ConstructorDeclarationSyntax ParseConstructorDeclaration(
             SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
@@ -3370,9 +3373,7 @@ parse_member_name:;
             try
             {
                 var paramList = this.ParseParenthesizedParameterList(forExtension: false);
-                var initializer = this.CurrentToken.Kind == SyntaxKind.ColonToken
-                    ? this.ParseConstructorInitializer()
-                    : null;
+                var initializer = this.TryParseConstructorInitializer();
 
                 this.ParseBlockAndExpressionBodiesWithSemicolon(out var body, out var expressionBody, out var semicolon);
 
@@ -3384,37 +3385,47 @@ parse_member_name:;
             }
         }
 
+        private ConstructorInitializerSyntax? TryParseConstructorInitializer()
+        {
+            var currentTokenKind = this.CurrentToken.Kind;
+            var shouldParse = currentTokenKind is SyntaxKind.ColonToken ||
+                (currentTokenKind is SyntaxKind.EqualsGreaterThanToken &&
+                 this.PeekToken(1).Kind is SyntaxKind.ThisKeyword or SyntaxKind.BaseKeyword &&
+                 this.PeekToken(2).Kind is SyntaxKind.OpenParenToken);
+
+            if (!shouldParse)
+                return null;
+
+            return ParseConstructorInitializer();
+        }
+
         private ConstructorInitializerSyntax ParseConstructorInitializer()
         {
-            var colon = this.EatToken(SyntaxKind.ColonToken);
+            // Normally called for `:` but also in some error recovery circumstances for `=>`. EatTokenAsKind handles
+            // both cases properly, producing the right errors we need in the latter case, and always consuming
+            // whichever token we're coming into this method on.
+            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.ColonToken or SyntaxKind.EqualsGreaterThanToken);
+            var colon = this.EatTokenAsKind(SyntaxKind.ColonToken);
 
-            var reportError = true;
-            var kind = this.CurrentToken.Kind == SyntaxKind.BaseKeyword
-                ? SyntaxKind.BaseConstructorInitializer
-                : SyntaxKind.ThisConstructorInitializer;
-
-            SyntaxToken token;
-            if (this.CurrentToken.Kind is SyntaxKind.BaseKeyword or SyntaxKind.ThisKeyword)
-            {
-                token = this.EatToken();
-            }
-            else
-            {
-                token = this.EatToken(SyntaxKind.ThisKeyword, ErrorCode.ERR_ThisOrBaseExpected);
-
-                // No need to report further errors at this point:
-                reportError = false;
-            }
+            var token = this.CurrentToken.Kind is SyntaxKind.BaseKeyword or SyntaxKind.ThisKeyword
+                ? this.EatToken()
+                : this.EatToken(SyntaxKind.ThisKeyword, ErrorCode.ERR_ThisOrBaseExpected);
 
             var argumentList = this.CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? this.ParseParenthesizedArgumentList()
                 : _syntaxFactory.ArgumentList(
-                    this.EatToken(SyntaxKind.OpenParenToken, reportError),
+                    this.EatToken(SyntaxKind.OpenParenToken, reportError: !token.ContainsDiagnostics),
                     arguments: default,
-                    this.EatToken(SyntaxKind.CloseParenToken, reportError));
+                    this.EatToken(SyntaxKind.CloseParenToken, reportError: !token.ContainsDiagnostics));
 
-            return _syntaxFactory.ConstructorInitializer(kind, colon, token, argumentList);
+            return _syntaxFactory.ConstructorInitializer(
+                token.Kind == SyntaxKind.BaseKeyword
+                    ? SyntaxKind.BaseConstructorInitializer
+                    : SyntaxKind.ThisConstructorInitializer,
+                colon, token, argumentList);
         }
+
+#nullable disable
 
         private DestructorDeclarationSyntax ParseDestructorDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
@@ -4697,7 +4708,6 @@ parse_member_name:;
                 allowTrailingSeparator: false,
                 requireOneElement: forExtension, // For extension declarations, we require at least one receiver parameter
                 allowSemicolonAsSeparator: false);
-            // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider suppressing parsing diagnostics on extension parameters beyond the first one
 
             _termState = saveTerm;
             close = this.EatToken(closeKind);
@@ -8643,6 +8653,62 @@ done:
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Determines if the current 'delegate' keyword starts an anonymous delegate expression
+        /// rather than a delegate type declaration.
+        /// </summary>
+        /// <returns>
+        /// true if this is an anonymous delegate expression (e.g., delegate { } or delegate (params) { }),
+        /// false if this is likely a delegate type declaration (e.g., delegate Type Name(params);)
+        /// </returns>
+        private bool IsAnonymousDelegateExpression()
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.DelegateKeyword);
+
+            var nextToken = this.PeekToken(1);
+
+            // delegate { } is definitely an anonymous delegate
+            if (nextToken.Kind == SyntaxKind.OpenBraceToken)
+            {
+                return true;
+            }
+
+            // If not followed by '(', it's a delegate type declaration
+            if (nextToken.Kind != SyntaxKind.OpenParenToken)
+            {
+                return false;
+            }
+
+            // Now we have 'delegate (' - need to distinguish:
+            // - Anonymous delegate: delegate (params) { }
+            // - Delegate declaration: delegate (TupleType) Name(params);
+            //
+            // Try to parse what's in the parentheses as a tuple type, and check if
+            // it's followed by an identifier (which would indicate a delegate declaration).
+
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            // Skip 'delegate'
+            this.EatToken();
+
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenParenToken);
+            // Skip '('
+            this.EatToken();
+
+            // Try to scan as a tuple type
+            var scanResult = this.ScanTupleType(out _);
+
+            // If it successfully scanned as a tuple type and is followed by an identifier,
+            // it's a delegate type declaration with a tuple return type.
+            if (scanResult == ScanTypeFlags.TupleType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+            {
+                return false;
+            }
+
+            // Otherwise, assume it's an anonymous delegate expression.
+            return true;
         }
 
         private bool IsPossibleNewExpression()
@@ -13906,7 +13972,10 @@ done:
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.LetKeyword);
             return _syntaxFactory.LetClause(
                 this.EatContextualToken(SyntaxKind.LetKeyword),
-                this.ParseIdentifierToken(),
+                // If we see a keyword followed by '=', use EatTokenAsKind to produce a better error message and recover well.
+                SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.EqualsToken
+                    ? this.EatTokenAsKind(SyntaxKind.IdentifierToken)
+                    : this.ParseIdentifierToken(),
                 this.EatToken(SyntaxKind.EqualsToken),
                 this.ParseExpressionCore());
         }

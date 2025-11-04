@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -64,13 +64,42 @@ internal abstract class AbstractAppDirectiveCompletionProvider : LSPCompletionPr
             //    │  │
             //    │  └─context.Position
             //    └────token.SpanStart
-            var textLeftOfCaret = token.Text.AsSpan(start: 0, length: context.Position - token.SpanStart);
-            if (DirectiveKind.StartsWith(textLeftOfCaret))
+            var textLeftOfCaret = token.Text.AsMemory(start: 0, length: context.Position - token.SpanStart);
+
+            if (textLeftOfCaret.Span.StartsWith(DirectiveKind))
             {
+                // We have a case like the following:
+                // - '#: project$$'
+                // - '#: project $$'
+                // - '#: project  path$$'
+                // - '#: project path/to/proj$$'
+                var textAfterDirectiveKind = textLeftOfCaret.Slice(start: DirectiveKind.Length);
+                // Ensure there is at least one space between 'project' and $$.
+                var contentStartIndex = ClampStart(textAfterDirectiveKind.Span);
+                if (contentStartIndex > 0)
+                {
+                    await AddDirectiveContentCompletionsAsync(context, textAfterDirectiveKind.Slice(start: contentStartIndex)).ConfigureAwait(false);
+                }
+            }
+            else if (DirectiveKind.StartsWith(textLeftOfCaret.Span))
+            {
+                // We have a case like '#: pro$$'.
                 AddDirectiveKindCompletion(context);
             }
+        }
+
+        static int ClampStart(ReadOnlySpan<char> span)
+        {
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (!char.IsWhiteSpace(span[i]))
+                    return i;
+            }
+
+            return span.Length;
         }
     }
 
     protected abstract void AddDirectiveKindCompletion(CompletionContext context);
+    protected abstract Task AddDirectiveContentCompletionsAsync(CompletionContext context, ReadOnlyMemory<char> contentPrefix);
 }

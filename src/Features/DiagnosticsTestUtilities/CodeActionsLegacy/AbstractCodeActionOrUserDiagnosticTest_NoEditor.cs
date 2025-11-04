@@ -924,8 +924,14 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
 
     private static Document GetDocumentAndAnnotatedSpan(TTestWorkspace workspace, out string annotation, out TextSpan span)
     {
-        var annotatedDocuments = workspace.Documents.Where(d => d.AnnotatedSpans.Any());
-        var hostDocument = annotatedDocuments.Single();
+        // May have multiple annotated documents in the case of linked files.  Pick the first one in that case
+        var annotatedDocuments = workspace.Documents.WhereAsArray(d => d.AnnotatedSpans.Any());
+        if (annotatedDocuments.Length > 1)
+        {
+            Contract.ThrowIfFalse(annotatedDocuments.All(d => d.FilePath == annotatedDocuments[0].FilePath));
+        }
+
+        var hostDocument = annotatedDocuments.First();
         var annotatedSpan = hostDocument.AnnotatedSpans.Single();
         annotation = annotatedSpan.Key;
         span = annotatedSpan.Value.Single();
