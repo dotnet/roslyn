@@ -93,6 +93,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.NotNull(looseDocumentOne);
         // Should have the primordial canonical document and the loose document.
         Assert.Equal(2, looseDocumentOne.Project.Documents.Count());
+        Assert.Empty(looseDocumentOne.Project.MetadataReferences);
 
         // Wait for the canonical project to finish loading.
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
@@ -119,6 +120,8 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         var (_, canonicalDocumentTwo) = await GetLspWorkspaceAndDocumentAsync(looseFileUriTwo, testLspServer).ConfigureAwait(false);
         Assert.NotNull(canonicalDocumentTwo);
         Assert.Equal(canonicalDocumentOne.Project.Id, canonicalDocumentTwo.Project.Id);
+        // The project should also contain the other misc document.
+        Assert.Contains(canonicalDocumentTwo.Project.Documents, d => d.Name == looseDocumentOne.Name);
         // Should have the appropriate generated files now that we ran a design time build
         Assert.Contains(canonicalDocumentTwo.Project.Documents, d => d.Name == "Canonical.AssemblyInfo.cs");
     }

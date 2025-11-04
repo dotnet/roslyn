@@ -61,7 +61,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
         _projectXmlProvider = projectXmlProvider;
-        // Lazily create the canonical misc files loader
         _canonicalMiscFilesLoader = new Lazy<CanonicalMiscFilesProjectLoader>(() =>
             new CanonicalMiscFilesProjectLoader(
                 workspaceFactory,

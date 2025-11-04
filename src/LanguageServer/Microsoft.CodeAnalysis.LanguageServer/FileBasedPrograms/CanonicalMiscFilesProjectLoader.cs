@@ -86,15 +86,15 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
 
                     // We always expect that the canonical project is either Primordial, or loaded with exactly 1 target (1 TFM).
                     Contract.ThrowIfFalse(loadedTargets.LoadedProjectTargets.Length == 1, "Expected exactly one loaded target for canonical project");
-                    var loadedProjectId = loadedTargets.LoadedProjectTargets.Single().GetProjectSystemProjectId();
-                    return await AddDocumentToLoadedProjectAsync(documentPath, documentText, loadedProjectId, cancellationToken);
+                    var loadedProjectId = loadedTargets.LoadedProjectTargets.Single().ProjectId;
+                    return await AddDocumentToExistingProject_NoLockAsync(documentPath, documentText, loadedProjectId, cancellationToken);
                 }
                 else
                 {
                     // Case 2: Primordial project was already created, but hasn't finished loading.
                     var primordialTarget = loadState as ProjectLoadState.Primordial;
                     Contract.ThrowIfNull(primordialTarget, "Expected primordial target");
-                    return await AddDocumentToPrimordialProjectAsync(documentPath, documentText, primordialTarget.PrimordialProjectId, cancellationToken);
+                    return await AddDocumentToExistingProject_NoLockAsync(documentPath, documentText, primordialTarget.PrimordialProjectId, cancellationToken);
                 }
             }
             else
@@ -138,37 +138,11 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         }, cancellationToken);
     }
 
-    private async ValueTask<TextDocument> AddDocumentToLoadedProjectAsync(string documentPath, SourceText documentText, ProjectId loadedProjectId, CancellationToken cancellationToken)
+    private async ValueTask<TextDocument> AddDocumentToExistingProject_NoLockAsync(string documentPath, SourceText documentText, ProjectId existingProjectId, CancellationToken cancellationToken)
     {
         var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
-        var project = miscWorkspace.CurrentSolution.GetProject(loadedProjectId);
-
-        Contract.ThrowIfNull(project, "Canonical project must exist in workspace");
-
         var documentInfo = DocumentInfo.Create(
-            DocumentId.CreateNewId(project.Id),
-            name: Path.GetFileName(documentPath),
-            loader: TextLoader.From(TextAndVersion.Create(documentText, VersionStamp.Create())),
-            filePath: documentPath);
-
-        Document? addedDocument = null;
-        await _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspaceAsync(workspace =>
-        {
-            workspace.OnDocumentAdded(documentInfo);
-            addedDocument = workspace.CurrentSolution.GetRequiredDocument(documentInfo.Id);
-        }, cancellationToken);
-
-        Contract.ThrowIfNull(addedDocument);
-        return addedDocument;
-    }
-
-    private async ValueTask<TextDocument> AddDocumentToPrimordialProjectAsync(string documentPath, SourceText documentText, ProjectId primordialProjectId, CancellationToken cancellationToken)
-    {
-        var canonicalDocumentPath = _canonicalDocumentPath.Value;
-        var miscWorkspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
-
-        var documentInfo = DocumentInfo.Create(
-            DocumentId.CreateNewId(primordialProjectId),
+            DocumentId.CreateNewId(existingProjectId),
             name: Path.GetFileName(documentPath),
             loader: TextLoader.From(TextAndVersion.Create(documentText, VersionStamp.Create())),
             filePath: documentPath);
