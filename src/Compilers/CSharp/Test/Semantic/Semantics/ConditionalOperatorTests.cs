@@ -70,14 +70,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestConditional("true ? T : U", null, parseOptions: TestOptions.Regular8,
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type"),
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "U").WithArguments("U", "type"));
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "U").WithArguments("U", "type"),
+                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? T : U").WithArguments("T", "U"));
             TestConditional("true ? T : U", null, parseOptions: TestOptions.Regular8.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()),
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type"),
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "U").WithArguments("U", "type"));
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "U").WithArguments("U", "type"),
+                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? T : U").WithArguments("T", "U"));
             TestConditional("false ? T : 1", null, parseOptions: TestOptions.Regular8,
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type"));
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type"),
+                Diagnostic(ErrorCode.ERR_InvalidQM, "false ? T : 1").WithArguments("T", "int"));
             TestConditional("false ? T : 1", null, parseOptions: TestOptions.Regular8.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()),
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type"));
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type"),
+                Diagnostic(ErrorCode.ERR_InvalidQM, "false ? T : 1").WithArguments("T", "int"));
             TestConditional("true ? GetUserGeneric<char>() : GetUserNonGeneric()", null,
                 Diagnostic(ErrorCode.ERR_InvalidQM, "true ? GetUserGeneric<char>() : GetUserNonGeneric()").WithArguments("D<char>", "C"));
         }
@@ -192,11 +196,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // CONSIDER: dev10 reports ERR_ConstOutOfRange
             TestConditional("1 ? null : null", null, parseOptions: TestOptions.Regular8,
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool")
-                );
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool"),
+                Diagnostic(ErrorCode.ERR_InvalidQM, "1 ? null : null").WithArguments("<null>", "<null>"));
             TestConditional("1 ? null : null", null, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()),
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool")
-                );
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool"),
+                Diagnostic(ErrorCode.ERR_InvalidQM, "1 ? null : null").WithArguments("<null>", "<null>"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67975")]
