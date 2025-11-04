@@ -672,6 +672,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
+        Public Function IsAnonymousObjectMemberDeclaratorNameIdentifier(expression As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnonymousObjectMemberDeclaratorNameIdentifier
+            Dim identifier = TryCast(expression, IdentifierNameSyntax)
+            Dim namedFieldInit = TryCast(identifier?.Parent, NamedFieldInitializerSyntax)
+
+            If TypeOf namedFieldInit?.Parent IsNot AnonymousObjectCreationExpressionSyntax Then
+                Return False
+            End If
+
+            ' Verify that the identifier is the Name part of NamedFieldInitializerSyntax
+            Return namedFieldInit.Name Is identifier
+        End Function
+
         Public Function IsAnyInitializerExpression(node As SyntaxNode, ByRef creationExpression As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnyInitializerExpression
             If TypeOf node Is CollectionInitializerSyntax Then
                 If TypeOf node.Parent Is ArrayCreationExpressionSyntax Then

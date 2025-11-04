@@ -44,7 +44,6 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
     protected abstract SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<TArgumentSyntax> arguments);
     protected abstract SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl);
     protected abstract bool IsDestructor(IMethodSymbol methodSymbol);
-    protected abstract bool IsAnonymousObjectMemberDeclaratorNameIdentifier(SyntaxNode expression);
 
     public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
