@@ -1833,12 +1833,10 @@ class Test
                 }
                 """;
 
-            var parseOptions = CSharpTestBase.WithRuntimeAsync(TestOptions.RegularPreview);
             var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
-                .WithMetadataImportOptions(MetadataImportOptions.All)
-                .WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress);
+                .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var compilation = CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
+            var compilation = CreateRuntimeAsyncCompilation(source, options);
             var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: verify);
             verifier.VerifyDiagnostics();
 
