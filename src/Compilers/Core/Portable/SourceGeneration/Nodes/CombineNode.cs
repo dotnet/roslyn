@@ -62,8 +62,6 @@ namespace Microsoft.CodeAnalysis
             // append the input2 item to each item in input1
             foreach (var entry1 in input1Table)
             {
-                var stopwatch = SharedStopwatch.StartNew();
-
                 var stepInputs = tableBuilder.TrackIncrementalSteps ? ImmutableArray.Create((entry1.Step!, entry1.OutputIndex), (input2Step!, 0)) : default;
 
                 var state = (entry1.State, isInput2Cached) switch
@@ -74,9 +72,9 @@ namespace Microsoft.CodeAnalysis
                 };
 
                 var entry = (entry1.Item, input2);
-                if (state != EntryState.Modified || _comparer is null || !tableBuilder.TryModifyEntry(entry, stopwatch.Elapsed, stepInputs, state))
+                if (state != EntryState.Modified || _comparer is null || !tableBuilder.TryModifyEntry(entry, tableStopwatch.Elapsed, stepInputs, state))
                 {
-                    tableBuilder.AddEntry(entry, state, stopwatch.Elapsed, stepInputs, state);
+                    tableBuilder.AddEntry(entry, state, tableStopwatch.Elapsed, stepInputs, state);
                 }
             }
 

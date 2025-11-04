@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (entry.State != EntryState.Cached || !tableBuilder.TryUseCachedEntries(TimeSpan.Zero, inputs))
                 {
-                    var stopwatch = SharedStopwatch.StartNew();
                     // generate the new entries
                     ImmutableArray<TOutput> newOutputs;
                     try
@@ -89,9 +88,9 @@ namespace Microsoft.CodeAnalysis
                         throw new UserFunctionException(e);
                     }
 
-                    if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntries(newOutputs, stopwatch.Elapsed, inputs, entry.State))
+                    if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntries(newOutputs, tableStopwatch.Elapsed, inputs, entry.State))
                     {
-                        tableBuilder.AddEntries(newOutputs, EntryState.Added, stopwatch.Elapsed, inputs, entry.State);
+                        tableBuilder.AddEntries(newOutputs, EntryState.Added, tableStopwatch.Elapsed, inputs, entry.State);
                     }
                 }
             }

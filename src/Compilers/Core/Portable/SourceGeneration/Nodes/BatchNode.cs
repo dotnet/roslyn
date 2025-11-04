@@ -129,19 +129,17 @@ namespace Microsoft.CodeAnalysis
             // If this execution is tracking steps, then the source table should have also tracked steps or be the empty table.
             Debug.Assert(!tableBuilder.TrackIncrementalSteps || (sourceTable.HasTrackedSteps || sourceTable.IsEmpty));
 
-            var stopwatch = SharedStopwatch.StartNew();
-
             var (sourceValues, sourceInputs) = GetValuesAndInputs(sourceTable, previousTable, tableBuilder);
 
             if (previousTable is null || previousTable.IsEmpty)
             {
-                tableBuilder.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
+                tableBuilder.AddEntry(sourceValues, EntryState.Added, tableStopwatch.Elapsed, sourceInputs, EntryState.Added);
             }
-            else if (!sourceTable.IsCached || !tableBuilder.TryUseCachedEntries(stopwatch.Elapsed, sourceInputs))
+            else if (!sourceTable.IsCached || !tableBuilder.TryUseCachedEntries(tableStopwatch.Elapsed, sourceInputs))
             {
-                if (!tableBuilder.TryModifyEntry(sourceValues, stopwatch.Elapsed, sourceInputs, EntryState.Modified))
+                if (!tableBuilder.TryModifyEntry(sourceValues, tableStopwatch.Elapsed, sourceInputs, EntryState.Modified))
                 {
-                    tableBuilder.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
+                    tableBuilder.AddEntry(sourceValues, EntryState.Added, tableStopwatch.Elapsed, sourceInputs, EntryState.Added);
                 }
             }
 
