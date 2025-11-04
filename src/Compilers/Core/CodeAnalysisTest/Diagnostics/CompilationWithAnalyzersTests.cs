@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
@@ -75,6 +76,127 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             // Verify IsDiagnosticAnalyzerSuppressed does not throw an exception when 'onAnalyzerException' is null.
             var analyzer = new AnalyzerThatThrowsInSupportedDiagnostics();
             _ = CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, s_dllWithMaxWarningLevel, onAnalyzerException: null);
+        }
+
+        [Fact]
+        public async Task AnalyzerWithInfoSeverityIsSkippedOnCommandLine()
+        {
+            // Verify that an analyzer with only Info severity diagnostics is skipped on command line (Hidden and Info filtered)
+            var source = "class C { }";
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CSharpCompilation.Create("test", new[] { tree }, options: s_dllWithMaxWarningLevel);
+
+            var analyzer = new InfoSeverityAnalyzer();
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            var analyzerManager = new AnalyzerManager(analyzers);
+
+            // Simulate command line build: filter out Hidden and Info diagnostics
+            var severityFilter = SeverityFilter.Hidden | SeverityFilter.Info;
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(
+                compilation, analyzers, new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty), analyzerManager,
+                onAnalyzerException: null, analyzerExceptionFilter: null, reportAnalyzer: false,
+                severityFilter, trackSuppressedDiagnosticIds: false, out var newCompilation, CancellationToken.None);
+
+            // Force complete compilation event queue and analyzer execution.
+            _ = newCompilation.GetDiagnostics(CancellationToken.None);
+            var diagnostics = await driver.GetDiagnosticsAsync(newCompilation, CancellationToken.None);
+
+            // Verify analyzer was not invoked (no callbacks executed)
+            Assert.Empty(analyzer.CallbackSymbols);
+
+            // Verify no diagnostics were reported
+            Assert.Empty(diagnostics);
+        }
+
+        [Fact]
+        public async Task AnalyzerWithHiddenSeverityIsSkippedOnCommandLine()
+        {
+            // Verify that an analyzer with only Hidden severity diagnostics is skipped on command line (Hidden and Info filtered)
+            var source = "class C { }";
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CSharpCompilation.Create("test", new[] { tree }, options: s_dllWithMaxWarningLevel);
+
+            var analyzer = new HiddenSeverityAnalyzer();
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            var analyzerManager = new AnalyzerManager(analyzers);
+
+            // Simulate command line build: filter out Hidden and Info diagnostics
+            var severityFilter = SeverityFilter.Hidden | SeverityFilter.Info;
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(
+                compilation, analyzers, new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty), analyzerManager,
+                onAnalyzerException: null, analyzerExceptionFilter: null, reportAnalyzer: false,
+                severityFilter, trackSuppressedDiagnosticIds: false, out var newCompilation, CancellationToken.None);
+
+            // Force complete compilation event queue and analyzer execution.
+            _ = newCompilation.GetDiagnostics(CancellationToken.None);
+            var diagnostics = await driver.GetDiagnosticsAsync(newCompilation, CancellationToken.None);
+
+            // Verify analyzer was not invoked (no callbacks executed)
+            Assert.Empty(analyzer.CallbackSymbols);
+
+            // Verify no diagnostics were reported
+            Assert.Empty(diagnostics);
+        }
+
+        [Fact]
+        public async Task AnalyzerWithInfoSeverityIsNotSkippedInIDE()
+        {
+            // Verify that an analyzer with Info severity diagnostics is NOT skipped in IDE (no severity filter)
+            var source = "class C { }";
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CSharpCompilation.Create("test", new[] { tree }, options: s_dllWithMaxWarningLevel);
+
+            var analyzer = new InfoSeverityAnalyzer();
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            var analyzerManager = new AnalyzerManager(analyzers);
+
+            // Simulate IDE scenario: no severity filter
+            var severityFilter = SeverityFilter.None;
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(
+                compilation, analyzers, new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty), analyzerManager,
+                onAnalyzerException: null, analyzerExceptionFilter: null, reportAnalyzer: false,
+                severityFilter, trackSuppressedDiagnosticIds: false, out var newCompilation, CancellationToken.None);
+
+            // Force complete compilation event queue and analyzer execution.
+            _ = newCompilation.GetDiagnostics(CancellationToken.None);
+            var diagnostics = await driver.GetDiagnosticsAsync(newCompilation, CancellationToken.None);
+
+            // Verify analyzer was invoked (callbacks executed)
+            Assert.NotEmpty(analyzer.CallbackSymbols);
+
+            // Verify diagnostic was reported
+            Assert.Single(diagnostics);
+        }
+
+        [Fact]
+        public async Task AnalyzerWithInfoSeverityNotConfigurableIsNotSkippedOnCommandLine()
+        {
+            // Verify that an analyzer with Info severity diagnostics marked as NotConfigurable is NOT skipped on command line
+            // This is the edge case where NotConfigurable diagnostics are always run, even if their severity would normally be filtered
+            var source = "class C { }";
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CSharpCompilation.Create("test", new[] { tree }, options: s_dllWithMaxWarningLevel);
+
+            var analyzer = new InfoSeverityNotConfigurableAnalyzer();
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            var analyzerManager = new AnalyzerManager(analyzers);
+
+            // Simulate command line build: filter out Hidden and Info diagnostics
+            var severityFilter = SeverityFilter.Hidden | SeverityFilter.Info;
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(
+                compilation, analyzers, new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty), analyzerManager,
+                onAnalyzerException: null, analyzerExceptionFilter: null, reportAnalyzer: false,
+                severityFilter, trackSuppressedDiagnosticIds: false, out var newCompilation, CancellationToken.None);
+
+            // Force complete compilation event queue and analyzer execution.
+            _ = newCompilation.GetDiagnostics(CancellationToken.None);
+            var diagnostics = await driver.GetDiagnosticsAsync(newCompilation, CancellationToken.None);
+
+            // Verify analyzer WAS invoked (callbacks executed) because the diagnostic is NotConfigurable
+            Assert.NotEmpty(analyzer.CallbackSymbols);
+
+            // Verify diagnostic was NOT reported (it's filtered by severity filter even though analyzer ran)
+            Assert.Empty(diagnostics);
         }
     }
 }
