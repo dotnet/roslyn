@@ -3068,7 +3068,7 @@ parse_member_name:;
                     propertyType = refType.Type;
 
                 // Unlikely cases to actually be a property.  Likely some runaway error recovery case.
-                if (propertyType is IdentifierNameSyntax { Identifier.ValueText: "extension" or "with" })
+                if (propertyType is IdentifierNameSyntax { Identifier.ValueText: "extension" or "with" or "get" or "set" or "add" or "remove" or "init" })
                     return false;
 
                 // Can add more cases here if we find ourselves being too eager.
