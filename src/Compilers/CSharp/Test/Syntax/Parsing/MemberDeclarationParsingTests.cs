@@ -20764,7 +20764,7 @@ public class Class
             }
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72354")]
         public void PropertyWithMissingIdentifier_WithAccessors()
         {
             const string source = """
@@ -20783,8 +20783,7 @@ public class Class
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(4, 27),
                 // (6,27): error CS1001: Identifier expected
                 //     public SecondaryValue { get; set; }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(6, 27)
-            );
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(6, 27));
 
             // Validate all members were parsed as properties (not incomplete members)
             N(SyntaxKind.CompilationUnit);
@@ -20904,7 +20903,7 @@ public class Class
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72354")]
         public void PropertyWithMissingIdentifier_ExpressionBody()
         {
             const string source = """
@@ -20918,8 +20917,7 @@ public class Class
             UsingTree(source,
                 // (4,18): error CS1001: Identifier expected
                 //     public Value => null;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(4, 18)
-            );
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(4, 18));
 
             N(SyntaxKind.CompilationUnit);
             {
