@@ -23,7 +23,7 @@ internal partial class Binder
         private object? _extensionResult;
 
         [Conditional("DEBUG")]
-        private void AssertInvariant()
+        private readonly void AssertInvariant()
         {
             Debug.Assert(_nonExtensionResult is null or OverloadResolutionResult<MethodSymbol> or BinaryOperatorOverloadResolutionResult or UnaryOperatorOverloadResolutionResult);
             Debug.Assert(_extensionResult is null or OverloadResolutionResult<MethodSymbol> or BinaryOperatorOverloadResolutionResult or UnaryOperatorOverloadResolutionResult);
@@ -78,7 +78,7 @@ internal partial class Binder
         /// <summary>
         /// Follows a very simplified version of OverloadResolutionResult.ReportDiagnostics which can be expanded in the future if needed.
         /// </summary>
-        internal bool TryReportDiagnostics(SyntaxNode node, Binder binder, object leftDisplay, object? rightDisplay, BindingDiagnosticBag diagnostics)
+        internal readonly bool TryReportDiagnostics(SyntaxNode node, Binder binder, object leftDisplay, object? rightDisplay, BindingDiagnosticBag diagnostics)
         {
             object? resultToUse = pickResultToUse(_nonExtensionResult, _extensionResult);
             if (resultToUse is null)
@@ -126,7 +126,7 @@ internal partial class Binder
                 Debug.Assert(results.All(r => r.resultKind == OperatorAnalysisResultKind.Inapplicable));
 
                 // There is much room to improve diagnostics on inapplicable candidates, but for now we just report the candidate if there is a single one.
-                if (results.Count == 1 && results[0].member is { } inapplicableMember)
+                if (results is [{ member: { } inapplicableMember }])
                 {
                     var toReport = nodeToReport(node);
                     if (rightDisplay is null)

@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
             BoundExpression comparisonResult = new BoundTupleOperandPlaceholder(node, type);
             OperatorResolutionForReporting discardedOperatorResolutionForReporting = default;
-            UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, out resultKind, out originalUserDefinedOperators, ref discardedOperatorResolutionForReporting);
+            UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, ref discardedOperatorResolutionForReporting, out resultKind, out originalUserDefinedOperators);
             discardedOperatorResolutionForReporting.Free();
 
             if (best.HasValue)

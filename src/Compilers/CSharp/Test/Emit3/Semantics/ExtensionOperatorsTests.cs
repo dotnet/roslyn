@@ -958,7 +958,7 @@ class Test2 : I2
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
             comp.VerifyEmitDiagnostics(
-                // (32,17): error CS9339: Operator resolution is ambiguous between the following members:'I1.operator -(I1)' and 'I3.operator -(I3)'
+                // (32,17): error CS9342: Operator resolution is ambiguous between the following members: 'I1.operator -(I1)' and 'I3.operator -(I3)'
                 //         var y = -x;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("I1.operator -(I1)", "I3.operator -(I3)").WithLocation(32, 17)
                 );
@@ -1733,10 +1733,10 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 #if DEBUG
             comp.VerifyEmitDiagnostics(
-                // (35,13): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(C1).operator -(C1)' and 'Extensions1.extension(C1).operator -(C1)'
+                // (35,13): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions2.extension(C1).operator -(C1)' and 'Extensions1.extension(C1).operator -(C1)'
                 //         _ = -c1;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions2.extension(C1).operator -(C1)", "Extensions1.extension(C1).operator -(C1)").WithLocation(35, 13),
-                // (39,17): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked -(C1)' and 'Extensions2.extension(C1).operator -(C1)'
+                // (39,17): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked -(C1)' and 'Extensions2.extension(C1).operator -(C1)'
                 //             _ = -c1;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator checked -(C1)", "Extensions2.extension(C1).operator -(C1)").WithLocation(39, 17)
                 );
@@ -29470,7 +29470,7 @@ _ = ++s;
         [Fact]
         public void ReportDiagnostics_CompoundAssignment_01()
         {
-            // inner scope has inapplicable operator, outter scope too
+            // inner scope has inapplicable operator, outer scope too
             var src = """
 using N;
 
