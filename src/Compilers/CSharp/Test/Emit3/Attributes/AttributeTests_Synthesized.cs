@@ -1839,7 +1839,10 @@ class Test
                 .WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress);
 
             var compilation = CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
-            CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: module =>
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            void verify(ModuleSymbol module)
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 var asyncMethod = type.GetMember<MethodSymbol>("F");
@@ -1852,7 +1855,7 @@ class Test
 
                 // Verify no state machine type was generated
                 Assert.Empty(type.GetTypeMembers("<F>d__0"));
-            });
+            }
         }
         #endregion
 
