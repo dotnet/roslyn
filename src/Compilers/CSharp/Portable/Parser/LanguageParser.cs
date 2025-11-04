@@ -3067,7 +3067,10 @@ parse_member_name:;
                 if (propertyType is RefTypeSyntax refType)
                     propertyType = refType.Type;
 
-                // Unlikely cases to actually be a property.  Likely some runaway error recovery case.
+                // Unlikely cases to actually be a property.  Likely some runaway error recovery case.  For example:
+                // with { }   (likely a with expression)
+                // extension { }  (likely an extension block being written)
+                // get { } (likely an accessor, not a property called 'get').  Same for set/add/remove/init.
                 if (propertyType is IdentifierNameSyntax { Identifier.ValueText: "extension" or "with" or "get" or "set" or "add" or "remove" or "init" })
                     return false;
 
