@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceParameter
 
             ' Check if this is part of an anonymous object (not a regular object initializer)
             ' Anonymous object initializers are inside AnonymousObjectCreationExpressionSyntax
-            If Not (TypeOf namedFieldInit.Parent Is AnonymousObjectCreationExpressionSyntax) Then
+            If TypeOf namedFieldInit.Parent IsNot AnonymousObjectCreationExpressionSyntax Then
                 Return False
             End If
 
