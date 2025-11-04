@@ -1818,4 +1818,59 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """);
+
+    [Fact]
+    public Task TestNotOnAnonymousObjectMemberName()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                object M() => new
+                {
+                    [|a|] = new { },
+                };
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOnAnonymousObjectMemberNameWithValue()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                object M() => new
+                {
+                    [|x|] = 5,
+                };
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOnObjectInitializerMemberName()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Foo { public int X { get; set; } }
+            class C
+            {
+                Foo M() => new Foo
+                {
+                    [|X|] = 5,
+                };
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOnObjectInitializerMemberNameNested()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Foo { public int X { get; set; } public Foo Inner { get; set; } }
+            class C
+            {
+                Foo M() => new Foo
+                {
+                    [|X|] = 5,
+                    Inner = new Foo { X = 10 }
+                };
+            }
+            """);
 }

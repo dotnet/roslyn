@@ -44,6 +44,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
     protected abstract SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<TArgumentSyntax> arguments);
     protected abstract SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl);
     protected abstract bool IsDestructor(IMethodSymbol methodSymbol);
+    protected abstract bool IsAnonymousObjectMemberDeclaratorNameIdentifier(SyntaxNode expression);
 
     public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -57,7 +58,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
 
         var generator = SyntaxGenerator.GetGenerator(document);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        if (!IsValidExpression(expression, syntaxFacts))
+        if (!IsValidExpression(expression, syntaxFacts, this))
             return;
 
         var containingMethod = expression.FirstAncestorOrSelf<SyntaxNode>(node => generator.GetParameterListNode(node) is not null);
@@ -117,7 +118,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         }
     }
 
-    private static bool IsValidExpression(SyntaxNode expression, ISyntaxFactsService syntaxFacts)
+    private bool IsValidExpression(SyntaxNode expression, ISyntaxFactsService syntaxFacts, AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax, TArgumentSyntax> provider)
     {
         // Need to special case for highlighting of method types because they are also "contained" within a method,
         // but it does not make sense to introduce a parameter in that case.
@@ -127,6 +128,16 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         // Need to special case for expressions whose direct parent is a MemberAccessExpression since they will
         // never introduce a parameter that makes sense in that case.
         if (syntaxFacts.IsNameOfAnyMemberAccessExpression(expression))
+            return false;
+
+        // Need to special case for the left-hand side of member initializers in regular objects (e.g., 'X' in 'new Foo { X = ... }')
+        // because it does not make sense to introduce a parameter for the property/member name itself.
+        if (syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(expression, out _))
+            return false;
+
+        // Need to special case for the left-hand side of member initializers in anonymous objects (e.g., 'a' in 'new { a = ... }').
+        // This checks if the expression is the name identifier in an anonymous object member declarator.
+        if (provider.IsAnonymousObjectMemberDeclaratorNameIdentifier(expression))
             return false;
 
         // Need to special case for expressions that are contained within a parameter or attribute argument
