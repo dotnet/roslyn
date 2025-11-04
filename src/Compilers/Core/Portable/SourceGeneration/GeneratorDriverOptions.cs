@@ -22,6 +22,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string? BaseDirectory { get; }
 
+        /// <summary>
+        /// The name of the project this generator driver is for.
+        /// </summary>
+        /// <remarks>
+        /// Only used for telemetry purposes.
+        /// </remarks>
+        public string? ProjectName { get; }
+
         public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs)
             : this(disabledOutputs, false)
         {
@@ -40,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="trackIncrementalGeneratorSteps"></param>
         /// <param name="baseDirectory">Absolute path to the base directory used for file paths of generated files.</param>
         /// <exception cref="ArgumentException"><paramref name="baseDirectory"/> is not an absolute path.</exception>
-        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs = IncrementalGeneratorOutputKind.None, bool trackIncrementalGeneratorSteps = false, string? baseDirectory = null)
+        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs = IncrementalGeneratorOutputKind.None, bool trackIncrementalGeneratorSteps = false, string? baseDirectory = null, string? projectName = null)
         {
             if (baseDirectory != null && !PathUtilities.IsAbsolute(baseDirectory))
             {
@@ -50,6 +58,13 @@ namespace Microsoft.CodeAnalysis
             DisabledOutputs = disabledOutputs;
             TrackIncrementalGeneratorSteps = trackIncrementalGeneratorSteps;
             BaseDirectory = baseDirectory;
+            ProjectName = projectName;
+        }
+
+        // 5.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs, bool trackIncrementalGeneratorSteps, string? baseDirectory)
+            : this(disabledOutputs, trackIncrementalGeneratorSteps, baseDirectory, projectName: null)
+        {
         }
     }
 }

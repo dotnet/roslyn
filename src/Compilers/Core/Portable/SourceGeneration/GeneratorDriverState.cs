@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis
         internal string? BaseDirectory => _driverOptions.BaseDirectory;
 
         /// <summary>
+        /// The name of the project this driver is associated with.
+        /// </summary>
+        internal string? ProjectName => _driverOptions.ProjectName;
+
+        /// <summary>
         /// ParseOptions to use when parsing generator provided source.
         /// </summary>
         internal readonly ParseOptions ParseOptions;

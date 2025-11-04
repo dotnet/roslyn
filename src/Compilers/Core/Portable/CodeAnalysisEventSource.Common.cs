@@ -37,21 +37,23 @@ namespace Microsoft.CodeAnalysis
         internal void StartSingleGeneratorRunTime(string generatorName, string assemblyPath, string id) => WriteEvent(3, generatorName, assemblyPath, id);
 
         [Event(4, Message = "Generator {0} ran for {2} ticks", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.SingleGeneratorRunTime)]
-        internal unsafe void StopSingleGeneratorRunTime(string generatorName, string assemblyPath, long elapsedTicks, string id)
+        internal unsafe void StopSingleGeneratorRunTime(string generatorName, string projectName, string assemblyPath, long elapsedTicks, string id)
         {
             if (IsEnabled())
             {
                 fixed (char* generatorNameBytes = generatorName)
+                fixed (char* projectNameBytes = projectName)
                 fixed (char* assemblyPathBytes = assemblyPath)
                 fixed (char* idBytes = id)
                 {
-                    Span<EventData> data = stackalloc EventData[]
-                    {
+                    Span<EventData> data =
+                    [
                         GetEventDataForString(generatorName, generatorNameBytes),
+                        GetEventDataForString(projectName, projectNameBytes),
                         GetEventDataForString(assemblyPath, assemblyPathBytes),
                         GetEventDataForInt64(&elapsedTicks),
                         GetEventDataForString(id, idBytes),
-                    };
+                    ];
 
                     fixed (EventSource.EventData* dataPtr = data)
                     {

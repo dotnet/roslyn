@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static RunTimer CreateSingleGeneratorRunTimer(this CodeAnalysisEventSource eventSource, ISourceGenerator generator, Func<TimeSpan, TimeSpan> adjustRunTime)
+        public static RunTimer CreateSingleGeneratorRunTimer(this CodeAnalysisEventSource eventSource, ISourceGenerator generator, string? projectName, Func<TimeSpan, TimeSpan> adjustRunTime)
         {
             if (eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance))
             {
                 var id = Guid.NewGuid().ToString();
                 var type = generator.GetGeneratorType();
                 eventSource.StartSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, id);
-                return new RunTimer(t => eventSource.StopSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, t.Ticks, id), adjustRunTime);
+                return new RunTimer(t => eventSource.StopSingleGeneratorRunTime(type.FullName!, projectName ?? "<Unknown Project>", type.Assembly.Location, t.Ticks, id), adjustRunTime);
             }
             else
             {
