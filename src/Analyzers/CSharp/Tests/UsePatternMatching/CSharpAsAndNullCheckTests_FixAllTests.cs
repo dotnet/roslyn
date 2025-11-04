@@ -160,21 +160,21 @@ public sealed partial class CSharpAsAndNullCheckTests
 
                 void M(object o, bool b0, bool b1)
                 {
-                if (o is Symbol symbol)
-                {
-                    while ((object)symbol != null && b1)
+                    if (o is Symbol symbol)
                     {
-                        symbol = symbol.ContainingSymbol as Symbol;
-                    }
+                        while ((object)symbol != null && b1)
+                        {
+                            symbol = symbol.ContainingSymbol as Symbol;
+                        }
 
-                    if ((object)symbol == null || b2)
-                    {
-                        throw null;
-                    }
+                        if ((object)symbol == null || b2)
+                        {
+                            throw null;
+                        }
 
-                    var use = symbol;
+                        var use = symbol;
+                    }
                 }
-            }
             }
             """);
 
