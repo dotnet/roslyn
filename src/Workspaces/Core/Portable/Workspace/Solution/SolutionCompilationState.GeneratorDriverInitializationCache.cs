@@ -16,6 +16,19 @@ internal sealed partial class SolutionCompilationState
 {
     internal sealed class GeneratorDriverInitializationCache
     {
+        /// <summary>
+        /// A set of GeneratorDriver instances that have been created for the keyed project in the solution. Any time we create a GeneratorDriver the first time for
+        /// a project, we'll put it into this map. If other requests come in to get a GeneratorDriver for the same project (but from different Solution snapshots),
+        /// well reuse this GeneratorDriver rather than creating a new one. This allows some first time initialization of a generator (like walking metadata references)
+        /// to be shared rather than doing that initialization multiple times. In the case we are reusing a GeneratorDriver, we'll still always update the GeneratorDriver with
+        /// the current state of the project, so the results are still correct.
+        /// 
+        /// Since these entries are going to be holding onto non-trivial amounts of state, we get rid of the cached entries once there's a belief that we won't be
+        /// creating further GeneratorDrivers for a given project. See uses of <see cref="EmptyCacheForProjectsThatHaveGeneratorDriversInSolution"/>
+        /// for details.
+        /// 
+        /// Any additions/removals to this map must be done via ImmutableInterlocked methods.
+        /// </summary>
         private ImmutableDictionary<ProjectId, AsyncLazy<GeneratorDriver>> _driverCache = ImmutableDictionary<ProjectId, AsyncLazy<GeneratorDriver>>.Empty;
 
         public async Task<GeneratorDriver> CreateAndRunGeneratorDriverAsync(
@@ -33,7 +46,9 @@ internal sealed partial class SolutionCompilationState
             if (asyncLazy == createdAsyncLazy)
             {
                 // We want to ensure that the driver is always created and initialized at least once, so we'll ensure that runs even if we cancel the request here.
-                // Otherwise the concern is we might keep starting and cancelling the work which is just wasteful to keep doing it over and over again.
+                // Otherwise the concern is we might keep starting and cancelling the work which is just wasteful to keep doing it over and over again. We do this
+                // in a Task.Run() so if the underlying computation were to run on our thread, we're not blocking our caller from observing cancellation
+                // if they request it.
                 _ = Task.Run(() => asyncLazy.GetValueAsync(CancellationToken.None));
 
                 return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -67,7 +82,13 @@ internal sealed partial class SolutionCompilationState
         public void EmptyCacheForProjectsThatHaveGeneratorDriversInSolution(SolutionCompilationState state)
         {
             // If we don't have any cached drivers, then just return before we loop through all the projects
-            // in the solution.
+            // in the solution. This is to ensure that once we hit a steady-state case of a Workspace's CurrentSolution
+            // having generators for all projects, we won't need to keep anything further in our cache since the cache
+            // will never be used -- any running of generators in the future will use the GeneratorDrivers already held by
+            // the Solutions.
+            //
+            // This doesn't need to be synchronized against other mutations to _driverCache. If we see it as empty when
+            // in reality something was just being added, we'll just do the cleanup the next time this method is called.
             if (_driverCache.IsEmpty)
                 return;
 
