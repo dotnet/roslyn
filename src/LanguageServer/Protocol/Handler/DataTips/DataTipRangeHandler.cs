@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -26,14 +27,14 @@ internal sealed class DataTipRangeHandler()
     public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request)
         => request.TextDocument;
 
-    public async Task<VSInternalDataTip?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
-    {
-        var document = context.GetRequiredDocument();
+    public Task<VSInternalDataTip?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        => GetDataTipRangeAsync(context.GetRequiredDocument(), ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken);
 
+    public static async Task<VSInternalDataTip?> GetDataTipRangeAsync(Document document, LinePosition linePosition, CancellationToken cancellationToken)
+    {
         var service = document.GetRequiredLanguageService<ILanguageDebugInfoService>();
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
         var position = text.Lines.GetPosition(linePosition);
         var info = await service.GetDataTipInfoAsync(document, position, includeKind: true, cancellationToken).ConfigureAwait(false);
         if (info.IsDefault)
