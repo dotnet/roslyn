@@ -103,3 +103,48 @@ void Method()
 If your code is impacted by this breaking change, consider adding a reference to an assembly defining `System.Runtime.InteropServices.InAttribute` 
 to your project.
 
+
+## Interface types with `true`/`false` operators cannot be used with `&&`/`||` when the right operand is `dynamic`
+
+***Introduced in Visual Studio 2026 version 18.3***
+
+The C# compiler now reports an error when an interface type with `true`/`false` operators is used as the left operand of a logical `&&` or `||` operator with a `dynamic` right operand. Previously, this code would compile but fail at runtime with a `RuntimeBinderException` because the runtime binder cannot invoke operators defined on interfaces.
+
+This change prevents a runtime error by reporting it at compile time instead. The error message is:
+
+> error CS7083: Expression must be implicitly convertible to Boolean or its type 'I1' must not be an interface and must define operator 'false'.
+
+```cs
+interface I1
+{
+    static bool operator true(I1 x) => false;
+    static bool operator false(I1 x) => false;
+}
+
+class C1 : I1
+{
+    public static C1 operator &(C1 x, C1 y) => x;
+    public static bool operator true(C1 x) => false;
+    public static bool operator false(C1 x) => false;
+}
+
+void M()
+{
+    I1 x = new C1();
+    dynamic y = new C1();
+    _ = x && y; // error CS7083: Expression must be implicitly convertible to Boolean or its type 'I1' must not be an interface and must define operator 'false'.
+}
+```
+
+If your code is impacted by this breaking change, consider changing the static type of the left operand from an interface type to a concrete class type that implements the interface:
+
+```cs
+void M()
+{
+    C1 x = new C1(); // Changed from I1 to C1
+    dynamic y = new C1();
+    _ = x && y; // Now valid - uses operators defined on C1
+}
+```
+
+See also https://github.com/dotnet/roslyn/issues/80954.
