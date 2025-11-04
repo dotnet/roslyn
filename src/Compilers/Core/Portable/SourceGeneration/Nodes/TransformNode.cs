@@ -45,8 +45,6 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
         {
-            var tableStopwatch = SharedStopwatch.StartNew();
-
             // grab the source inputs
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
             if (sourceTable.IsCached && previousTable is not null)
@@ -58,6 +56,8 @@ namespace Microsoft.CodeAnalysis
                 }
                 return previousTable;
             }
+
+            var tableStopwatch = SharedStopwatch.StartNew();
 
             // Semantics of a transform:
             // Element-wise comparison of upstream table

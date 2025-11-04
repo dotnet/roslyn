@@ -111,10 +111,10 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<ImmutableArray<TInput>> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<ImmutableArray<TInput>>? previousTable, CancellationToken cancellationToken)
         {
-            var tableStopwatch = SharedStopwatch.StartNew();
-
             // grab the source inputs
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
+
+            var tableStopwatch = SharedStopwatch.StartNew();
 
             // Semantics of a batch transform:
             // Batches will always exist (a batch of the empty table is still [])

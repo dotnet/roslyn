@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<(TInput1, TInput2)> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, TInput2)>? previousTable, CancellationToken cancellationToken)
         {
-            var tableStopwatch = SharedStopwatch.StartNew();
-
             // get both input tables
             var input1Table = graphState.GetLatestStateTableForNode(_input1);
             var input2Table = graphState.GetLatestStateTableForNode(_input2);
@@ -45,6 +43,8 @@ namespace Microsoft.CodeAnalysis
                 }
                 return previousTable;
             }
+
+            var tableStopwatch = SharedStopwatch.StartNew();
 
             var totalEntryItemCount = input1Table.GetTotalEntryItemCount();
             var tableBuilder = graphState.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);

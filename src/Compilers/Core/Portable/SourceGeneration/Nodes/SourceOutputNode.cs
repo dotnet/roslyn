@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
         {
-            var tableStopwatch = SharedStopwatch.StartNew();
-
             string stepName = Kind == IncrementalGeneratorOutputKind.Source ? WellKnownGeneratorOutputs.SourceOutput : WellKnownGeneratorOutputs.ImplementationSourceOutput;
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
             if (sourceTable.IsCached && previousTable is not null)
@@ -52,6 +50,8 @@ namespace Microsoft.CodeAnalysis
                 }
                 return previousTable;
             }
+
+            var tableStopwatch = SharedStopwatch.StartNew();
 
             var tableBuilder = graphState.CreateTableBuilder(previousTable, stepName, equalityComparer: null);
             foreach (var entry in sourceTable)
