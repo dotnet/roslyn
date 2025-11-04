@@ -45,11 +45,13 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
         {
+            var tableStopwatch = SharedStopwatch.StartNew();
+
             // grab the source inputs
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
             if (sourceTable.IsCached && previousTable is not null)
             {
-                this.LogTables(_name, s_tableType, previousTable, previousTable, sourceTable);
+                this.LogTables(_name, s_tableType, previousTable, previousTable, sourceTable, TimeSpan.Zero);
                 if (builder.DriverState.TrackIncrementalSteps)
                 {
                     return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, _name, _comparer);
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis
             // Can't assert anything about the count of items.  _func may have produced a different amount of items if
             // it's not a 1:1 function.
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable);
+            this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable, tableStopwatch.Elapsed);
             return newTable;
         }
 

@@ -110,6 +110,8 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<ImmutableArray<TInput>> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<ImmutableArray<TInput>>? previousTable, CancellationToken cancellationToken)
         {
+            var tableStopwatch = SharedStopwatch.StartNew();
+
             // grab the source inputs
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
 
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable);
+            this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable, tableStopwatch.Elapsed);
             return newTable;
         }
 

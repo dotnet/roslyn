@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(previousTable, newTable, inputItems);
+            this.LogTables(previousTable, newTable, inputItems, elapsedTime);
 
             (itemsSet as PooledHashSet<T>)?.Free();
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutput(output);
 
-        private void LogTables(NodeStateTable<T>? previousTable, NodeStateTable<T> newTable, ImmutableArray<T> inputs)
+        private void LogTables(NodeStateTable<T>? previousTable, NodeStateTable<T> newTable, ImmutableArray<T> inputs, TimeSpan elapsedTime)
         {
             if (!CodeAnalysisEventSource.Log.IsEnabled())
             {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis
             }
             var inputTable = tableBuilder.ToImmutableAndFree();
 
-            this.LogTables(_name, s_tableType, previousTable, newTable, inputTable);
+            this.LogTables(_name, s_tableType, previousTable, newTable, inputTable, elapsedTime);
         }
     }
 }

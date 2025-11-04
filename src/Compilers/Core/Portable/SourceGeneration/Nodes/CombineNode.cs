@@ -30,13 +30,15 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<(TInput1, TInput2)> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, TInput2)>? previousTable, CancellationToken cancellationToken)
         {
+            var tableStopwatch = SharedStopwatch.StartNew();
+
             // get both input tables
             var input1Table = graphState.GetLatestStateTableForNode(_input1);
             var input2Table = graphState.GetLatestStateTableForNode(_input2);
 
             if (input1Table.IsCached && input2Table.IsCached && previousTable is not null)
             {
-                this.LogTables(_name, s_tableType, previousTable, previousTable, input1Table, input2Table);
+                this.LogTables(_name, s_tableType, previousTable, previousTable, input1Table, input2Table, TimeSpan.Zero);
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
                     return RecordStepsForCachedTable(graphState, previousTable, input1Table, input2Table);
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             var isInput2Cached = input2Table.IsCached;
             (TInput2 input2, IncrementalGeneratorRunStep? input2Step) = input2Table.Single();
 
-            // append the input2 item to each item in input1 
+            // append the input2 item to each item in input1
             foreach (var entry1 in input1Table)
             {
                 var stopwatch = SharedStopwatch.StartNew();
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(tableBuilder.Count == totalEntryItemCount);
 
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(_name, s_tableType, previousTable, newTable, input1Table, input2Table);
+            this.LogTables(_name, s_tableType, previousTable, newTable, input1Table, input2Table, tableStopwatch.Elapsed);
             return newTable;
         }
 
