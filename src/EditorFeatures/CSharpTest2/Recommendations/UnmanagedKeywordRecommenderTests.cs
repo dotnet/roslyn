@@ -205,4 +205,13 @@ public sealed class UnmanagedKeywordRecommenderTests : KeywordRecommenderTests
                 unsafe void N() {
                     delegate*$$
             """);
+
+    [Fact]
+    public Task TestInFunctionPointerDeclarationAfterTyping()
+        => VerifyKeywordAsync(
+            """
+            class Test {
+                unsafe void N() {
+                    delegate*unman$$
+            """);
 }
