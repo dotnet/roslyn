@@ -336,7 +336,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
+        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options or filtered by severity.
+        /// <para>
+        /// An analyzer is considered suppressed if ALL of its supported diagnostics meet one of the following conditions:
+        /// <list type="bullet">
+        /// <item>The diagnostic is explicitly configured as suppressed (e.g., via /nowarn, .editorconfig, or ruleset)</item>
+        /// <item>The diagnostic is disabled by default and not explicitly enabled</item>
+        /// <item>The diagnostic's effective severity is in the <paramref name="severityFilter"/> 
+        /// (e.g., on command line builds where Hidden and Info diagnostics are filtered out)</item>
+        /// </list>
+        /// </para>
+        /// <para>
+        /// Exceptions:
+        /// <list type="bullet">
+        /// <item>Compiler analyzers are never suppressed</item>
+        /// <item>Diagnostics marked as NotConfigurable and enabled by default cannot be suppressed</item>
+        /// <item>Diagnostics marked as CustomSeverityConfigurable cannot be suppressed by the compiler</item>
+        /// </list>
+        /// </para>
         /// </summary>
         internal static bool IsDiagnosticAnalyzerSuppressed(
             DiagnosticAnalyzer analyzer,
@@ -397,7 +414,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     severity = isSuppressed ? ReportDiagnostic.Suppress : DiagnosticDescriptor.MapSeverityToReport(diag.DefaultSeverity);
                 }
 
-                // Is this diagnostic suppressed due to its severity
+                // Is this diagnostic suppressed due to its severity being filtered out?
+                // For example, on command line builds, Hidden and Info diagnostics are filtered out and not shown in build output,
+                // so analyzers that only produce such diagnostics can be skipped entirely for better performance.
                 if (severityFilter.Contains(severity))
                 {
                     isSuppressed = true;
