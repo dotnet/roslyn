@@ -1816,6 +1816,44 @@ class Test
                 Assert.Empty(asyncMethod.GetAttributes());
             }
         }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_RuntimeAsync(OptimizationLevel optimizationLevel)
+        {
+            string source = """
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async Task F()
+                    {
+                        await Task.Delay(0);
+                    }
+                }
+                """;
+
+            var parseOptions = CSharpTestBase.WithRuntimeAsync(TestOptions.RegularPreview);
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All)
+                .WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress);
+
+            var compilation = CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
+            CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                var asyncMethod = type.GetMember<MethodSymbol>("F");
+
+                var attributes = asyncMethod.GetAttributes();
+
+                // When runtime async is enabled, no state machine is generated,
+                // so there should be no AsyncStateMachineAttribute and no DebuggerStepThroughAttribute
+                Assert.Empty(attributes);
+
+                // Verify no state machine type was generated
+                Assert.Empty(type.GetTypeMembers("<F>d__0"));
+            });
+        }
         #endregion
 
         #region IteratorStateMachineAttribute
