@@ -4860,7 +4860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(node);
 
-            if (node.Ancestors().Any(isPreprocessingSymbolIdentifier))
+            if (isPreprocessingSymbolIdentifierContainer(node.Parent))
             {
                 bool isDefined = this.SyntaxTree.IsPreprocessorSymbolDefined(node.Identifier.ValueText, node.Identifier.SpanStart);
                 return new PreprocessingSymbolInfo(new Symbols.PublicModel.PreprocessingSymbol(node.Identifier.ValueText), isDefined);
@@ -4868,9 +4868,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return PreprocessingSymbolInfo.None;
 
-            bool isPreprocessingSymbolIdentifier(SyntaxNode parentNode)
+            bool isPreprocessingSymbolIdentifierContainer(SyntaxNode parentNode)
             {
-                switch (parentNode.Kind())
+                if (parentNode is null)
+                {
+                    return false;
+                }
+
+                var kind = parentNode.Kind();
+                switch (kind)
                 {
                     case SyntaxKind.IfDirectiveTrivia:
                         {
@@ -4883,7 +4889,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return parentElif.Condition.FullSpan.Contains(node.FullSpan);
                         }
                 }
-                return false;
+
+                if (SyntaxFacts.IsPreprocessorDirective(kind))
+                {
+                    return false;
+                }
+
+                return isPreprocessingSymbolIdentifierContainer(parentNode.Parent);
             }
         }
 
