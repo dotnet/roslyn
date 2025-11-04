@@ -10035,25 +10035,6 @@ class Test
     {
         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b " + op + op + @" b).ToString());
     }
-
-    static void MT3(I1 b, dynamic c)
-    {
-        _ = b " + op + op + @" c;
-    }
-";
-                if (!success)
-                {
-                    source1 +=
-    @"
-    static void MT4<T>() where T : I1
-    {
-        _ = (System.Linq.Expressions.Expression<System.Action<T, dynamic>>)((T d, dynamic e) => (d " + op + op + @" e).ToString());
-    }
-";
-                }
-
-                source1 +=
-@"
 }
 ";
                 var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -10089,107 +10070,10 @@ class Test
   IL_0015:  ret
 }
 ");
-
-                    if (op == "&")
-                    {
-                        verifier.VerifyIL("Test.MT3(I1, dynamic)",
-@"
-{
-  // Code size       97 (0x61)
-  .maxstack  8
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  call       ""bool I1.op_False(I1)""
-  IL_0007:  brtrue.s   IL_0060
-  IL_0009:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_000e:  brfalse.s  IL_0012
-  IL_0010:  br.s       IL_0047
-  IL_0012:  ldc.i4.8
-  IL_0013:  ldc.i4.2
-  IL_0014:  ldtoken    ""Test""
-  IL_0019:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_001e:  ldc.i4.2
-  IL_001f:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-  IL_0024:  dup
-  IL_0025:  ldc.i4.0
-  IL_0026:  ldc.i4.1
-  IL_0027:  ldnull
-  IL_0028:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_002d:  stelem.ref
-  IL_002e:  dup
-  IL_002f:  ldc.i4.1
-  IL_0030:  ldc.i4.0
-  IL_0031:  ldnull
-  IL_0032:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0037:  stelem.ref
-  IL_0038:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.BinaryOperation(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Linq.Expressions.ExpressionType, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_003d:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0042:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_004c:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>>.Target""
-  IL_0051:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_0056:  ldarg.0
-  IL_0057:  ldarg.1
-  IL_0058:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, I1, dynamic)""
-  IL_005d:  pop
-  IL_005e:  br.s       IL_0060
-  IL_0060:  ret
-}
-");
-                    }
-                    else
-                    {
-                        verifier.VerifyIL("Test.MT3(I1, dynamic)",
-@"
-{
-  // Code size       98 (0x62)
-  .maxstack  8
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  call       ""bool I1.op_True(I1)""
-  IL_0007:  brtrue.s   IL_0061
-  IL_0009:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_000e:  brfalse.s  IL_0012
-  IL_0010:  br.s       IL_0048
-  IL_0012:  ldc.i4.8
-  IL_0013:  ldc.i4.s   36
-  IL_0015:  ldtoken    ""Test""
-  IL_001a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_001f:  ldc.i4.2
-  IL_0020:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-  IL_0025:  dup
-  IL_0026:  ldc.i4.0
-  IL_0027:  ldc.i4.1
-  IL_0028:  ldnull
-  IL_0029:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_002e:  stelem.ref
-  IL_002f:  dup
-  IL_0030:  ldc.i4.1
-  IL_0031:  ldc.i4.0
-  IL_0032:  ldnull
-  IL_0033:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0038:  stelem.ref
-  IL_0039:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.BinaryOperation(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Linq.Expressions.ExpressionType, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_003e:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0043:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_0048:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_004d:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>>.Target""
-  IL_0052:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>> Test.<>o__2.<>p__0""
-  IL_0057:  ldarg.0
-  IL_0058:  ldarg.1
-  IL_0059:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, I1, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, I1, dynamic)""
-  IL_005e:  pop
-  IL_005f:  br.s       IL_0061
-  IL_0061:  ret
-}
-");
-                    }
                 }
                 else
                 {
-                    var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
-
-                    builder.AddRange(
+                    compilation1.VerifyDiagnostics(
                         // (10,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
                         //         _ = x && x;
                         Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + op + " x").WithLocation(10, 13),
@@ -10203,24 +10087,62 @@ class Test
                         //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b && b).ToString());
                         Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "b " + op + op + " b").WithLocation(28, 78)
                         );
-
-                    if (op == "&" ? falseIsAbstract : trueIsAbstract)
-                    {
-                        builder.Add(
-                            // (33,13): error CS8926: A static virtual or abstract interface member can be accessed only on a type parameter.
-                            //         _ = b || c;
-                            Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "b " + op + op + " c").WithLocation(33, 13)
-                            );
-                    }
-
-                    builder.Add(
-                        // (38,98): error CS7083: Expression must be implicitly convertible to Boolean or its type 'T' must define operator 'true'.
-                        //         _ = (System.Linq.Expressions.Expression<System.Action<T, dynamic>>)((T d, dynamic e) => (d || e).ToString());
-                        Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "d").WithArguments("T", op == "&" ? "false" : "true").WithLocation(38, 98)
-                        );
-
-                    compilation1.VerifyDiagnostics(builder.ToArrayAndFree());
                 }
+            }
+        }
+
+        [Theory]
+        [InlineData("&", true, false, false)]
+        [InlineData("|", true, false, false)]
+        [InlineData("&", false, false, true)]
+        [InlineData("|", false, true, false)]
+        [InlineData("&", true, false, true)]
+        [InlineData("|", true, true, false)]
+        [InlineData("&", false, true, false)]
+        [InlineData("|", false, false, true)]
+        public void ConsumeAbstractLogicalBinaryOperator_01_Dynamic(string op, bool binaryIsAbstract, bool trueIsAbstract, bool falseIsAbstract)
+        {
+            consumeAbstractLogicalBinaryOperator_01_Dynamic(op, binaryIsAbstract, trueIsAbstract, falseIsAbstract, isVirtual: false);
+            consumeAbstractLogicalBinaryOperator_01_Dynamic(op, binaryIsAbstract, trueIsAbstract, falseIsAbstract, isVirtual: true);
+
+            void consumeAbstractLogicalBinaryOperator_01_Dynamic(string op, bool binaryIsAbstract, bool trueIsAbstract, bool falseIsAbstract, bool isVirtual)
+            {
+                var (modifier, body) = GetModifierAndBody(isVirtual);
+
+                var source1 =
+@"
+interface I1
+{
+    " + (binaryIsAbstract ? modifier : "") + @" static I1 operator" + op + @" (I1 x, I1 y)" + (binaryIsAbstract ? body : " => throw null;") + @"
+    " + (trueIsAbstract ? modifier : "") + @" static bool operator true (I1 x)" + (trueIsAbstract ? body : " => throw null;") + @"
+    " + (falseIsAbstract ? modifier : "") + @" static bool operator false (I1 x)" + (falseIsAbstract ? body : " => throw null;") + @"
+}
+
+class Test
+{
+    static void MT3(I1 b, dynamic c)
+    {
+        _ = b " + op + op + @" c;
+    }
+
+    static void MT4<T>() where T : I1
+    {
+        _ = (System.Linq.Expressions.Expression<System.Action<T, dynamic>>)((T d, dynamic e) => (d " + op + op + @" e).ToString());
+    }
+}
+";
+                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: _supportingFramework);
+
+                compilation1.VerifyDiagnostics(
+                    // (13,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'I1' must not be an interface and must define operator 'false'.
+                    //         _ = b && c;
+                    Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "b").WithArguments("I1", op == "&" ? "false" : "true").WithLocation(13, 13),
+                    // (18,98): error CS7083: Expression must be implicitly convertible to Boolean or its type 'T' must not be an interface and must define operator 'false'.
+                    //         _ = (System.Linq.Expressions.Expression<System.Action<T, dynamic>>)((T d, dynamic e) => (d && e).ToString());
+                    Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "d").WithArguments("T", op == "&" ? "false" : "true").WithLocation(18, 98)
+                    );
             }
         }
 
