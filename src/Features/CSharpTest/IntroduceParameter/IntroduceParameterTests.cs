@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.IntroduceParameter;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceParameter;
@@ -1819,7 +1820,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81013")]
     public Task TestNotOnAnonymousObjectMemberName()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -1832,7 +1833,7 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81013")]
     public Task TestNotOnAnonymousObjectMemberNameWithValue()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -1845,31 +1846,31 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81013")]
     public Task TestNotOnObjectInitializerMemberName()
         => TestMissingInRegularAndScriptAsync(
             """
-            class Foo { public int X { get; set; } }
+            class Goo { public int X { get; set; } }
             class C
             {
-                Foo M() => new Foo
+                Goo M() => new Goo
                 {
                     [|X|] = 5,
                 };
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81013")]
     public Task TestNotOnObjectInitializerMemberNameNested()
         => TestMissingInRegularAndScriptAsync(
             """
-            class Foo { public int X { get; set; } public Foo Inner { get; set; } }
+            class Goo { public int X { get; set; } public Goo Inner { get; set; } }
             class C
             {
-                Foo M() => new Foo
+                Goo M() => new Goo
                 {
                     [|X|] = 5,
-                    Inner = new Foo { X = 10 }
+                    Inner = new Goo { X = 10 }
                 };
             }
             """);
