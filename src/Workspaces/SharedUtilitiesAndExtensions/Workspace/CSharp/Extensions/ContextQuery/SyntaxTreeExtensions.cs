@@ -3070,18 +3070,7 @@ internal static partial class SyntaxTreeExtensions
 
     public static bool IsFunctionPointerCallingConventionContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
     {
-        // Check if we're at or after delegate*
-        if (targetToken.IsKind(SyntaxKind.AsteriskToken) &&
-            targetToken.Parent is FunctionPointerTypeSyntax functionPointerType &&
-            targetToken == functionPointerType.AsteriskToken)
-        {
-            return true;
-        }
-
-        // Check if the previous token is the asterisk (handles typing after delegate*)
-        var previousToken = targetToken.GetPreviousToken();
-        return previousToken.IsKind(SyntaxKind.AsteriskToken) &&
-               previousToken.Parent is FunctionPointerTypeSyntax functionPointerType2 &&
-               previousToken == functionPointerType2.AsteriskToken;
+        return targetToken.IsKind(SyntaxKind.AsteriskToken) &&
+               targetToken.GetPreviousToken().IsKind(SyntaxKind.DelegateKeyword);
     }
 }
