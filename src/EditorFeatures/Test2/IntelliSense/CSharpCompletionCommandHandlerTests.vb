@@ -13329,5 +13329,27 @@ public class C
                 Await state.AssertSelectedCompletionItem(displayText:="TypeBuilder", isHardSelected:=True) ' hard-select TypeBuilder class
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81021")>
+        Public Async Function TestStartTypingInsideTargetTypedConditionalExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class C
+{
+    public DateTime M(bool b)
+    {
+        return b ? new($$) : default;
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("tick")
+                Await state.AssertSelectedCompletionItem("ticks:")
+            End Using
+        End Function
     End Class
 End Namespace
