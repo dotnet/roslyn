@@ -22767,7 +22767,6 @@ using @scoped = System.Int32;
                 var d = C.M;
                 d(ref x, ref r);
                 """;
-            // Should the delegate invocation be an error as well? https://github.com/dotnet/roslyn/issues/76087
             CreateCompilation([source2, UnscopedRefAttributeDefinition], [ref1],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (3,1): error CS8350: This combination of arguments to 'C.M(ref int, ref R)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
@@ -22775,7 +22774,10 @@ using @scoped = System.Int32;
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "C.M(ref x, ref r)").WithArguments("C.M(ref int, ref R)", "x").WithLocation(3, 1),
                 // (3,9): error CS8168: Cannot return local 'x' by reference because it is not a ref local
                 // C.M(ref x, ref r);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(3, 9));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(3, 9),
+                // (4,9): error CS9340: Cannot convert method group 'M' to delegate type '<anonymous delegate>' due to mismatched ref safety requirements between the method and delegate.
+                // var d = C.M;
+                Diagnostic(ErrorCode.ERR_RefSafetyInDelegateConversion, "C.M").WithArguments("M", "<anonymous delegate>").WithLocation(4, 9));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
@@ -22920,14 +22922,147 @@ using @scoped = System.Int32;
                     r = d(ref x);
                 }
                 """;
-            // Should the delegate invocation be an error as well? https://github.com/dotnet/roslyn/issues/76087
             CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (4,9): error CS8347: Cannot use a result of 'C.M(ref int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //     r = C.M(ref x);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "C.M(ref x)").WithArguments("C.M(ref int)", "x").WithLocation(4, 9),
                 // (4,17): error CS8168: Cannot return local 'x' by reference because it is not a ref local
                 //     r = C.M(ref x);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(4, 17));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(4, 17),
+                // (6,13): error CS9340: Cannot convert method group 'M' to delegate type '<anonymous delegate>' due to mismatched ref safety requirements between the method and delegate.
+                //     var d = C.M;
+                Diagnostic(ErrorCode.ERR_RefSafetyInDelegateConversion, "C.M").WithArguments("M", "<anonymous delegate>").WithLocation(6, 13));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
+        public void RefSafetyRules_CustomDelegate()
+        {
+            // Custom delegates have the same ref-safety issue as synthesized delegates when crossing
+            // old/new rule boundaries.
+            var source1 = """
+                public static class C
+                {
+                    public static R M(ref int x) => new R { F = ref x };
+                }
+                public ref struct R
+                {
+                    public ref int F;
+                }
+                """;
+            var ref1 = CreateCompilation(source1, targetFramework: TargetFramework.Net70)
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                R r;
+                {
+                    int x = 1;
+                    D c = C.M;
+                    r = c(ref x);
+                }
+
+                delegate R D(ref int x);
+                """;
+            CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (4,11): error CS9340: Cannot convert method group 'M' to delegate type 'D' due to mismatched ref safety requirements between the method and delegate.
+                //     D c = C.M;
+                Diagnostic(ErrorCode.ERR_RefSafetyInDelegateConversion, "C.M").WithArguments("M", "D").WithLocation(4, 11));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
+        public void RefSafetyRules_SynthesizedDelegate_OutParameter()
+        {
+            var source1 = """
+                public static class C
+                {
+                    public static void M(out R r) { r = default; }
+                }
+                public ref struct R
+                {
+                    public ref int F;
+                }
+                """;
+            var ref1 = CreateCompilation(source1, targetFramework: TargetFramework.Net70)
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                var d = C.M;
+                """;
+            CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (1,9): error CS9340: Cannot convert method group 'M' to delegate type '<anonymous delegate>' due to mismatched ref safety requirements between the method and delegate.
+                // var d = C.M;
+                Diagnostic(ErrorCode.ERR_RefSafetyInDelegateConversion, "C.M").WithArguments("M", "<anonymous delegate>").WithLocation(1, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
+        public void RefSafetyRules_SynthesizedDelegate_BothNewRules_NoError()
+        {
+            // When both the method and the delegate use new rules, no error should be reported
+            var source = """
+                public ref struct R
+                {
+                    public ref int F;
+                }
+                public static class C
+                {
+                    public static R M(ref int x) => new R { F = ref x };
+                }
+                class Test
+                {
+                    void M()
+                    {
+                        var d = C.M;  // No error - both use new rules
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
+        public void RefSafetyRules_SynthesizedDelegate_BothOldRules_NoError()
+        {
+            // When both the method and the delegate use old rules, no error should be reported
+            var source1 = """
+                public static class C
+                {
+                    public static R M(ref int x) => new R { F = ref x };
+                }
+                public ref struct R
+                {
+                    public ref int F;
+                }
+                """;
+            var ref1 = CreateCompilation(source1, targetFramework: TargetFramework.Net70)
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                class Test
+                {
+                    void M()
+                    {
+                        var d = C.M;  // No error - both use old rules
+                    }
+                }
+                """;
+            CreateCompilation(source2, [ref1], targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76087")]
+        public void RefSafetyRules_SynthesizedDelegate_NoRefStructInvolved()
+        {
+            // When there are no ref structs involved, no error should be reported
+            var source1 = """
+                public static class C
+                {
+                    public static int M(ref int x) => x;
+                }
+                """;
+            var ref1 = CreateCompilation(source1, targetFramework: TargetFramework.Net70)
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                var d = C.M;  // No error - no ref struct involved
+                """;
+            CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics();
         }
 
         [Theory]

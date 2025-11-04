@@ -2217,6 +2217,11 @@
         <target state="translated">Der Verweis, der Eigenschaften zurückgibt, kann nicht erfordert werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefSafetyInDelegateConversion">
+        <source>Cannot convert method group '{0}' to delegate type '{1}' due to mismatched ref safety requirements between the method and delegate.</source>
+        <target state="new">Cannot convert method group '{0}' to delegate type '{1}' due to mismatched ref safety requirements between the method and delegate.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefStructConstraintAlreadySpecified">
         <source>'ref struct' is already specified.</source>
         <target state="translated">„Verweisstruktur“ ist bereits angegeben.</target>
