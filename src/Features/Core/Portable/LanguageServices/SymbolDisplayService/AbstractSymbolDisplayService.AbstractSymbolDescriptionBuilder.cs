@@ -158,32 +158,33 @@ internal abstract partial class AbstractSymbolDisplayService
 
             // Grab the doc comment once as computing it for each portion we're concatenating can be expensive for
             // LSIF (which does this for every symbol in an entire solution).
-            var firstSymbolDocumentationComment = GetAppropriateDocumentationComment(firstSymbol, Compilation, CancellationToken);
+            var firstSymbolDocumentationComment = GetAppropriateDocumentationComment(firstSymbol);
 
             await AddDescriptionPartAsync(firstSymbol).ConfigureAwait(false);
 
             AddOverloadCountPart(symbols);
-            var structuralTypeInfo = FixAllStructuralTypes(firstSymbol);
-            AddExceptions(firstSymbolDocumentationComment);
+            var typeDisplayInfo = FixAllStructuralTypes(firstSymbol);
+            AddExceptions(firstSymbolDocumentationComment, typeDisplayInfo);
             AddCaptures(firstSymbol);
 
-            AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment, structuralTypeInfo);
+            AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment, typeDisplayInfo);
         }
 
-        private DocumentationComment GetAppropriateDocumentationComment(ISymbol firstSymbol, Compilation compilation, CancellationToken cancellationToken)
+        private DocumentationComment GetAppropriateDocumentationComment(ISymbol firstSymbol)
         {
             // For locals, we synthesize the documentation comment from the leading trivia of the local declaration.
             return firstSymbol is ILocalSymbol localSymbol
-                ? SynthesizeDocumentationCommentForLocal(localSymbol, cancellationToken)
-                : firstSymbol.GetAppropriateDocumentationComment(compilation, cancellationToken);
+                ? SynthesizeDocumentationCommentForLocal(localSymbol)
+                : firstSymbol.GetAppropriateDocumentationComment(this.Compilation, this.CancellationToken);
         }
 
         private DocumentationComment SynthesizeDocumentationCommentForLocal(
-            ILocalSymbol localSymbol, CancellationToken cancellationToken)
+            ILocalSymbol localSymbol)
         {
             if (localSymbol.DeclaringSyntaxReferences is not [var reference])
                 return DocumentationComment.Empty;
 
+            var cancellationToken = this.CancellationToken;
             var node = reference.GetSyntax(cancellationToken);
 
             var syntaxFacts = LanguageServices.GetRequiredService<ISyntaxFactsService>();
@@ -287,7 +288,9 @@ internal abstract partial class AbstractSymbolDisplayService
             }
         }
 
-        private void AddExceptions(DocumentationComment documentationComment)
+        private void AddExceptions(
+            DocumentationComment documentationComment,
+            StructuralTypeDisplayInfo typeDisplayInfo)
         {
             if (documentationComment.ExceptionTypes.Any())
             {
@@ -298,7 +301,8 @@ internal abstract partial class AbstractSymbolDisplayService
                 {
                     parts.AddRange(LineBreak());
                     parts.AddRange(Space(count: 2));
-                    parts.AddRange(AbstractDocumentationCommentFormattingService.CrefToSymbolDisplayParts(exceptionString, _position, _semanticModel));
+                    parts.AddRange(AbstractDocumentationCommentFormattingService.CrefToSymbolDisplayParts(
+                        exceptionString, _position, _semanticModel, typeDisplayInfo: typeDisplayInfo));
                 }
 
                 AddToGroup(SymbolDescriptionGroups.Exceptions, parts);

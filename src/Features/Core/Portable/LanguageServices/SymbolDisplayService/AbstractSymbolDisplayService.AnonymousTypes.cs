@@ -38,6 +38,8 @@ internal abstract partial class AbstractSymbolDisplayService
 
             foreach (var (group, parts) in _groupMap.ToArray())
                 _groupMap[group] = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
+
+            return info;
         }
     }
 }
