@@ -2928,7 +2928,7 @@ public sealed class ExtractClassTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78113")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81066")]
     public async Task TestPartialEvent()
     {
         var input1 = """
@@ -2999,7 +2999,7 @@ public sealed class ExtractClassTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78113")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81066")]
     public async Task TestPartialProperty()
     {
         var input1 = """
@@ -3060,7 +3060,7 @@ public sealed class ExtractClassTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78113")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81066")]
     public async Task TestPartialMethod()
     {
         var input1 = """

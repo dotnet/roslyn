@@ -5785,7 +5785,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78113")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81066")]
     public Task PullPartialEventUpToClass()
         => TestWithPullMemberDialogAsync("""
             using System;
@@ -5825,7 +5825,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78113")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81066")]
     public Task PullPartialPropertyUpToClass()
         => TestWithPullMemberDialogAsync("""
             using System;
@@ -5865,7 +5865,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78113")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81066")]
     public Task PullPartialMethodUpToClass()
         => TestWithPullMemberDialogAsync("""
             using System;
