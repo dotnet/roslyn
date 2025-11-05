@@ -390,10 +390,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
 
-                var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "vbc.rsp");
-                if (File.Exists(rspFile))
+                if (!NoConfig)
                 {
-                    commandLine.AppendSwitchIfNotNull("@", rspFile);
+                    var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "vbc.rsp");
+                    if (File.Exists(rspFile))
+                    {
+                        commandLine.AppendSwitchIfNotNull("@", rspFile);
+                    }
                 }
             }
 

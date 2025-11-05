@@ -187,8 +187,8 @@ public abstract class IntegrationTestBase : TestBase
         Assert.Contains(ExecutionConditionUtil.IsWindows ? "vbc.exe" : "vbc", result.Output);
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
-    public void StdLib_Csc(bool useSharedCompilation, bool disableSdkPath)
+    [Theory, PairwiseData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+    public void StdLib_Csc(bool useSharedCompilation, bool disableSdkPath, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
 
@@ -206,14 +206,14 @@ public abstract class IntegrationTestBase : TestBase
                     <Project>
                         <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="{_buildTaskDll}" />
                         <Target Name="CustomTarget">
-                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" DisableSdkPath="{disableSdkPath}" />
+                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" DisableSdkPath="{disableSdkPath}" NoConfig="{noConfig}" />
                         </Target>
                     </Project>
                     """ },
             });
         _output.WriteLine(result.Output);
 
-        if (disableSdkPath)
+        if (disableSdkPath || noConfig)
         {
             Assert.NotEqual(0, result.ExitCode);
             // Either error CS0006: Metadata file could not be found
@@ -227,8 +227,8 @@ public abstract class IntegrationTestBase : TestBase
         }
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
-    public void StdLib_Vbc(bool useSharedCompilation, bool disableSdkPath)
+    [Theory, PairwiseData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+    public void StdLib_Vbc(bool useSharedCompilation, bool disableSdkPath, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
 
@@ -249,18 +249,27 @@ public abstract class IntegrationTestBase : TestBase
                     <Project>
                         <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="{_buildTaskDll}" />
                         <Target Name="CustomTarget">
-                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" DisableSdkPath="{disableSdkPath}" />
+                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" DisableSdkPath="{disableSdkPath}" NoConfig="{noConfig}" />
                         </Target>
                     </Project>
                     """ },
             });
         _output.WriteLine(result.Output);
 
-        if (disableSdkPath)
+        if (disableSdkPath || noConfig)
         {
             Assert.NotEqual(0, result.ExitCode);
-            // error BC2017: could not find library 'Microsoft.VisualBasic.dll'
-            Assert.Contains("error BC2017", result.Output);
+            if (disableSdkPath)
+            {
+                // error BC2017: could not find library 'Microsoft.VisualBasic.dll'
+                Assert.Contains("error BC2017", result.Output);
+            }
+            else
+            {
+                Assert.True(noConfig);
+                // error BC30451: 'Console' is not declared. It may be inaccessible due to its protection level.
+                Assert.Contains("error BC30451", result.Output);
+            }
         }
         else
         {
