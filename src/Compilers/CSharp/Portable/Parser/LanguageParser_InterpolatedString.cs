@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         originalTextSpan[currentContentStart..interpolation.OpenBraceRange.Start]));
 
                     // Now parse the interpolation itself.
-                    var interpolationNode = ParseInterpolation(this.Options, originalText, interpolation, kind, IsInFieldKeywordContext, IsInAsync);
+                    var interpolationNode = ParseInterpolation(this.Options, originalText, interpolation, kind, IsInAsync, IsInFieldKeywordContext);
 
                     // Make sure the interpolation starts at the right location.
                     var indentationError = getInterpolationIndentationError(indentationWhitespace, interpolation);
@@ -357,8 +357,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             string text,
             Lexer.Interpolation interpolation,
             Lexer.InterpolatedStringKind kind,
-            bool isInFieldKeywordContext,
-            bool isInAsync)
+            bool isInAsyncContext,
+            bool isInFieldKeywordContext)
         {
             // Grab the text from after the { all the way to the start of the } (or the start of the : if present). This
             // will be used to parse out the expression of the interpolation.
@@ -374,8 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Now create a parser to actually handle the expression portion of the interpolation
             using var tempParser = new LanguageParser(tempLexer, oldTree: null, changes: null);
-            using var _1 = new FieldKeywordContext(tempParser, isInFieldKeywordContext);
-            using var _2 = new AsyncContext(tempParser, isInAsync);
+            using var _ = new ParserSyntaxContextResetter(tempParser, isInAsyncContext: isInAsyncContext, isInFieldKeywordContext: isInFieldKeywordContext);
 
             var result = tempParser.ParseInterpolation(
                 text, interpolation, kind,

@@ -4153,10 +4153,8 @@ parse_member_name:;
             // Check for expression body
             if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
             {
-                using (new FieldKeywordContext(this, isInFieldKeywordContext: true))
-                {
-                    expressionBody = this.ParseArrowExpressionClause();
-                }
+                using var _ = new ParserSyntaxContextResetter(this, isInFieldKeywordContext: true);
+                expressionBody = this.ParseArrowExpressionClause();
             }
             // Check if we have an initializer
             else if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
@@ -4545,7 +4543,7 @@ parse_member_name:;
                 return (AccessorDeclarationSyntax)this.EatNode();
             }
 
-            using var __ = new FieldKeywordContext(this, isInFieldKeywordContext: declaringKind is AccessorDeclaringKind.Property);
+            using var _1 = new ParserSyntaxContextResetter(this, isInFieldKeywordContext: declaringKind is AccessorDeclaringKind.Property);
 
             var accMods = _pool.Allocate();
 
