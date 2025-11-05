@@ -27,14 +27,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
-    private readonly Lazy<CanonicalMiscFilesProjectLoader> _canonicalMiscFilesLoader;
+    private readonly CanonicalMiscFilesProjectLoader _canonicalMiscFilesLoader;
 
     public void Dispose()
     {
-        if (_canonicalMiscFilesLoader.IsValueCreated)
-        {
-            _canonicalMiscFilesLoader.Value.Dispose();
-        }
+        _canonicalMiscFilesLoader.Dispose();
     }
 
     public FileBasedProgramsProjectSystem(
@@ -61,8 +58,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
         _projectXmlProvider = projectXmlProvider;
-        _canonicalMiscFilesLoader = new Lazy<CanonicalMiscFilesProjectLoader>(() =>
-            new CanonicalMiscFilesProjectLoader(
+        _canonicalMiscFilesLoader = new CanonicalMiscFilesProjectLoader(
                 workspaceFactory,
                 fileChangeWatcher,
                 globalOptionService,
@@ -70,7 +66,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 listenerProvider,
                 projectLoadTelemetry,
                 serverConfigurationFactory,
-                binLogPathProvider));
+                binLogPathProvider);
     }
 
     private string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
@@ -108,7 +104,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             // For virtual (non-file) URIs or non-file-based programs, use the canonical loader
             if (uri.ParsedUri is null || !uri.ParsedUri.IsFile || !VirtualProjectXmlProvider.IsFileBasedProgram(documentFilePath, documentText))
             {
-                return await _canonicalMiscFilesLoader.Value.AddMiscellaneousDocumentAsync(documentFilePath, documentText, CancellationToken.None);
+                return await _canonicalMiscFilesLoader.AddMiscellaneousDocumentAsync(documentFilePath, documentText, CancellationToken.None);
             }
         }
 
@@ -147,12 +143,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     {
         var documentPath = GetDocumentFilePath(uri);
         // First try to remove from the canonical misc files loader if it was created
-        if (_canonicalMiscFilesLoader.IsValueCreated)
-        {
-            var removedFromCanonical = await _canonicalMiscFilesLoader.Value.TryRemoveMiscellaneousDocumentAsync(documentPath, CancellationToken.None);
-            if (removedFromCanonical)
-                return true;
-        }
+        var removedFromCanonical = await _canonicalMiscFilesLoader.TryRemoveMiscellaneousDocumentAsync(documentPath, CancellationToken.None);
+        if (removedFromCanonical)
+            return true;
 
         // Fall back to the file-based programs logic
         return await TryUnloadProjectAsync(documentPath);
