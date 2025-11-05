@@ -1536,9 +1536,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var arrowExpressions = root.DescendantNodes().OfType<ArrowExpressionClauseSyntax>().ToArray();
         var operation1 = semanticModel.GetOperation(arrowExpressions[0]);
         VerifyOperationTree(compilation, operation1, """
-<<<<<<< Updated upstream
-        
-=======
             IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> [with(), t]')
             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(), t]')
               ReturnedValue:
@@ -1548,7 +1545,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                     ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(), t]')
                       Elements(1):
                           IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
->>>>>>> Stashed changes
             """);
         var operation2 = semanticModel.GetOperation(arrowExpressions[1]);
         VerifyOperationTree(compilation, operation2, """
@@ -1597,9 +1593,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         var operation = semanticModel.GetOperation(root.DescendantNodes().OfType<BlockSyntax>().Single());
         VerifyOperationTree(compilation, operation, """
-<<<<<<< Updated upstream
-
-=======
             IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
             Locals: Local_1: System.Collections.Generic.IList<System.Int32> x
               Local_2: System.Collections.Generic.IList<System.Int32> y
@@ -1640,7 +1633,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
                 Initializer:
                   null
->>>>>>> Stashed changes
             """);
 
         var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(root.DescendantNodes().OfType<BlockSyntax>().Single(), semanticModel);
