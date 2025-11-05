@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Windows.Automation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor;
@@ -155,6 +156,19 @@ internal abstract class AbstractOptionPreviewViewModel : AbstractNotifyPropertyC
           _textEditorFactoryService.CreateTextViewRoleSet(PredefinedTextViewRoles.Interactive));
 
         this.TextViewHost = _textEditorFactoryService.CreateTextViewHost(textView, setFocus: false);
+
+        if (this.TextViewHost?.HostControl != null)
+        {
+            var control = this.TextViewHost.HostControl;
+            var projectionText = projection.CurrentSnapshot.GetText();
+            AutomationProperties.SetName(control,
+                        $"{ServicesVSResources.Code_preview}: {projectionText}");
+            AutomationProperties.SetLiveSetting(control, AutomationLiveSetting.Polite);
+
+            // Ensure the text view is focusable for keyboard navigation
+            control.Focusable = true;
+            control.IsTabStop = true;
+        }
 
         workspace.TryApplyChanges(document.Project.Solution);
         workspace.OpenDocument(document.Id, container);
