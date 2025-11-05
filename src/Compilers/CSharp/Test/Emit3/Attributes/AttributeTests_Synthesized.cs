@@ -1850,6 +1850,7 @@ class Test
             });
             verifier.VerifyDiagnostics();
         }
+
         #endregion
 
         #region IteratorStateMachineAttribute
