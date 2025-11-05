@@ -392,9 +392,6 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
 
         var operation = semanticModel.GetOperation(root.DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray()[1]);
         VerifyOperationTree(compilation, operation, """
-<<<<<<< Updated upstream
-
-=======
             ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(capacity: 10), 2]')
             CreationArguments(2):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'capacity: 10')
@@ -407,7 +404,6 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Elements(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
->>>>>>> Stashed changes
             """);
     }
 
