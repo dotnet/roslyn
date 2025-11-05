@@ -124,7 +124,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                     process.Kill();
 
                 buildHostProcess.LogProcessFailure();
-                throw new Exception($"The build host was started but we were unable to connect to it's pipe. The process exited with {process.ExitCode}", innerException: e);
+                throw new Exception($"The build host was started but we were unable to connect to it's pipe. The process exited with {process.ExitCode}. Process output:{Environment.NewLine}{buildHostProcess.GetBuildHostProcessOutput()}", innerException: e);
             }
 
             await buildHostProcess.BuildHost.ConfigureGlobalStateAsync(_globalMSBuildProperties, _binaryLogPathProvider?.GetNewLogPath(), cancellationToken).ConfigureAwait(false);
@@ -487,7 +487,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             }
         }
 
-        public RemoteBuildHost BuildHost =>_buildHost ?? throw new InvalidOperationException("Build host is not connected.");
+        public RemoteBuildHost BuildHost => _buildHost ?? throw new InvalidOperationException("Build host is not connected.");
 
         public event EventHandler? Disconnected;
 
@@ -534,15 +534,18 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             if (_logger == null)
                 return;
 
-            string processLog;
-            lock (_processLogMessages)
-                processLog = _processLogMessages.ToString();
+            var processLog = GetBuildHostProcessOutput();
 
             if (!_process.HasExited)
                 _logger.LogError("The BuildHost process is not responding. Process output:{newLine}{processLog}", Environment.NewLine, processLog);
             else if (_process.ExitCode != 0)
                 _logger.LogError("The BuildHost process exited with {errorCode}. Process output:{newLine}{processLog}", _process.ExitCode, Environment.NewLine, processLog);
         }
+
+        public string GetBuildHostProcessOutput()
+        {
+            lock (_processLogMessages)
+                return _processLogMessages.ToString();
+        }
     }
 }
-
