@@ -192,9 +192,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // CONSIDER: dev10 reports ERR_ConstOutOfRange
             TestConditional("1 ? null : null", null, parseOptions: TestOptions.Regular8,
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool")
+                );
             TestConditional("1 ? null : null", null, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()),
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool")
+                );
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67975")]
