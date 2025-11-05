@@ -1267,6 +1267,9 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<IArgumentOperation> getCreationArguments()
             {
                 var collectionCreation = expr.CollectionCreation;
+                if (collectionCreation is { HasAnyErrors: true })
+                    return [];
+
                 while (collectionCreation is BoundConversion conversion)
                     collectionCreation = conversion.Operand;
 

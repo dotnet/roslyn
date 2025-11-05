@@ -1366,7 +1366,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: argsToParams,
                         defaultArguments: projectionCall.DefaultArguments,
                         resultKind: LookupResultKind.Viable,
-                        type: collectionBuilderMethod.ReturnType)
+                        type: collectionBuilderMethod.ReturnType,
+                        hasErrors: projectionCall.HasErrors)
                     {
                         WasCompilerGenerated = @this._node.WithElement is null,
                     };
