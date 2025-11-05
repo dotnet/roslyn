@@ -13135,7 +13135,7 @@ static class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71183")]
         public void SpreadElement_Dynamic_05()
         {
             var source = """
@@ -22203,7 +22203,7 @@ partial class Program
         }
 
         [CombinatorialData]
-        [Theory]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71183")]
         public void ListConstruction_01(
             [CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework,
             [CombinatorialValues("List<object>", "ICollection<object>", "IList<object>")] string targetType)
@@ -23753,7 +23753,7 @@ partial class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71183")]
         public void ListConstruction_Dynamic_04_StaticBinding()
         {
             string source = $$"""
@@ -38629,7 +38629,7 @@ partial class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71183")]
         public void Spread_TargetSpan()
         {
             var source = """
@@ -40652,7 +40652,7 @@ partial class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71183")]
         public void List_AddRange_IEnumerable_ClassConstraint()
         {
             var source = """
