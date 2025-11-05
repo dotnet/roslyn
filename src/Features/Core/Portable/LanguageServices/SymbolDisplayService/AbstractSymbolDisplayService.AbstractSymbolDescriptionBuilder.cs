@@ -159,14 +159,13 @@ internal abstract partial class AbstractSymbolDisplayService
             // Grab the doc comment once as computing it for each portion we're concatenating can be expensive for
             // LSIF (which does this for every symbol in an entire solution).
             var firstSymbolDocumentationComment = GetAppropriateDocumentationComment(firstSymbol);
+            var typeDisplayInfo = GetStructuralTypeDisplayInfo(firstSymbol);
 
             await AddDescriptionPartAsync(firstSymbol).ConfigureAwait(false);
-
             AddOverloadCountPart(symbols);
-            var typeDisplayInfo = FixAllStructuralTypes(firstSymbol);
+            FixAllStructuralTypes(typeDisplayInfo);
             AddExceptions(firstSymbolDocumentationComment, typeDisplayInfo);
             AddCaptures(firstSymbol);
-
             AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment, typeDisplayInfo);
         }
 
