@@ -2836,13 +2836,7 @@ class C
                         var added = Goo<string,,>.Instance;
                     }
                 }
-                """,
-                // (5,32): error CS1031: Type expected
-                //         var added = Goo<string,,>.Instance;
-                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 32),
-                // (5,33): error CS1031: Type expected
-                //         var added = Goo<string,,>.Instance;
-                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 33));
+                """);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2893,14 +2887,14 @@ class C
                                                             N(SyntaxKind.StringKeyword);
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        M(SyntaxKind.IdentifierName);
+                                                        N(SyntaxKind.OmittedTypeArgument);
                                                         {
-                                                            M(SyntaxKind.IdentifierToken);
+                                                            N(SyntaxKind.OmittedTypeArgumentToken);
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        M(SyntaxKind.IdentifierName);
+                                                        N(SyntaxKind.OmittedTypeArgument);
                                                         {
-                                                            M(SyntaxKind.IdentifierToken);
+                                                            N(SyntaxKind.OmittedTypeArgumentToken);
                                                         }
                                                         N(SyntaxKind.GreaterThanToken);
                                                     }
@@ -2937,13 +2931,7 @@ class C
                         var added = Goo<Id,,>.Instance;
                     }
                 }
-                """,
-                // (5,28): error CS1031: Type expected
-                //         var added = Goo<Id,,>.Instance;
-                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 28),
-                // (5,29): error CS1031: Type expected
-                //         var added = Goo<Id,,>.Instance;
-                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 29));
+                """);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2994,14 +2982,14 @@ class C
                                                             N(SyntaxKind.IdentifierToken, "Id");
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        M(SyntaxKind.IdentifierName);
+                                                        N(SyntaxKind.OmittedTypeArgument);
                                                         {
-                                                            M(SyntaxKind.IdentifierToken);
+                                                            N(SyntaxKind.OmittedTypeArgumentToken);
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        M(SyntaxKind.IdentifierName);
+                                                        N(SyntaxKind.OmittedTypeArgument);
                                                         {
-                                                            M(SyntaxKind.IdentifierToken);
+                                                            N(SyntaxKind.OmittedTypeArgumentToken);
                                                         }
                                                         N(SyntaxKind.GreaterThanToken);
                                                     }
@@ -3038,13 +3026,7 @@ class C
                         var added = Goo<,Id,>.Instance;
                     }
                 }
-                """,
-                // (5,25): error CS1031: Type expected
-                //         var added = Goo<,Id,>.Instance;
-                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 25),
-                // (5,29): error CS1031: Type expected
-                //         var added = Goo<,Id,>.Instance;
-                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 29));
+                """);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3090,9 +3072,9 @@ class C
                                                     N(SyntaxKind.TypeArgumentList);
                                                     {
                                                         N(SyntaxKind.LessThanToken);
-                                                        M(SyntaxKind.IdentifierName);
+                                                        N(SyntaxKind.OmittedTypeArgument);
                                                         {
-                                                            M(SyntaxKind.IdentifierToken);
+                                                            N(SyntaxKind.OmittedTypeArgumentToken);
                                                         }
                                                         N(SyntaxKind.CommaToken);
                                                         N(SyntaxKind.IdentifierName);
@@ -3100,9 +3082,9 @@ class C
                                                             N(SyntaxKind.IdentifierToken, "Id");
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        M(SyntaxKind.IdentifierName);
+                                                        N(SyntaxKind.OmittedTypeArgument);
                                                         {
-                                                            M(SyntaxKind.IdentifierToken);
+                                                            N(SyntaxKind.OmittedTypeArgumentToken);
                                                         }
                                                         N(SyntaxKind.GreaterThanToken);
                                                     }

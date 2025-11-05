@@ -43,21 +43,9 @@ class C
                 // (7,9): error CS1003: Syntax error, ',' expected
                 //     A<T U> a4;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(7, 9),
-                // (9,9): error CS1031: Type expected
-                //     A<T,> a6;
-                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(9, 9),
-                // (10,7): error CS1031: Type expected
-                //     A<,T> a7;
-                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(10, 7),
                 // (11,9): error CS1003: Syntax error, ',' expected
                 //     A<T U,,> a8;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(11, 9),
-                // (11,11): error CS1031: Type expected
-                //     A<T U,,> a8;
-                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(11, 11),
-                // (11,12): error CS1031: Type expected
-                //     A<T U,,> a8;
-                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(11, 12));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(11, 9));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -220,9 +208,9 @@ class C
                                         N(SyntaxKind.IdentifierToken, "T");
                                     }
                                     N(SyntaxKind.CommaToken);
-                                    M(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.OmittedTypeArgument);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.OmittedTypeArgumentToken);
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -244,9 +232,9 @@ class C
                                 N(SyntaxKind.TypeArgumentList);
                                 {
                                     N(SyntaxKind.LessThanToken);
-                                    M(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.OmittedTypeArgument);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.OmittedTypeArgumentToken);
                                     }
                                     N(SyntaxKind.CommaToken);
                                     N(SyntaxKind.IdentifierName);
@@ -283,14 +271,14 @@ class C
                                         N(SyntaxKind.IdentifierToken, "U");
                                     }
                                     N(SyntaxKind.CommaToken);
-                                    M(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.OmittedTypeArgument);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.OmittedTypeArgumentToken);
                                     }
                                     N(SyntaxKind.CommaToken);
-                                    M(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.OmittedTypeArgument);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.OmittedTypeArgumentToken);
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
