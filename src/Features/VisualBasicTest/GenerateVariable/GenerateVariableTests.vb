@@ -3077,5 +3077,66 @@ Module Test
     End Function
 End Module", index:=4)
         End Function
+
+        <Fact>
+        Public Async Function TestNotOfferedInEventAddAccessor() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Custom Event E As EventHandler
+        AddHandler(value As EventHandler)
+            [|ev|] = value
+        End AddHandler
+        RemoveHandler(value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As EventArgs)
+        End RaiseEvent
+    End Event
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function TestNotOfferedInEventRemoveAccessor() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Custom Event E As EventHandler
+        AddHandler(value As EventHandler)
+        End AddHandler
+        RemoveHandler(value As EventHandler)
+            [|ev|] = value
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As EventArgs)
+        End RaiseEvent
+    End Event
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function TestNotOfferedInPropertyGetAccessor() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Property P As Integer
+        Get
+            Return [|x|]
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function TestNotOfferedInPropertySetAccessor() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Property P As Integer
+        Get
+            Return 0
+        End Get
+        Set(value As Integer)
+            [|x|] = value
+        End Set
+    End Property
+End Class")
+        End Function
     End Class
 End Namespace
