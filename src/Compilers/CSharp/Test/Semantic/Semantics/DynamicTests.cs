@@ -3678,7 +3678,8 @@ class Test
 }";
             CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
                 // (21,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'I1' must not be an interface and must define operator 'false'.
-                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x").WithArguments("I1", "false")
+                //         _ = x && y;
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x").WithArguments("I1", "false").WithLocation(21, 13)
             );
         }
 
@@ -3711,7 +3712,8 @@ class Test
 }";
             CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
                 // (21,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'I1' must not be an interface and must define operator 'true'.
-                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x").WithArguments("I1", "true")
+                //         _ = x || y;
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x").WithArguments("I1", "true").WithLocation(21, 13)
             );
         }
 
@@ -3741,7 +3743,8 @@ class Test
 }";
             CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
                 // (17,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C0' must not be an interface and must define operator 'false'.
-                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x").WithArguments("C0", "false")
+                //         _ = x && y;
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x").WithArguments("C0", "false").WithLocation(17, 13)
             );
         }
 
