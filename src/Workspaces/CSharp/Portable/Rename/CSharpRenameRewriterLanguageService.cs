@@ -175,13 +175,13 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
             if (shouldComplexifyNode)
             {
                 _skipRenameForComplexification++;
-                result = base.Visit(node)!;
+                result = base.Visit(node);
                 _skipRenameForComplexification--;
                 result = Complexify(node, result);
             }
             else
             {
-                result = base.Visit(node)!;
+                result = base.Visit(node);
             }
 
             return result;
@@ -305,7 +305,7 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
 
             _speculativeModel = GetSemanticModelForNode(newNode, _semanticModel);
 
-            newNode = base.Visit(newNode)!;
+            newNode = base.Visit(newNode);
             var newSpan = newNode.Span;
 
             newNode = newNode.WithoutAnnotations(annotation);

@@ -6412,7 +6412,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         => GetSymbolDeclarationSyntax(symbol, selector: System.Linq.ImmutableArrayExtensions.First, cancellationToken)!;
 
     protected SyntaxNode? GetSingleSymbolDeclarationSyntax(ISymbol symbol, CancellationToken cancellationToken)
-        => GetSymbolDeclarationSyntax(symbol, selector: refs => refs is [var single] ? single : null, cancellationToken)!;
+        => GetSymbolDeclarationSyntax(symbol, selector: refs => refs is [var single] ? single : null, cancellationToken);
 
     protected SyntaxNode? GetSymbolDeclarationSyntax(ISymbol symbol, SyntaxTree tree, CancellationToken cancellationToken)
         => GetSymbolDeclarationSyntax(symbol, syntaxRefs => syntaxRefs.FirstOrDefault(r => r.SyntaxTree == tree), cancellationToken);

@@ -646,7 +646,9 @@ internal static partial class ConflictResolver
             // When using (not declaring) an alias, the alias symbol and the target symbol are returned
             // by GetSymbolsTouchingPosition
             if (newReferencedSymbols.Length >= 2)
-                newReferencedSymbols = newReferencedSymbols.WhereAsArray(a => a.Kind != SymbolKind.Alias);
+            {
+                newReferencedSymbols = RenameUtilities.FilterAliasSymbols(newReferencedSymbols);
+            }
 
             return newReferencedSymbols;
         }

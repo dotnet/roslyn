@@ -62,7 +62,8 @@ public partial class Solution
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(new SolutionCompilationState(
             new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences, fallbackAnalyzerOptions),
-            workspace.PartialSemanticsEnabled))
+            workspace.PartialSemanticsEnabled,
+            workspace.GeneratorDriverCreationCache))
     {
     }
 
@@ -340,7 +341,7 @@ public partial class Solution
             }
             else if (documentState is DocumentState)
             {
-                return GetDocument(documentState.Id)!;
+                return GetDocument(documentState.Id);
             }
         }
 

@@ -1297,6 +1297,11 @@
         <target state="translated">La recherche n’a trouvé aucun résultat : aucun projet C# ou Visual Basic n’est ouvert</target>
         <note />
       </trans-unit>
+      <trans-unit id="Search_members">
+        <source>Search members</source>
+        <target state="new">Search members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
         <source>Select an appropriate symbol to start value tracking</source>
         <target state="translated">Sélectionnez un symbole approprié pour démarrer le suivi des valeurs</target>

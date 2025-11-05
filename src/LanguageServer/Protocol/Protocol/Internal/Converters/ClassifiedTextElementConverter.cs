@@ -37,7 +37,7 @@ internal sealed class ClassifiedTextElementConverter : JsonConverter<ClassifiedT
                             if (reader.TokenType == JsonTokenType.EndArray)
                                 break;
 
-                            objects.Add(ClassifiedTextRunConverter.Instance.Read(ref reader, typeof(ClassifiedTextRun), options)!);
+                            objects.Add(ClassifiedTextRunConverter.Instance.Read(ref reader, typeof(ClassifiedTextRun), options));
                         }
 
                         break;

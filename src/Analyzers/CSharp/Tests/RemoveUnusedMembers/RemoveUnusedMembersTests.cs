@@ -2647,6 +2647,52 @@ public sealed class RemoveUnusedMembersTests
         await VerifyCS.VerifyCodeFixAsync(code, code);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71523")]
+    public async Task DebuggerDisplayAttribute_OnType_NameParameter_ReferencesProperty()
+    {
+        var code = """
+            [System.Diagnostics.DebuggerDisplay("{DebuggerValue}", Name = "{DebuggerName}")]
+            class C
+            {
+                private string DebuggerValue => GetType().Name;
+                private string DebuggerName => GetType().Name;
+            }
+            """;
+
+        await VerifyCS.VerifyCodeFixAsync(code, code);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71523")]
+    public async Task DebuggerDisplayAttribute_OnType_TypeParameter_ReferencesMethod()
+    {
+        var code = """
+            [System.Diagnostics.DebuggerDisplay("{DebuggerValue}", Type = "{DebuggerType()}")]
+            class C
+            {
+                private string DebuggerValue => GetType().Name;
+                private string DebuggerType() => GetType().Name;
+            }
+            """;
+
+        await VerifyCS.VerifyCodeFixAsync(code, code);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71523")]
+    public async Task DebuggerDisplayAttribute_OnType_AllParameters_ReferencesMembers()
+    {
+        var code = """
+            [System.Diagnostics.DebuggerDisplay("{DebuggerValue}", Name = "{DebuggerName}", Type = "{DebuggerType()}")]
+            class C
+            {
+                private string DebuggerValue => GetType().Name;
+                private string DebuggerName => GetType().Name;
+                private string DebuggerType() => GetType().Name;
+            }
+            """;
+
+        await VerifyCS.VerifyCodeFixAsync(code, code);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30886")]
     public async Task SerializableConstructor_TypeImplementsISerializable()
     {

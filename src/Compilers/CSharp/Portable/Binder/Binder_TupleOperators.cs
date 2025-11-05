@@ -108,7 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         out UnaryOperatorSignature boolOperator);
                     CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, boolOperator.Method, isUnsignedRightShift: false, boolOperator.ConstrainedToTypeOpt, diagnostics);
 
-                    return new TupleBinaryOperatorInfo.Single(binary.Left.Type, binary.Right.Type, binary.OperatorKind, binary.Method, binary.ConstrainedToType,
+                    Debug.Assert(!binary.OperatorKind.IsDynamic());
+                    return new TupleBinaryOperatorInfo.Single(binary.Left.Type, binary.Right.Type, binary.OperatorKind, binary.BinaryOperatorMethod, binary.ConstrainedToType,
                         conversionIntoBoolOperatorPlaceholder, conversionIntoBoolOperator, boolOperator);
 
                 default:

@@ -9610,6 +9610,257 @@ class Program
             CompileAndVerify(comp, expectedOutput: "operator2exception").VerifyDiagnostics();
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78602")]
+        public void UserDefinedShortCircuitingOperators_TrueFalseIsOverloaded_01()
+        {
+            var src = $$$"""
+public class Program
+{
+    static void Main()
+    {
+        var x1 = new S1();
+        var y1 = new S1();
+
+        _ = x1 && y1;
+        _ = x1 || y1;
+
+        var x2 = new S2();
+        var y2 = new S2();
+
+        _ = x2 && y2;
+        _ = x2 || y2;
+    }
+}
+
+struct S1 // nullable operators come first
+{
+    public static S1 operator &(S1 x, S1 y) => x;
+    public static S1 operator |(S1 x, S1 y) => x;
+
+    public static bool operator true(S1? x) => throw null;
+    public static bool operator false(S1? x) => throw null;
+
+    public static bool operator true(S1 x)
+    {
+        System.Console.Write(3);
+        return false;
+    }
+    public static bool operator false(S1 x)
+    {
+        System.Console.Write(4);
+        return false;
+    }
+}
+
+struct S2 // non-nullable operators come first
+{
+    public static S2 operator &(S2 x, S2 y) => x;
+    public static S2 operator |(S2 x, S2 y) => x;
+    public static bool operator true(S2 x)
+    {
+        System.Console.Write(3);
+        return false;
+    }
+    public static bool operator false(S2 x)
+    {
+        System.Console.Write(4);
+        return false;
+    }
+
+    public static bool operator true(S2? x) => throw null;
+    public static bool operator false(S2? x) => throw null;
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "4343").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78602")]
+        public void UserDefinedShortCircuitingOperators_TrueFalseIsOverloaded_02()
+        {
+            var src = $$$"""
+public class Program
+{
+    static void Main()
+    {
+        var x1 = new S1();
+        var y1 = new S1();
+
+        _ = x1 && y1;
+        _ = x1 || y1;
+
+        var x2 = new S2();
+        var y2 = new S2();
+
+        _ = x2 && y2;
+        _ = x2 || y2;
+    }
+}
+
+struct S1 {}
+struct S2 {}
+
+static class Extensions
+{
+    extension(S1?) // nullable operators come first
+    {
+        public static bool operator true(S1? x) => throw null;
+        public static bool operator false(S1? x) => throw null;
+    }
+
+    extension(S1)
+    {
+        public static S1 operator &(S1 x, S1 y) => x;
+        public static S1 operator |(S1 x, S1 y) => x;
+        public static bool operator true(S1 x)
+        {
+            System.Console.Write(3);
+            return false;
+        }
+        public static bool operator false(S1 x)
+        {
+            System.Console.Write(4);
+            return false;
+        }
+    }
+
+    extension(S2) // non-nullable operators come first
+    {
+        public static S2 operator &(S2 x, S2 y) => x;
+        public static S2 operator |(S2 x, S2 y) => x;
+        public static bool operator true(S2 x)
+        {
+            System.Console.Write(3);
+            return false;
+        }
+        public static bool operator false(S2 x)
+        {
+            System.Console.Write(4);
+            return false;
+        }
+    }
+
+    extension(S2?)
+    {
+        public static bool operator true(S2? x) => throw null;
+        public static bool operator false(S2? x) => throw null;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "4343").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78617")]
+        public void UserDefinedShortCircuitingOperators_TrueFalseInBaseInterface_01()
+        {
+            var src = $$$"""
+public class Program
+{
+    static void Main()
+    {
+        C2 x2 = null;
+        C2 y2 = null;
+
+        _ = x2 && y2;
+        _ = x2 || y2;
+    }
+}
+
+interface C1
+{
+    public static bool operator true(C1 x)
+    {
+        System.Console.Write("1");
+        return false;
+    }
+    public static bool operator false(C1 x)
+    {
+        System.Console.Write("2");
+        return false;
+    }
+}
+
+interface C2 : C1
+{
+    public static C2 operator &(C2 x, C2 y)
+    {
+        System.Console.Write("3");
+        return x;
+    }
+    public static C2 operator |(C2 x, C2 y)
+    {
+        System.Console.Write("4");
+        return x;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "2314" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78617")]
+        public void UserDefinedShortCircuitingOperators_TrueFalseInBaseInterface_02()
+        {
+            var src = $$$"""
+public class Program : C2
+{
+    static void Main()
+    {
+        C2 x2 = new Program();
+        C2 y2 = new Program();
+
+        _ = x2 && y2;
+        _ = x2 || y2;
+    }
+}
+
+interface C1;
+interface C2 : C1;
+
+static class Extensions
+{
+    extension(C1)
+    {
+        public static bool operator true(C1 x)
+        {
+            System.Console.Write("1");
+            return false;
+        }
+        public static bool operator false(C1 x)
+        {
+            System.Console.Write("2");
+            return false;
+        }
+    }
+
+    extension(C2)
+    {
+        public static C2 operator &(C2 x, C2 y)
+        {
+            System.Console.Write("3");
+            return x;
+        }
+        public static C2 operator |(C2 x, C2 y)
+        {
+            System.Console.Write("4");
+            return x;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "2314").VerifyDiagnostics();
+        }
+
         private sealed class EmptyRewriter : BoundTreeRewriter
         {
             protected override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)

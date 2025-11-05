@@ -48,12 +48,7 @@ internal abstract class AbstractRemoveUnusedVariableCodeFixProvider<TLocalDeclar
 
         if (ShouldOfferFixForLocalDeclaration(blockFacts, node))
         {
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    FeaturesResources.Remove_unused_variable,
-                    GetDocumentUpdater(context),
-                    nameof(FeaturesResources.Remove_unused_variable)),
-                diagnostic);
+            RegisterCodeFix(context, FeaturesResources.Remove_unused_variable, nameof(FeaturesResources.Remove_unused_variable));
         }
     }
 

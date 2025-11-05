@@ -10,6 +10,7 @@ internal static class ReferenceFinders
 {
     // Rename does not need to include base/this constructor initializer calls (explicit or implicit).
     public static readonly ImmutableArray<IReferenceFinder> DefaultRenameReferenceFinders = [
+            AliasSymbolReferenceFinder.Instance,
             ConstructorSymbolReferenceFinder.Instance,
             PropertySymbolReferenceFinder.Instance,
             new DestructorSymbolReferenceFinder(),
