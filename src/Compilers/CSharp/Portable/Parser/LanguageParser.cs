@@ -10726,7 +10726,7 @@ done:
             // Note that we could just check if we're in an async context, but that breaks some analyzers, because
             // "await f();" would be parsed as a local function statement when really we want a parse error so we can say
             // "did you mean to make this method be an async method?" (it's invalid either way, so the spec doesn't care)
-            var resetPoint = this.GetResetPoint();
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
             // Indicates this must be parsed as a local function, even if there's no body
             bool forceLocalFunc = true;
@@ -10736,8 +10736,6 @@ done:
                 forceLocalFunc = id.ContextualKind != SyntaxKind.AwaitKeyword;
             }
 
-            bool parentScopeIsInAsync = IsInAsync;
-            IsInAsync = false;
             SyntaxListBuilder badBuilder = null;
             for (int i = 0; i < modifiers.Count; i++)
             {
@@ -10745,7 +10743,6 @@ done:
                 switch (modifier.ContextualKind)
                 {
                     case SyntaxKind.AsyncKeyword:
-                        IsInAsync = true;
                         forceLocalFunc = true;
                         continue;
                     case SyntaxKind.UnsafeKeyword:
@@ -10778,6 +10775,8 @@ done:
                 _pool.Free(badBuilder);
             }
 
+            using var _ = new ParserSyntaxContextResetter(this, modifiers.Any((int)SyntaxKind.AsyncKeyword));
+
             TypeParameterListSyntax typeParameterListOpt = this.ParseTypeParameterList();
             // "await f<T>()" still makes sense, so don't force accept a local function if there's a type parameter list.
             ParameterListSyntax paramList = this.ParseParenthesizedParameterList(forExtension: false);
@@ -10807,15 +10806,11 @@ done:
             SyntaxToken semicolon;
             this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon, parseSemicolonAfterBlock: false);
 
-            IsInAsync = parentScopeIsInAsync;
-
             if (!forceLocalFunc && blockBody == null && expressionBody == null)
             {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
+                resetPoint.Reset();
                 return null;
             }
-            this.Release(ref resetPoint);
 
             return _syntaxFactory.LocalFunctionStatement(
                 attributes,
@@ -13467,26 +13462,20 @@ done:
 
         private AnonymousMethodExpressionSyntax ParseAnonymousMethodExpression()
         {
-            var parentScopeIsInAsync = this.IsInAsync;
-
             var parentScopeForceConditionalAccess = this.ForceConditionalAccessExpression;
             this.ForceConditionalAccessExpression = false;
+
+            var modifiers = ParseAnonymousFunctionModifiers();
+            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: modifiers.Any((int)SyntaxKind.AsyncKeyword));
 
             var result = parseAnonymousMethodExpressionWorker();
 
             this.ForceConditionalAccessExpression = parentScopeForceConditionalAccess;
-            this.IsInAsync = parentScopeIsInAsync;
 
             return result;
 
             AnonymousMethodExpressionSyntax parseAnonymousMethodExpressionWorker()
             {
-                var modifiers = ParseAnonymousFunctionModifiers();
-                if (modifiers.Any((int)SyntaxKind.AsyncKeyword))
-                {
-                    this.IsInAsync = true;
-                }
-
                 var @delegate = this.EatToken(SyntaxKind.DelegateKeyword);
 
                 ParameterListSyntax parameterList = null;
