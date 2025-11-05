@@ -13421,7 +13421,7 @@ done:
             this.ForceConditionalAccessExpression = false;
 
             var modifiers = ParseAnonymousFunctionModifiers();
-            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: modifiers.Any((int)SyntaxKind.AsyncKeyword));
+            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: this.IsInAsync || modifiers.Any((int)SyntaxKind.AsyncKeyword));
 
             var result = parseAnonymousMethodExpressionWorker();
 
@@ -13540,7 +13540,7 @@ done:
 
             var modifiers = ParseAnonymousFunctionModifiers();
 
-            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: modifiers.Any((int)SyntaxKind.AsyncKeyword));
+            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: this.IsInAsync || modifiers.Any((int)SyntaxKind.AsyncKeyword));
 
             var parentScopeForceConditionalAccess = this.ForceConditionalAccessExpression;
             this.ForceConditionalAccessExpression = false;
