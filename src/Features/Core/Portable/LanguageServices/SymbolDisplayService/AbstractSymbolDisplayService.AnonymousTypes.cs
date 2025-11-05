@@ -13,7 +13,7 @@ internal abstract partial class AbstractSymbolDisplayService
 {
     protected abstract partial class AbstractSymbolDescriptionBuilder
     {
-        private void FixAllStructuralTypes(ISymbol firstSymbol)
+        private StructuralTypeDisplayInfo FixAllStructuralTypes(ISymbol firstSymbol)
         {
             // Now, replace all normal anonymous types and tuples with 'a, 'b, etc. and create a
             // Structural Types: section to display their info.

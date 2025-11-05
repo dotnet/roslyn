@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -82,14 +83,9 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         internal SemanticModel SemanticModel { get; set; }
         internal ISymbol TypeResolutionSymbol { get; set; }
         internal int Position { get; set; }
+        internal StructuralTypeDisplayInfo TypeDisplayInfo { get; set; }
 
-        public bool AtBeginning
-        {
-            get
-            {
-                return Builder.Count == 0;
-            }
-        }
+        public bool AtBeginning => Builder.Count == 0;
 
         public SymbolDisplayFormat Format { get; internal set; }
 
@@ -286,13 +282,17 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         return state.GetText();
     }
 
-    public ImmutableArray<TaggedText> Format(string rawXmlText, ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format, CancellationToken cancellationToken)
+    public ImmutableArray<TaggedText> Format(
+        string rawXmlText,
+        ISymbol symbol,
+        SemanticModel semanticModel,
+        int position,
+        SymbolDisplayFormat format,
+        StructuralTypeDisplayInfo typeDisplayInfo,
+        CancellationToken cancellationToken)
     {
         if (rawXmlText is null)
-        {
             return [];
-        }
-        //symbol = symbol.OriginalDefinition;
 
         var state = new FormatterState() { SemanticModel = semanticModel, Position = position, Format = format, TypeResolutionSymbol = symbol };
 
@@ -359,7 +359,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             }
         }
         else if (name is DocumentationCommentXmlNames.ParameterReferenceElementName or
-                 DocumentationCommentXmlNames.TypeParameterReferenceElementName)
+                         DocumentationCommentXmlNames.TypeParameterReferenceElementName)
         {
             var kind = name == DocumentationCommentXmlNames.ParameterReferenceElementName ? SymbolDisplayPartKind.ParameterName : SymbolDisplayPartKind.TypeParameterName;
             foreach (var attribute in element.Attributes())
@@ -480,7 +480,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             if (kind == SymbolDisplayPartKind.TypeParameterName)
             {
                 state.AppendParts(
-                    TypeParameterRefToSymbolDisplayParts(attribute.Value, state.TypeResolutionSymbol, state.Position, state.SemanticModel, state.Format).ToTaggedText(state.Style));
+                    TypeParameterRefToSymbolDisplayParts(attribute.Value, state).ToTaggedText(state.Style));
             }
             else
             {
@@ -527,7 +527,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
     }
 
     internal static IEnumerable<SymbolDisplayPart> TypeParameterRefToSymbolDisplayParts(
-        string crefValue, ISymbol typeResolutionSymbol, int position, SemanticModel semanticModel, SymbolDisplayFormat format)
+        string crefValue, FormatterState state)
     {
         if (semanticModel != null)
         {
