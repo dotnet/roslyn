@@ -280,12 +280,26 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         // case x when (y): -> case x when y:
         if (nodeParent.IsKind(SyntaxKind.WhenClause))
         {
-            // Subtle case, `when (x?[] ...):`.  Can't remove the parentheses here as it can the conditional access
-            // become a conditional expression.
+            // Subtle case, `when (x?[] ...):`.  Can't remove the parentheses here as it can cause the conditional access
+            // to become a conditional expression.  For example: `when (a || x?[0]):` becomes `when a || x?[0]:` which
+            // would be parsed as `when a || x ? [0] :` (a ternary expression) instead of the intended conditional access.
+            // We need to walk down the RHS of any binary expressions to check if they end with a nullable indexing operation.
             for (var current = expression; current != null; current = current.ChildNodes().FirstOrDefault() as ExpressionSyntax)
             {
                 if (current is ConditionalAccessExpressionSyntax)
                     return false;
+
+                // If we have a binary expression, we need to check the RHS specifically, as that's where the ambiguity
+                // with the `:` from the when clause can occur.
+                if (current is BinaryExpressionSyntax binaryExpr)
+                {
+                    // Walk down the RHS to see if it contains a conditional access expression
+                    for (var rhsCurrent = binaryExpr.Right; rhsCurrent != null; rhsCurrent = rhsCurrent.ChildNodes().FirstOrDefault() as ExpressionSyntax)
+                    {
+                        if (rhsCurrent is ConditionalAccessExpressionSyntax)
+                            return false;
+                    }
+                }
             }
 
             return true;

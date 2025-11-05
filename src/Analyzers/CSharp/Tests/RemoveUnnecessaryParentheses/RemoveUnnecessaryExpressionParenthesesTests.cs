@@ -1442,6 +1442,141 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
 
     [Fact]
+    public Task TestWhenClauseWithNullableIndexing_RequiredForParsing()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public void M(C[] x, bool a)
+                {
+                    switch ("")
+                    {
+                        case "" when $$(a || x?[0]):
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                public static implicit operator bool(C? c) => true;
+            }
+            """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
+
+    [Fact]
+    public Task TestWhenClauseWithNullableIndexing_AndOperator()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public void M(C[] x, bool a)
+                {
+                    switch ("")
+                    {
+                        case "" when $$(a && x?[0]):
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                public static implicit operator bool(C? c) => true;
+            }
+            """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
+
+    [Fact]
+    public Task TestWhenClauseWithNullableIndexing_NestedBinary()
+        => TestMissingAsync(
+            """
+            class C
+            {
+                public void M(C[] x, bool a, bool b)
+                {
+                    switch ("")
+                    {
+                        case "" when $$((a || b) && x?[0]):
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                public static implicit operator bool(C? c) => true;
+            }
+            """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
+
+    [Fact]
+    public Task TestWhenClauseWithNullableIndexing_NoAmbiguityOnLeft()
+        => TestAsync(
+            """
+            class C
+            {
+                public void M(C[] x, bool a)
+                {
+                    switch ("")
+                    {
+                        case "" when $$(x?[0]) || a:
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                public static implicit operator bool(C? c) => true;
+            }
+            """,
+            """
+            class C
+            {
+                public void M(C[] x, bool a)
+                {
+                    switch ("")
+                    {
+                        case "" when x?[0] || a:
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                public static implicit operator bool(C? c) => true;
+            }
+            """, offeredWhenRequireForClarityIsEnabled: false);
+
+    [Fact]
+    public Task TestWhenClauseWithoutNullableIndexing_CanRemove()
+        => TestAsync(
+            """
+            class C
+            {
+                public void M(bool a, bool b)
+                {
+                    switch ("")
+                    {
+                        case "" when $$(a || b):
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public void M(bool a, bool b)
+                {
+                    switch ("")
+                    {
+                        case "" when a || b:
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact]
     public Task TestCastAmbiguity1()
         => TestMissingAsync(
             """
