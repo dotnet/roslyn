@@ -159,14 +159,19 @@ internal abstract class AbstractOptionPreviewViewModel : AbstractNotifyPropertyC
 
         if (this.TextViewHost?.HostControl is { } control)
         {
-            var projectionText = projection.CurrentSnapshot.GetText();
-            AutomationProperties.SetName(control,
-                        $"{ServicesVSResources.Code_preview}: {projectionText}");
+            AutomationProperties.SetName(control, ServicesVSResources.Code_preview);
             AutomationProperties.SetLiveSetting(control, AutomationLiveSetting.Polite);
 
             // Ensure the text view is focusable for keyboard navigation
             control.Focusable = true;
             control.IsTabStop = true;
+        }
+
+        if (textView?.VisualElement is { } visualElement)
+        {
+            var projectionText = projection.CurrentSnapshot.GetText();
+            AutomationProperties.SetName(visualElement, projectionText);
+            AutomationProperties.SetLiveSetting(visualElement, AutomationLiveSetting.Polite);
         }
 
         workspace.TryApplyChanges(document.Project.Solution);
