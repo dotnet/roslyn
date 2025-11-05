@@ -1561,8 +1561,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // 1. `e2` must have *ref-safe-to-escape* at least as large as the *ref-safe-to-escape* of `e1`
                     // 2. `e1` must have the same *safe-to-escape* as `e2`
 
-                    var leftEscape = GetRefEscape(op1, _localScopeDepth);
-                    var rightEscape = GetRefEscape(op2, _localScopeDepth);
+                    var leftEscape = GetRefEscape(op1);
+                    var rightEscape = GetRefEscape(op2);
                     if (!rightEscape.IsConvertibleTo(leftEscape))
                     {
                         var errorCode = (rightEscape, _inUnsafeRegion) switch
@@ -1581,8 +1581,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (op1.Kind is BoundKind.Local or BoundKind.Parameter)
                     {
-                        leftEscape = GetValEscape(op1, _localScopeDepth);
-                        rightEscape = GetValEscape(op2, _localScopeDepth);
+                        leftEscape = GetValEscape(op1);
+                        rightEscape = GetValEscape(op2);
 
                         Debug.Assert(leftEscape.Equals(rightEscape) || op1.Type.IsRefLikeOrAllowsRefLikeType());
 
@@ -1621,7 +1621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!hasErrors && op1.Type.IsRefLikeOrAllowsRefLikeType())
                 {
-                    var leftEscape = GetValEscape(op1, _localScopeDepth);
+                    var leftEscape = GetValEscape(op1);
                     ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
                 }
             }
@@ -1650,7 +1650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Analyze as if this is a call to the setter directly, not an assignment.
                 var localMethodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
                 Debug.Assert(methodInvocationInfo.MethodInfo.Method is not null);
-                CheckInvocationArgMixing(node, in localMethodInvocationInfo, _localScopeDepth, methodInvocationInfo.MethodInfo.Method, diagnostics);
+                CheckInvocationArgMixing(node, in localMethodInvocationInfo, methodInvocationInfo.MethodInfo.Method, diagnostics);
             }
         }
     }
