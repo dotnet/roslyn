@@ -70,17 +70,8 @@ public readonly record struct DeclarationModifiers
             var field = symbol as IFieldSymbol;
             var property = symbol as IPropertySymbol;
             var method = symbol as IMethodSymbol;
-            var @event = symbol as IEventSymbol;
             var type = symbol as INamedTypeSymbol;
             var isConst = field?.IsConst == true;
-
-            // A symbol is partial if it's a partial definition or a partial implementation
-            var isPartial = method?.IsPartialDefinition == true ||
-                            method?.PartialDefinitionPart != null ||
-                            property?.IsPartialDefinition == true ||
-                            property?.PartialDefinitionPart != null ||
-                            @event?.IsPartialDefinition == true ||
-                            @event?.PartialDefinitionPart != null;
 
             return new DeclarationModifiers(
                 isStatic: symbol.IsStatic && !isConst,
@@ -98,7 +89,7 @@ public readonly record struct DeclarationModifiers
                 isRequired: symbol.IsRequired(),
                 isFile: type?.IsFileLocal == true,
                 isFixed: field?.IsFixedSizeBuffer == true,
-                isPartial: isPartial);
+                isPartial: symbol.IsPartial());
         }
 
         // Only named types, members of named types, and local functions have modifiers.
