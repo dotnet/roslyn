@@ -98,6 +98,31 @@ public sealed class DocumentHighlightTests : AbstractLanguageServerProtocolTests
         Assert.Empty(results);
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/76089")]
+    public async Task TestGetDocumentHighlightAsync_PartialConstructor(bool lspMutatingWorkspace)
+    {
+        var markup =
+            """
+            partial class C
+            {
+                partial {|caret:|}{|text:C|}();
+                partial {|text:C|}()
+                {
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
+
+        var expectedLocations = testLspServer.GetLocations("text");
+
+        var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        Assert.Equal(2, results.Length);
+        Assert.All(results, r => Assert.Equal(LSP.DocumentHighlightKind.Text, r.Kind));
+        Assert.Equal(expectedLocations[0].Range, results[0].Range);
+        Assert.Equal(expectedLocations[1].Range, results[1].Range);
+    }
+
     private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(TestLspServer testLspServer, LSP.Location caret)
     {
         var results = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName,

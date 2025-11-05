@@ -168,11 +168,6 @@ internal abstract partial class AbstractDocumentHighlightsService :
         references = references.FilterNonMatchingMethodNames(solution, symbol);
         references = references.FilterToAliasMatches(symbol as IAliasSymbol);
 
-        if (symbol.IsConstructor())
-        {
-            references = references.WhereAsArray(r => r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition));
-        }
-
         using var _ = ArrayBuilder<Location>.GetInstance(out var additionalReferences);
 
         foreach (var currentDocument in documentsToSearch)
