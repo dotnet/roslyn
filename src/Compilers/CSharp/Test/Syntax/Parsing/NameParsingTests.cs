@@ -1503,6 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         M<,int>();      // First argument omitted
                         M<string,>();   // Second argument omitted
                         M<,int,>();     // First and third arguments omitted (if we had 3 params)
+                        M<,,>();        // Both arguments omitted with consecutive commas
                     }
                 }
                 """;
@@ -1643,6 +1644,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 }
                                 N(SyntaxKind.SemicolonToken);
                             }
+                            // M<,,>()
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.GenericName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "M");
+                                        N(SyntaxKind.TypeArgumentList);
+                                        {
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.OmittedTypeArgument);
+                                            {
+                                                N(SyntaxKind.OmittedTypeArgumentToken);
+                                            }
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.OmittedTypeArgument);
+                                            {
+                                                N(SyntaxKind.OmittedTypeArgumentToken);
+                                            }
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.OmittedTypeArgument);
+                                            {
+                                                N(SyntaxKind.OmittedTypeArgumentToken);
+                                            }
+                                            N(SyntaxKind.GreaterThanToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
                             N(SyntaxKind.CloseBraceToken);
                         }
                     }
@@ -1651,6 +1688,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            // Validate that we get proper binding diagnostics - these are syntax errors that should not be accepted
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,9): error CS0305: Using the generic method group 'M' requires 2 type arguments
+                //         M<,int>();      // First argument omitted
+                Diagnostic(ErrorCode.ERR_BadArity, "M<,int>").WithArguments("M", "method group", "2").WithLocation(5, 9),
+                // (6,9): error CS0305: Using the generic method group 'M' requires 2 type arguments
+                //         M<string,>();   // Second argument omitted
+                Diagnostic(ErrorCode.ERR_BadArity, "M<string,>").WithArguments("M", "method group", "2").WithLocation(6, 9),
+                // (7,9): error CS0305: Using the generic method 'C.M<T1, T2>()' requires 2 type arguments
+                //         M<,int,>();     // First and third arguments omitted (if we had 3 params)
+                Diagnostic(ErrorCode.ERR_BadArity, "M<,int,>").WithArguments("C.M<T1, T2>()", "method", "2").WithLocation(7, 9),
+                // (8,9): error CS0305: Using the generic method 'C.M<T1, T2>()' requires 2 type arguments
+                //         M<,,>();        // Both arguments omitted with consecutive commas
+                Diagnostic(ErrorCode.ERR_BadArity, "M<,,>").WithArguments("C.M<T1, T2>()", "method", "2").WithLocation(8, 9));
         }
     }
 }
