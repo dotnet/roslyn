@@ -9532,49 +9532,47 @@ class C : System.Collections.ICollection
             );
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70806")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70046")]
     public void PointerType_ListPattern()
     {
         var source = """
-unsafe class C
-{
-    void M()
-    {
-        void* v = null;
-        if (v is [])
-        {
-        }
-    }
-}
-""";
+            unsafe class C
+            {
+                void M()
+                {
+                    void* v = null;
+                    if (v is [])
+                    {
+                    }
+                }
+            }
+            """;
         var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
         compilation.VerifyDiagnostics(
             // (6,18): error CS8521: Pattern-matching is not permitted for pointer types.
             //         if (v is [])
-            Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "[]").WithLocation(6, 18)
-            );
+            Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "[]").WithLocation(6, 18));
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70806")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70046")]
     public void FunctionPointerType_ListPattern()
     {
         var source = """
-unsafe class C
-{
-    void M()
-    {
-        delegate*<void> f = null;
-        if (f is [])
-        {
-        }
-    }
-}
-""";
+            unsafe class C
+            {
+                void M()
+                {
+                    delegate*<void> f = null;
+                    if (f is [])
+                    {
+                    }
+                }
+            }
+            """;
         var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
         compilation.VerifyDiagnostics(
             // (6,18): error CS8521: Pattern-matching is not permitted for pointer types.
             //         if (f is [])
-            Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "[]").WithLocation(6, 18)
-            );
+            Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "[]").WithLocation(6, 18));
     }
 }
