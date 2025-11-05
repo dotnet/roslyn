@@ -13843,12 +13843,12 @@ done:
         {
             using var _ = new ParserSyntaxContextResetter(this, isInQueryContext: true);
             var fromClause = this.ParseFromClause();
-            if (precedence > Precedence.Assignment)
-            {
-                fromClause = this.AddError(fromClause, ErrorCode.WRN_PrecedenceInversion, SyntaxFacts.GetText(SyntaxKind.FromKeyword));
-            }
 
-            return _syntaxFactory.QueryExpression(fromClause, this.ParseQueryBody());
+            return _syntaxFactory.QueryExpression(
+                precedence <= Precedence.Assignment
+                    ? fromClause
+                    : this.AddError(fromClause, ErrorCode.WRN_PrecedenceInversion, SyntaxFacts.GetText(SyntaxKind.FromKeyword)),
+                this.ParseQueryBody());
         }
 
         private QueryBodySyntax ParseQueryBody()
@@ -13861,8 +13861,7 @@ done:
                 switch (this.CurrentToken.ContextualKind)
                 {
                     case SyntaxKind.FromKeyword:
-                        var fc = this.ParseFromClause();
-                        clauses.Add(fc);
+                        clauses.Add(this.ParseFromClause());
                         continue;
                     case SyntaxKind.JoinKeyword:
                         clauses.Add(this.ParseJoinClause());
