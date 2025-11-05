@@ -2690,7 +2690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             var saveTerm = _termState;
                             _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
 
-                            // We are implicitly in an async context
+                            // We are implicitly in an async context in a non-script environment.
                             using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: this.IsInAsync || !IsScript);
 
                             // In Script we don't allow local declaration statements at the top level.  We want
