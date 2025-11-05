@@ -53,7 +53,7 @@ parameters:
 - name: queueName
   displayName: Queue Name
   type: string
-  default: windows.vs2026preview.amd64.open
+  default: windows.vs2026preview.scout.amd64.open
   values:
   - windows.vs2026.amd64.open
   - windows.vs2026.scout.amd64.open
