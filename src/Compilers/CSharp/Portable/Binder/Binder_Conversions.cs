@@ -1027,17 +1027,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var binder = new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, withElement != null, constructor);
                         collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, @this._diagnostics);
-                        collectionCreation.WasCompilerGenerated = true;
                     }
                     else if (@this._targetType is TypeParameterSymbol typeParameter)
                     {
                         collectionCreation = @this._binder.BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: false, @this._diagnostics);
-                        collectionCreation.WasCompilerGenerated = true;
                     }
                     else
                     {
                         throw ExceptionUtilities.UnexpectedValue(@this._targetType);
                     }
+
+                    collectionCreation.WasCompilerGenerated = withElement is null;
                     analyzedArguments.Free();
                     return collectionCreation;
                 }
@@ -1366,7 +1366,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: argsToParams,
                         defaultArguments: projectionCall.DefaultArguments,
                         resultKind: LookupResultKind.Viable,
-                        type: collectionBuilderMethod.ReturnType).MakeCompilerGenerated();
+                        type: collectionBuilderMethod.ReturnType)
+                    {
+                        WasCompilerGenerated = @this._node.WithElement is null,
+                    };
 
                     // Wrap in a conversion if necessary.  Note that GetCollectionBuilderMethods guarantees that either
                     // return and target type are identical, or that a valid implicit conversion exists between them.
@@ -1549,7 +1552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal bool HasCollectionExpressionApplicableConstructor(
-            bool hasWithElement,
+            BoundUnconvertedWithElement? withElement,
             SyntaxNode syntax,
             TypeSymbol targetType,
             out MethodSymbol? constructor,
@@ -1557,6 +1560,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool isParamsModifierValidation = false)
         {
+            var hasWithElement = withElement is not null;
+
 #if DEBUG
             Debug.Assert(!isParamsModifierValidation || syntax is ParameterSyntax);
             if (hasWithElement)
@@ -1609,22 +1614,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // As long as we have an available *accessible* instance constructor, this is a type we consider
                     // applicable to collection expressions.  It may be the case that a `with(...)` element is required.
                     // But that will be reported later when doing the actual conversion to a BoundCollectionExpression.
-                    //
-                    // Otherwise, if we have *some* instance constructor (but not accessible), return it as well as this
-                    // could be an error scenario with the user wanting the 'with(...)' element to bind to that. The
-                    // actual attempt to bind the collection conversion will attempt to use this constructor and will
-                    // report an appropriate error about it not being viable because it is not accessible.
-                    //
-                    // Otherwise, fall through.  We have no constructors whatsoever and should report the below message
-                    // saying that that we can't find any applicable constructor.
-                    constructor = candidateConstructors.FirstOrDefault() ?? allInstanceConstructors.FirstOrDefault();
+                    constructor = candidateConstructors.FirstOrDefault();
                     if (constructor is not null)
                         return true;
                 }
 
                 // This is the 'a' case, and the error recovery path for the 'b' case as well.
-                var analyzedArguments = AnalyzedArguments.GetInstance();
-                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, hasWithElement);
+                var analyzedArguments = withElement is null
+                    ? AnalyzedArguments.GetInstance()
+                    : AnalyzedArguments.GetInstance(withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
+
+                var binder = new ParamsCollectionTypeInProgressBinder(
+                    namedType, this, bindingCollectionExpressionWithArguments: hasWithElement);
 
                 bool overloadResolutionSucceeded = binder.TryPerformConstructorOverloadResolution(
                     namedType,
@@ -2286,7 +2287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                 {
                     if (!HasCollectionExpressionApplicableConstructor(
-                            hasWithElement: node.WithElement != null, node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
+                            node.WithElement, node.WithElement?.Syntax ?? node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
                     {
                         reportedErrors = true;
                     }

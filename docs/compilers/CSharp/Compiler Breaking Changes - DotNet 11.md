@@ -60,7 +60,6 @@ foreach (var x in new[] { 1, 2 })
 
 See also https://github.com/dotnet/csharplang/issues/9750.
 
-
 ## Scenarios requiring compiler to synthesize a `ref readonly` returning delegate now require availability of `System.Runtime.InteropServices.InAttribute` type.
 
 ***Introduced in Visual Studio 2026 version 18.3***

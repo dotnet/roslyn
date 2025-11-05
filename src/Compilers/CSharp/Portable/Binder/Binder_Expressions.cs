@@ -5382,9 +5382,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var analyzedArguments = AnalyzedArguments.GetInstance();
 
-                // PROTOTYPE: Spec says we should only allow arglist if trivial.  Circle back on this and see if
-                // this just falls out with the 'allowArgList: true' below.  If so, let LDM know it was easy and
-                // allow it.  If it requires substantial work beyond this, disallow it for this feature.
                 @this.BindArgumentsAndNames(withElementSyntax.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
 
                 var arguments = analyzedArguments.Arguments;

@@ -6407,7 +6407,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Elements = elements;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public ImmutableArray<BoundNode> Elements { get; }
     }

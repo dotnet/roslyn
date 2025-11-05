@@ -4,7 +4,6 @@
 
 // #DEFINE DICTIONARY_EXPRESSIONS
 
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1514,6 +1513,168 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             expectedOutput: IncludeExpectedOutput("0, [1], 2, [2], "),
             verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
+
+        var compilation = (CSharpCompilation)verifier.Compilation;
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.ToArray()[1]);
+        var root = semanticModel.SyntaxTree.GetRoot();
+        var withElements = root.DescendantNodes().OfType<WithElementSyntax>().ToArray();
+        Assert.Equal(2, withElements.Length);
+
+        var method1 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[0]).Symbol;
+        var method2 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[1]).Symbol;
+
+        Assert.NotNull(method1);
+        Assert.NotNull(method2);
+
+        Assert.NotEqual(method1, method2);
+
+        Assert.Equal("MyBuilder", method1.ContainingType.Name);
+
+        AssertEx.Equal("MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T> items)", method1.ToTestDisplayString());
+        AssertEx.Equal("MyCollection<T> MyBuilder.Create<T>(T arg, System.ReadOnlySpan<T> items)", method2.ToTestDisplayString());
+
+        var arrowExpressions = root.DescendantNodes().OfType<ArrowExpressionClauseSyntax>().ToArray();
+        var operation1 = semanticModel.GetOperation(arrowExpressions[0]);
+        VerifyOperationTree(compilation, operation1, """
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> [with(), t]')
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(), t]')
+                  ReturnedValue:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<T>, IsImplicit) (Syntax: '[with(), t]')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                        ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(), t]')
+                          Elements(1):
+                              IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+            """);
+        var operation2 = semanticModel.GetOperation(arrowExpressions[1]);
+        VerifyOperationTree(compilation, operation2, """
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> [with(t), t]')
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(t), t]')
+                  ReturnedValue:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<T>, IsImplicit) (Syntax: '[with(t), t]')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                        ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(T arg, System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(t), t]')
+                          Elements(1):
+                              IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+            """);
+
+    }
+
+    [Fact]
+    public void IList_With_SemanticModel()
+    {
+        var source = """
+            using System.Collections.Generic;
+            class Program
+            {
+                static void Main()
+                {
+                    IList<int> x = [with(), 1, 2, 3];
+                    IList<int> y = [with(capacity: 6), 1, 2, 3];
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+        verifier.VerifyDiagnostics();
+
+        var compilation = (CSharpCompilation)verifier.Compilation;
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+        SyntaxNode root = semanticModel.SyntaxTree.GetRoot();
+        var withElements = root.DescendantNodes().OfType<WithElementSyntax>().ToArray();
+        Assert.Equal(2, withElements.Length);
+
+        var method1 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[0]).Symbol;
+        var method2 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[1]).Symbol;
+
+        AssertEx.Equal("System.Collections.Generic.List<System.Int32>..ctor()", method1.ToTestDisplayString());
+        AssertEx.Equal("System.Collections.Generic.List<System.Int32>..ctor(System.Int32 capacity)", method2.ToTestDisplayString());
+
+        var operation = semanticModel.GetOperation(root.DescendantNodes().OfType<BlockSyntax>().Single());
+        VerifyOperationTree(compilation, operation, """
+              IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            Locals: Local_1: System.Collections.Generic.IList<System.Int32> x
+              Local_2: System.Collections.Generic.IList<System.Int32> y
+            IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'IList<int>  ... , 1, 2, 3];')
+              IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'IList<int>  ... ), 1, 2, 3]')
+                Declarators:
+                    IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.Int32> x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = [with(), 1, 2, 3]')
+                      Initializer:
+                        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= [with(), 1, 2, 3]')
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: '[with(), 1, 2, 3]')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IList<System.Int32>) (Syntax: '[with(), 1, 2, 3]')
+                                Elements(3):
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                Initializer:
+                  null
+            IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'IList<int>  ... , 1, 2, 3];')
+              IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'IList<int>  ... ), 1, 2, 3]')
+                Declarators:
+                    IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.Int32> y) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y = [with(c ... ), 1, 2, 3]')
+                      Initializer:
+                        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= [with(cap ... ), 1, 2, 3]')
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            Operand:
+                              ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor(System.Int32 capacity)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IList<System.Int32>) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                                Elements(3):
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                Initializer:
+                  null
+            """);
+
+        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(root.DescendantNodes().OfType<BlockSyntax>().Single(), semanticModel);
+        ControlFlowGraphVerifier.VerifyGraph(compilation, """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [System.Collections.Generic.IList<System.Int32> x] [System.Collections.Generic.IList<System.Int32> y]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (2)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: 'x = [with(), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: 'x = [with(), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: '[with(), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IList<System.Int32>) (Syntax: '[with(), 1, 2, 3]')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: 'y = [with(c ... ), 1, 2, 3]')
+                          Left:
+                            ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: 'y = [with(c ... ), 1, 2, 3]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor(System.Int32 capacity)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IList<System.Int32>) (Syntax: '[with(capac ... ), 1, 2, 3]')
+                                  Elements(3):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
+            """, graph, symbol);
     }
 
     [Fact]
@@ -6071,8 +6232,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(MyCollection<T>)").WithLocation(6, 9));
     }
 
-    // PROTOTYPE: Semantic model for collection creation: what method is returned if any?
-
 #if DICTIONARY_EXPRESSIONS
 
     [Fact]
@@ -7648,5 +7807,103 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 // (5,35): error CS0121: The call is ambiguous between the following methods or properties: 'MyBuilder.Create<string>(string, object, ReadOnlySpan<string>)' and 'MyBuilder.Create<string>(object, string, ReadOnlySpan<string>)'
                 //         MyCollection<string> c = [with("", ""), ""];
                 Diagnostic(ErrorCode.ERR_AmbigCall, @"with("""", """")").WithArguments("MyBuilder.Create<string>(string, object, System.ReadOnlySpan<string>)", "MyBuilder.Create<string>(object, string, System.ReadOnlySpan<string>)").WithLocation(5, 35));
+    }
+
+    [Fact]
+    public void InterpolatedStringHandler()
+    {
+        var code = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Collections.Generic;
+
+            public class C : List<int>
+            {
+                public C(int i, string s, [InterpolatedStringHandlerArgumentAttribute("i", "s")] CustomHandler c) => Console.WriteLine(c.ToString());
+            }
+
+            public partial struct CustomHandler
+            {
+                public CustomHandler(int literalLength, int formattedCount, int i, string s) : this(literalLength, formattedCount)
+                {
+                    _builder.AppendLine("i:" + i.ToString());
+                    _builder.AppendLine("s:" + s);
+                }
+            }
+            """;
+
+        var executableCode = """
+            class Program
+            {
+                static void Main()
+                {
+                    int i = 10;
+                    string s = "arg";
+                    C c = [with(i, s, $"" + $"literal")];
+                }
+            }
+            """;
+
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+
+        CompileAndVerify([code, executableCode, InterpolatedStringHandlerArgumentAttribute, handler], expectedOutput: """
+                i:10
+                s:arg
+                literal:literal
+                """)
+            .VerifyDiagnostics()
+            .VerifyIL("Program.Main", """
+                {
+                  // Code size       45 (0x2d)
+                  .maxstack  7
+                  .locals init (string V_0, //s
+                                int V_1,
+                                string V_2,
+                                CustomHandler V_3)
+                  IL_0000:  ldc.i4.s   10
+                  IL_0002:  ldstr      "arg"
+                  IL_0007:  stloc.0
+                  IL_0008:  stloc.1
+                  IL_0009:  ldloc.1
+                  IL_000a:  ldloc.0
+                  IL_000b:  stloc.2
+                  IL_000c:  ldloc.2
+                  IL_000d:  ldloca.s   V_3
+                  IL_000f:  ldc.i4.7
+                  IL_0010:  ldc.i4.0
+                  IL_0011:  ldloc.1
+                  IL_0012:  ldloc.2
+                  IL_0013:  call       "CustomHandler..ctor(int, int, int, string)"
+                  IL_0018:  ldloca.s   V_3
+                  IL_001a:  ldstr      "literal"
+                  IL_001f:  call       "bool CustomHandler.AppendLiteral(string)"
+                  IL_0024:  pop
+                  IL_0025:  ldloc.3
+                  IL_0026:  newobj     "C..ctor(int, string, CustomHandler)"
+                  IL_002b:  pop
+                  IL_002c:  ret
+                }
+                """);
+    }
+
+    [Fact]
+    public void WithOutsideCollectionIsAnInvocation()
+    {
+        var source = """
+            using System.Collections.Generic;
+            class C
+            {
+                void M()
+                {
+                    N(with(capacity: 0), 1, 2, 3);
+                }
+
+                void N(params List<int> list) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,11): error CS0103: The name 'with' does not exist in the current context
+            //         N(with(capacity: 0), 1, 2, 3);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(6, 11));
     }
 }

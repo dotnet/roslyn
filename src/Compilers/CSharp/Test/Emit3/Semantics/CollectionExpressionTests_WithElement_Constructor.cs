@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -303,6 +305,34 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
     }
 
     [Fact]
+    public void WithElement_RequiredProperties()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public required int RequiredProp { get; init; }
+
+                public MyList(int capacity) { }
+            }
+            
+            class C
+            {
+                void M()
+                {
+                    MyList<int> list = [with(capacity: 10)];
+                }
+            }
+            """;
+
+        CreateCompilation([source, IsExternalInitTypeDefinition, RequiredMemberAttribute, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+            // (14,29): error CS9035: Required member 'MyList<int>.RequiredProp' must be set in the object initializer or attribute constructor.
+            //         MyList<int> list = [with(capacity: 10)];
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "with(capacity: 10)").WithArguments("MyList<int>.RequiredProp").WithLocation(14, 29));
+    }
+
+    [Fact]
     public void WithElement_OptionalParameters()
     {
         var source = """
@@ -333,7 +363,198 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("default-4,default-10,custom-4,both-20"));
+        var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("default-4,default-10,custom-4,both-20"));
+        var compilation = (CSharpCompilation)verifier.Compilation;
+
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+        var root = semanticModel.SyntaxTree.GetRoot();
+
+        var withElements = root.DescendantNodes().OfType<WithElementSyntax>().ToArray();
+        Assert.Equal(4, withElements.Length);
+
+        var constructor1 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[0]).Symbol;
+        var constructor2 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[1]).Symbol;
+        var constructor3 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[2]).Symbol;
+        var constructor4 = (IMethodSymbol?)semanticModel.GetSymbolInfo(withElements[3]).Symbol;
+
+        Assert.NotNull(constructor1);
+        Assert.NotNull(constructor2);
+        Assert.NotNull(constructor3);
+        Assert.NotNull(constructor4);
+
+        Assert.Equal(constructor1, constructor2);
+        Assert.Equal(constructor1, constructor3);
+        Assert.Equal(constructor1, constructor4);
+
+        Assert.Equal("MyList", constructor1.ContainingType.Name);
+
+        Assert.True(constructor1.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }, { Name: "name", Type.SpecialType: SpecialType.System_String }]);
+
+        var operation = semanticModel.GetOperation(root.DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray()[1]);
+        VerifyOperationTree(compilation, operation, """
+            ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(capacity: 10), 2]')
+                Elements(1):
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            """);
+    }
+
+    [Fact]
+    public void WithElement_ControlFlowGraph1()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public string Name { get; }
+                
+                public MyList(int capacity = 0, string name = "default") : base(capacity)
+                {
+                    Name = name;
+                }
+            }
+            
+            class C
+            {
+                static void Main(bool a)
+                {
+                    MyList<int> list2 = a ? [with(capacity: 10), 2] : [with(capacity: 20, name: "both"), 4];
+                }
+            }
+            """;
+
+        var compilation = CreateCompilation(source);
+
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+        var root = semanticModel.SyntaxTree.GetRoot();
+
+        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(root.DescendantNodes().OfType<BlockSyntax>().ToArray()[1], semanticModel);
+        ControlFlowGraphVerifier.VerifyGraph(compilation, """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [MyList<System.Int32> list2]
+                CaptureIds: [0]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Jump if False (Regular) to Block[B3]
+                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+                    Next (Regular) Block[B2]
+                Block[B2] - Block
+                    Predecessors: [B1]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[with(capacity: 10), 2]')
+                          Value:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyList<System.Int32>, IsImplicit) (Syntax: '[with(capacity: 10), 2]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(capacity: 10), 2]')
+                                  Elements(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                    Next (Regular) Block[B4]
+                Block[B3] - Block
+                    Predecessors: [B1]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[with(capac ... "both"), 4]')
+                          Value:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyList<System.Int32>, IsImplicit) (Syntax: '[with(capac ... "both"), 4]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(capac ... "both"), 4]')
+                                  Elements(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                    Next (Regular) Block[B4]
+                Block[B4] - Block
+                    Predecessors: [B2] [B3]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list2 = a ? ... "both"), 4]')
+                          Left:
+                            ILocalReferenceOperation: list2 (IsDeclaration: True) (OperationKind.LocalReference, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list2 = a ? ... "both"), 4]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'a ? [with(c ... "both"), 4]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (ConditionalExpression)
+                              Operand:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'a ? [with(c ... "both"), 4]')
+                    Next (Regular) Block[B5]
+                        Leaving: {R1}
+            }
+            Block[B5] - Exit
+                Predecessors: [B4]
+                Statements (0)
+            """, graph, symbol);
+    }
+
+    [Fact]
+    public void WithElement_ControlFlowGraph2()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public string Name { get; }
+                
+                public MyList(int capacity = 0, string name = "default") : base(capacity)
+                {
+                    Name = name;
+                }
+            }
+            
+            class C
+            {
+                static void Main(bool a)
+                {
+                    MyList<int> list2 = [with(capacity: a ? 10 : 20), 2];
+                }
+            }
+            """;
+
+        var compilation = CreateCompilation(source);
+
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+        var root = semanticModel.SyntaxTree.GetRoot();
+
+        // PROTOTYPE: Update IOp to represent with(...) creation.
+
+        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(root.DescendantNodes().OfType<BlockSyntax>().ToArray()[1], semanticModel);
+        ControlFlowGraphVerifier.VerifyGraph(compilation, """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1}
+            .locals {R1}
+            {
+                Locals: [MyList<System.Int32> list2]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list2 = [wi ... 0 : 20), 2]')
+                          Left:
+                            ILocalReferenceOperation: list2 (IsDeclaration: True) (OperationKind.LocalReference, Type: MyList<System.Int32>, IsImplicit) (Syntax: 'list2 = [wi ... 0 : 20), 2]')
+                          Right:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyList<System.Int32>, IsImplicit) (Syntax: '[with(capac ... 0 : 20), 2]')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (CollectionExpression)
+                              Operand:
+                                ICollectionExpressionOperation (1 elements, ConstructMethod: MyList<System.Int32>..ctor([System.Int32 capacity = 0], [System.String name = "default"])) (OperationKind.CollectionExpression, Type: MyList<System.Int32>) (Syntax: '[with(capac ... 0 : 20), 2]')
+                                  Elements(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                    Next (Regular) Block[B2]
+                        Leaving: {R1}
+            }
+            Block[B2] - Exit
+                Predecessors: [B1]
+                Statements (0)
+            """, graph, symbol);
     }
 
     #endregion
@@ -1298,10 +1519,77 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
             }
             """;
 
-        CreateCompilation(source).VerifyDiagnostics(
+        var comp = CreateCompilation(source).VerifyDiagnostics(
             // (12,29): error CS0122: 'MyList<int>.MyList(int)' is inaccessible due to its protection level
             //         MyList<int> list = [with(10)];
             Diagnostic(ErrorCode.ERR_BadAccess, "with(10)").WithArguments("MyList<int>.MyList(int)").WithLocation(12, 29));
+
+        var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees[0]);
+        var withExpression = comp.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<WithElementSyntax>().Single();
+        var symbolInfo = semanticModel.GetSymbolInfo(withExpression);
+
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
+    }
+
+    [Fact]
+    public void WithElement_IncorrectConstructorType()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                public MyList(int capacity) : base(capacity) { }
+            }
+            
+            class C
+            {
+                void M()
+                {
+                    MyList<int> list = [with("")];
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+            // (12,34): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            //         MyList<int> list = [with("")];
+            Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int").WithLocation(12, 34));
+
+        var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees[0]);
+        var withExpression = comp.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<WithElementSyntax>().Single();
+        var symbolInfo = semanticModel.GetSymbolInfo(withExpression);
+
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
+    }
+
+    [Fact]
+    public void WithElement_PrivateConstructor2()
+    {
+        var source = """
+            using System.Collections.Generic;
+            
+            class MyList<T> : List<T>
+            {
+                private MyList() { }
+                private MyList(int capacity) : base(capacity) { }
+            }
+            
+            class C
+            {
+                void M()
+                {
+                    MyList<int> list = [with(10)];
+                }
+            }
+            """;
+
+        CreateCompilation(source).VerifyDiagnostics(
+            // (13,29): error CS0122: 'MyList<int>.MyList(int)' is inaccessible due to its protection level
+            //         MyList<int> list = [with(10)];
+            Diagnostic(ErrorCode.ERR_BadAccess, "with(10)").WithArguments("MyList<int>.MyList(int)").WithLocation(13, 29));
     }
 
     [Fact]
@@ -2341,6 +2629,55 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
               IL_001f:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
               IL_0024:  call       "void System.Console.WriteLine(int)"
               IL_0029:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void ExpressionTreeInWithElement()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq.Expressions;
+
+            class MyList : List<int>
+            {
+                public Expression<Func<int>> Expr;
+                public MyList(Expression<Func<int>> expr) : base()
+                {
+                    Expr = expr;
+                }
+            }
+
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyList m = [with(() => 42)];
+                    var v = m.Expr.Compile().Invoke();
+                    Console.WriteLine(v);
+                }
+            }
+            """;
+        var comp = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("42")).VerifyDiagnostics().VerifyIL("Program.Main", """
+            {
+              // Code size       58 (0x3a)
+              .maxstack  2
+              IL_0000:  ldc.i4.s   42
+              IL_0002:  box        "int"
+              IL_0007:  ldtoken    "int"
+              IL_000c:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_0011:  call       "System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)"
+              IL_0016:  call       "System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()"
+              IL_001b:  call       "System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])"
+              IL_0020:  newobj     "MyList..ctor(System.Linq.Expressions.Expression<System.Func<int>>)"
+              IL_0025:  ldfld      "System.Linq.Expressions.Expression<System.Func<int>> MyList.Expr"
+              IL_002a:  callvirt   "System.Func<int> System.Linq.Expressions.Expression<System.Func<int>>.Compile()"
+              IL_002f:  callvirt   "int System.Func<int>.Invoke()"
+              IL_0034:  call       "void System.Console.WriteLine(int)"
+              IL_0039:  ret
             }
             """);
     }
