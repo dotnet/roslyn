@@ -1868,14 +1868,17 @@ class Test
                 }
                 """;
 
-            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel);
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
 
             var compilation = CreateRuntimeAsyncCompilation(source, options);
             var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: static module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-                var closureClass = type.GetTypeMember("<>c");
-                
+                var closureClass = type.GetTypeMembers().Single(t => t.Name == "<>c");
+                var asyncMethod = closureClass.GetMember<MethodSymbol>("<F>b__0_0");
+                Assert.Empty(asyncMethod.GetAttributes().SelectAsArray(a => a.AttributeConstructor.ToTestDisplayString()));
+
                 // No state machine types should be generated for the lambda when runtime async is enabled
                 Assert.Empty(closureClass.GetTypeMembers());
             });
@@ -1899,14 +1902,46 @@ class Test
                 }
                 """;
 
-            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel);
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
 
             var compilation = CreateRuntimeAsyncCompilation(source, options);
             var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: static module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-                
+                var asyncMethod = type.GetMember<MethodSymbol>("<F>g__LocalAsync|0_0");
+                AssertEx.SequenceEqual(["System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor()"], asyncMethod.GetAttributes().SelectAsArray(a => a.AttributeConstructor.ToTestDisplayString()));
+
                 // No state machine types should be generated for the local function when runtime async is enabled  
+                Assert.Empty(type.GetTypeMembers());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_RuntimeAsync_TLSEntrypoint(OptimizationLevel optimizationLevel)
+        {
+            string source = """
+                using System.Threading.Tasks;
+
+                await Task.Delay(0);
+                """;
+
+            var options = TestOptions.CreateTestOptions(OutputKind.ConsoleApplication, optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            var compilation = CreateRuntimeAsyncCompilation(source, options);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: static module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program");
+                var asyncMethod = type.GetMember<MethodSymbol>("<Main>$");
+
+                // When runtime async is enabled, no state machine is generated,
+                // so there should be no AsyncStateMachineAttribute and no DebuggerStepThroughAttribute
+                Assert.Empty(asyncMethod.GetAttributes());
+
+                // Verify no state machine types were generated
                 Assert.Empty(type.GetTypeMembers());
             });
             verifier.VerifyDiagnostics();
