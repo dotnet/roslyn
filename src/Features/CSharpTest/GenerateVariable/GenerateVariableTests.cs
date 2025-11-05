@@ -10542,4 +10542,88 @@ class Class
                 public int Goo { get; internal set; }
             }
             """);
+
+    [Fact]
+    public Task TestNotOfferedInEventAddAccessor()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                event EventHandler E
+                {
+                    add { [|ev|] += value; }
+                    remove { ev -= value; }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOfferedInEventRemoveAccessor()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                event EventHandler E
+                {
+                    add { ev += value; }
+                    remove { [|ev|] -= value; }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOfferedInPropertyGetAccessor()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int P
+                {
+                    get { return [|x|]; }
+                    set { }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOfferedInPropertySetAccessor()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int P
+                {
+                    get { return 0; }
+                    set { [|x|] = value; }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOfferedInIndexerGetAccessor()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int this[int index]
+                {
+                    get { return [|x|]; }
+                    set { }
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotOfferedInIndexerSetAccessor()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                int this[int index]
+                {
+                    get { return 0; }
+                    set { [|x|] = value; }
+                }
+            }
+            """);
 }

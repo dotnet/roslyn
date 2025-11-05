@@ -178,8 +178,19 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
         {
             // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
             // Workaround: The compiler returns IsImplicitlyDeclared = false for <Main>$.
+            // Don't offer to generate a parameter if we're inside an accessor (property/event/indexer get/set/add/remove).
             return ContainingMethod is { IsImplicitlyDeclared: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointMethodName }
-                && !IsInMemberContext && !IsConstant && !IsInSourceGeneratedDocument;
+                && !IsInMemberContext && !IsConstant && !IsInSourceGeneratedDocument
+                && !IsInAccessor(ContainingMethod);
+        }
+
+        private static bool IsInAccessor(IMethodSymbol method)
+        {
+            return method.MethodKind is MethodKind.PropertyGet
+                or MethodKind.PropertySet
+                or MethodKind.EventAdd
+                or MethodKind.EventRemove
+                or MethodKind.EventRaise;
         }
 
         private bool TryInitializeExplicitInterface(
