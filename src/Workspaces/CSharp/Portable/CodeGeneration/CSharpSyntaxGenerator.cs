@@ -1462,6 +1462,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 
     private static readonly DeclarationModifiers s_constructorModifiers =
         DeclarationModifiers.Extern |
+        DeclarationModifiers.Partial |
         DeclarationModifiers.Static |
         DeclarationModifiers.Unsafe;
 

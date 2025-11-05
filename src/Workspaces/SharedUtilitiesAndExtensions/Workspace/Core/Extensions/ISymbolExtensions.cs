@@ -8,17 +8,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class ISymbolExtensions
 {
-    public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
+    public static bool IsPartial(this ISymbol symbol)
     {
-        // Check if the symbol is partial (definition or implementation part)
-        var isPartial = symbol switch
+        return symbol switch
         {
-            IMethodSymbol method => method.IsPartialDefinition || method.PartialDefinitionPart != null,
-            IPropertySymbol property => property.IsPartialDefinition || property.PartialDefinitionPart != null,
-            IEventSymbol @event => @event.IsPartialDefinition || @event.PartialDefinitionPart != null,
+            IMethodSymbol method => method.IsPartialDefinition || method.PartialDefinitionPart != null || method.PartialImplementationPart != null,
+            IPropertySymbol property => property.IsPartialDefinition || property.PartialDefinitionPart != null || property.PartialImplementationPart != null,
+            IEventSymbol @event => @event.IsPartialDefinition || @event.PartialDefinitionPart != null || @event.PartialImplementationPart != null,
             _ => false
         };
+    }
 
+    public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
+    {
         return DeclarationModifiers.None
             .WithIsStatic(symbol.IsStatic)
             .WithIsAbstract(symbol.IsAbstract)
@@ -27,6 +29,6 @@ internal static partial class ISymbolExtensions
             .WithIsOverride(symbol.IsOverride)
             .WithIsSealed(symbol.IsSealed)
             .WithIsRequired(symbol.IsRequired())
-            .WithPartial(isPartial);
+            .WithPartial(symbol.IsPartial());
     }
 }
