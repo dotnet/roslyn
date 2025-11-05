@@ -2218,7 +2218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var member in members)
             {
-                if (member.GetIsNewExtensionMember())
+                if (member.IsExtensionBlockMember())
                 {
                     // When candidates are collected by GetSymbolsWithName, skeleton members are found but not implementation methods.
                     // We want to include the implementation for skeleton methods.

@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.Append(' ');
             builder.Append(_kind.ToString());
             builder.Append('.');
-            builder.Append(_sequence);
+            builder.Append(_sequence.ToString(System.Globalization.CultureInfo.InvariantCulture));
             return builder.ToString();
         }
 #endif
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.Append('>');
 #if DEBUG
             builder.Append('.');
-            builder.Append(_sequence);
+            builder.Append(_sequence.ToString(System.Globalization.CultureInfo.InvariantCulture));
 #endif
             builder.Append(' ');
             builder.Append(_type.ToDisplayString(SymbolDisplayFormat.TestFormat));
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.Append(" @");
             builder.Append(_createdAtFilePath);
             builder.Append('(');
-            builder.Append(_createdAtLineNumber);
+            builder.Append(_createdAtLineNumber.ToString(System.Globalization.CultureInfo.InvariantCulture));
             builder.Append(')');
 #endif
 

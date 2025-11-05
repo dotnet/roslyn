@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features
     {
         public static readonly RazorCSharpSyntaxFormattingOptions Default = new();
 
-        private RazorCSharpSyntaxFormattingOptions()
+        public RazorCSharpSyntaxFormattingOptions()
             : this(CSharpSyntaxFormattingOptions.Default)
         {
         }

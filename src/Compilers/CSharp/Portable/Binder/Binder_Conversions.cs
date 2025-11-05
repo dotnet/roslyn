@@ -1548,7 +1548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
 
-            Debug.Assert(!collectionBuilderMethod.GetIsNewExtensionMember());
+            Debug.Assert(!collectionBuilderMethod.IsExtensionBlockMember());
         }
 
         internal bool HasCollectionExpressionApplicableConstructor(
@@ -1966,7 +1966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var member = candidate.Member;
 
                     // For new extension methods, we'll use the extension implementation method to determine inferrability
-                    if (member.GetIsNewExtensionMember())
+                    if (member.IsExtensionBlockMember())
                     {
                         if (member.TryGetCorrespondingExtensionImplementationMethod() is { } extensionImplementation)
                         {
@@ -3256,7 +3256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
-            Debug.Assert(!(isExtensionMethod || (method.GetIsNewExtensionMember() && !method.IsStatic)) ||
+            Debug.Assert(!(isExtensionMethod || (method.IsExtensionBlockMember() && !method.IsStatic)) ||
                 (Conversions.ConvertExtensionMethodThisArg(GetReceiverParameter(method)!.Type, receiverOpt!.Type, ref useSiteInfo, isMethodGroupConversion: true).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
 
             useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
@@ -3399,7 +3399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return method.Parameters[0];
             }
 
-            Debug.Assert(method.GetIsNewExtensionMember());
+            Debug.Assert(method.IsExtensionBlockMember());
             return method.ContainingType.ExtensionParameter;
         }
 

@@ -254,25 +254,65 @@ internal sealed class SymbolCompletionProvider() : AbstractRecommendationService
                 item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
             }
         }
-        else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
+        else if (context.IsObjectCreationTypeContext)
         {
             // If this is a type symbol/alias symbol, also consider appending parenthesis when later, it is committed by using special characters,
             // and the type is used as constructor
-            if (context.IsObjectCreationTypeContext)
+            var typeSymbol = symbol as INamedTypeSymbol ?? (symbol as IAliasSymbol)?.Target as INamedTypeSymbol;
+            if (typeSymbol is not null)
+            {
                 item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
+
+                // When committing with `.`, we don't want to automatically appending parenthesis for types
+                // that has accessible nested types (user might want to access nested types like Bar.Foo)
+                if (HasAccessibleNestedTypes(typeSymbol))
+                {
+                    item = SymbolCompletionItem.AddHasAccessibleNestedTypes(item);
+                }
+            }
         }
 
         return item;
+
+        bool HasAccessibleNestedTypes(INamedTypeSymbol typeSymbol)
+        {
+            // This is intended to be a heuristic to cover common cases.
+            // Because we might be passed a speculative member semantic model, we won't be able to get
+            // symbols for containing type/member symbol to check accessibility using `IsAccessibleWithin`.
+            // While this check is inaccurate in some cases (e.g. from within nested/derived types),
+            // it's likely fine because people typically don't access the nested types via the outer one
+            // when they are within the inner or derived type.
+            foreach (var typeMember in typeSymbol.GetTypeMembers())
+            {
+                if (typeMember.DeclaredAccessibility <= Accessibility.Protected)
+                    continue;
+
+                if (typeMember.DeclaredAccessibility is Accessibility.Public)
+                    return true;
+
+                if (typeMember.IsAccessibleWithin(context.SemanticModel.Compilation.Assembly))
+                    return true;
+            }
+
+            return false;
+        }
     }
 
     protected override string GetInsertionText(CompletionItem item, char ch)
     {
-        if (ch is ';' or '.' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
+        if (SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
         {
-            CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(ch);
-            return SymbolCompletionItem.GetInsertionText(item) + "()";
+            // For '.', don't add parentheses if the type has accessible nested types
+            // (user might want to access nested types like Bar.Foo)
+            if (ch is ';' ||
+                ch is '.' && !SymbolCompletionItem.GetHasAccessibleNestedTypes(item))
+            {
+                CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(ch);
+                return SymbolCompletionItem.GetInsertionText(item) + "()";
+            }
         }
 
         return base.GetInsertionText(item, ch);
     }
 }
+

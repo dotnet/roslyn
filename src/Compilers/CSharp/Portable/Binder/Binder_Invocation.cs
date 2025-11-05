@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1).
 
                     TMethodOrPropertySymbol member = result.Member;
-                    if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, member, syntax, candidateDiagnostics, invokedAsExtensionMethod: isExtensionMethodGroup && !member.GetIsNewExtensionMember()) &&
+                    if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, member, syntax, candidateDiagnostics, invokedAsExtensionMethod: isExtensionMethodGroup && !member.IsExtensionBlockMember()) &&
                         (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, candidateDiagnostics))))
                     {
                         finalCandidates.Add(result);
@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     {
                         var call = (BoundCall)expression;
-                        if (!call.HasAnyErrors && call.ReceiverOpt != null && (object)call.ReceiverOpt.Type != null && !call.Method.GetIsNewExtensionMember())
+                        if (!call.HasAnyErrors && call.ReceiverOpt != null && (object)call.ReceiverOpt.Type != null && !call.Method.IsExtensionBlockMember())
                         {
                             // error CS0029: Cannot implicitly convert type 'A' to 'B'
 
@@ -1209,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodResult = result.ValidResult;
             var returnType = methodResult.Member.ReturnType;
             var method = methodResult.Member;
-            bool isNewExtensionMethod = method.GetIsNewExtensionMember();
+            bool isNewExtensionMethod = method.IsExtensionBlockMember();
 
             if (isNewExtensionMethod)
             {
@@ -2055,7 +2055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var m in methods)
                 {
                     MethodSymbol constructedMethod;
-                    if (m.GetIsNewExtensionMember())
+                    if (m.IsExtensionBlockMember())
                     {
                         constructedMethod = m.IsDefinition && m.GetMemberArityIncludingExtension() == typeArgumentsWithAnnotations.Length
                             ? m.ConstructIncludingExtension(typeArgumentsWithAnnotations)
@@ -2101,7 +2101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!method.GetIsNewExtensionMember())
+            if (!method.IsExtensionBlockMember())
             {
                 return method.ConstructedFrom == method;
             }
@@ -2139,7 +2139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
             foreach (var p in properties)
             {
-                Debug.Assert(!p.GetIsNewExtensionMember());
+                Debug.Assert(!p.IsExtensionBlockMember());
                 if (p.ParameterCount > 0)
                 {
                     parameterListList.Add(p.Parameters);
@@ -2174,7 +2174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // But if the lambda is explicitly typed, we can bind only once.
                             // https://github.com/dotnet/roslyn/issues/69093
                             if (unboundArgument.HasExplicitlyTypedParameterList &&
-                                unboundArgument.HasExplicitReturnType(out _, out _) &&
+                                unboundArgument.HasExplicitReturnType(out _, out _, out _) &&
                                 unboundArgument.FunctionType is { } functionType &&
                                 functionType.GetInternalDelegateType() is { } delegateType)
                             {
@@ -2395,7 +2395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (boundArgument is BoundPropertyAccess propertyAccess)
             {
-                if (propertyAccess.PropertySymbol.GetIsNewExtensionMember())
+                if (propertyAccess.PropertySymbol.IsExtensionBlockMember())
                 {
                     diagnostics.Add(ErrorCode.ERR_NameofExtensionMember, boundArgument.Syntax);
                 }

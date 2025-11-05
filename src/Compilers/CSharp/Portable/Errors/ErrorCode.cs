@@ -2435,6 +2435,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         HDN_RedundantPatternStackGuard = 9337,
 
         ERR_BadVisBaseType = 9338,
+        ERR_AmbigExtension = 9339,
+        ERR_SingleInapplicableBinaryOperator = 9340,
+        ERR_SingleInapplicableUnaryOperator = 9341,
+        ERR_AmbigOperator = 9342,
 
         // PROTOTYPE: Renumber accordingly.
         ERR_CollectionArgumentsMustBeFirst = 9400,

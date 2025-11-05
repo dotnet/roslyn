@@ -60,6 +60,48 @@ foreach (var x in new[] { 1, 2 })
 
 See also https://github.com/dotnet/csharplang/issues/9750.
 
+## Scenarios requiring compiler to synthesize a `ref readonly` returning delegate now require availability of `System.Runtime.InteropServices.InAttribute` type.
+
+***Introduced in Visual Studio 2026 version 18.3***
+
+The C# compiler made a breaking change in order to properly emit metadata for `ref readonly` returning
+[synthesized delegates](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-10.0/lambda-improvements.md#delegate-types)
+
+This can cause an "error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported"
+to appear in existing code, such as in the scenarios below:
+
+```cs
+var d = this.MethodWithRefReadonlyReturn;
+```
+
+```cs
+var d = ref readonly int () => ref x;
+```
+
+If your code is impacted by this breaking change, consider adding a reference to an assembly defining `System.Runtime.InteropServices.InAttribute` 
+to your project.
+
+## Scenarios utilizing `ref readonly` local functions now require availability of `System.Runtime.InteropServices.InAttribute` type.
+
+***Introduced in Visual Studio 2026 version 18.3***
+
+The C# compiler made a breaking change in order to properly emit metadata for `ref readonly` returning local functions.
+
+This can cause an "error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported"
+to appear in existing code, such as in the scenario below:
+
+```cs
+void Method()
+{
+    ...
+    ref readonly int local() => ref x;
+    ...
+}
+```
+
+If your code is impacted by this breaking change, consider adding a reference to an assembly defining `System.Runtime.InteropServices.InAttribute` 
+to your project.
+
 ## `with()` as a collection expression element is treated as collection construction *arguments*
 
 PROTOTYPE: Include proper version number here.

@@ -177,13 +177,13 @@ public static class Extensions
         AssertEx.Equal("Extensions.extension(System.Object)", symbol.ToDisplayString(format));
 
         format = new SymbolDisplayFormat(kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
-        AssertEx.Equal("extension(Object)", symbol.ToDisplayString(format));
+        AssertEx.Equal("Extensions.extension(Object)", symbol.ToDisplayString(format));
 
         format = new SymbolDisplayFormat();
-        AssertEx.Equal("extension(Object)", symbol.ToDisplayString(format));
+        AssertEx.Equal("Extensions.extension(Object)", symbol.ToDisplayString(format));
 
         format = new SymbolDisplayFormat(compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames);
-        AssertEx.Equal("<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.ToDisplayString(format));
+        AssertEx.Equal("Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.ToDisplayString(format));
 
         var comp5 = CreateCompilation(src);
         comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
@@ -348,7 +348,7 @@ public static class Extensions
         Assert.Empty(symbol.TypeParameters.Single().ConstraintTypes);
 
         var format = new SymbolDisplayFormat(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints);
-        AssertEx.Equal("extension<T>(T) where T : struct", symbol.ToDisplayString(format));
+        AssertEx.Equal("Extensions.extension<T>(T) where T : struct", symbol.ToDisplayString(format));
     }
 
     [Fact]
@@ -2997,9 +2997,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (1,5): error CS0411: The type arguments for method 'Extensions.extension<T>(int).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Extensions.extension<T>(int).M()").WithLocation(1, 5));
     }
 
     [Fact]
@@ -3019,9 +3019,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (1,5): error CS0411: The type arguments for method 'Extensions.extension<T1, T2>(T1).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Extensions.extension<T1, T2>(T1).M()").WithLocation(1, 5));
     }
 
     [Fact]
@@ -3040,9 +3040,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (1,5): error CS0411: The type arguments for method 'Extensions.extension<T1, T2>(T1).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Extensions.extension<T1, T2>(T1).M()").WithLocation(1, 5));
     }
 
     [Fact]
@@ -12495,9 +12495,9 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,5): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.extension<T>(T)'
             // _ = object.P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.P").WithArguments("object", "P").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "object.P").WithArguments("E.extension<T>(T)", "T", "object").WithLocation(1, 5));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -13883,9 +13883,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // o.Method();
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "extension(object)").WithLocation(4, 1));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "E.extension(object)").WithLocation(4, 1));
 
         CompileAndVerify(comp, expectedOutput: "Method");
     }
@@ -14155,11 +14155,10 @@ static class E
             }
             """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality consider reporting a better containing symbol
         comp.VerifyEmitDiagnostics(
             // (3,19): warning CS8604: Possible null reference argument for parameter 'c' in 'extension(C)'.
             // foreach (var x in c) // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "c").WithArguments("c", "extension(C)").WithLocation(3, 19));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "c").WithArguments("c", "E.extension(C)").WithLocation(3, 19));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
@@ -15132,18 +15131,18 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,26): error CS1061: 'C<object, dynamic>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C<object, dynamic>' could be found (are you missing a using directive or an assembly reference?)
+            // (1,26): error CS0411: The type arguments for method 'E.extension<T>(C<T, T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // new C<object, dynamic>().M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C<object, dynamic>", "M").WithLocation(1, 26),
-            // (2,26): error CS1061: 'C<dynamic, object>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C<dynamic, object>' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("E.extension<T>(C<T, T>).M()").WithLocation(1, 26),
+            // (2,26): error CS0411: The type arguments for method 'E.extension<T>(C<T, T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // new C<dynamic, object>().M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C<dynamic, object>", "M").WithLocation(2, 26),
-            // (4,26): error CS1061: 'C<object, dynamic>' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'C<object, dynamic>' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("E.extension<T>(C<T, T>).M()").WithLocation(2, 26),
+            // (4,26): error CS0411: The type arguments for method 'E.M2<T>(C<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // new C<object, dynamic>().M2();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("C<object, dynamic>", "M2").WithLocation(4, 26),
-            // (5,26): error CS1061: 'C<dynamic, object>' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'C<dynamic, object>' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("E.M2<T>(C<T, T>)").WithLocation(4, 26),
+            // (5,26): error CS0411: The type arguments for method 'E.M2<T>(C<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // new C<dynamic, object>().M2();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("C<dynamic, object>", "M2").WithLocation(5, 26));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("E.M2<T>(C<T, T>)").WithLocation(5, 26));
     }
 
     [Fact]
@@ -15452,9 +15451,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS1061: 'C' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,9): error CS0411: The type arguments for method 'E.extension<T>(I<T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // new C().M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C", "M").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("E.extension<T>(I<T>).M()").WithLocation(1, 9));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -15579,9 +15578,9 @@ class C : I1<int>, I2 { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,30): error CS1061: 'C' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,30): error CS0411: The type arguments for method 'E1.extension<T>(I1<T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // System.Console.Write(new C().M());
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C", "M").WithLocation(1, 30));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("E1.extension<T>(I1<T>).M()").WithLocation(1, 30));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -15690,9 +15689,9 @@ static class E
             // (4,1): error CS1929: 'IEnumerable<object>' does not contain a definition for 'M' and the best extension method overload 'E.extension(IEnumerable<string>).M()' requires a receiver of type 'System.Collections.Generic.IEnumerable<string>'
             // i.M();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("System.Collections.Generic.IEnumerable<object>", "M", "E.extension(System.Collections.Generic.IEnumerable<string>).M()", "System.Collections.Generic.IEnumerable<string>").WithLocation(4, 1),
-            // (5,5): error CS9286: 'IEnumerable<object>' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'IEnumerable<object>' could be found (are you missing a using directive or an assembly reference?)
+            // (5,5): error CS1929: 'IEnumerable<object>' does not contain a definition for 'P' and the best extension method overload 'E.extension(IEnumerable<string>).P' requires a receiver of type 'System.Collections.Generic.IEnumerable<string>'
             // _ = i.P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.P").WithArguments("System.Collections.Generic.IEnumerable<object>", "P").WithLocation(5, 5)
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("System.Collections.Generic.IEnumerable<object>", "P", "E.extension(System.Collections.Generic.IEnumerable<string>).P", "System.Collections.Generic.IEnumerable<string>").WithLocation(5, 5)
             );
     }
 
@@ -15779,12 +15778,12 @@ static class E
             // (2,1): error CS1929: 'int' does not contain a definition for 'M2' and the best extension method overload 'E.M2(int?)' requires a receiver of type 'int?'
             // 42.M2();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "42").WithArguments("int", "M2", "E.M2(int?)", "int?").WithLocation(2, 1),
-            // (4,5): error CS9286: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (4,5): error CS1929: 'int' does not contain a definition for 'P' and the best extension method overload 'E.extension(int?).P' requires a receiver of type 'int?'
             // _ = int.P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "int.P").WithArguments("int", "P").WithLocation(4, 5),
-            // (5,5): error CS9286: 'int' does not contain a definition for 'P2' and no accessible extension member 'P2' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "int").WithArguments("int", "P", "E.extension(int?).P", "int?").WithLocation(4, 5),
+            // (5,5): error CS1929: 'int' does not contain a definition for 'P2' and the best extension method overload 'E.extension(int?).P2' requires a receiver of type 'int?'
             // _ = 42.P2;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "42.P2").WithArguments("int", "P2").WithLocation(5, 5));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "42").WithArguments("int", "P2", "E.extension(int?).P2", "int?").WithLocation(5, 5));
     }
 
     [Fact]
@@ -15855,6 +15854,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
+            // (2,3): error CS1061: 'object' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // o.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("object", "M").WithLocation(2, 3),
+            // (3,3): error CS1061: 'object' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // o.M2();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("object", "M2").WithLocation(3, 3),
             // (7,15): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
             //     extension(dynamic d)
             Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(7, 15),
@@ -16097,9 +16102,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,19): error CS1061: 'I<object, string>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'I<object, string>' could be found (are you missing a using directive or an assembly reference?)
+            // (1,19): error CS0411: The type arguments for method 'E.extension<T>(I<T, T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // I<object, string>.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("I<object, string>", "M").WithLocation(1, 19));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("E.extension<T>(I<T, T>).M()").WithLocation(1, 19));
     }
 
     [Fact]
@@ -16374,9 +16379,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS0176: Member 'Extensions.extension(object).P' cannot be accessed with an instance reference; qualify it with a type name instead
             // System.Console.Write(new object().P);
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new object().P").WithArguments("object", "P").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object()").WithArguments("Extensions.extension(object).P").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -16552,9 +16557,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS0176: Member 'Extensions.extension(object).P' cannot be accessed with an instance reference; qualify it with a type name instead
             // System.Console.Write(new object().P);
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new object().P").WithArguments("object", "P").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object()").WithArguments("Extensions.extension(object).P").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -16709,12 +16714,12 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (2,16): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (2,16): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // string x = b ? D.f : D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 16),
-            // (2,22): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(2, 16),
+            // (2,22): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // string x = b ? D.f : D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 22));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(2, 22));
     }
 
     [Fact]
@@ -16745,12 +16750,12 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (2,23): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (2,23): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E.extension(D).f'
             // System.Action x = b ? D.f : D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 23),
-            // (2,29): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E.extension(D).f").WithLocation(2, 23),
+            // (2,29): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E.extension(D).f'
             // System.Action x = b ? D.f : D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 29));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E.extension(D).f").WithLocation(2, 29));
     }
 
     [Fact]
@@ -16807,9 +16812,9 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,17): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,17): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // var x = (string)D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 17));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 17));
     }
 
     [Fact]
@@ -16839,12 +16844,12 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,24): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,24): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // var x = (System.Action)D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 24),
-            // (2,19): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 24),
+            // (2,19): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // System.Action a = D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 19));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(2, 19));
 
         // Note: a conversion to a delegate type does not provide invocation context for resolving the member access
         source = """
@@ -18165,9 +18170,9 @@ public static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS9286: 'object' does not contain a definition for 'Member' and no accessible extension member 'Member' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (2,5): error CS9339: The extension resolution is ambiguous between the following members: 'E2.Member(object)' and 'E1.extension(object).Member'
             // C.M(o.Member);
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "o.Member").WithArguments("object", "Member").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "o.Member").WithArguments("E2.Member(object)", "E1.extension(object).Member").WithLocation(2, 5));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18236,15 +18241,15 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,10): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,10): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // bool b = D.f + D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 10),
-            // (1,16): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 10),
+            // (1,16): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // bool b = D.f + D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 16));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 16));
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78830")]
     public void ResolveAll_Lambda_Static_TwoAsGoodExtensions_LambdaConverted()
     {
         var src = """
@@ -18266,12 +18271,11 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the diagnostic should describe what went wrong
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,38): error CS9286: 'object' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,38): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(object).f'
             // System.Func<System.Action> l = () => object.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.f").WithArguments("object", "f").WithLocation(1, 38)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.f").WithArguments("E2.extension(object).f()", "E1.extension(object).f").WithLocation(1, 38)
             );
 
         var tree = comp.SyntaxTrees.First();
@@ -18299,9 +18303,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,43): error CS9286: 'object' does not contain a definition for 'Member' and no accessible extension member 'Member' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,43): error CS9339: The extension resolution is ambiguous between the following members: 'E.Member(object)' and 'E.extension(object).Member'
             // System.Func<System.Action> lambda = () => new object().Member;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new object().Member").WithArguments("object", "Member").WithLocation(1, 43));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "new object().Member").WithArguments("E.Member(object)", "E.extension(object).Member").WithLocation(1, 43));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18359,9 +18363,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,29): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,29): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(object).f'
             // var l = System.Action () => D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 29)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(object).f").WithLocation(1, 29)
             );
     }
 
@@ -18391,9 +18395,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,38): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,38): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // System.Func<System.Action> l = () => D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 38)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 38)
             );
     }
 
@@ -18948,12 +18952,12 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (2,13): error CS9286: 'object' does not contain a definition for 'StaticProperty' and no accessible extension member 'StaticProperty' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (2,13): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(object).StaticProperty' and 'E2.extension(object).StaticProperty'
             // var x = b ? object.StaticProperty : object.StaticProperty;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.StaticProperty").WithArguments("object", "StaticProperty").WithLocation(2, 13),
-            // (2,37): error CS9286: 'object' does not contain a definition for 'StaticProperty' and no accessible extension member 'StaticProperty' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.StaticProperty").WithArguments("E1.extension(object).StaticProperty", "E2.extension(object).StaticProperty").WithLocation(2, 13),
+            // (2,37): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(object).StaticProperty' and 'E2.extension(object).StaticProperty'
             // var x = b ? object.StaticProperty : object.StaticProperty;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.StaticProperty").WithArguments("object", "StaticProperty").WithLocation(2, 37));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.StaticProperty").WithArguments("E1.extension(object).StaticProperty", "E2.extension(object).StaticProperty").WithLocation(2, 37));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -24704,12 +24708,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS9286: 'int' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (1,1): error CS1929: 'int' does not contain a definition for 'Property' and the best extension method overload 'E.extension(long).Property' requires a receiver of type 'long'
             // 1.Property = 42;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "1.Property").WithArguments("int", "Property").WithLocation(1, 1),
-            // (2,5): error CS9286: 'int' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "1").WithArguments("int", "Property", "E.extension(long).Property", "long").WithLocation(1, 1),
+            // (2,5): error CS1929: 'int' does not contain a definition for 'Property' and the best extension method overload 'E.extension(long).Property' requires a receiver of type 'long'
             // _ = 2.Property;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "2.Property").WithArguments("int", "Property").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "2").WithArguments("int", "Property", "E.extension(long).Property", "long").WithLocation(2, 5));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -25045,12 +25049,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS9286: '(int, int)' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+            // (1,1): error CS1929: '(int, int)' does not contain a definition for 'Property' and the best extension method overload 'E.extension((long, long)).Property' requires a receiver of type '(long, long)'
             // (1, 1).Property = 1;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "(1, 1).Property").WithArguments("(int, int)", "Property").WithLocation(1, 1),
-            // (2,5): error CS9286: '(int, int)' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(1, 1)").WithArguments("(int, int)", "Property", "E.extension((long, long)).Property", "(long, long)").WithLocation(1, 1),
+            // (2,5): error CS1929: '(int, int)' does not contain a definition for 'Property' and the best extension method overload 'E.extension((long, long)).Property' requires a receiver of type '(long, long)'
             // _ = (2, 2).Property;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "(2, 2).Property").WithArguments("(int, int)", "Property").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(2, 2)").WithArguments("(int, int)", "Property", "E.extension((long, long)).Property", "(long, long)").WithLocation(2, 5));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -25089,9 +25093,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(object).M()' and 'E2.extension(object).M'
             // System.Console.Write(object.M);
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.M").WithArguments("E1.extension(object).M()", "E2.extension(object).M").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -25126,9 +25130,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension<T>(T).M()' and 'E2.extension<object>(object).M'
             // System.Console.Write(object.M);
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.M").WithArguments("E1.extension<T>(T).M()", "E2.extension<object>(object).M").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -25196,12 +25200,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (1,3): error CS1061: 'C' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,3): error CS0411: The type arguments for method 'E.extension<T>(I<T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // C.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C", "M").WithLocation(1, 3),
-            // (2,9): error CS1061: 'C' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("E.extension<T>(I<T>).M()").WithLocation(1, 3),
+            // (2,9): error CS0411: The type arguments for method 'E.M2<T>(I<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // new C().M2();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("C", "M2").WithLocation(2, 9));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("E.M2<T>(I<T>)").WithLocation(2, 9));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -25263,9 +25267,9 @@ class C { }
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'C' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9339: The extension resolution is ambiguous between the following members: 'E3.extension(C).M()' and 'E2.extension(C).M'
             // System.Console.Write(C.M());
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "C.M").WithArguments("C", "M").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "C.M").WithArguments("E3.extension(C).M()", "E2.extension(C).M").WithLocation(1, 22));
     }
 
     [Fact]
@@ -27762,9 +27766,9 @@ static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-            // (2,12): error CS9286: 'string[]' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'string[]' could be found (are you missing a using directive or an assembly reference?)
+            // (2,12): error CS1929: 'string[]' does not contain a definition for 'Property' and the best extension method overload 'E.extension(Span<object>).Property' requires a receiver of type 'System.Span<object>'
             // _ = i is { Property: 42 };
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "Property").WithArguments("string[]", "Property").WithLocation(2, 12),
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "Property").WithArguments("string[]", "Property", "E.extension(System.Span<object>).Property", "System.Span<object>").WithLocation(2, 12),
             // (3,1): error CS1929: 'string[]' does not contain a definition for 'M' and the best extension method overload 'E.M(Span<object>)' requires a receiver of type 'System.Span<object>'
             // i.M();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("string[]", "M", "E.M(System.Span<object>)", "System.Span<object>").WithLocation(3, 1));
@@ -28965,9 +28969,9 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,9): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).P<T>()' and 'E1.extension(object).P'
             // int i = object.P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.P").WithArguments("object", "P").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.P").WithArguments("E2.extension(object).P<T>()", "E1.extension(object).P").WithLocation(1, 9));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -29247,9 +29251,9 @@ static class E2
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(object).M()' and 'E2.extension(object).M'
             // System.Console.Write(object.M());
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.M").WithArguments("E1.extension(object).M()", "E2.extension(object).M").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29508,9 +29512,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,29): error CS9286: 'C' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,29): error CS1061: 'C' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
             // System.Console.Write(nameof(C.Property));
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "C.Property").WithArguments("C", "Property").WithLocation(1, 29));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "C.Property").WithArguments("C", "Property").WithLocation(1, 29));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30041,7 +30045,7 @@ static class E
         var symbol = model.GetDeclaredSymbol(extension);
 
         var format = new SymbolDisplayFormat(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints);
-        AssertEx.Equal("extension<T>(T) where T : struct", symbol.ToDisplayString(format));
+        AssertEx.Equal("E.extension<T>(T) where T : struct", symbol.ToDisplayString(format));
     }
 
     [Fact]
@@ -30064,7 +30068,7 @@ static class E
         var symbol = model.GetDeclaredSymbol(extension);
 
         var format = new SymbolDisplayFormat(parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeModifiers);
-        AssertEx.Equal("extension(ref readonly Int32)", symbol.ToDisplayString(format));
+        AssertEx.Equal("E.extension(ref readonly Int32)", symbol.ToDisplayString(format));
     }
 
     [Fact]
@@ -35456,9 +35460,9 @@ class A
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS9286: 'A.C' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'A.C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,5): error CS0122: 'E1.extension<A.B>(I<A.B>).P' is inaccessible due to its protection level
             // _ = new A.C().P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new A.C().P").WithArguments("A.C", "P").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_BadAccess, "new A.C().P").WithArguments("E1.extension<A.B>(I<A.B>).P").WithLocation(1, 5));
     }
 
     [Fact]
@@ -35846,9 +35850,9 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (5,13): error CS9286: 'Color' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'Color' could be found (are you missing a using directive or an assembly reference?)
+            // (5,13): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(Color).P' and 'E2.extension(Color).P'
             //         _ = Color.P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "Color.P").WithArguments("Color", "P").WithLocation(5, 13));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "Color.P").WithArguments("E1.extension(Color).P", "E2.extension(Color).P").WithLocation(5, 13));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -36433,11 +36437,10 @@ static class E2
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, we'll want to describe what went wrong in a useful way
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(int).P' and 'E2.extension(in int).P'
             // System.Console.Write(int.P);
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "int.P").WithArguments("int", "P").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "int.P").WithArguments("E1.extension(int).P", "E2.extension(in int).P").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -36603,9 +36606,9 @@ static class E2
 ";
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (9,13): error CS9286: 'T' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'T' could be found (are you missing a using directive or an assembly reference?)
+            // (9,13): error CS0176: Member 'E1.extension<T>(ref T).P' cannot be accessed with an instance reference; qualify it with a type name instead
             //         _ = t.P; // Note: T is not COM import type...
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "t.P").WithArguments("T", "P").WithLocation(9, 13));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "t").WithArguments("E1.extension<T>(ref T).P").WithLocation(9, 13));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -36638,9 +36641,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,1): error CS9286: 'string' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // (2,1): error CS9339: The extension resolution is ambiguous between the following members: 'E.extension(object).M()' and 'E.extension(string).M'
             // s.M();
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "s.M").WithArguments("string", "M").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "s.M").WithArguments("E.extension(object).M()", "E.extension(string).M").WithLocation(2, 1));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -36669,9 +36672,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS9286: 'string' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // (1,1): error CS9339: The extension resolution is ambiguous between the following members: 'E.extension(string).M()' and 'E.extension(object).M'
             // string.M();
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "string.M").WithArguments("string", "M").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "string.M").WithArguments("E.extension(string).M()", "E.extension(object).M").WithLocation(1, 1));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -36703,9 +36706,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,1): error CS9286: 'I<string>' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'I<string>' could be found (are you missing a using directive or an assembly reference?)
+            // (2,1): error CS9339: The extension resolution is ambiguous between the following members: 'E.extension(I<object>).M()' and 'E.extension(I<string>).M'
             // i.M();
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.M").WithArguments("I<string>", "M").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "i.M").WithArguments("E.extension(I<object>).M()", "E.extension(I<string>).M").WithLocation(2, 1));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -36741,9 +36744,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,1): error CS9286: 'I<string>' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'I<string>' could be found (are you missing a using directive or an assembly reference?)
+            // (2,1): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(I<string>).M()' and 'E1.extension(I<object>).M'
             // i.M();
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.M").WithArguments("I<string>", "M").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "i.M").WithArguments("E2.extension(I<string>).M()", "E1.extension(I<object>).M").WithLocation(2, 1));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -37210,9 +37213,9 @@ public static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,9): error CS9339: The extension resolution is ambiguous between the following members: 'E2.M(object)' and 'E1.extension(object).M'
             // int x = new object().M;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new object().M").WithArguments("object", "M").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "new object().M").WithArguments("E2.M(object)", "E1.extension(object).M").WithLocation(1, 9));
     }
 
     [Fact]
@@ -37405,9 +37408,9 @@ _ = i.P;
 """;
         comp = CreateCompilationWithIL(src, ilSrc);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS9286: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (2,5): error CS1929: 'int' does not contain a definition for 'P' and the best extension method overload 'E.extension(params int[]).P' requires a receiver of type 'params int[]'
             // _ = i.P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.P").WithArguments("int", "P").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("int", "P", "E.extension(params int[]).P", "params int[]").WithLocation(2, 5));
 
         src = """
 int i = 0;
@@ -37870,9 +37873,9 @@ public static class E
             // (1,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension(string).M()' requires a receiver of type 'string'
             // object.M();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "object").WithArguments("object", "M", "E.extension(string).M()", "string").WithLocation(1, 1),
-            // (2,5): error CS9286: 'object' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (2,5): error CS1929: 'object' does not contain a definition for 'Property' and the best extension method overload 'E.extension(string).Property' requires a receiver of type 'string'
             // _ = object.Property;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.Property").WithArguments("object", "Property").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "object").WithArguments("object", "Property", "E.extension(string).Property", "string").WithLocation(2, 5));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -46095,12 +46098,11 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality consider reporting a better containing symbol
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // oNull.M(); // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(4, 1));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object)").WithLocation(4, 1));
     }
 
     [Fact]
@@ -46327,12 +46329,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (6,5): warning CS8604: Possible null reference argument for parameter 'o2' in 'void extension(object).M(object o2)'.
+            // (6,5): warning CS8604: Possible null reference argument for parameter 'o2' in 'void E.extension(object).M(object o2)'.
             // o.M(oNull1);
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull1").WithArguments("o2", "void extension(object).M(object o2)").WithLocation(6, 5),
-            // (15,11): warning CS8604: Possible null reference argument for parameter 'o2' in 'void extension(object).M2(object o2)'.
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull1").WithArguments("o2", "void E.extension(object).M(object o2)").WithLocation(6, 5),
+            // (15,11): warning CS8604: Possible null reference argument for parameter 'o2' in 'void E.extension(object).M2(object o2)'.
             // object.M2(oNull3);
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull3").WithArguments("o2", "void extension(object).M2(object o2)").WithLocation(15, 11));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull3").WithArguments("o2", "void E.extension(object).M2(object o2)").WithLocation(15, 11));
     }
 
     [Fact]
@@ -46521,9 +46523,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,9): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (4,9): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // var x = oNull.M;
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(4, 9));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object)").WithLocation(4, 9));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -46577,15 +46579,15 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (8,26): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(object?).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // (8,26): warning CS8621: Nullability of reference types in return type of 'object? E.extension<object?>(object?).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
             // System.Func<object> x3 = oNull2.M; // 1
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull2.M").WithArguments("object? extension<object?>(object?).M()", "System.Func<object>").WithLocation(8, 26),
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull2.M").WithArguments("object? E.extension<object?>(object?).M()", "System.Func<object>").WithLocation(8, 26),
             // (9,26): warning CS8621: Nullability of reference types in return type of 'object? E.M2<object?>(object? t)' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
             // System.Func<object> x4 = oNull2.M2; // 2
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull2.M2").WithArguments("object? E.M2<object?>(object? t)", "System.Func<object>").WithLocation(9, 26),
-            // (12,29): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(object?).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // (12,29): warning CS8621: Nullability of reference types in return type of 'object? E.extension<object?>(object?).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
             // _ = new System.Func<object>(oNull3.M); // 3
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull3.M").WithArguments("object? extension<object?>(object?).M()", "System.Func<object>").WithLocation(12, 29),
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull3.M").WithArguments("object? E.extension<object?>(object?).M()", "System.Func<object>").WithLocation(12, 29),
             // (13,29): warning CS8621: Nullability of reference types in return type of 'object? E.M2<object?>(object? t)' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
             // _ = new System.Func<object>(oNull3.M2); // 4
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull3.M2").WithArguments("object? E.M2<object?>(object? t)", "System.Func<object>").WithLocation(13, 29));
@@ -46652,11 +46654,11 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,33): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(object?).M(object? t2)' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+            // (4,33): warning CS8621: Nullability of reference types in return type of 'object? E.extension<object?>(object?).M(object? t2)' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
             // System.Func<object, object> x = oNull.M; // 1
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull.M").WithArguments("object? extension<object?>(object?).M(object? t2)", "System.Func<object, object>").WithLocation(4, 33),
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull.M").WithArguments("object? E.extension<object?>(object?).M(object? t2)", "System.Func<object, object>").WithLocation(4, 33),
             // (5,34): warning CS8621: Nullability of reference types in return type of 'object? E.M2<object?>(object? t, object? t2)' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
-            // System.Func<object, object> xx = oNull.M2; // 2
+            // System.Func<object, object> x2 = oNull.M2; // 2
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull.M2").WithArguments("object? E.M2<object?>(object? t, object? t2)", "System.Func<object, object>").WithLocation(5, 34));
     }
 
@@ -46688,15 +46690,15 @@ class C<T> { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (6,28): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void extension<object?>(C<object?>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
+            // (6,28): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void E.extension<object?>(C<object?>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
             // System.Action<object?> z = Derived1.M2;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived1.M2").WithArguments("t2", "void extension<object?>(C<object?>).M2(object t2)", "System.Action<object?>").WithLocation(6, 28),
-            // (7,28): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void extension<object>(C<object>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived1.M2").WithArguments("t2", "void E.extension<object?>(C<object?>).M2(object t2)", "System.Action<object?>").WithLocation(6, 28),
+            // (7,28): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void E.extension<object>(C<object>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
             // System.Action<object?> t = Derived2.M2;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived2.M2").WithArguments("t2", "void extension<object>(C<object>).M2(object t2)", "System.Action<object?>").WithLocation(7, 28),
-            // (8,32): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void extension<object>(C<object>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived2.M2").WithArguments("t2", "void E.extension<object>(C<object>).M2(object t2)", "System.Action<object?>").WithLocation(7, 28),
+            // (8,32): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void E.extension<object>(C<object>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
             // _ = new System.Action<object?>(Derived2.M2);
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived2.M2").WithArguments("t2", "void extension<object>(C<object>).M2(object t2)", "System.Action<object?>").WithLocation(8, 32));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived2.M2").WithArguments("t2", "void E.extension<object>(C<object>).M2(object t2)", "System.Action<object?>").WithLocation(8, 32));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78022")]
@@ -46769,9 +46771,9 @@ class C<T> { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,25): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(C<object?>).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // (3,25): warning CS8621: Nullability of reference types in return type of 'object? E.extension<object?>(C<object?>).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
             // System.Func<object> x = Derived1.M; // 1
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Derived1.M").WithArguments("object? extension<object?>(C<object?>).M()", "System.Func<object>").WithLocation(3, 25));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Derived1.M").WithArguments("object? E.extension<object?>(C<object?>).M()", "System.Func<object>").WithLocation(3, 25));
 
         // Tracked by https://github.com/dotnet/roslyn/issues/78022 : the semantic model is incorrect for re-inferred method group
         var tree = comp.SyntaxTrees.First();
@@ -46817,9 +46819,9 @@ class C<T> { }
             // (3,9): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
             // var x = Derived1.M;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Derived1.M").WithArguments("E.extension<T>(C<T>)", "T", "object?").WithLocation(3, 9),
-            // (3,9): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(C<object?>).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // (3,9): warning CS8621: Nullability of reference types in return type of 'object? E.extension<object?>(C<object?>).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
             // var x = Derived1.M;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Derived1.M").WithArguments("object? extension<object?>(C<object?>).M()", "System.Func<object>").WithLocation(3, 9),
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Derived1.M").WithArguments("object? E.extension<object?>(C<object?>).M()", "System.Func<object>").WithLocation(3, 9),
             // (6,9): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.M2<T>(C<T>)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
             // var z = new Derived1().M2;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "new Derived1().M2").WithArguments("E.M2<T>(C<T>)", "T", "object?").WithLocation(6, 9),
@@ -46922,9 +46924,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,16): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (4,16): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // var (x1, x2) = oNull; // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(4, 16));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object)").WithLocation(4, 16));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -46955,9 +46957,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,21): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (4,21): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // var ((x1, x2), _) = oNull; // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(4, 21));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object)").WithLocation(4, 21));
     }
 
     [Fact]
@@ -47359,9 +47361,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,23): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (5,23): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // foreach ((_, _, _) in oNull) { } // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(5, 23));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object)").WithLocation(5, 23));
     }
 
     [Fact]
@@ -47754,7 +47756,7 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object?)'.
             // oNull.M();
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object?)").WithLocation(4, 1));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object?)").WithLocation(4, 1));
     }
 
     [Fact]
@@ -48333,9 +48335,9 @@ class C
             // (7,5): warning CS8602: Dereference of a possibly null reference.
             //     o.P.ToString(); // 2
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(7, 5),
-            // (13,73): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (13,73): error CS0120: An object reference is required for the non-static field, method, or property 'E.extension(object).P'
             //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(object.P))]
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.P").WithArguments("object", "P").WithLocation(13, 73));
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "object").WithArguments("E.extension(object).P").WithLocation(13, 73));
 
         src = """
 #nullable enable
@@ -49041,9 +49043,9 @@ public class MyCollection : IEnumerable<object>
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (7,39): warning CS8604: Possible null reference argument for parameter 'o' in 'void extension(MyCollection).Add(object o)'.
+            // (7,39): warning CS8604: Possible null reference argument for parameter 'o' in 'void E.extension(MyCollection).Add(object o)'.
             // MyCollection c = new MyCollection() { oNull, oNotNull };
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void extension(MyCollection).Add(object o)").WithLocation(7, 39));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void E.extension(MyCollection).Add(object o)").WithLocation(7, 39));
     }
 
     [Fact]
@@ -49074,9 +49076,9 @@ public class MyCollection : IEnumerable<object>
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (7,19): warning CS8604: Possible null reference argument for parameter 'o' in 'void extension(MyCollection).Add(object o)'.
+            // (7,19): warning CS8604: Possible null reference argument for parameter 'o' in 'void E.extension(MyCollection).Add(object o)'.
             // MyCollection c = [oNull, oNotNull];
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void extension(MyCollection).Add(object o)").WithLocation(7, 19));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void E.extension(MyCollection).Add(object o)").WithLocation(7, 19));
     }
 
     [Fact]
@@ -49712,9 +49714,9 @@ static class E
 
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (7,11): warning CS8604: Possible null reference argument for parameter 'c' in 'extension(C)'.
+            // (7,11): warning CS8604: Possible null reference argument for parameter 'c' in 'E.extension(C)'.
             // _ = await cNull;
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "cNull").WithArguments("c", "extension(C)").WithLocation(7, 11));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "cNull").WithArguments("c", "E.extension(C)").WithLocation(7, 11));
     }
 
     [Fact]

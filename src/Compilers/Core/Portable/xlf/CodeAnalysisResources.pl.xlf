@@ -173,6 +173,11 @@
         <target state="translated">Oczekiwano symbolu metody</target>
         <note />
       </trans-unit>
+      <trans-unit id="MissingTokenListItem">
+        <source>The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</source>
+        <target state="new">The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">Moduł ma nieprawidłowe atrybuty.</target>

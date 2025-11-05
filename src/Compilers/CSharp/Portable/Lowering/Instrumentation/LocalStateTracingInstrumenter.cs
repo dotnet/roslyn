@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameterLogger = GetLocalOrParameterStoreLogger(parameter.Type, parameter, refAssignmentSourceIsLocal: null, _factory.Syntax);
                 if (parameterLogger != null)
                 {
-                    int ordinal = parameter.ContainingSymbol.GetIsNewExtensionMember()
+                    int ordinal = parameter.ContainingSymbol.IsExtensionBlockMember()
                         ? SourceExtensionImplementationMethodSymbol.GetImplementationParameterOrdinal(parameter)
                         : parameter.Ordinal;
 
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> arguments = original.Arguments;
             MethodSymbol method = original.Method;
-            bool adjustForNewExtension = method.GetIsNewExtensionMember() && !method.IsStatic;
+            bool adjustForNewExtension = method.IsExtensionBlockMember() && !method.IsStatic;
             ImmutableArray<RefKind> argumentRefKindsOpt = NullableWalker.GetArgumentRefKinds(original.ArgumentRefKindsOpt, adjustForNewExtension, method, arguments.Length);
 
             if (adjustForNewExtension)
