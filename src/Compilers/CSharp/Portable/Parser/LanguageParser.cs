@@ -4170,11 +4170,17 @@ parse_member_name:;
 
         private readonly ref struct ParserSyntaxContextResetter : IDisposable
         {
+            [Flags]
+            private enum LanguageParserState : byte
+            {
+                IsInAsync = 1 << 0,
+                IsInQuery = 1 << 1,
+                IsInFieldKeywordContext = 1 << 2,
+                ForceConditionalAccessExpression = 1 << 3,
+            }
+
             private readonly LanguageParser _parser;
-            private readonly bool _previousInAsyncContext;
-            private readonly bool _previousInQueryContext;
-            private readonly bool _previousInFieldKeywordContext;
-            private readonly bool _previousForceConditionalAccessExpression;
+            private readonly LanguageParserState _previousState;
 
             public ParserSyntaxContextResetter(
                 LanguageParser parser,
@@ -4190,10 +4196,11 @@ parse_member_name:;
                     forceConditionalAccessExpression.HasValue);
 
                 _parser = parser;
-                _previousInAsyncContext = parser.IsInAsync;
-                _previousInQueryContext = parser.IsInQuery;
-                _previousInFieldKeywordContext = parser.IsInFieldKeywordContext;
-                _previousForceConditionalAccessExpression = parser.ForceConditionalAccessExpression;
+                _previousState =
+                    (parser.IsInAsync ? LanguageParserState.IsInAsync : 0) |
+                    (parser.IsInQuery ? LanguageParserState.IsInQuery : 0) |
+                    (parser.IsInFieldKeywordContext ? LanguageParserState.IsInFieldKeywordContext : 0) |
+                    (parser.ForceConditionalAccessExpression ? LanguageParserState.ForceConditionalAccessExpression : 0);
 
                 _parser.IsInAsync = isInAsyncContext.HasValue ? isInAsyncContext.Value : parser.IsInAsync;
                 _parser.IsInQuery = isInQueryContext.HasValue ? isInQueryContext.Value : parser.IsInQuery;
@@ -4203,10 +4210,10 @@ parse_member_name:;
 
             public void Dispose()
             {
-                _parser.IsInAsync = _previousInAsyncContext;
-                _parser.IsInQuery = _previousInQueryContext;
-                _parser.IsInFieldKeywordContext = _previousInFieldKeywordContext;
-                _parser.ForceConditionalAccessExpression = _previousForceConditionalAccessExpression;
+                _parser.IsInAsync = (_previousState & LanguageParserState.IsInAsync) != 0;
+                _parser.IsInQuery = (_previousState & LanguageParserState.IsInQuery) != 0;
+                _parser.IsInFieldKeywordContext = (_previousState & LanguageParserState.IsInFieldKeywordContext) != 0;
+                _parser.ForceConditionalAccessExpression = (_previousState & LanguageParserState.ForceConditionalAccessExpression) != 0;
             }
         }
 
