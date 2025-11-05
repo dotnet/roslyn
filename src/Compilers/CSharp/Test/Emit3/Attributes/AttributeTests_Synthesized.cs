@@ -1833,27 +1833,22 @@ class Test
                 }
                 """;
 
-            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
-                .WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel);
 
             var compilation = CreateRuntimeAsyncCompilation(source, options);
-            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: verify);
-            verifier.VerifyDiagnostics();
-
-            void verify(ModuleSymbol module)
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: static module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 var asyncMethod = type.GetMember<MethodSymbol>("F");
 
-                var attributes = asyncMethod.GetAttributes();
-
                 // When runtime async is enabled, no state machine is generated,
                 // so there should be no AsyncStateMachineAttribute and no DebuggerStepThroughAttribute
-                Assert.Empty(attributes);
+                Assert.Empty(asyncMethod.GetAttributes());
 
-                // Verify no state machine type was generated
-                Assert.Empty(type.GetTypeMembers("<F>d__0"));
-            }
+                // Verify no state machine types were generated
+                Assert.Empty(type.GetTypeMembers());
+            });
+            verifier.VerifyDiagnostics();
         }
         #endregion
 
