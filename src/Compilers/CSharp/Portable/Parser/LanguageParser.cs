@@ -3561,7 +3561,7 @@ parse_member_name:;
             // restored, just assumed to be false and reset accordingly after parsing the method body.
             Debug.Assert(!IsInAsync);
 
-            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: modifiers.Any((int)SyntaxKind.AsyncKeyword);
+            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: modifiers.Any((int)SyntaxKind.AsyncKeyword));
             this.ParseBlockAndExpressionBodiesWithSemicolon(out var blockBody, out var expressionBody, out var semicolon);
 
             return _syntaxFactory.MethodDeclaration(
