@@ -36099,9 +36099,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'C'
+            // (1,13): error CS9342: Operator resolution is ambiguous between the following members: 'E1.extension(C).operator +(C, C)' and 'E2.extension(C).operator +(C, C)'
             // _ = new C() + new C();
-            Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new C()").WithArguments("+", "C", "C").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("E1.extension(C).operator +(C, C)", "E2.extension(C).operator +(C, C)").WithLocation(1, 13));
     }
 
     [Fact]
@@ -36215,9 +36215,9 @@ static class E3
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'C'
+            // (1,13): error CS9342: Operator resolution is ambiguous between the following members: 'E1.extension(C).operator +(C, C)' and 'E2.extension(C).operator +(C, C)'
             // _ = new C() + new C();
-            Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new C()").WithArguments("+", "C", "C").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("E1.extension(C).operator +(C, C)", "E2.extension(C).operator +(C, C)").WithLocation(1, 13));
     }
 
     [Fact]
