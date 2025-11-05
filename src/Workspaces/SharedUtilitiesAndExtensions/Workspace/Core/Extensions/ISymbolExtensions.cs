@@ -10,6 +10,15 @@ internal static partial class ISymbolExtensions
 {
     public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
     {
+        // Check if the symbol is partial (definition or implementation part)
+        var isPartial = symbol switch
+        {
+            IMethodSymbol method => method.IsPartialDefinition || method.PartialDefinitionPart != null,
+            IPropertySymbol property => property.IsPartialDefinition || property.PartialDefinitionPart != null,
+            IEventSymbol @event => @event.IsPartialDefinition || @event.PartialDefinitionPart != null,
+            _ => false
+        };
+
         return DeclarationModifiers.None
             .WithIsStatic(symbol.IsStatic)
             .WithIsAbstract(symbol.IsAbstract)
@@ -17,6 +26,7 @@ internal static partial class ISymbolExtensions
             .WithIsVirtual(symbol.IsVirtual)
             .WithIsOverride(symbol.IsOverride)
             .WithIsSealed(symbol.IsSealed)
-            .WithIsRequired(symbol.IsRequired());
+            .WithIsRequired(symbol.IsRequired())
+            .WithPartial(isPartial);
     }
 }

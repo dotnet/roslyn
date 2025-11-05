@@ -1471,6 +1471,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         DeclarationModifiers.Extern |
         DeclarationModifiers.New |
         DeclarationModifiers.Override |
+        DeclarationModifiers.Partial |
         DeclarationModifiers.ReadOnly |
         DeclarationModifiers.Required |
         DeclarationModifiers.Sealed |
@@ -1483,6 +1484,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         DeclarationModifiers.Extern |
         DeclarationModifiers.New |
         DeclarationModifiers.Override |
+        DeclarationModifiers.Partial |
         DeclarationModifiers.ReadOnly |
         DeclarationModifiers.Sealed |
         DeclarationModifiers.Static |

@@ -2928,6 +2928,199 @@ public sealed class ExtractClassTests
         }.RunAsync();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78113")]
+    public async Task TestPartialEvent()
+    {
+        var input1 = """
+            using System;
+
+            partial class C
+            {
+                public partial event EventHandler [||]E;
+            }
+            """;
+
+        var input2 = """
+            using System;
+
+            partial class C
+            {
+                public partial event EventHandler E { add { } remove { } }
+            }
+            """;
+
+        var expected1 = """
+            using System;
+
+            partial class C : MyBase
+            {
+            }
+            """;
+
+        var expected2 = """
+            using System;
+
+            partial class C
+            {
+                public partial event EventHandler E { add { } remove { } }
+            }
+            """;
+
+        var expected3 = """
+            using System;
+
+            internal class MyBase
+            {
+                public partial event EventHandler E;
+            }
+            """;
+
+        await new Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    input1,
+                    input2,
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    expected1,
+                    expected2,
+                    expected3,
+                }
+            },
+            FileName = "Test2.cs",
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78113")]
+    public async Task TestPartialProperty()
+    {
+        var input1 = """
+            partial class C
+            {
+                public partial int [||]P { get; }
+            }
+            """;
+
+        var input2 = """
+            partial class C
+            {
+                public partial int P => 42;
+            }
+            """;
+
+        var expected1 = """
+            partial class C : MyBase
+            {
+            }
+            """;
+
+        var expected2 = """
+            partial class C
+            {
+                public partial int P => 42;
+            }
+            """;
+
+        var expected3 = """
+            internal class MyBase
+            {
+                public partial int P { get; }
+            }
+            """;
+
+        await new Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    input1,
+                    input2,
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    expected1,
+                    expected2,
+                    expected3,
+                }
+            },
+            FileName = "Test2.cs",
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78113")]
+    public async Task TestPartialMethod()
+    {
+        var input1 = """
+            partial class C
+            {
+                public partial void [||]M();
+            }
+            """;
+
+        var input2 = """
+            partial class C
+            {
+                public partial void M() { }
+            }
+            """;
+
+        var expected1 = """
+            partial class C : MyBase
+            {
+            }
+            """;
+
+        var expected2 = """
+            partial class C
+            {
+                public partial void M() { }
+            }
+            """;
+
+        var expected3 = """
+            internal class MyBase
+            {
+                public partial void M();
+            }
+            """;
+
+        await new Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    input1,
+                    input2,
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    expected1,
+                    expected2,
+                    expected3,
+                }
+            },
+            FileName = "Test2.cs",
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
     private static IEnumerable<(string name, bool makeAbstract)> MakeAbstractSelection(params string[] memberNames)
         => memberNames.Select(m => (m, true));
 
