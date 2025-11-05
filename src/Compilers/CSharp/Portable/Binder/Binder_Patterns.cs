@@ -322,9 +322,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
                 hasErrors = true;
+                inputType = CreateErrorType();
             }
 
-            if (inputType.IsErrorType() || inputType.IsDynamic() || inputType.IsPointerOrFunctionPointer())
+            if (inputType.IsErrorType() || inputType.IsDynamic())
             {
                 hasErrors = true;
                 elementType = inputType;
