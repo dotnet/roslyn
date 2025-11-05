@@ -19,12 +19,10 @@
 
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(TargetFramework)\publish\csc.dll" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(TargetFramework)\publish\csc.deps.json" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(TargetFramework)\publish\csc.rsp" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(TargetFramework)\publish\csc.runtimeconfig.json" />
 
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\$(TargetFramework)\publish\vbc.dll" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\$(TargetFramework)\publish\vbc.deps.json" />
-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\$(TargetFramework)\publish\vbc.rsp" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\$(TargetFramework)\publish\vbc.runtimeconfig.json" />
 
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\$(TargetFramework)\publish\VBCSCompiler.dll" />
