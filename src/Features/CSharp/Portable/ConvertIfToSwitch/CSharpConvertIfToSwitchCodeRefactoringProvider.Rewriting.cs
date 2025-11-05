@@ -111,7 +111,7 @@ internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
         {
             AnalyzedPattern.And p => BinaryPattern(SyntaxKind.AndPattern, AsPatternSyntax(p.LeftPattern, feature).Parenthesize(), AsPatternSyntax(p.RightPattern, feature).Parenthesize()),
             AnalyzedPattern.Constant p => ConstantPattern(p.ExpressionSyntax),
-            AnalyzedPattern.Source p => p.PatternSyntax,
+            AnalyzedPattern.Source p => p.PatternSyntax.WithoutLeadingTrivia(),
             AnalyzedPattern.Type p when feature.HasFlag(Feature.TypePattern) => TypePattern((TypeSyntax)p.IsExpressionSyntax.Right),
             AnalyzedPattern.Type p => DeclarationPattern((TypeSyntax)p.IsExpressionSyntax.Right, DiscardDesignation()),
             AnalyzedPattern.Relational p => RelationalPattern(Token(s_operatorMap[p.OperatorKind]), p.Value),
