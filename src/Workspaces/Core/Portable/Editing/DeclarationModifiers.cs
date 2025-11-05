@@ -73,6 +73,10 @@ public readonly record struct DeclarationModifiers
             var type = symbol as INamedTypeSymbol;
             var isConst = field?.IsConst == true;
 
+            // A method or property is partial if it's either a partial definition or has a partial definition part
+            var isPartial = (method?.IsPartialDefinition == true || method?.PartialDefinitionPart != null) ||
+                           (property?.IsPartialDefinition == true || property?.PartialDefinitionPart != null);
+
             return new DeclarationModifiers(
                 isStatic: symbol.IsStatic && !isConst,
                 isAbstract: symbol.IsAbstract,
@@ -85,7 +89,7 @@ public readonly record struct DeclarationModifiers
                 isRef: field?.RefKind is RefKind.Ref or RefKind.RefReadOnly || type?.IsRefLikeType == true,
                 isVolatile: field?.IsVolatile == true,
                 isExtern: symbol.IsExtern,
-                isPartial: (method?.IsPartialDefinition == true) || (property?.IsPartialDefinition == true),
+                isPartial: isPartial,
                 isAsync: method?.IsAsync == true,
                 isRequired: symbol.IsRequired(),
                 isFile: type?.IsFileLocal == true,
