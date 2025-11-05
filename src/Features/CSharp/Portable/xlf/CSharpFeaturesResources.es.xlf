@@ -17,6 +17,21 @@
         <target state="translated">Agregar las llaves necesarias para las instrucciones de control de una sola línea</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adds_a_NuGet_package_reference">
+        <source>Adds a NuGet package reference.</source>
+        <target state="new">Adds a NuGet package reference.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adds_a_project_reference">
+        <source>Adds a project reference.</source>
+        <target state="new">Adds a project reference.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adds_an_SDK_reference">
+        <source>Adds an SDK reference.</source>
+        <target state="new">Adds an SDK reference.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_0">
         <source>Apply '{0}'</source>
         <target state="translated">Aplicar "{0}"</target>
@@ -132,6 +147,16 @@
         <target state="translated">La selección automática se ha deshabilitado debido a una posible declaración de variable de patrón.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Build_property_name">
+        <source>Name</source>
+        <target state="new">Name</target>
+        <note>'Name' is a placeholder for a property name in a directive like '#:property Name=Value'.</note>
+      </trans-unit>
+      <trans-unit id="Build_property_value">
+        <source>Value</source>
+        <target state="new">Value</target>
+        <note>'Value' is a placeholder for a build property value in a directive like '#:property Name=Value'.</note>
+      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">Cambiar a la expresión "as"</target>
@@ -192,6 +217,11 @@
         <target state="translated">Convertir en cadena textual</target>
         <note />
       </trans-unit>
+      <trans-unit id="Defines_a_build_property">
+        <source>Defines a build property.</source>
+        <target state="new">Defines a build property.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_project">
         <source>Enable nullable reference types in project</source>
         <target state="translated">Habilitar tipos de referencia que aceptan valores NULL en el proyecto</target>
@@ -211,6 +241,21 @@
         <source>Make private fields readonly when possible</source>
         <target state="translated">Cuando sea posible, hacer que los cambios privados sean solo de lectura</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Package_name">
+        <source>Name</source>
+        <target state="new">Name</target>
+        <note>'Name' is a placeholder for a package or sdk name in a directive like '#:package Name@Version'.</note>
+      </trans-unit>
+      <trans-unit id="Package_version">
+        <source>Version</source>
+        <target state="new">Version</target>
+        <note>'Version' is a placeholder for a package or sdk version in a directive like '#:package Name@Version'.</note>
+      </trans-unit>
+      <trans-unit id="Project_directive_file_path">
+        <source>path</source>
+        <target state="new">path</target>
+        <note>'path' is a placeholder for a project file or directory path in a directive like '#:project path'.</note>
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>

@@ -25,16 +25,16 @@
   </PropertyGroup>
 
   <!--
-    MSBuild - need to use older packages when targeting net7.0 since the newer versions only support net472 and net8.0.
+    MSBuild - need to use older packages when targeting net8.0 since the newer versions only support net472 and net9.0.
     When tareting the latest .NET the version must also be lower or equal to one specified in
     https://github.com/dotnet/sdk/blob/main/src/Layout/redist/minimumMSBuildVersion#L1
   -->
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
-    <PackageVersion Include="Microsoft.Build" Version="17.3.4" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.3.4" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.3.4" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.3.4" />
+    <PackageVersion Include="Microsoft.Build" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.31" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' != 'net472'">
@@ -52,7 +52,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageVersion Include="Microsoft.Build.Locator" Version="1.8.1" />
+    <!--
+      BuildHost
+    -->
+    <PackageVersion Include="Microsoft.Build.Locator" Version="1.10.2" />
 
     <!--
       Visual Studio
@@ -292,7 +295,7 @@
     <PackageVersion Include="runtime.linux-arm64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
-    <PackageVersion Include="Basic.CompilerLog.Util" Version="0.6.1" />
+    <PackageVersion Include="Basic.CompilerLog.Util" Version="0.9.19" />
     <PackageVersion Include="Basic.Reference.Assemblies.NetStandard20" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net20" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net40" Version="$(_BasicReferenceAssembliesVersion)" />
@@ -307,19 +310,22 @@
     <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="19.232.0-preview" />
     <PackageVersion Include="System.Data.SqlClient" Version="$(SystemDataSqlClientVersion)" />
     <!-- fix of vulnerability in 6.0.0 coming via Microsoft.TeamFoundationServer.Client -->
-    <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.0" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.1" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
     <!--
       Infra
     -->
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
-    <PackageVersion Include="MSBuild.StructuredLogger" Version="2.2.386" />
+    <PackageVersion Include="MSBuild.StructuredLogger" Version="2.3.71" />
     <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsNugetPackageVersion)" />
     <PackageVersion Include="SourceBrowser" Version="1.0.21" />
     <PackageVersion Include="RoslynTools.VSIXExpInstaller" Version="1.1.0-beta3.22474.1" />
     <PackageVersion Include="MicroBuildPluginsSwixBuild" Version="1.1.87" />
     <PackageVersion Include="vswhere" Version="$(vswhereVersion)" />
+    <PackageVersion Include="CliWrap" Version="3.8.2" />
+    <PackageVersion Include="Microsoft.DotNet.DarcLib" Version="$(MicrosoftDotNetDarcLibPackageVersion)" />
+    <PackageVersion Include="Spectre.Console" Version="0.51.1" />
     <!--
       The version of Roslyn we build Source Generators against that are built in this
       repository. This must be lower than MicrosoftNetCompilersToolsetVersion,

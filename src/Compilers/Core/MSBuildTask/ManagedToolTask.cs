@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Resources;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -239,10 +240,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected override bool ValidateParameters()
         {
             // Set DOTNET_ROOT so that the apphost executables launch properly.
+            // Unset all other DOTNET_ROOT* variables so for example DOTNET_ROOT_X64 does not override ours.
             if (RuntimeHostInfo.GetToolDotNetRoot() is { } dotNetRoot)
             {
                 Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
-                EnvironmentVariables = [.. EnvironmentVariables ?? [], $"{RuntimeHostInfo.DotNetRootEnvironmentName}={dotNetRoot}"];
+                EnvironmentVariables =
+                [
+                    .. EnvironmentVariables?.Where(static e => !e.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase)) ?? [],
+                    .. Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>()
+                        .Where(e => ((string)e.Key).StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                        .Select(e => $"{e.Key}="),
+                    $"{RuntimeHostInfo.DotNetRootEnvironmentName}={dotNetRoot}",
+                ];
             }
 
             return base.ValidateParameters();

@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
@@ -561,5 +563,25 @@ internal static class ClassificationHelpers
 
         // didn't need to do anything to this one.
         return classifiedSpan;
+    }
+
+    /// <summary>
+    /// Determines if the given XML element is a code block with C# language attribute.
+    /// </summary>
+    public static (bool isCSharp, bool isCSharpTest) IsCodeBlockWithCSharpLang(XmlElementSyntax node)
+    {
+        if (node.StartTag.Name.LocalName.Text == DocumentationCommentXmlNames.CodeElementName)
+        {
+            foreach (var attribute in node.StartTag.Attributes)
+            {
+                if (attribute is XmlTextAttributeSyntax { Name.LocalName.Text: "lang" } textAttribute)
+                {
+                    var langValue = string.Join("", textAttribute.TextTokens.Select(t => t.Text)).ToLower();
+                    return (langValue is "c#", langValue is "c#-test");
+                }
+            }
+        }
+
+        return default;
     }
 }

@@ -21,7 +21,9 @@ internal sealed partial class RemoteCopilotProposalAdjusterService(
             => new RemoteCopilotProposalAdjusterService(arguments);
     }
 
-    public ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
+    public ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
+        ImmutableHashSet<string> allowableAdjustments,
+        Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
@@ -29,7 +31,7 @@ internal sealed partial class RemoteCopilotProposalAdjusterService(
                 documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
             var service = document.GetRequiredLanguageService<ICopilotProposalAdjusterService>();
-            return await service.TryAdjustProposalAsync(document, textChanges, cancellationToken).ConfigureAwait(false);
+            return await service.TryAdjustProposalAsync(allowableAdjustments, document, textChanges, cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }
 }

@@ -58,12 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             interpolations.Free();
             if (error != null)
-            {
-                // Errors are positioned relative to the start of the token that was lexed.  Specifically relative to
-                // the starting `$` or `@`.  However, when placed on a node like this, it will be relative to the node's
-                // full start.  So we have to adjust the diagnostics taking that into account.
-                result = result.WithDiagnosticsGreen(MoveDiagnostics(new[] { error }, originalToken.GetLeadingTrivia()?.FullWidth ?? 0));
-            }
+                result = result.WithDiagnosticsGreen([error]);
 
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
             return result;

@@ -43,9 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The value is set during binding the symbols that need those attributes, and is frozen on first trial to get it.
         /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
         /// </summary>
-        internal EmbeddableAttributes GetNeedsGeneratedAttributes()
+        internal EmbeddableAttributes GetNeedsGeneratedAttributes(bool freezeState = true)
         {
-            _needsGeneratedAttributes_IsFrozen = true;
+            if (freezeState)
+            {
+                _needsGeneratedAttributes_IsFrozen = true;
+            }
+
             return (EmbeddableAttributes)_needsGeneratedAttributes;
         }
 

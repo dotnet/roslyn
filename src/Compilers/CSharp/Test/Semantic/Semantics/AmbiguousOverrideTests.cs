@@ -98,9 +98,9 @@ class EntryPoint
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (22,9): error CS0121: The call is ambiguous between the following methods or properties: 'Base<TLong, TInt>.Method(long, TInt)' and 'Base<TLong, TInt>.Method(TLong, int)'
+                // (22,24): error CS0121: The call is ambiguous between the following methods or properties: 'Base<long, int>.Method(long, int)' and 'Base<long, int>.Method(long, int)'
                 //         new Derived2().Method(1L, 2); //CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<TLong, TInt>.Method(long, TInt)", "Base<TLong, TInt>.Method(TLong, int)"));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<long, int>.Method(long, int)", "Base<long, int>.Method(long, int)").WithLocation(22, 24));
         }
 
         [Fact]
@@ -233,9 +233,9 @@ abstract class Derived2 : Base<int, long>
                     // (10,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base<int, int>.Method(int, int)'
                     // class Derived : Base<int, int>
                     Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base<int, int>.Method(int, int)").WithLocation(10, 7),
-                    // (21,14): error CS0121: The call is ambiguous between the following methods or properties: 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)'
+                    // (21,14): error CS0121: The call is ambiguous between the following methods or properties: 'Base<int, int>.Method(int, int)' and 'Base<int, int>.Method(int, int)'
                     //         base.Method(1, 1);
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)").WithLocation(21, 14)
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<int, int>.Method(int, int)", "Base<int, int>.Method(int, int)").WithLocation(21, 14)
                     );
             }
         }
@@ -1182,25 +1182,25 @@ class M
 
                 // (6,26): error CS0462: The inherited members 'CG<T>.F(T)' and 'CG<T>.F(T)' have the same signature in type 'EG<T>', so they cannot be overridden
                 //     public override void F(T c)
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)", "EG<T>"),
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)", "EG<T>").WithLocation(6, 26),
                 // (15,26): error CS0462: The inherited members 'CG<T>.F(T)' and 'CG<T>.F(T)' have the same signature in type 'EGI', so they cannot be overridden
                 //     public override void F(int c)
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)", "EGI"),
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)", "EGI").WithLocation(15, 26),
 
                 // NOTE: Dev10 doesn't report these cascading errors.
 
-                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
+                // (9,14): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
                 //         base.F(c);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
-                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)").WithLocation(9, 14),
+                // (18,14): error CS0121: The call is ambiguous between the following methods or properties: 'CG<int>.F(int)' and 'CG<int>.F(int)'
                 //         base.F(c);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
-                // (34,13): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<int>.F(int)", "CG<int>.F(int)").WithLocation(18, 14),
+                // (34,15): error CS0121: The call is ambiguous between the following methods or properties: 'CG<string>.F(string)' and 'CG<string>.F(string)'
                 //             e.F(c);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
-                // (43,13): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<string>.F(string)", "CG<string>.F(string)").WithLocation(34, 15),
+                // (43,15): error CS0121: The call is ambiguous between the following methods or properties: 'CG<int>.F(int)' and 'CG<int>.F(int)'
                 //             e.F(c);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<int>.F(int)", "CG<int>.F(int)").WithLocation(43, 15));
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

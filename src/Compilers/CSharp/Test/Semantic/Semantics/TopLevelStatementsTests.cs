@@ -1135,8 +1135,7 @@ await System.Threading.Tasks.Task.Yield();
             comp.VerifyEmitDiagnostics();
 
             comp = CreateRuntimeAsyncCompilation(text);
-            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("-100"), verify: Verification.Fails with
             {
                 ILVerifyMessage = "[<Main>$]: Return value missing on the stack. { Offset = 0x2f }"
             }, sourceSymbolValidator: validator);
@@ -1571,7 +1570,7 @@ string e() => ""1"";
             Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, model1.GetTypeInfo(reference).Nullability.FlowState);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80487")]
         public void FlowAnalysis_02()
         {
             var text = @"
@@ -1583,18 +1582,10 @@ if (args.Length == 0)
 }
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions).VerifyDiagnostics(
                 // (2,1): error CS0161: '<top-level-statements-entry-point>': not all code paths return a value
                 // System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_ReturnExpected, @"System.Console.WriteLine();
-
-if (args.Length == 0)
-{
-    return 10;
-}
-").WithArguments("<top-level-statements-entry-point>").WithLocation(2, 1)
-                );
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "System.Console.WriteLine();").WithArguments("<top-level-statements-entry-point>").WithLocation(2, 1));
         }
 
         [Fact]
@@ -7887,7 +7878,9 @@ return 11;
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
-            CompileAndVerify(comp, expectedOutput: "hello Return_04", args: new[] { "Return_04" }, expectedReturnCode: 11);
+            var expectedOutput = "hello Return_04";
+            var args = new[] { "Return_04" };
+            CompileAndVerify(comp, expectedOutput: expectedOutput, args: args, expectedReturnCode: 11);
 
             if (ExecutionConditionUtil.IsWindows)
             {
@@ -7939,8 +7932,7 @@ return 11;
             }
 
             comp = CreateRuntimeAsyncCompilation(text);
-            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), args: args, verify: Verification.Fails with
             {
                 ILVerifyMessage = "[<Main>$]: Unexpected type on the stack. { Offset = 0x43, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }"
             }, sourceSymbolValidator: validator);

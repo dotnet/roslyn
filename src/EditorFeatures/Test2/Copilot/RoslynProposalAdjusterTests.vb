@@ -2,10 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Copilot
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
@@ -14,17 +14,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
     Public NotInheritable Class RoslynProposalAdjusterTests
         Private Shared ReadOnly s_composition As TestComposition = FeaturesTestCompositions.Features
 
-        Private Shared Sub AllSettingsOff(options As IGlobalOptionService)
-            options.SetGlobalOption(CopilotOptions.FixAddMissingTokens, False)
-            options.SetGlobalOption(CopilotOptions.FixAddMissingImports, False)
-            options.SetGlobalOption(CopilotOptions.FixCodeFormat, False)
-        End Sub
-
         Private Shared Async Function Test(
                 code As String,
                 expected As String,
                 language As String,
-                Optional setOptions As Action(Of IGlobalOptionService) = Nothing,
+                Optional fixers As ImmutableHashSet(Of String) = Nothing,
                 Optional compilationOptions As CompilationOptions = Nothing) As Task
             Using workspace = If(language Is LanguageNames.CSharp,
                     EditorTestWorkspace.CreateCSharp(code, compilationOptions:=compilationOptions, composition:=s_composition),
@@ -47,21 +41,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
                     delta -= selectionSpan.Length
                 Next
 
-                ' Enable code fixer feature flags. They are off by default.
-                Dim options = workspace.GetService(Of IGlobalOptionService)
-
-                ' Default to all the flags on if a setter is not specified. 
-                If setOptions Is Nothing Then
-                    options.SetGlobalOption(CopilotOptions.FixAddMissingTokens, True)
-                    options.SetGlobalOption(CopilotOptions.FixAddMissingImports, True)
-                    options.SetGlobalOption(CopilotOptions.FixCodeFormat, True)
-                Else
-                    setOptions(options)
+                ' Default to all the flags on if adjuster not specified.
+                If fixers Is Nothing Then
+                    fixers = {
+                        ProposalAdjusterKinds.AddMissingTokens,
+                        ProposalAdjusterKinds.AddMissingImports,
+                        ProposalAdjusterKinds.FormatCode
+                    }.ToImmutableHashSet()
                 End If
 
                 Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
                 Dim tuple = Await service.TryAdjustProposalAsync(
-                    originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), CancellationToken.None)
+                    allowableAdjustments:=fixers, originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), CancellationToken.None)
 
                 Dim adjustedChanges = tuple.TextChanges
                 Dim format = tuple.Format
@@ -83,8 +74,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
 
 #Region "C#"
 
-        Private Shared Async Function TestCSharp(code As String, expected As String, Optional setOptions As Action(Of IGlobalOptionService) = Nothing) As Task
-            Await Test(code, expected, LanguageNames.CSharp, setOptions)
+        Private Shared Async Function TestCSharp(code As String, expected As String, Optional fixers As ImmutableHashSet(Of String) = Nothing) As Task
+            Await Test(code, expected, LanguageNames.CSharp, fixers)
         End Function
 
         <WpfFact>
@@ -506,7 +497,7 @@ class C
     {
         Console.WriteLine(1);
     }
-}", AddressOf AllSettingsOff)
+}", ImmutableHashSet(Of String).Empty)
         End Function
 
         <WpfFact>
@@ -527,9 +518,7 @@ class C
     {
         Console.WriteLine(1);
     }
-}", Sub(options)
-        options.SetGlobalOption(CopilotOptions.FixAddMissingImports, True)
-    End Sub)
+}", {ProposalAdjusterKinds.AddMissingImports}.ToImmutableHashSet())
         End Function
 
         <WpfFact>
@@ -548,9 +537,7 @@ class C
     {
         Console.WriteLine(1);
     }
-}", Sub(options)
-        options.SetGlobalOption(CopilotOptions.FixAddMissingTokens, True)
-    End Sub)
+}", {ProposalAdjusterKinds.AddMissingTokens}.ToImmutableHashSet())
         End Function
 
         <WpfFact>
@@ -569,17 +556,15 @@ class C
     {
         Console.WriteLine(1);
     }
-}", Sub(options)
-        options.SetGlobalOption(CopilotOptions.FixCodeFormat, True)
-    End Sub)
+}", {ProposalAdjusterKinds.FormatCode}.ToImmutableHashSet())
         End Function
 
 #End Region
 
 #Region "Visual Basic"
 
-        Private Shared Async Function TestVisualBasic(code As String, expected As String, Optional setOptions As Action(Of IGlobalOptionService) = Nothing) As Task
-            Await Test(code, expected, LanguageNames.VisualBasic, setOptions, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+        Private Shared Async Function TestVisualBasic(code As String, expected As String, Optional fixers As ImmutableHashSet(Of String) = Nothing) As Task
+            Await Test(code, expected, LanguageNames.VisualBasic, fixers, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
         End Function
 
         <WpfFact>
@@ -820,7 +805,7 @@ class C
     sub M()
          Console . WriteLine ( 1 )   
     end sub
-end class", AddressOf AllSettingsOff)
+end class", ImmutableHashSet(Of String).Empty)
         End Function
 
 #End Region

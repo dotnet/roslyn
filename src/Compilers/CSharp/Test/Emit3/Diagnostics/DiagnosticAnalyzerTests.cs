@@ -4640,5 +4640,17 @@ partial class B
                 Assert.Same(analyzer1.SeenOptions, analyzer2.SeenOptions);
             }
         }
+
+        [Fact]
+        public async Task TestGetAnalysisResultAsyncWithUnknownAnalyzerThrows()
+        {
+            var compilation = CreateCompilation("").VerifyDiagnostics();
+
+            var compilationWithAnalyzers = compilation.WithAnalyzers([new CSharpCompilerDiagnosticAnalyzer()]);
+
+            // Calling with a DiagnosticAnalyzer that was not specified in 'WithAnalyzers' should throw.
+            await Assert.ThrowsAnyAsync<ArgumentException>(() =>
+                compilationWithAnalyzers.GetAnalysisResultAsync([new CSharpCompilerDiagnosticAnalyzer()], CancellationToken.None));
+        }
     }
 }

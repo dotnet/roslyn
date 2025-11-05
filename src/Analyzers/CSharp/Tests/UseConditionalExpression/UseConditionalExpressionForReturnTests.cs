@@ -2238,4 +2238,58 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80640")]
+    public Task TestMissingWhenBoolOperatorsAreUsed()
+        => TestMissingAsync("""
+            class C
+            {
+                bool M()
+                {
+                    [||]if (this)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                public static bool operator true(C v) => true;
+
+                public static bool operator false(C v) => false;
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80640")]
+    public Task TestWithImplicitBoolConversion()
+        => TestInRegularAndScriptAsync("""
+            class C
+            {
+                bool M()
+                {
+                    [|if|] (this)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                public static implicit operator bool(C v) => true;
+            }
+            """, """
+            class C
+            {
+                bool M()
+                {
+                    return this;
+                }
+
+                public static implicit operator bool(C v) => true;
+            }
+            """);
 }

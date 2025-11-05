@@ -2156,33 +2156,33 @@ public class Program
 ";
             // these are poor diagnostics; see https://github.com/dotnet/roslyn/issues/43719
             var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
-                // (9,17): error CS0539: 'Derived.M1' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (9,17): error CS9333: 'Derived.M1' type must be 'object' to match implemented member '"Base.M1'
                 //     string Base.M1 => null;   // 1
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("Derived.M1").WithLocation(9, 17),
-                // (10,17): error CS0539: 'Derived.M2()' in explicit interface declaration is not found among members of the interface that can be implemented
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M1").WithArguments("Derived.M1", "object", "Base.M1").WithLocation(9, 17),
+                // (10,17): error CS9334: 'Derived.M2()' return type must be 'object' to match implemented member 'Base.M2()'
                 //     string Base.M2() => null; // 2
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("Derived.M2()").WithLocation(10, 17),
-                // (14,17): error CS0539: 'C.M1' in explicit interface declaration is not found among members of the interface that can be implemented
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M2").WithArguments("Derived.M2()", "object", "Base.M2()").WithLocation(10, 17),
+                // (14,17): error CS9333: 'C.M1' type must be 'object' to match implemented member 'Base.M1'
                 //     string Base.M1 => null;   // 3
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("C.M1").WithLocation(14, 17),
-                // (15,17): error CS0539: 'C.M2()' in explicit interface declaration is not found among members of the interface that can be implemented
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M1").WithArguments("C.M1", "object", "Base.M1").WithLocation(14, 17),
+                // (15,17): error CS9334: 'C.M2()' return type must be 'object' to match implemented member 'Base.M2()'
                 //     string Base.M2() => null; // 4
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("C.M2()").WithLocation(15, 17)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M2").WithArguments("C.M2()", "object", "Base.M2()").WithLocation(15, 17)
                 );
             verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
-                // (9,17): error CS0539: 'Derived.M1' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (9,17): error CS9333: 'Derived.M1' type must be 'object' to match implemented member '"Base.M1'
                 //     string Base.M1 => null;   // 1
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("Derived.M1").WithLocation(9, 17),
-                // (10,17): error CS0539: 'Derived.M2()' in explicit interface declaration is not found among members of the interface that can be implemented
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M1").WithArguments("Derived.M1", "object", "Base.M1").WithLocation(9, 17),
+                // (10,17): error CS9334: 'Derived.M2()' return type must be 'object' to match implemented member 'Base.M2()'
                 //     string Base.M2() => null; // 2
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("Derived.M2()").WithLocation(10, 17),
-                // (14,17): error CS0539: 'C.M1' in explicit interface declaration is not found among members of the interface that can be implemented
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M2").WithArguments("Derived.M2()", "object", "Base.M2()").WithLocation(10, 17),
+                // (14,17): error CS9333: 'C.M1' type must be 'object' to match implemented member 'Base.M1'
                 //     string Base.M1 => null;   // 3
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("C.M1").WithLocation(14, 17),
-                // (15,17): error CS0539: 'C.M2()' in explicit interface declaration is not found among members of the interface that can be implemented
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch, "M1").WithArguments("C.M1", "object", "Base.M1").WithLocation(14, 17),
+                // (15,17): error CS9334: 'C.M2()' return type must be 'object' to match implemented member 'Base.M2()'
                 //     string Base.M2() => null; // 4
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("C.M2()").WithLocation(15, 17)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch, "M2").WithArguments("C.M2()", "object", "Base.M2()").WithLocation(15, 17)
                 );
             verify(SourceView(comp, assignments));
 

@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
-        protected RewrittenMethodSymbol(MethodSymbol originalMethod, TypeMap typeMap, ImmutableArray<TypeParameterSymbol> typeParametersToAlphaRename, bool propagateTypeParameterAttributes)
+        protected RewrittenMethodSymbol(MethodSymbol originalMethod, TypeMap typeMap, ImmutableArray<TypeParameterSymbol> typeParametersToAlphaRename)
         {
             Debug.Assert(originalMethod.IsDefinition);
             Debug.Assert(originalMethod.ExplicitInterfaceImplementations.IsEmpty);
 
             _originalMethod = originalMethod;
-            _typeMap = typeMap.WithAlphaRename(typeParametersToAlphaRename, this, propagateAttributes: propagateTypeParameterAttributes, out _typeParameters);
+            _typeMap = typeMap.WithAlphaRename(typeParametersToAlphaRename, this, propagateAttributes: true, out _typeParameters);
         }
 
         public TypeMap TypeMap => _typeMap;

@@ -67,6 +67,11 @@
         <target state="translated">Der Operator "{0}" kann nicht auf "default" und den Operanden vom Typ "{1}" angewendet werden, weil es sich um einen Typparameter handelt, der nicht als Verweistyp bekannt ist.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigExtension">
+        <source>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
         <target state="translated">Bezeichner „{0}“ ist zwischen Typ „{1}“ und Parameter „{2}“ in diesem Kontext mehrdeutig.</target>
@@ -355,6 +360,11 @@
       <trans-unit id="ERR_BadUsingStaticType">
         <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
         <target state="translated">Der Typ "{0}" ist für "using static" ungültig. Nur eine Klasse, Struktur, Schnittstelle, Enumeration, ein Delegat oder ein Namespace kann verwendet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadVisBaseType">
+        <source>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </source>
+        <target state="new">Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
@@ -712,6 +722,16 @@
         <target state="translated">Die explizite Implementierung eines benutzerdefinierten Operators "{0}" muss als statisch deklariert werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberReturnTypeMismatch">
+        <source>'{0}': return type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': return type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberTypeMismatch">
+        <source>'{0}': type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">Die explizite Anwendung von "System.Runtime.CompilerServices.NullableAttribute" ist unzulässig.</target>
@@ -812,11 +832,6 @@
         <target state="translated">Eine Ausdrucksbaumstruktur darf keinen ==- oder !=-Tupeloperator enthalten.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
-        <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="translated">Eine Ausdrucksstruktur darf keine UTF-8-Zeichenfolgenkonvertierung ode Literal enthalten.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">Eine Ausdrucksbaumstruktur darf keinen with-Ausdruck enthalten.</target>
@@ -893,11 +908,6 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
-        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
-        <target state="translated">Das Feature "{0}" ist in C# 8.0 nicht verfügbar. Verwenden Sie Sprachversion {1} oder höher.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">Das Feature "{0}" ist in C# 8.0 nicht verfügbar. Verwenden Sie Sprachversion {1} oder höher.</target>
         <note />
@@ -1080,6 +1090,11 @@
       <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
         <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedVariableUsedInForbiddenZone">
+        <source>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</source>
+        <target state="new">Reference to an implicitly-typed variable '{0}' is not permitted in this location.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -2258,8 +2273,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
-        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">Der Typ "Microsoft.CodeAnalysis.EmbeddedAttribute" muss nicht generisch, intern, versiegelt oder nicht statisch sein, einen parameterlosen Konstruktor aufweisen, von System.Attribute erben und auf einen beliebigen Typ angewendet werden können.</target>
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="needs-review-translation">Der Typ "Microsoft.CodeAnalysis.EmbeddedAttribute" muss nicht generisch, intern, versiegelt oder nicht statisch sein, einen parameterlosen Konstruktor aufweisen, von System.Attribute erben und auf einen beliebigen Typ angewendet werden können.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2370,11 +2385,6 @@
       <trans-unit id="ERR_SimpleProgramNotAnExecutable">
         <source>Program using top-level statements must be an executable.</source>
         <target state="translated">Das Programm mit Anweisungen der obersten Ebene muss eine ausführbare Datei sein.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
-        <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
-        <target state="translated">Ein aus einem Element bestehendes deconstruct-Muster erfordert zur Vermeidung einer Mehrdeutigkeit eine etwas andere Syntax. Es wird empfohlen, nach der schließenden Klammer ")" einen discard-Kennzeichner "_" hinzuzufügen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
@@ -2607,11 +2617,6 @@
         <target state="translated">Listenmuster dürfen nicht für einen Wert vom Typ „{0}“ verwendet werden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
-        <source>Slice patterns may not be used for a value of type '{0}'.</source>
-        <target state="translated">Segmentmuster dürfen nicht für einen Wert vom Typ „{0}“ verwendet werden.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
         <source>Unterminated raw string literal.</source>
         <target state="translated">Nicht abgeschlossenes Zeichenfolgenliteral.</target>
@@ -2660,6 +2665,26 @@
       <trans-unit id="HDN_DuplicateWithGlobalUsing_Title">
         <source>The using directive appeared previously as global using</source>
         <target state="translated">Die Verwenden-Anweisung wurde zuvor als „Global verwenden“ angezeigt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPattern">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPatternStackGuard">
+        <source>The pattern is too complex to analyze for redundancy.</source>
+        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPatternStackGuard_Title">
+        <source>The pattern is too complex to analyze for redundancy.</source>
+        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPattern_Title">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -3002,6 +3027,21 @@
         <target state="translated">{0} ist kein gültiger C#-Überfüllungsvorgang.</target>
         <note />
       </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingDeclaration">
+        <source>'node' is not an 'await using' declaration</source>
+        <target state="new">'node' is not an 'await using' declaration</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingStatement">
+        <source>'node' is not an 'await using' statement</source>
+        <target state="new">'node' is not an 'await using' statement</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="ParameterRequiresTypeOrIdentifier">
+        <source>ParameterSyntax requires either a type or an identifier.</source>
+        <target state="new">ParameterSyntax requires either a type or an identifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
         <target state="translated">Der '{0}' Accessor der Eigenschaft '{1}' sollte "field" verwenden, da der andere Accessor diesen verwendet.</target>
@@ -3080,16 +3120,6 @@
       <trans-unit id="WRN_ByValArraySizeConstRequired_Title">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
         <target state="translated">Der Attributparameter "SizeConst" muss angegeben werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CallArgMixing">
-        <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">Diese Kombination aus Argumenten für "{0}" führt möglicherweise dazu, dass vom Parameter "{1}" referenzierte Variablen außerhalb ihres Deklarationsbereichs verfügbar gemacht werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CallArgMixing_Title">
-        <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">Diese Kombination aus Argumenten führt möglicherweise dazu, dass vom Parameter referenzierte Variablen außerhalb ihres Deklarationsbereichs verfügbar gemacht werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -3230,26 +3260,6 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Mehrfacher Verweis auf Analysetool</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall">
-        <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">Durch die Verwendung des Ergebnisses von "{0}" in diesem Kontext können vom Parameter "{1}" referenzierte Variablen außerhalb ihres Deklarationsbereichs verfügbar gemacht werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall2">
-        <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">Durch die Verwendung eines Ergebnismembers von "{0}" in diesem Kontext können vom Parameter "{1}" referenzierte Variablen außerhalb ihres Deklarationsbereichs verfügbar gemacht werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall2_Title">
-        <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">Durch die Verwendung des Ergebnismembers in diesem Kontext können vom Parameter referenzierte Variablen außerhalb ihres Deklarationsbereichs verfügbar gemacht werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall_Title">
-        <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">Durch die Verwendung des Ergebnisses in diesem Kontext können vom Parameter referenzierte Variablen außerhalb ihres Deklarationsbereichs verfügbar gemacht werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeStackAlloc">
@@ -3545,6 +3555,16 @@
       <trans-unit id="WRN_RecordNamedDisallowed_Title">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="translated">Typen und Aliase dürfen nicht den Namen "record" aufweisen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern_Title">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
@@ -10382,11 +10402,6 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <target state="translated">Der Typ "{0}" kann nicht mit einem Sammlungsinitialisierer initialisiert werden, weil er nicht "System.Collections.IEnumerable" implementiert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantSetWin32Manifest">
-        <source>Error reading Win32 manifest file '{0}' -- '{1}'</source>
-        <target state="translated">Fehler beim Lesen der Win32-Manifestdatei "{0}": {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CantHaveManifestForModule">
         <source>Ignoring /win32manifest for module because it only applies to assemblies</source>
         <target state="translated">"/win32manifest" gilt nur für Assemblys und wird für das Modul ignoriert.</target>
@@ -11130,7 +11145,7 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
         <target state="translated">Der await-Operator kann in einem Abfrageausdruck nur innerhalb des ersten Sammlungsausdrucks der ursprünglichen from-Klausel oder innerhalb des Sammlungsausdrucks einer join-Klausel verwendet werden.</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">Da auf diesen Aufruf nicht gewartet wird, wird die Ausführung der aktuellen Methode vor Abschluss des Aufrufs fortgesetzt. Ziehen Sie ein Anwenden des "Await"-Operators auf das Ergebnis des Aufrufs in Betracht.</target>
         <note />
@@ -11265,11 +11280,6 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
       <trans-unit id="ERR_NamedArgumentForArray">
         <source>An array access may not have a named argument specifier</source>
         <target state="translated">Ein Arrayzugriff verfügt möglicherweise nicht über einen benannten Argumentspezifizierer.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotYetImplementedInRoslyn">
-        <source>This language feature ('{0}') is not yet implemented.</source>
-        <target state="translated">Diese Sprachfunktion ("{0}") ist noch nicht implementiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueNotAllowed">
@@ -11800,36 +11810,6 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
         <source>'{0}' cannot implement '{1}' because '{2}' is a Windows Runtime event and '{3}' is a regular .NET event.</source>
         <target state="translated">"{0}" kann "{1}" nicht implementieren, da "{2}" ein Windows-Runtime-Ereignis und "{3}" ein reguläres .NET-Ereignis ist.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1">
-        <source>Call System.IDisposable.Dispose() on allocated instance of {0} before all references to it are out of scope.</source>
-        <target state="translated">Rufen Sie System.IDisposable.Dispose() für die zugeordnete Instanz von "{0}" auf, bevor alle Verweise darauf außerhalb des gültigen Bereichs liegen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1_Title">
-        <source>Call System.IDisposable.Dispose() on allocated instance before all references to it are out of scope</source>
-        <target state="translated">Der Aufruf System.IDisposable.Dispose() zu der zugeordneten Instanz vor allen Verweisen dazu befinden sich außerdem des zulässigen Bereichs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2">
-        <source>Allocated instance of {0} is not disposed along all exception paths.  Call System.IDisposable.Dispose() before all references to it are out of scope.</source>
-        <target state="translated">Die zugeordnete Instanz von "{0}" wird nicht entlang allen Ausnahmepfaden verworfen. Rufen Sie System.IDisposable.Dispose() auf, bevor alle Verweise darauf außerhalb des gültigen Bereichs liegen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2_Title">
-        <source>Allocated instance is not disposed along all exception paths</source>
-        <target state="translated">Zugeordnete Instanz wird nicht zusammen mit allen Ausnahmepfaden zugeordnet</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes">
-        <source>Object '{0}' can be disposed more than once.</source>
-        <target state="translated">Das Objekt "{0}" kann mehrere Male verworfen werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes_Title">
-        <source>Object can be disposed more than once</source>
-        <target state="translated">Objekt kann mehrmals zugeordnet werden</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewCoClassOnLink">
@@ -12515,11 +12495,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <target state="translated">Automatisch implementierte Eigenschaften müssen alle Accessoren der überschriebenen Eigenschaft überschreiben.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
-        <source>Structs without explicit constructors cannot contain members with initializers.</source>
-        <target state="translated">Strukturen ohne explizite Konstruktoren können keine Member mit Initialisierern enthalten.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EncodinglessSyntaxTree">
         <source>Cannot emit debug information for a source text without encoding.</source>
         <target state="translated">Debuginformationen für einen Quelltext können nur codiert ausgegeben werden.</target>
@@ -12533,11 +12508,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       <trans-unit id="ERR_SwitchFallOut">
         <source>Control cannot fall out of switch from final case label ('{0}')</source>
         <target state="translated">Die Steuerung kann nicht von der abschließenden case-Bezeichnung ("{0}") aus dem switch-Ausdruck übergeben werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnexpectedBoundGenericName">
-        <source>Type arguments are not allowed in the nameof operator.</source>
-        <target state="translated">Typargumente sind im nameof-Operator unzulässig.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullPropagatingOpInExpressionTree">
@@ -12815,19 +12785,9 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <target state="translated">Ein Member von "{0}" kann nicht als Verweis zurückgegeben werden, weil er mit einem Wert initialisiert wurde, der nicht als Verweis zurückgegeben werden kann.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal">
-        <source>Cannot return '{0}' by reference because it is read-only</source>
-        <target state="translated">"{0}" kann nicht als Verweis zurückgegeben werden, weil ein Schreibschutz besteht.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefReturnRangeVariable">
         <source>Cannot return the range variable '{0}' by reference</source>
         <target state="translated">Die Bereichsvariable "{0}" kann nicht als Verweis zurückgegeben werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocalCause">
-        <source>Cannot return '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">"{0}" kann nicht als Verweis zurückgegeben werden, weil es sich um ein {1}-Element handelt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">
@@ -13050,11 +13010,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <target state="translated">out-Variablendeklaration</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList">
-        <source>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</source>
-        <target state="translated">Ein Verweis auf eine implizit typisierte out-Variable "{0}" ist in der gleichen Argumentliste unzulässig.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable">
         <source>Cannot infer the type of implicitly-typed out variable '{0}'.</source>
         <target state="translated">Der Typ der implizit typisierten out-Variablen "{0}" kann nicht abgeleitet werden.</target>
@@ -13271,8 +13226,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
-        <source>Compiler version: '{0}'. Language version: {1}.</source>
-        <target state="translated">Compilerversion: "{0}". Sprachversion: {1}.</target>
+        <source>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</source>
+        <target state="new">Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">

@@ -9610,6 +9610,257 @@ class Program
             CompileAndVerify(comp, expectedOutput: "operator2exception").VerifyDiagnostics();
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78602")]
+        public void UserDefinedShortCircuitingOperators_TrueFalseIsOverloaded_01()
+        {
+            var src = $$$"""
+public class Program
+{
+    static void Main()
+    {
+        var x1 = new S1();
+        var y1 = new S1();
+
+        _ = x1 && y1;
+        _ = x1 || y1;
+
+        var x2 = new S2();
+        var y2 = new S2();
+
+        _ = x2 && y2;
+        _ = x2 || y2;
+    }
+}
+
+struct S1 // nullable operators come first
+{
+    public static S1 operator &(S1 x, S1 y) => x;
+    public static S1 operator |(S1 x, S1 y) => x;
+
+    public static bool operator true(S1? x) => throw null;
+    public static bool operator false(S1? x) => throw null;
+
+    public static bool operator true(S1 x)
+    {
+        System.Console.Write(3);
+        return false;
+    }
+    public static bool operator false(S1 x)
+    {
+        System.Console.Write(4);
+        return false;
+    }
+}
+
+struct S2 // non-nullable operators come first
+{
+    public static S2 operator &(S2 x, S2 y) => x;
+    public static S2 operator |(S2 x, S2 y) => x;
+    public static bool operator true(S2 x)
+    {
+        System.Console.Write(3);
+        return false;
+    }
+    public static bool operator false(S2 x)
+    {
+        System.Console.Write(4);
+        return false;
+    }
+
+    public static bool operator true(S2? x) => throw null;
+    public static bool operator false(S2? x) => throw null;
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "4343").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78602")]
+        public void UserDefinedShortCircuitingOperators_TrueFalseIsOverloaded_02()
+        {
+            var src = $$$"""
+public class Program
+{
+    static void Main()
+    {
+        var x1 = new S1();
+        var y1 = new S1();
+
+        _ = x1 && y1;
+        _ = x1 || y1;
+
+        var x2 = new S2();
+        var y2 = new S2();
+
+        _ = x2 && y2;
+        _ = x2 || y2;
+    }
+}
+
+struct S1 {}
+struct S2 {}
+
+static class Extensions
+{
+    extension(S1?) // nullable operators come first
+    {
+        public static bool operator true(S1? x) => throw null;
+        public static bool operator false(S1? x) => throw null;
+    }
+
+    extension(S1)
+    {
+        public static S1 operator &(S1 x, S1 y) => x;
+        public static S1 operator |(S1 x, S1 y) => x;
+        public static bool operator true(S1 x)
+        {
+            System.Console.Write(3);
+            return false;
+        }
+        public static bool operator false(S1 x)
+        {
+            System.Console.Write(4);
+            return false;
+        }
+    }
+
+    extension(S2) // non-nullable operators come first
+    {
+        public static S2 operator &(S2 x, S2 y) => x;
+        public static S2 operator |(S2 x, S2 y) => x;
+        public static bool operator true(S2 x)
+        {
+            System.Console.Write(3);
+            return false;
+        }
+        public static bool operator false(S2 x)
+        {
+            System.Console.Write(4);
+            return false;
+        }
+    }
+
+    extension(S2?)
+    {
+        public static bool operator true(S2? x) => throw null;
+        public static bool operator false(S2? x) => throw null;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "4343").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78617")]
+        public void UserDefinedShortCircuitingOperators_TrueFalseInBaseInterface_01()
+        {
+            var src = $$$"""
+public class Program
+{
+    static void Main()
+    {
+        C2 x2 = null;
+        C2 y2 = null;
+
+        _ = x2 && y2;
+        _ = x2 || y2;
+    }
+}
+
+interface C1
+{
+    public static bool operator true(C1 x)
+    {
+        System.Console.Write("1");
+        return false;
+    }
+    public static bool operator false(C1 x)
+    {
+        System.Console.Write("2");
+        return false;
+    }
+}
+
+interface C2 : C1
+{
+    public static C2 operator &(C2 x, C2 y)
+    {
+        System.Console.Write("3");
+        return x;
+    }
+    public static C2 operator |(C2 x, C2 y)
+    {
+        System.Console.Write("4");
+        return x;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "2314" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78617")]
+        public void UserDefinedShortCircuitingOperators_TrueFalseInBaseInterface_02()
+        {
+            var src = $$$"""
+public class Program : C2
+{
+    static void Main()
+    {
+        C2 x2 = new Program();
+        C2 y2 = new Program();
+
+        _ = x2 && y2;
+        _ = x2 || y2;
+    }
+}
+
+interface C1;
+interface C2 : C1;
+
+static class Extensions
+{
+    extension(C1)
+    {
+        public static bool operator true(C1 x)
+        {
+            System.Console.Write("1");
+            return false;
+        }
+        public static bool operator false(C1 x)
+        {
+            System.Console.Write("2");
+            return false;
+        }
+    }
+
+    extension(C2)
+    {
+        public static C2 operator &(C2 x, C2 y)
+        {
+            System.Console.Write("3");
+            return x;
+        }
+        public static C2 operator |(C2 x, C2 y)
+        {
+            System.Console.Write("4");
+            return x;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "2314").VerifyDiagnostics();
+        }
+
         private sealed class EmptyRewriter : BoundTreeRewriter
         {
             protected override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
@@ -12211,6 +12462,103 @@ public readonly ref struct S1
                 // (y > x).ToString();
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "y > x").WithArguments(">", "int?", "S1").WithLocation(4, 2)
             );
+        }
+
+        [Fact]
+        public void BadOperator_01()
+        {
+            // op_Addition is instance method from metadata
+            var ilSrc = """
+.class public auto ansi beforefieldinit C
+    extends System.Object
+{
+    .method public hidebysig specialname instance class C op_Addition ( class C c1, class C c2 ) cil managed 
+    {
+        ldarg.0
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void System.Object::.ctor()
+        nop
+        ret
+    }
+}
+""";
+            var src = """
+_ = new C() + new C();
+""";
+
+            var comp = CreateCompilationWithIL(src, ilSrc);
+            comp.VerifyEmitDiagnostics(
+                // (1,5): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'C'
+                // _ = new C() + new C();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new C() + new C()").WithArguments("+", "C", "C").WithLocation(1, 5));
+        }
+
+        [Fact]
+        public void BadOperator_02()
+        {
+            // op_UnaryPlus is instance method from metadata
+            var ilSrc = """
+.class public auto ansi beforefieldinit C
+    extends System.Object
+{
+    .method public hidebysig specialname instance class C op_UnaryPlus ( class C c1 ) cil managed 
+    {
+        ldarg.0
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void System.Object::.ctor()
+        nop
+        ret
+    }
+}
+""";
+            var src = """
+C c = new C();
+_ = +c;
+""";
+
+            var comp = CreateCompilationWithIL(src, ilSrc);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): error CS0023: Operator '+' cannot be applied to operand of type 'C'
+                // _ = +c;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+c").WithArguments("+", "C").WithLocation(2, 5));
+        }
+
+        [Fact]
+        public void BadOperator_03()
+        {
+            // instance operator from compilation reference
+            var source1 = @"
+public class C1
+{
+    public C1 operator +(C1 c1, C1 c2) => throw null;
+}
+";
+            var source2 = @"
+var x = new C1();
+_ = x + x;
+";
+
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (4,24): error CS0558: User-defined operator 'C1.operator +(C1, C1)' must be declared static and public
+                //     public C1 operator +(C1 c1, C1 c2) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "+").WithArguments("C1.operator +(C1, C1)").WithLocation(4, 24));
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()]);
+            comp2.VerifyDiagnostics(
+                // (3,5): error CS0019: Operator '+' cannot be applied to operands of type 'C1' and 'C1'
+                // _ = x + x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + x").WithArguments("+", "C1", "C1").WithLocation(3, 5));
         }
     }
 }

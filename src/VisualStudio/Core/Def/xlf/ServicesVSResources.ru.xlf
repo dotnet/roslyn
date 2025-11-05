@@ -347,11 +347,6 @@
         <target state="translated">_Изменить</target>
         <note />
       </trans-unit>
-      <trans-unit id="Editor_Color_Scheme">
-        <source>Editor Color Scheme</source>
-        <target state="translated">Цветовая схема редактора</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
         <target state="translated">Справка по редактору</target>
@@ -485,6 +480,16 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Создать файл EDITORCONFIG на основе параметров</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_only_summary_tag">
+        <source>Generate only &lt;summary&gt; tag</source>
+        <target state="new">Generate only &lt;summary&gt; tag</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_summary_on_single_line">
+        <source>Generate &lt;summary&gt; on single line</source>
+        <target state="new">Generate &lt;summary&gt; on single line</target>
         <note />
       </trans-unit>
       <trans-unit id="Generator_running">
@@ -1292,6 +1297,11 @@
         <target state="translated">В ходе поиска результаты не обнаружены: нет открытых проектов C# или Visual Basic.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Search_members">
+        <source>Search members</source>
+        <target state="new">Search members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
         <source>Select an appropriate symbol to start value tracking</source>
         <target state="translated">Выберите соответствующий символ, чтобы начать отслеживание значений</target>
@@ -1675,16 +1685,6 @@
       <trans-unit id="Value_to_inject_at_call_sites">
         <source>Value to inject at call sites</source>
         <target state="translated">Значение, которое необходимо вставить во все точки вызова</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Studio_2017">
-        <source>Visual Studio 2017</source>
-        <target state="translated">Visual Studio 2017</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Studio_2019">
-        <source>Visual Studio 2019</source>
-        <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_Settings">

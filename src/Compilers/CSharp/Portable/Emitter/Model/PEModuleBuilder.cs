@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
         private SynthesizedPrivateImplementationDetailsType _lazyPrivateImplementationDetailsClass;
+        private readonly ConcurrentDictionary<int, NamedTypeSymbol> _inlineArrayTypes = new ConcurrentDictionary<int, NamedTypeSymbol>();
+        private readonly NamedTypeSymbol[] _readOnlyListTypes = new NamedTypeSymbol[(int)SynthesizedReadOnlyListKind.List + 1];
 
         private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private EmbeddableAttributes GetNeedsGeneratedAttributesInternal()
         {
-            return (EmbeddableAttributes)_needsGeneratedAttributes | Compilation.GetNeedsGeneratedAttributes();
+            return (EmbeddableAttributes)_needsGeneratedAttributes | Compilation.GetNeedsGeneratedAttributes(freezeState: this is not PEDeltaAssemblyBuilder);
         }
 
         private void SetNeedsGeneratedAttributes(EmbeddableAttributes attributes)
@@ -384,8 +386,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                 switch (member.Kind)
                                 {
                                     case SymbolKind.NamedType:
-                                        if (!((NamedTypeSymbol)member).IsExtension) // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Figure out what to do about extensions, if anything
+                                        if (!((NamedTypeSymbol)member).IsExtension)
                                         {
+                                            // Since this method is used only for WinMD native PDB generation, and 
+                                            // since in metadata extension blocks have different representation
+                                            // and none of their members have user code in them, skip the blocks.
                                             namespacesAndTypesToProcess.Push((NamespaceOrTypeSymbol)member);
                                         }
                                         break;
@@ -2089,27 +2094,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                                       diagnostics);
         }
 
-        internal NamedTypeSymbol EnsureInlineArrayTypeExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, int arrayLength, DiagnosticBag diagnostics)
+        internal NamedTypeSymbol EnsureInlineArrayTypeExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, int arrayLength, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(Compilation.Assembly.RuntimeSupportsInlineArrayTypes);
             Debug.Assert(arrayLength > 0);
+            Debug.Assert(diagnostics.DiagnosticBag is not null);
 
-            string typeName = GeneratedNames.MakeSynthesizedInlineArrayName(arrayLength, CurrentGenerationOrdinal);
-            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics).PrivateImplementationDetails;
-            var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
-
-            if (typeAdapter is null)
+            if (arrayLength is >= 2 and <= 16)
             {
-                var attributeConstructor = (MethodSymbol)factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor);
-                Debug.Assert(attributeConstructor is { });
-
-                var typeSymbol = new SynthesizedInlineArrayTypeSymbol(SourceModule, typeName, arrayLength, attributeConstructor);
-                privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
-                typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
+                // In .NET 10 and up, the runtime provides InlineArrayN<T> types for N from 2 to 16.
+                var arrayWellKnownType = WellKnownType.System_Runtime_CompilerServices_InlineArray2 + (arrayLength - 2);
+                Debug.Assert(arrayWellKnownType is >= WellKnownType.System_Runtime_CompilerServices_InlineArray2 and <= WellKnownType.System_Runtime_CompilerServices_InlineArray16);
+                if (Binder.TryGetOptionalWellKnownType(Compilation, arrayWellKnownType, diagnostics, syntaxNode.Location, out var existingType))
+                {
+                    return existingType;
+                }
             }
 
-            Debug.Assert(typeAdapter.Name == typeName);
-            return (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
+            return _inlineArrayTypes.GetOrAdd(arrayLength, static (arrayLength, arg) =>
+                {
+                    var attributeConstructor = (MethodSymbol)arg.factory.SpecialMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor);
+                    Debug.Assert(attributeConstructor is { });
+
+                    string typeName = GeneratedNames.MakeSynthesizedInlineArrayName(arrayLength, arg.@this.CurrentGenerationOrdinal);
+                    var typeSymbol = new SynthesizedInlineArrayTypeSymbol(arg.@this.SourceModule, typeName, arrayLength, attributeConstructor);
+                    return typeSymbol;
+                },
+                (@this: this, factory));
         }
 
         internal NamedTypeSymbol EnsureReadOnlyListTypeExists(SyntaxNode syntaxNode, SynthesizedReadOnlyListKind kind, DiagnosticBag diagnostics)
@@ -2117,21 +2128,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(syntaxNode is { });
             Debug.Assert(diagnostics is { });
 
-            string typeName = GeneratedNames.MakeSynthesizedReadOnlyListName(kind, CurrentGenerationOrdinal);
-            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics).PrivateImplementationDetails;
-            var typeAdapter = privateImplClass.GetSynthesizedType(typeName);
+            ref NamedTypeSymbol readOnlyListType = ref _readOnlyListTypes[(int)kind];
             NamedTypeSymbol typeSymbol;
 
-            if (typeAdapter is null)
+            if (readOnlyListType is null)
             {
+                string typeName = GeneratedNames.MakeSynthesizedReadOnlyListName(kind, CurrentGenerationOrdinal);
                 typeSymbol = SynthesizedReadOnlyListTypeSymbol.Create(SourceModule, typeName, kind);
-                privateImplClass.TryAddSynthesizedType(typeSymbol.GetCciAdapter());
-                typeAdapter = privateImplClass.GetSynthesizedType(typeName)!;
+                Interlocked.CompareExchange(ref readOnlyListType, typeSymbol, null);
             }
 
-            Debug.Assert(typeAdapter.Name == typeName);
-            typeSymbol = (NamedTypeSymbol)typeAdapter.GetInternalSymbol()!;
-
+            typeSymbol = readOnlyListType;
             var info = typeSymbol.GetUseSiteInfo().DiagnosticInfo;
             if (info is { })
             {
@@ -2225,6 +2232,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                    .Select(type => type.GetCciAdapter())
 #endif
                    ;
+        }
+
+        public override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+        {
+            ImmutableArray<NamedTypeSymbol> prepend = [];
+
+            if (_inlineArrayTypes.Count != 0 || _readOnlyListTypes.Any(t => t is not null))
+            {
+                ArrayBuilder<NamedTypeSymbol> builder = ArrayBuilder<NamedTypeSymbol>.GetInstance(_inlineArrayTypes.Count + _readOnlyListTypes.Length);
+                builder.AddRange(_inlineArrayTypes.Values);
+                foreach (var type in _readOnlyListTypes)
+                {
+                    if (type is not null)
+                    {
+                        builder.Add(type);
+                    }
+                }
+
+                builder.Sort(static (a, b) => StringComparer.Ordinal.Compare(a.MetadataName, b.MetadataName));
+
+                prepend = builder.ToImmutableAndFree();
+            }
+
+            return prepend.Concat(base.GetAdditionalTopLevelTypes());
         }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetEmbeddedTypeDefinitions(EmitContext context)

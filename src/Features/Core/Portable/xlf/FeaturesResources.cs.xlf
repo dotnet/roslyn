@@ -2575,11 +2575,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Změna názvu zachycené proměnné z {0} na {1} vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Přejmenování členů anonymního typu se zatím nepodporuje.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Místo {0} použijte {1}</target>
@@ -4150,8 +4145,8 @@ Chcete pokračovat?</target>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="translated">Změnit signaturu...</target>
-        <note />
+        <target state="needs-review-translation">Změnit signaturu...</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
         <source>Generate new type...</source>

@@ -106,7 +106,10 @@ internal sealed class ClassificationTypeFormatDefinitions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ControlKeywordFormatDefinition()
-            => this.DisplayName = EditorFeaturesResources.Keyword_Control;
+        {
+            this.DisplayName = EditorFeaturesResources.Keyword_Control;
+            this.ForegroundColor = Color.FromRgb(0x8F, 0x08, 0xC4);
+        }
     }
     #endregion
     #region Operator - Overloaded
@@ -123,7 +126,10 @@ internal sealed class ClassificationTypeFormatDefinitions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OperatorOverloadedFormatDefinition()
-            => this.DisplayName = EditorFeaturesResources.Operator_Overloaded;
+        {
+            this.DisplayName = EditorFeaturesResources.Operator_Overloaded;
+            this.ForegroundColor = Color.FromRgb(0x74, 0x53, 0x1F);
+        }
     }
     #endregion
 
@@ -446,7 +452,10 @@ internal sealed class ClassificationTypeFormatDefinitions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UserMembersLocalNameFormatDefinition()
-            => this.DisplayName = EditorFeaturesResources.User_Members_Locals;
+        {
+            this.DisplayName = EditorFeaturesResources.User_Members_Locals;
+            this.ForegroundColor = Color.FromRgb(0x1F, 0x37, 0x7F);
+        }
     }
     #endregion
     #region User Members - Parameters
@@ -463,7 +472,10 @@ internal sealed class ClassificationTypeFormatDefinitions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UserMembersParameterNameFormatDefinition()
-            => this.DisplayName = EditorFeaturesResources.User_Members_Parameters;
+        {
+            this.DisplayName = EditorFeaturesResources.User_Members_Parameters;
+            this.ForegroundColor = Color.FromRgb(0x1F, 0x37, 0x7F);
+        }
     }
     #endregion
     #region User Members - Methods
@@ -480,7 +492,10 @@ internal sealed class ClassificationTypeFormatDefinitions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UserMembersMethodNameFormatDefinition()
-            => this.DisplayName = EditorFeaturesResources.User_Members_Methods;
+        {
+            this.DisplayName = EditorFeaturesResources.User_Members_Methods;
+            this.ForegroundColor = Color.FromRgb(0x74, 0x53, 0x1F);
+        }
     }
     #endregion
     #region User Members - Extension Methods
@@ -497,7 +512,10 @@ internal sealed class ClassificationTypeFormatDefinitions
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UserMembersExtensionMethodNameFormatDefinition()
-            => this.DisplayName = EditorFeaturesResources.User_Members_Extension_Methods;
+        {
+            this.DisplayName = EditorFeaturesResources.User_Members_Extension_Methods;
+            this.ForegroundColor = Color.FromRgb(0x74, 0x53, 0x1F);
+        }
     }
     #endregion
     #region User Members - Properties

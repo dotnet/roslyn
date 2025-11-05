@@ -67,6 +67,11 @@
         <target state="translated">Operátor {0} nejde použít pro default a operand typu {1}, protože se jedná o parametr typu, který není znám jako odkazový typ.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigExtension">
+        <source>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
         <target state="translated">Identifikátor {0} je v tomto kontextu nejednoznačný mezi typem {1} a parametrem {2}.</target>
@@ -355,6 +360,11 @@
       <trans-unit id="ERR_BadUsingStaticType">
         <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
         <target state="translated">Typ {0} není platný pro using static. Lze použít pouze třídu, strukturu, rozhraní, výčet, delegáta nebo obor názvů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadVisBaseType">
+        <source>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </source>
+        <target state="new">Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
@@ -712,6 +722,16 @@
         <target state="translated">Explicitní implementace uživatelem definovaného operátoru {0} musí být deklarovaná jako statická.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberReturnTypeMismatch">
+        <source>'{0}': return type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': return type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberTypeMismatch">
+        <source>'{0}': type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">Explicitní použití System.Runtime.CompilerServices.NullableAttribute není povolené.</target>
@@ -812,11 +832,6 @@
         <target state="translated">Strom výrazů nesmí obsahovat operátor řazené kolekce členů == nebo !=.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
-        <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="translated">Strom výrazů nesmí obsahovat převod řetězce UTF-8 nebo literál.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">Strom výrazů nesmí obsahovat výraz with.</target>
@@ -893,11 +908,6 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
-        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
-        <target state="translated">Funkce {0} není v C# 8.0 dostupná. Použijte prosím jazykovou verzi {1} nebo větší.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">Funkce {0} není v C# 8.0 dostupná. Použijte prosím jazykovou verzi {1} nebo větší.</target>
         <note />
@@ -1080,6 +1090,11 @@
       <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
         <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedVariableUsedInForbiddenZone">
+        <source>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</source>
+        <target state="new">Reference to an implicitly-typed variable '{0}' is not permitted in this location.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -2258,8 +2273,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
-        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">Typ Microsoft.CodeAnalysis.EmbeddedAttribute musí být neobecný, interní, zapečetěný, nestatický, musí mít konstruktor bez parametrů, dědit z System.Attribute a být možné ho použít pro libovolný typ.</target>
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="needs-review-translation">Typ Microsoft.CodeAnalysis.EmbeddedAttribute musí být neobecný, interní, zapečetěný, nestatický, musí mít konstruktor bez parametrů, dědit z System.Attribute a být možné ho použít pro libovolný typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2370,11 +2385,6 @@
       <trans-unit id="ERR_SimpleProgramNotAnExecutable">
         <source>Program using top-level statements must be an executable.</source>
         <target state="translated">Program, který používá příkazy nejvyšší úrovně, musí být spustitelný.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
-        <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
-        <target state="translated">Vzor deconstruct s jedním elementem vyžaduje určitou další syntaxi pro zajištění jednoznačnosti. Doporučuje se přidat označení discard „_“ za koncovou závorku „)“.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
@@ -2607,11 +2617,6 @@
         <target state="translated">Vzory seznamů se nedají používat pro hodnotu typu {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
-        <source>Slice patterns may not be used for a value of type '{0}'.</source>
-        <target state="translated">Vzory řezů se nedají používat pro hodnotu typu {0}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
         <source>Unterminated raw string literal.</source>
         <target state="translated">Neukončený literál nezpracovaného řetězce.</target>
@@ -2660,6 +2665,26 @@
       <trans-unit id="HDN_DuplicateWithGlobalUsing_Title">
         <source>The using directive appeared previously as global using</source>
         <target state="translated">Direktiva using se dříve zobrazovala jako globální direktiva using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPattern">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPatternStackGuard">
+        <source>The pattern is too complex to analyze for redundancy.</source>
+        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPatternStackGuard_Title">
+        <source>The pattern is too complex to analyze for redundancy.</source>
+        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPattern_Title">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -3002,6 +3027,21 @@
         <target state="translated">{0} není platná operace šíření v jazyce C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingDeclaration">
+        <source>'node' is not an 'await using' declaration</source>
+        <target state="new">'node' is not an 'await using' declaration</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingStatement">
+        <source>'node' is not an 'await using' statement</source>
+        <target state="new">'node' is not an 'await using' statement</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="ParameterRequiresTypeOrIdentifier">
+        <source>ParameterSyntax requires either a type or an identifier.</source>
+        <target state="new">ParameterSyntax requires either a type or an identifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
         <target state="translated">Přístupový objekt '{0}' vlastnosti '{1}' by měl používat vlastnost field, protože ho používá jiný přístupový objekt.</target>
@@ -3080,16 +3120,6 @@
       <trans-unit id="WRN_ByValArraySizeConstRequired_Title">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
         <target state="translated">Je nutné zadat parametr atributu SizeConst.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CallArgMixing">
-        <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">Tato kombinace argumentů parametru {0} může vystavit proměnné, na které odkazuje parametr {1}, mimo obor jejich deklarace</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CallArgMixing_Title">
-        <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">Tato kombinace argumentů parametru může vystavit proměnné, na které odkazuje parametr, mimo obor jejich deklarace</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -3230,26 +3260,6 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Odkaz analyzátoru byl zadán vícekrát</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall">
-        <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">Použití výsledku {0} v tomto kontextu může vystavit proměnné, na které odkazuje parametr {1}, mimo rozsah jejich oboru.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall2">
-        <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">Použití člena výsledku {0} v tomto kontextu může vystavit proměnné, na které odkazuje parametr {1}, mimo rozsah jejich oboru.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall2_Title">
-        <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">Použití člena výsledku v tomto kontextu může vystavit proměnné, na které odkazuje parametr, mimo rozsah jejich oboru</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall_Title">
-        <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">Použití výsledku v tomto kontextu může vystavit proměnné, na které odkazuje parametr, mimo rozsah jejich oboru</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeStackAlloc">
@@ -3545,6 +3555,16 @@
       <trans-unit id="WRN_RecordNamedDisallowed_Title">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="translated">Typy a aliasy by neměly mít název record</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern_Title">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
@@ -10382,11 +10402,6 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <target state="translated">Nejde inicializovat typ {0} pomocí inicializátoru kolekce, protože neimplementuje System.Collections.IEnumerable.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantSetWin32Manifest">
-        <source>Error reading Win32 manifest file '{0}' -- '{1}'</source>
-        <target state="translated">Chyba při čtení souboru manifestu Win32 {0} -- {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CantHaveManifestForModule">
         <source>Ignoring /win32manifest for module because it only applies to assemblies</source>
         <target state="translated">Přepínač /win32manifest pro modul se bude ignorovat, protože se vztahuje jenom k sestavením.</target>
@@ -11130,7 +11145,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <target state="translated">Operátor await jde použít jenom ve výrazu dotazu v rámci první kolekce výrazu počáteční klauzule from nebo v rámci výrazu kolekce klauzule join.</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">Protože se toto volání neočekává, vykonávání aktuální metody pokračuje před dokončením volání. Zvažte použití operátoru await na výsledek volání.</target>
         <note />
@@ -11265,11 +11280,6 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
       <trans-unit id="ERR_NamedArgumentForArray">
         <source>An array access may not have a named argument specifier</source>
         <target state="translated">Přístup k poli nemůže mít specifikátor pojmenovaného argumentu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotYetImplementedInRoslyn">
-        <source>This language feature ('{0}') is not yet implemented.</source>
-        <target state="translated">Tato jazyková funkce ({0}) zatím není implementovaná.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueNotAllowed">
@@ -11800,36 +11810,6 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
         <source>'{0}' cannot implement '{1}' because '{2}' is a Windows Runtime event and '{3}' is a regular .NET event.</source>
         <target state="translated">{0} nemůže implementovat {1}, protože {2} je událost Windows Runtimu a {3} je normální událost .NET.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1">
-        <source>Call System.IDisposable.Dispose() on allocated instance of {0} before all references to it are out of scope.</source>
-        <target state="translated">Vyvolejte System.IDisposable.Dispose() na přidělenou instanci {0} dřív, než budou všechny odkazy na ni mimo obor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1_Title">
-        <source>Call System.IDisposable.Dispose() on allocated instance before all references to it are out of scope</source>
-        <target state="translated">Vyvolejte System.IDisposable.Dispose() u přidělené instance, než budou všechny odkazy na ni mimo rozsah.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2">
-        <source>Allocated instance of {0} is not disposed along all exception paths.  Call System.IDisposable.Dispose() before all references to it are out of scope.</source>
-        <target state="translated">Přidělená instance {0} se neuvolní v průběhu všech cest výjimky. Vyvolejte System.IDisposable.Dispose() dřív, než budou všechny odkazy na ni mimo obor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2_Title">
-        <source>Allocated instance is not disposed along all exception paths</source>
-        <target state="translated">Přidělená instance není uvolněná v průběhu všech cest výjimek.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes">
-        <source>Object '{0}' can be disposed more than once.</source>
-        <target state="translated">Objekt {0} se dá uvolnit víc než jednou.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes_Title">
-        <source>Object can be disposed more than once</source>
-        <target state="translated">Objekt se dá uvolnit víc než jednou.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewCoClassOnLink">
@@ -12515,11 +12495,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">Automaticky implementované vlastnosti musí přepsat všechny přistupující objekty přepsané vlastnosti.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
-        <source>Structs without explicit constructors cannot contain members with initializers.</source>
-        <target state="translated">Struktury bez explicitních konstruktorů nemůžou obsahovat členy s inicializátory.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EncodinglessSyntaxTree">
         <source>Cannot emit debug information for a source text without encoding.</source>
         <target state="translated">Nejde vygenerovat ladicí informace pro zdrojový text bez kódování.</target>
@@ -12533,11 +12508,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_SwitchFallOut">
         <source>Control cannot fall out of switch from final case label ('{0}')</source>
         <target state="translated">Řízení nemůže opustit příkaz switch z posledního příkazu case ('{0}')</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnexpectedBoundGenericName">
-        <source>Type arguments are not allowed in the nameof operator.</source>
-        <target state="translated">Argumenty typů nejsou v operátoru nameof povoleny.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullPropagatingOpInExpressionTree">
@@ -12815,19 +12785,9 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">Člen pro {0} nejde vrátit pomocí odkazu, protože bylo inicializované na hodnotu, která nemůže být vrácená pomocí odkazu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal">
-        <source>Cannot return '{0}' by reference because it is read-only</source>
-        <target state="translated">{0} nejde vrátit pomocí odkazu, protože je to hodnota jen pro čtení.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefReturnRangeVariable">
         <source>Cannot return the range variable '{0}' by reference</source>
         <target state="translated">Proměnnou rozsahu {0} nejde vrátit pomocí odkazu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocalCause">
-        <source>Cannot return '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">{0} nejde vrátit pomocí odkazu, protože je to {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">
@@ -13050,11 +13010,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">deklarace externí proměnné</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList">
-        <source>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</source>
-        <target state="translated">Odkaz na implicitně typovanou externí proměnnou {0} není povolený ve stejném seznamu argumentů.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable">
         <source>Cannot infer the type of implicitly-typed out variable '{0}'.</source>
         <target state="translated">Nejde odvodit typ implicitně typované externí proměnné {0}.</target>
@@ -13271,8 +13226,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
-        <source>Compiler version: '{0}'. Language version: {1}.</source>
-        <target state="translated">Verze kompilátoru: {0}. Jazyková verze: {1}</target>
+        <source>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</source>
+        <target state="new">Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">

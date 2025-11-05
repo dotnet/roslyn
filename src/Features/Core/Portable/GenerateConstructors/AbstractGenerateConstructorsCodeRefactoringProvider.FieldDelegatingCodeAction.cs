@@ -39,7 +39,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
             // parameters into fields.
             var parameterToExistingFieldMap = ImmutableDictionary.CreateBuilder<string, ISymbol>();
             for (var i = 0; i < _state.Parameters.Length; i++)
-                parameterToExistingFieldMap[_state.Parameters[i].Name] = _state.SelectedMembers[i];
+                parameterToExistingFieldMap[_state.Parameters[i].parameter.Name] = _state.Parameters[i].fieldOrProperty;
 
             var factory = _document.GetRequiredLanguageService<SyntaxGenerator>();
 
@@ -52,7 +52,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
                 semanticModel,
                 _state.ContainingType.Name,
                 _state.ContainingType,
-                _state.Parameters,
+                _state.Parameters.SelectAsArray(t => t.parameter),
                 _state.Accessibility,
                 parameterToExistingFieldMap.ToImmutable(),
                 parameterToNewMemberMap: null,
@@ -86,7 +86,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
         {
             get
             {
-                var parameters = _state.Parameters.Select(p => _service.ToDisplayString(p, SimpleFormat));
+                var parameters = _state.Parameters.Select(p => _service.ToDisplayString(p.parameter, SimpleFormat));
                 var parameterString = string.Join(", ", parameters);
 
                 if (_state.DelegatedConstructor == null)

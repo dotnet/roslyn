@@ -550,4 +550,76 @@ public sealed class WhereKeywordRecommenderTests : KeywordRecommenderTests
                         where T1 : C
                         $$
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80636")]
+    public Task TestAfterExtensionWithTypeParameterAndCompleteParameterList()
+        => VerifyKeywordAsync(
+            """
+            public static class C
+            {
+                extension<T>(T value) $$
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80636")]
+    public Task TestAfterExtensionWithMultipleTypeParametersAndCompleteParameterList()
+        => VerifyKeywordAsync(
+            """
+            public static class C
+            {
+                extension<T1, T2>(T1 value1, T2 value2) $$
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80636")]
+    public Task TestAfterExtensionWithTypeParameterConstraint()
+        => VerifyKeywordAsync(
+            """
+            public static class C
+            {
+                extension<T>(T value) where T : class $$
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80636")]
+    public Task TestNotAfterExtensionWithTypeParameterWithoutParameterList()
+        => VerifyAbsenceAsync(
+            """
+            public static class C
+            {
+                extension<T> $$
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80636")]
+    public Task TestNotAfterExtensionWithoutTypeParameter()
+        => VerifyAbsenceAsync(
+            """
+            public static class C
+            {
+                extension $$
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80636")]
+    public Task TestNotAfterExtensionWithoutTypeParameterAndParameterList()
+        => VerifyAbsenceAsync(
+            """
+            public static class C
+            {
+                extension() $$
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80636")]
+    public Task TestNotAfterExtensionWithIncompleteParameterList()
+        => VerifyAbsenceAsync(
+            """
+            public static class C
+            {
+                extension( $$
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80636")]
+    public Task TestNotAfterExtensionWithTypeParameterAndIncompleteParameterList()
+        => VerifyAbsenceAsync(
+            """
+            public static class C
+            {
+                extension<T>( $$
+            """);
 }

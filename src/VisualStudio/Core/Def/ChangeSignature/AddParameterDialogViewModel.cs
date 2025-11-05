@@ -53,7 +53,7 @@ internal sealed class AddParameterDialogViewModel : AbstractNotifyPropertyChange
 
     public string? TypeName => TypeSymbol?.ToDisplayString(s_symbolDisplayFormat);
 
-    public bool TypeBinds => !TypeSymbol!.IsErrorType();
+    public bool TypeBinds => !TypeSymbol.IsErrorType();
 
     public bool IsRequired
     {

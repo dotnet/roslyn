@@ -10812,6 +10812,27 @@ using System.Threading.Tasks;
 
 class Test1
 {
+    static void Test<[Preserve1][Preserve2]T>()
+    {
+        async IAsyncEnumerable<T> local(T x)
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            string source3 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
     static void Test()
     {
         async IAsyncEnumerable<T> local<[Preserve1][Preserve2]T>(T x)
@@ -10822,7 +10843,7 @@ class Test1
     }
 }
 ";
-            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp1 = CreateCompilation([source1, source3, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             static void validate(ModuleSymbol m)
@@ -10893,6 +10914,435 @@ class Test1
                 AssertEx.SequenceEqual(
                     ["Preserve1Attribute"],
                     m.GlobalNamespace.GetMember("Test1.<<Test>g__local|0_0>d.<>3__x").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_05()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+class Test1
+{
+    static void Test([Preserve1][Preserve2][Preserve3]int x)
+    {
+        async IAsyncEnumerable<int> local()
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<>c__DisplayClass0_0.x").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_06()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+static class Test1
+{
+    extension<[Preserve1][Preserve2]T>(T x)
+    {
+        async IAsyncEnumerable<T> M2()
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            string source3 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+static class Test1
+{
+    extension(int i)
+    {
+        async IAsyncEnumerable<T> M2<[Preserve1][Preserve2]T>(T x)
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            comp1 = CreateCompilation([source1, source3, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<M2>d__1").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_07()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+static class Test1
+{
+    extension([Preserve1][Preserve2][Preserve3]int x)
+    {
+        async IAsyncEnumerable<int> M2()
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            string source3 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+static class Test1
+{
+    extension(int i)
+    {
+        async IAsyncEnumerable<int> M2([Preserve1][Preserve2][Preserve3]int x)
+        {
+            await Task.Yield();
+            yield return x;
+        }
+    }
+}
+";
+            comp1 = CreateCompilation(
+                [source1, source3, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<M2>d__1.x").GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<M2>d__1.<>3__x").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_08()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension<[Preserve1][Preserve2]T>(int i)
+    {
+        static void Test()
+        {
+            async IAsyncEnumerable<T> local(T x)
+            {
+                await Task.Yield();
+                yield return x;
+            }
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            string source3 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension(int i)
+    {
+        static void Test<[Preserve1][Preserve2]T>()
+        {
+            async IAsyncEnumerable<T> local(T x)
+            {
+                await Task.Yield();
+                yield return x;
+            }
+        }
+    }
+}
+";
+            comp1 = CreateCompilation([source1, source3, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            string source4 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension(int i)
+    {
+        static void Test()
+        {
+            async IAsyncEnumerable<T> local<[Preserve1][Preserve2]T>(T x)
+            {
+                await Task.Yield();
+                yield return x;
+            }
+        }
+    }
+}
+";
+            comp1 = CreateCompilation([source1, source4, CompilerLoweringPreserveAttributeDefinition], targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute", "Preserve2Attribute"],
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Test1.<Test>g__local|1_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<<Test>g__local|1_0>d").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_09()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension(int i)
+    {
+        static void Test()
+        {
+            async IAsyncEnumerable<int> local([Preserve1][Preserve2][Preserve3]int x)
+            {
+                await Task.Yield();
+                yield return x;
+            }
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute", "Preserve2Attribute", "Preserve3Attribute"],
+                    m.GlobalNamespace.GetMember<MethodSymbol>("Test1.<Test>g__local|1_0").Parameters.Single().GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<<Test>g__local|1_0>d.x").GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<<Test>g__local|1_0>d.<>3__x").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_10()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension([Preserve1][Preserve2][Preserve3]int x)
+    {
+        void Test()
+        {
+            async IAsyncEnumerable<int> local()
+            {
+                await Task.Yield();
+                yield return x;
+            }
+        }
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            string source3 = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+#pragma warning disable CS8321 // Local function is declared but never used
+
+static class Test1
+{
+    extension(int i)
+    {
+        static void Test([Preserve1][Preserve2][Preserve3]int x)
+        {
+            async IAsyncEnumerable<int> local()
+            {
+                await Task.Yield();
+                yield return x;
+            }
+        }
+    }
+}
+";
+            comp1 = CreateCompilation(
+                [source1, source3, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<>c__DisplayClass1_0.x").GetAttributes().Select(a => a.ToString()));
             }
         }
 

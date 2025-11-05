@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         MethodKind MethodKind { get; }
 
         /// <summary>
-        /// Returns the arity of this method, or the number of type parameters it takes.
+        /// Returns the arity of this method. Arity is the number of type parameters a method declares.
         /// A non-generic method has zero arity.
         /// </summary>
         int Arity { get; }
@@ -197,6 +197,12 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol? ReduceExtensionMethod(ITypeSymbol receiverType);
 
         /// <summary>
+        /// If this is a method of an extension block that can be applied to a receiver of the given type,
+        /// returns the method symbol in the substituted extension for that receiver type. Otherwise, returns null.
+        /// </summary>
+        IMethodSymbol? ReduceExtensionMember(ITypeSymbol receiverType);
+
+        /// <summary>
         /// Returns interface methods explicitly implemented by this method.
         /// </summary>
         /// <remarks>
@@ -305,7 +311,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool IsIterator { get; }
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, add support for constructed symbols
         /// <summary>
         /// For a method/accessor/operator in an extension block, returns the corresponding implementation method if one exists.
         /// Returns null otherwise.
@@ -321,7 +326,10 @@ namespace Microsoft.CodeAnalysis
         /// }
         /// </code>
         /// When given the method symbol for <c>E.extension(int i).M()</c>,
-        /// it will return the corresponding static implementation method <c>E.M(this int i)</c>.
+        /// it returns the corresponding static implementation method <c>E.M(this int i)</c>.
+        ///
+        /// When given a generic extension member definition, it returns an implementation method constructed
+        /// with the extension member's type parameters.
         /// </summary>
         IMethodSymbol? AssociatedExtensionImplementation { get; }
     }

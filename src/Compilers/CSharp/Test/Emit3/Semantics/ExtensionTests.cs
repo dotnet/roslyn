@@ -27,32 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 [CompilerTrait(CompilerFeature.Extensions)]
 public partial class ExtensionTests : CompilingTestBase
 {
-    internal string ExtensionMarkerAttributeIL = """
-
-.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ExtensionMarkerAttribute
-    extends [mscorlib]System.Attribute
-{
-    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
-        01 00 ff 7f 00 00 01 00 54 02 09 49 6e 68 65 72
-        69 74 65 64 00
-    )
-
-    .method public hidebysig specialname rtspecialname 
-        instance void .ctor (
-            string name
-        ) cil managed 
-    {
-        .maxstack 8
-
-        IL_0000: ldarg.0
-        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
-        IL_0006: nop
-        IL_0007: nop
-        IL_0008: ret
-    }
-}
-""";
-
     private static string ExpectedOutput(string output)
     {
         return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
@@ -203,13 +177,13 @@ public static class Extensions
         AssertEx.Equal("Extensions.extension(System.Object)", symbol.ToDisplayString(format));
 
         format = new SymbolDisplayFormat(kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
-        AssertEx.Equal("extension(Object)", symbol.ToDisplayString(format));
+        AssertEx.Equal("Extensions.extension(Object)", symbol.ToDisplayString(format));
 
         format = new SymbolDisplayFormat();
-        AssertEx.Equal("extension(Object)", symbol.ToDisplayString(format));
+        AssertEx.Equal("Extensions.extension(Object)", symbol.ToDisplayString(format));
 
         format = new SymbolDisplayFormat(compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames);
-        AssertEx.Equal("<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.ToDisplayString(format));
+        AssertEx.Equal("Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$C43E2675C7BBF9284AF22FB8A9BF0280", symbol.ToDisplayString(format));
 
         var comp5 = CreateCompilation(src);
         comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
@@ -374,7 +348,7 @@ public static class Extensions
         Assert.Empty(symbol.TypeParameters.Single().ConstraintTypes);
 
         var format = new SymbolDisplayFormat(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints);
-        AssertEx.Equal("extension<T>(T) where T : struct", symbol.ToDisplayString(format));
+        AssertEx.Equal("Extensions.extension<T>(T) where T : struct", symbol.ToDisplayString(format));
     }
 
     [Fact]
@@ -1203,7 +1177,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20de
+                // Method begins at RVA 0x20fa
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -1220,11 +1194,11 @@ public static class Extensions
                 44 43 41 35 42 42 46 43 46 41 43 37 43 32 42 45
                 46 33 43 35 43 39 39 00 00
             )
-            // Method begins at RVA 0x20a5
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20bc
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99'::Inspect
     } // end of class <G>$CD29E70E0DCA5BBFCFAC7C2BEF3C5C99
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
@@ -1239,7 +1213,7 @@ public static class Extensions
         .method public hidebysig specialname rtspecialname 
             instance void .ctor () cil managed 
         {
-            // Method begins at RVA 0x2079
+            // Method begins at RVA 0x2090
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -1249,7 +1223,7 @@ public static class Extensions
         .method assembly hidebysig 
             instance void '<Inspect>b__0' () cil managed 
         {
-            // Method begins at RVA 0x20a8
+            // Method begins at RVA 0x20c4
             // Code size 42 (0x2a)
             .maxstack 2
             .locals init (
@@ -1286,7 +1260,7 @@ public static class Extensions
             class [mscorlib]System.Text.StringBuilder sb
         ) cil managed 
     {
-        // Method begins at RVA 0x2081
+        // Method begins at RVA 0x2098
         // Code size 35 (0x23)
         .maxstack 8
         IL_0000: newobj instance void Extensions/'<>c__DisplayClass1_0'::.ctor()
@@ -1380,7 +1354,7 @@ public static class IntExt
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20ef
+                // Method begins at RVA 0x210b
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -1395,11 +1369,11 @@ public static class IntExt
                 35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
                 39 45 44 34 44 36 39 00 00
             )
-            // Method begins at RVA 0x20bc
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20d4
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::DoSomething
     } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
@@ -1414,7 +1388,7 @@ public static class IntExt
         .method public hidebysig specialname rtspecialname 
             instance void .ctor () cil managed 
         {
-            // Method begins at RVA 0x2073
+            // Method begins at RVA 0x208a
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -1424,7 +1398,7 @@ public static class IntExt
         .method assembly hidebysig 
             instance void '<DoSomething>b__0' () cil managed 
         {
-            // Method begins at RVA 0x20c0
+            // Method begins at RVA 0x20dc
             // Code size 35 (0x23)
             .maxstack 3
             .locals init (
@@ -1450,7 +1424,7 @@ public static class IntExt
     .method public hidebysig static 
         class [mscorlib]System.Action DoSomething () cil managed 
     {
-        // Method begins at RVA 0x207c
+        // Method begins at RVA 0x2094
         // Code size 52 (0x34)
         .maxstack 3
         .locals init (
@@ -1557,7 +1531,7 @@ public static class IntExt
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20ef
+                // Method begins at RVA 0x210b
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -1572,11 +1546,11 @@ public static class IntExt
                 35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
                 39 45 44 34 44 36 39 00 00
             )
-            // Method begins at RVA 0x20ba
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20d2
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::DoSomething
     } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
@@ -1591,7 +1565,7 @@ public static class IntExt
         .method public hidebysig specialname rtspecialname 
             instance void .ctor () cil managed 
         {
-            // Method begins at RVA 0x2073
+            // Method begins at RVA 0x208a
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -1601,7 +1575,7 @@ public static class IntExt
         .method assembly hidebysig 
             instance void '<DoSomething>g__Do|0' () cil managed 
         {
-            // Method begins at RVA 0x20c0
+            // Method begins at RVA 0x20dc
             // Code size 35 (0x23)
             .maxstack 3
             .locals init (
@@ -1627,7 +1601,7 @@ public static class IntExt
     .method public hidebysig static 
         class [mscorlib]System.Action DoSomething () cil managed 
     {
-        // Method begins at RVA 0x207c
+        // Method begins at RVA 0x2094
         // Code size 50 (0x32)
         .maxstack 3
         .locals init (
@@ -1860,7 +1834,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2067
+                // Method begins at RVA 0x207e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -1875,11 +1849,11 @@ public static class Extensions
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x2069
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2080
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
@@ -1891,7 +1865,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
@@ -1923,17 +1897,17 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,14): error CS1109: Extension methods must be defined in a top level static class;  is a nested class
+            // (5,16): error CS0027: Keyword 'this' is not available in the current context
             //         void M(this int i) { }
-            Diagnostic(ErrorCode.ERR_ExtensionMethodsDecl, "M").WithArguments("").WithLocation(5, 14));
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(5, 16));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(method);
-        AssertEx.Equal("void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(this System.Int32 i)", symbol.ToTestDisplayString());
-        Assert.True(symbol.IsExtensionMethod);
+        AssertEx.Equal("void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M(System.Int32 i)", symbol.ToTestDisplayString());
+        Assert.False(symbol.IsExtensionMethod);
     }
 
     [Fact]
@@ -1980,7 +1954,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2067
+                // Method begins at RVA 0x207e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -1995,18 +1969,18 @@ public static class Extensions
                 37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
                 39 42 46 30 32 38 30 00 00
             )
-            // Method begins at RVA 0x2069
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2080
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method private hidebysig static 
         void M () cil managed 
     {
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
@@ -2118,7 +2092,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206b
+                // Method begins at RVA 0x2082
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -2133,11 +2107,11 @@ public static class Extensions
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x206d
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2084
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_Property
         .method private hidebysig specialname 
             instance void set_Property (
@@ -2149,11 +2123,11 @@ public static class Extensions
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x206d
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2084
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::set_Property
         // Properties
         .property instance int32 Property()
@@ -2173,7 +2147,7 @@ public static class Extensions
             object o
         ) cil managed 
     {
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 3 (0x3)
         .maxstack 8
         IL_0000: ldc.i4.s 42
@@ -2185,7 +2159,7 @@ public static class Extensions
             int32 'value'
         ) cil managed 
     {
-        // Method begins at RVA 0x206b
+        // Method begins at RVA 0x2082
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
@@ -2309,7 +2283,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206b
+                // Method begins at RVA 0x2082
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -2324,11 +2298,11 @@ public static class Extensions
                 37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
                 39 42 46 30 32 38 30 00 00
             )
-            // Method begins at RVA 0x206d
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2084
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_Property
         .method private hidebysig specialname static 
             void set_Property (
@@ -2340,11 +2314,11 @@ public static class Extensions
                 37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
                 39 42 46 30 32 38 30 00 00
             )
-            // Method begins at RVA 0x206d
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2084
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::set_Property
         // Properties
         .property int32 Property()
@@ -2362,7 +2336,7 @@ public static class Extensions
     .method private hidebysig static 
         int32 get_Property () cil managed 
     {
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 3 (0x3)
         .maxstack 8
         IL_0000: ldc.i4.s 42
@@ -2373,7 +2347,7 @@ public static class Extensions
             int32 'value'
         ) cil managed 
     {
-        // Method begins at RVA 0x206b
+        // Method begins at RVA 0x2082
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
@@ -2534,7 +2508,7 @@ public static class Extensions
 {
     extension(C)
     {
-        class Nested { }
+        public class Nested { }
     }
 }
 class C { }
@@ -2544,9 +2518,9 @@ class C { }
             // (1,3): error CS0426: The type name 'Nested' does not exist in the type 'C'
             // C.Nested x = null;
             Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C").WithLocation(1, 3),
-            // (7,15): error CS9282: This member is not allowed in an extension block
-            //         class Nested { }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(7, 15));
+            // (7,22): error CS9282: This member is not allowed in an extension block
+            //         public class Nested { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(7, 22));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -3023,9 +2997,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (1,5): error CS0411: The type arguments for method 'Extensions.extension<T>(int).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Extensions.extension<T>(int).M()").WithLocation(1, 5));
     }
 
     [Fact]
@@ -3045,9 +3019,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (1,5): error CS0411: The type arguments for method 'Extensions.extension<T1, T2>(T1).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Extensions.extension<T1, T2>(T1).M()").WithLocation(1, 5));
     }
 
     [Fact]
@@ -3066,9 +3040,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (1,5): error CS0411: The type arguments for method 'Extensions.extension<T1, T2>(T1).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Extensions.extension<T1, T2>(T1).M()").WithLocation(1, 5));
     }
 
     [Fact]
@@ -4835,7 +4809,7 @@ unsafe static class E
     }
 
     [Fact]
-    public void Skeleton()
+    public void Skeleton_01()
     {
         var src = """
 public static class Extensions
@@ -4852,10 +4826,10 @@ public static class Extensions
         var verifier = CompileAndVerify(comp);
         verifier.VerifyIL("Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", """
 {
-  // Code size        2 (0x2)
+  // Code size        6 (0x6)
   .maxstack  1
-  IL_0000:  ldnull
-  IL_0001:  throw
+  IL_0000:  newobj     "System.NotSupportedException..ctor()"
+  IL_0005:  throw
 }
 """);
 
@@ -4868,6 +4842,148 @@ public static class Extensions
   IL_000a:  ret
 }
 """);
+    }
+
+    [Fact]
+    public void Skeleton_02()
+    {
+        var src = """
+public static class E
+{
+    extension(object o)
+    {
+        internal void M() { }
+        internal void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var verifier = CompileAndVerify(comp);
+        // Both skeletons have the same RVA
+        verifier.VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$119AA281C143547563250CAF89B48A76'
+            extends [mscorlib]System.Object
+        {
+            // Methods
+            .method assembly hidebysig specialname static 
+                void '<Extension>$' (
+                    object o
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x207e
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$119AA281C143547563250CAF89B48A76'::'<Extension>$'
+        } // end of class <M>$119AA281C143547563250CAF89B48A76
+        // Methods
+        .method assembly hidebysig 
+            instance void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
+            )
+            // Method begins at RVA 0x2080
+            // Code size 6 (0x6)
+            .maxstack 8
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
+        .method assembly hidebysig 
+            instance void M2 () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 31 31 39 41 41 32 38 31 43
+                31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
+                39 42 34 38 41 37 36 00 00
+            )
+            // Method begins at RVA 0x2080
+            // Code size 6 (0x6)
+            .maxstack 8
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
+    } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
+    // Methods
+    .method assembly hidebysig static 
+        void M (
+            object o
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x207e
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::M
+    .method assembly hidebysig static 
+        void M2 (
+            object o
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x207e
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::M2
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+    }
+
+    [Fact]
+    public void Skeleton_03()
+    {
+        var src = """
+public static class E
+{
+    extension(object o)
+    {
+        internal void M() { }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.MakeMemberMissing(WellKnownMember.System_NotSupportedException__ctor);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var ext = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
+        var m = ext.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+
+        model.GetDiagnostics(m.Body.Span).Verify();
+        comp.VerifyDiagnostics();
+
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS0656: Missing compiler required member 'System.NotSupportedException..ctor'
+            //         internal void M() { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "internal void M() { }").WithArguments("System.NotSupportedException", ".ctor").WithLocation(5, 9));
     }
 
     [Fact]
@@ -5163,7 +5279,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x207a
+                // Method begins at RVA 0x2095
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -5180,11 +5296,11 @@ public static class Extensions
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x2077
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x208e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
@@ -5197,7 +5313,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 15 (0xf)
         .maxstack 8
         IL_0000: ldarg.0
@@ -5296,7 +5412,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x207e
+                // Method begins at RVA 0x2099
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -5313,11 +5429,11 @@ public static class Extensions
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x207b
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2092
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
@@ -5330,7 +5446,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 19 (0x13)
         .maxstack 8
         IL_0000: ldarg.0
@@ -5679,7 +5795,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20ae
+                // Method begins at RVA 0x20ca
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -5696,11 +5812,11 @@ public static class Extensions
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x20ab
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20c3
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
@@ -5723,7 +5839,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2068
+        // Method begins at RVA 0x2080
         // Code size 24 (0x18)
         .maxstack 2
         .locals init (
@@ -5747,7 +5863,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x208c
+        // Method begins at RVA 0x20a4
         // Code size 30 (0x1e)
         .maxstack 8
         IL_0000: ldarg.0
@@ -5873,7 +5989,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20b6
+                // Method begins at RVA 0x20d1
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -5890,11 +6006,11 @@ public static class Extensions
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x208c
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20a3
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
@@ -5910,7 +6026,7 @@ public static class Extensions
         .method public hidebysig specialname rtspecialname 
             instance void .ctor () cil managed 
         {
-            // Method begins at RVA 0x208f
+            // Method begins at RVA 0x20aa
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -5920,7 +6036,7 @@ public static class Extensions
         .method assembly hidebysig 
             instance string '<M>b__0' () cil managed 
         {
-            // Method begins at RVA 0x2097
+            // Method begins at RVA 0x20b2
             // Code size 30 (0x1e)
             .maxstack 8
             IL_0000: ldarg.0
@@ -5947,7 +6063,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 36 (0x24)
         .maxstack 8
         IL_0000: newobj instance void Extensions/'<>c__DisplayClass1_0'::.ctor()
@@ -6075,7 +6191,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2167
+                // Method begins at RVA 0x217f
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -6092,11 +6208,11 @@ public static class Extensions
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x207e
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2095
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<M>d__1'
@@ -6139,7 +6255,7 @@ public static class Extensions
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
             )
-            // Method begins at RVA 0x2081
+            // Method begins at RVA 0x209c
             // Code size 25 (0x19)
             .maxstack 8
             IL_0000: ldarg.0
@@ -6159,7 +6275,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.IDisposable::Dispose()
-            // Method begins at RVA 0x209b
+            // Method begins at RVA 0x20b6
             // Code size 9 (0x9)
             .maxstack 8
             IL_0000: ldarg.0
@@ -6171,7 +6287,7 @@ public static class Extensions
             instance bool MoveNext () cil managed 
         {
             .override method instance bool [mscorlib]System.Collections.IEnumerator::MoveNext()
-            // Method begins at RVA 0x20a8
+            // Method begins at RVA 0x20c0
             // Code size 76 (0x4c)
             .maxstack 3
             .locals init (
@@ -6221,7 +6337,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance !0 class [mscorlib]System.Collections.Generic.IEnumerator`1<string>::get_Current()
-            // Method begins at RVA 0x2100
+            // Method begins at RVA 0x2118
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -6235,7 +6351,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.Collections.IEnumerator::Reset()
-            // Method begins at RVA 0x2108
+            // Method begins at RVA 0x2120
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -6248,7 +6364,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance object [mscorlib]System.Collections.IEnumerator::get_Current()
-            // Method begins at RVA 0x2100
+            // Method begins at RVA 0x2118
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -6262,7 +6378,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance class [mscorlib]System.Collections.Generic.IEnumerator`1<!0> class [mscorlib]System.Collections.Generic.IEnumerable`1<string>::GetEnumerator()
-            // Method begins at RVA 0x2110
+            // Method begins at RVA 0x2128
             // Code size 67 (0x43)
             .maxstack 2
             .locals init (
@@ -6303,7 +6419,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance class [mscorlib]System.Collections.IEnumerator [mscorlib]System.Collections.IEnumerable::GetEnumerator()
-            // Method begins at RVA 0x215f
+            // Method begins at RVA 0x2177
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -6334,7 +6450,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 22 (0x16)
         .maxstack 8
         IL_0000: ldc.i4.s -2
@@ -6490,7 +6606,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2196
+                // Method begins at RVA 0x21b2
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -6507,11 +6623,11 @@ public static class Extensions
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x20b3
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20cb
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<M>d__1'
@@ -6532,7 +6648,7 @@ public static class Extensions
             instance void MoveNext () cil managed 
         {
             .override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::MoveNext()
-            // Method begins at RVA 0x20b8
+            // Method begins at RVA 0x20d4
             // Code size 178 (0xb2)
             .maxstack 3
             .locals init (
@@ -6628,7 +6744,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
-            // Method begins at RVA 0x2188
+            // Method begins at RVA 0x21a4
             // Code size 13 (0xd)
             .maxstack 8
             IL_0000: ldarg.0
@@ -6652,7 +6768,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2068
+        // Method begins at RVA 0x2080
         // Code size 63 (0x3f)
         .maxstack 2
         .locals init (
@@ -6796,51 +6912,51 @@ public class C<T>(string v)
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     class C`1<!T> o
-                ) cil managed
+                ) cil managed 
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20a8
+                // Method begins at RVA 0x20c3
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
             } // end of method '<M>$D884D1E13988E83801B7574694E1C2C5'::'<Extension>$'
         } // end of class <M>$D884D1E13988E83801B7574694E1C2C5
         // Methods
-        .method public hidebysig
+        .method public hidebysig 
             instance string M<U> (
                 !$T0 t,
                 !!U u
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 44 38 38 34 44 31 45 31 33
                 39 38 38 45 38 33 38 30 31 42 37 35 37 34 36 39
                 34 45 31 43 32 43 35 00 00
             )
-            // Method begins at RVA 0x20a5
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20bc
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'::M
     } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         string M<T, U> (
             class C`1<!!T> o,
             !!T t,
             !!U u
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 38 (0x26)
         .maxstack 8
         IL_0000: ldarg.0
@@ -7059,7 +7175,7 @@ public class C<T>(string val)
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2170
+                // Method begins at RVA 0x218c
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -7077,11 +7193,11 @@ public class C<T>(string val)
                 39 38 38 45 38 33 38 30 31 42 37 35 37 34 36 39
                 34 45 31 43 32 43 35 00 00
             )
-            // Method begins at RVA 0x216d
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2185
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'::M
     } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0`2'<T, U>
@@ -7106,7 +7222,7 @@ public class C<T>(string val)
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2068
+        // Method begins at RVA 0x2080
         // Code size 57 (0x39)
         .maxstack 6
         .locals init (
@@ -7147,7 +7263,7 @@ public class C<T>(string val)
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x20b0
+        // Method begins at RVA 0x20c8
         // Code size 154 (0x9a)
         .maxstack 4
         IL_0000: ldc.i4.8
@@ -7348,7 +7464,7 @@ public class C<T>(string val)
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2143
+                // Method begins at RVA 0x215f
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -7366,11 +7482,11 @@ public class C<T>(string val)
                 39 38 38 45 38 33 38 30 31 42 37 35 37 34 36 39
                 34 45 31 43 32 43 35 00 00
             )
-            // Method begins at RVA 0x20c4
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20dc
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'::M
     } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0`2'<T, U>
@@ -7387,7 +7503,7 @@ public class C<T>(string val)
         .method public hidebysig specialname rtspecialname 
             instance void .ctor () cil managed 
         {
-            // Method begins at RVA 0x20c7
+            // Method begins at RVA 0x20e3
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -7400,7 +7516,7 @@ public class C<T>(string val)
                 !U u2
             ) cil managed 
         {
-            // Method begins at RVA 0x20d0
+            // Method begins at RVA 0x20ec
             // Code size 103 (0x67)
             .maxstack 4
             IL_0000: ldc.i4.5
@@ -7453,7 +7569,7 @@ public class C<T>(string val)
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2068
+        // Method begins at RVA 0x2080
         // Code size 57 (0x39)
         .maxstack 3
         .locals init (
@@ -7621,7 +7737,7 @@ public class C<T>(string val)
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x21a3
+                // Method begins at RVA 0x21bf
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -7639,11 +7755,11 @@ public class C<T>(string val)
                 39 38 38 45 38 33 38 30 31 42 37 35 37 34 36 39
                 34 45 31 43 32 43 35 00 00
             )
-            // Method begins at RVA 0x209c
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20b3
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'::M
     } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1
     .class nested private auto ansi sealed beforefieldinit '<M>d__1`2'<T, U>
@@ -7688,7 +7804,7 @@ public class C<T>(string val)
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
             )
-            // Method begins at RVA 0x209f
+            // Method begins at RVA 0x20ba
             // Code size 25 (0x19)
             .maxstack 8
             IL_0000: ldarg.0
@@ -7708,7 +7824,7 @@ public class C<T>(string val)
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.IDisposable::Dispose()
-            // Method begins at RVA 0x20b9
+            // Method begins at RVA 0x20d4
             // Code size 9 (0x9)
             .maxstack 8
             IL_0000: ldarg.0
@@ -7720,7 +7836,7 @@ public class C<T>(string val)
             instance bool MoveNext () cil managed 
         {
             .override method instance bool [mscorlib]System.Collections.IEnumerator::MoveNext()
-            // Method begins at RVA 0x20c4
+            // Method begins at RVA 0x20e0
             // Code size 97 (0x61)
             .maxstack 4
             .locals init (
@@ -7771,7 +7887,7 @@ public class C<T>(string val)
                 01 00 00 00
             )
             .override method instance !0 class [mscorlib]System.Collections.Generic.IEnumerator`1<string>::get_Current()
-            // Method begins at RVA 0x2131
+            // Method begins at RVA 0x214d
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -7785,7 +7901,7 @@ public class C<T>(string val)
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.Collections.IEnumerator::Reset()
-            // Method begins at RVA 0x2139
+            // Method begins at RVA 0x2155
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -7798,7 +7914,7 @@ public class C<T>(string val)
                 01 00 00 00
             )
             .override method instance object [mscorlib]System.Collections.IEnumerator::get_Current()
-            // Method begins at RVA 0x2131
+            // Method begins at RVA 0x214d
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -7812,7 +7928,7 @@ public class C<T>(string val)
                 01 00 00 00
             )
             .override method instance class [mscorlib]System.Collections.Generic.IEnumerator`1<!0> class [mscorlib]System.Collections.Generic.IEnumerable`1<string>::GetEnumerator()
-            // Method begins at RVA 0x2140
+            // Method begins at RVA 0x215c
             // Code size 79 (0x4f)
             .maxstack 2
             .locals init (
@@ -7857,7 +7973,7 @@ public class C<T>(string val)
                 01 00 00 00
             )
             .override method instance class [mscorlib]System.Collections.IEnumerator [mscorlib]System.Collections.IEnumerable::GetEnumerator()
-            // Method begins at RVA 0x219b
+            // Method begins at RVA 0x21b7
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -7889,7 +8005,7 @@ public class C<T>(string val)
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 29 (0x1d)
         .maxstack 8
         IL_0000: ldc.i4.s -2
@@ -8024,7 +8140,7 @@ public class C<T>(string val)
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x21ce
+                // Method begins at RVA 0x21ea
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -8042,11 +8158,11 @@ public class C<T>(string val)
                 39 38 38 45 38 33 38 30 31 42 37 35 37 34 36 39
                 34 45 31 43 32 43 35 00 00
             )
-            // Method begins at RVA 0x20d2
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20ea
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1'::M
     } // end of class <G>$4A1E373BE5A70EE56E2FA5F469AC30F9`1
     .class nested private auto ansi sealed beforefieldinit '<M>d__1`2'<T, U>
@@ -8068,7 +8184,7 @@ public class C<T>(string val)
             instance void MoveNext () cil managed 
         {
             .override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::MoveNext()
-            // Method begins at RVA 0x20d8
+            // Method begins at RVA 0x20f4
             // Code size 202 (0xca)
             .maxstack 3
             .locals init (
@@ -8165,7 +8281,7 @@ public class C<T>(string val)
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
-            // Method begins at RVA 0x21c0
+            // Method begins at RVA 0x21dc
             // Code size 13 (0xd)
             .maxstack 8
             IL_0000: ldarg.0
@@ -8190,7 +8306,7 @@ public class C<T>(string val)
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2068
+        // Method begins at RVA 0x2080
         // Code size 71 (0x47)
         .maxstack 2
         .locals init (
@@ -8355,7 +8471,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x207e
+                // Method begins at RVA 0x2099
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -8373,11 +8489,11 @@ public static class Extensions
                 32 43 37 33 41 34 45 34 30 36 41 45 33 39 30 35
                 37 38 37 44 39 37 44 00 00
             )
-            // Method begins at RVA 0x207b
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2092
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
@@ -8387,7 +8503,7 @@ public static class Extensions
             string s
         ) cil managed 
     {
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 19 (0x13)
         .maxstack 8
         IL_0000: ldarg.0
@@ -8850,7 +8966,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20ae
+                // Method begins at RVA 0x20ca
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -8868,11 +8984,11 @@ public static class Extensions
                 32 43 37 33 41 34 45 34 30 36 41 45 33 39 30 35
                 37 38 37 44 39 37 44 00 00
             )
-            // Method begins at RVA 0x20ab
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20c3
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
@@ -8892,7 +9008,7 @@ public static class Extensions
             string s
         ) cil managed 
     {
-        // Method begins at RVA 0x2068
+        // Method begins at RVA 0x2080
         // Code size 24 (0x18)
         .maxstack 2
         .locals init (
@@ -8916,7 +9032,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x208c
+        // Method begins at RVA 0x20a4
         // Code size 30 (0x1e)
         .maxstack 8
         IL_0000: ldarg.0
@@ -9002,7 +9118,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20f1
+                // Method begins at RVA 0x210d
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -9020,7 +9136,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20f1
+                // Method begins at RVA 0x210d
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -9038,11 +9154,11 @@ public static class Extensions
                 32 43 37 33 41 34 45 34 30 36 41 45 33 39 30 35
                 37 38 37 44 39 37 44 00 00
             )
-            // Method begins at RVA 0x20ee
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2106
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
         .method public hidebysig static 
             string M (
@@ -9056,11 +9172,11 @@ public static class Extensions
                 37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
                 39 42 46 30 32 38 30 00 00
             )
-            // Method begins at RVA 0x20ee
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2106
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
@@ -9090,7 +9206,7 @@ public static class Extensions
             string s
         ) cil managed 
     {
-        // Method begins at RVA 0x2068
+        // Method begins at RVA 0x2080
         // Code size 24 (0x18)
         .maxstack 2
         .locals init (
@@ -9113,7 +9229,7 @@ public static class Extensions
             int32 x
         ) cil managed 
     {
-        // Method begins at RVA 0x208c
+        // Method begins at RVA 0x20a4
         // Code size 24 (0x18)
         .maxstack 2
         .locals init (
@@ -9137,7 +9253,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x20b0
+        // Method begins at RVA 0x20c8
         // Code size 30 (0x1e)
         .maxstack 8
         IL_0000: ldarg.0
@@ -9161,7 +9277,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x20cf
+        // Method begins at RVA 0x20e7
         // Code size 30 (0x1e)
         .maxstack 8
         IL_0000: ldarg.0
@@ -9262,7 +9378,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20b6
+                // Method begins at RVA 0x20d1
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -9280,11 +9396,11 @@ public static class Extensions
                 32 43 37 33 41 34 45 34 30 36 41 45 33 39 30 35
                 37 38 37 44 39 37 44 00 00
             )
-            // Method begins at RVA 0x208c
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20a3
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
@@ -9300,7 +9416,7 @@ public static class Extensions
         .method public hidebysig specialname rtspecialname 
             instance void .ctor () cil managed 
         {
-            // Method begins at RVA 0x208f
+            // Method begins at RVA 0x20aa
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -9310,7 +9426,7 @@ public static class Extensions
         .method assembly hidebysig 
             instance string '<M>b__0' () cil managed 
         {
-            // Method begins at RVA 0x2097
+            // Method begins at RVA 0x20b2
             // Code size 30 (0x1e)
             .maxstack 8
             IL_0000: ldarg.0
@@ -9334,7 +9450,7 @@ public static class Extensions
             string s
         ) cil managed 
     {
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 36 (0x24)
         .maxstack 8
         IL_0000: newobj instance void Extensions/'<>c__DisplayClass1_0'::.ctor()
@@ -9462,7 +9578,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2167
+                // Method begins at RVA 0x217f
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -9480,11 +9596,11 @@ public static class Extensions
                 32 43 37 33 41 34 45 34 30 36 41 45 33 39 30 35
                 37 38 37 44 39 37 44 00 00
             )
-            // Method begins at RVA 0x207e
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2095
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<M>d__1'
@@ -9527,7 +9643,7 @@ public static class Extensions
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
             )
-            // Method begins at RVA 0x2081
+            // Method begins at RVA 0x209c
             // Code size 25 (0x19)
             .maxstack 8
             IL_0000: ldarg.0
@@ -9547,7 +9663,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.IDisposable::Dispose()
-            // Method begins at RVA 0x209b
+            // Method begins at RVA 0x20b6
             // Code size 9 (0x9)
             .maxstack 8
             IL_0000: ldarg.0
@@ -9559,7 +9675,7 @@ public static class Extensions
             instance bool MoveNext () cil managed 
         {
             .override method instance bool [mscorlib]System.Collections.IEnumerator::MoveNext()
-            // Method begins at RVA 0x20a8
+            // Method begins at RVA 0x20c0
             // Code size 76 (0x4c)
             .maxstack 3
             .locals init (
@@ -9609,7 +9725,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance !0 class [mscorlib]System.Collections.Generic.IEnumerator`1<string>::get_Current()
-            // Method begins at RVA 0x2100
+            // Method begins at RVA 0x2118
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -9623,7 +9739,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.Collections.IEnumerator::Reset()
-            // Method begins at RVA 0x2108
+            // Method begins at RVA 0x2120
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -9636,7 +9752,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance object [mscorlib]System.Collections.IEnumerator::get_Current()
-            // Method begins at RVA 0x2100
+            // Method begins at RVA 0x2118
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -9650,7 +9766,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance class [mscorlib]System.Collections.Generic.IEnumerator`1<!0> class [mscorlib]System.Collections.Generic.IEnumerable`1<string>::GetEnumerator()
-            // Method begins at RVA 0x2110
+            // Method begins at RVA 0x2128
             // Code size 67 (0x43)
             .maxstack 2
             .locals init (
@@ -9691,7 +9807,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance class [mscorlib]System.Collections.IEnumerator [mscorlib]System.Collections.IEnumerable::GetEnumerator()
-            // Method begins at RVA 0x215f
+            // Method begins at RVA 0x2177
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -9719,7 +9835,7 @@ public static class Extensions
             01 00 12 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
             3e 64 5f 5f 31 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 22 (0x16)
         .maxstack 8
         IL_0000: ldc.i4.s -2
@@ -9841,7 +9957,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2196
+                // Method begins at RVA 0x21b2
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -9859,11 +9975,11 @@ public static class Extensions
                 32 43 37 33 41 34 45 34 30 36 41 45 33 39 30 35
                 37 38 37 44 39 37 44 00 00
             )
-            // Method begins at RVA 0x20b3
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20cb
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi sealed beforefieldinit '<M>d__1'
@@ -9884,7 +10000,7 @@ public static class Extensions
             instance void MoveNext () cil managed 
         {
             .override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::MoveNext()
-            // Method begins at RVA 0x20b8
+            // Method begins at RVA 0x20d4
             // Code size 178 (0xb2)
             .maxstack 3
             .locals init (
@@ -9980,7 +10096,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
-            // Method begins at RVA 0x2188
+            // Method begins at RVA 0x21a4
             // Code size 13 (0xd)
             .maxstack 8
             IL_0000: ldarg.0
@@ -10001,7 +10117,7 @@ public static class Extensions
             01 00 12 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
             3e 64 5f 5f 31 00 00
         )
-        // Method begins at RVA 0x2068
+        // Method begins at RVA 0x2080
         // Code size 63 (0x3f)
         .maxstack 2
         .locals init (
@@ -10145,7 +10261,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x208d
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -10160,11 +10276,11 @@ public static class Extensions
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2086
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P
         // Properties
         .property instance string P()
@@ -10183,7 +10299,7 @@ public static class Extensions
             object o
         ) cil managed 
     {
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 7 (0x7)
         .maxstack 8
         IL_0000: ldarg.0
@@ -10453,7 +10569,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2071
+                // Method begins at RVA 0x208c
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -10468,11 +10584,11 @@ public static class Extensions
                 37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
                 39 42 46 30 32 38 30 00 00
             )
-            // Method begins at RVA 0x206e
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2085
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P
         // Properties
         .property string P()
@@ -10489,7 +10605,7 @@ public static class Extensions
     .method public hidebysig static 
         string get_P () cil managed 
     {
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 6 (0x6)
         .maxstack 8
         IL_0000: ldstr "P"
@@ -10683,7 +10799,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2072
+                // Method begins at RVA 0x208d
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -10698,11 +10814,11 @@ public static class Extensions
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2086
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::get_P
         // Properties
         .property instance string P()
@@ -10721,7 +10837,7 @@ public static class Extensions
             object o
         ) cil managed 
     {
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 7 (0x7)
         .maxstack 8
         IL_0000: ldarg.0
@@ -10851,7 +10967,7 @@ class C1
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20ea
+                // Method begins at RVA 0x2106
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -10866,11 +10982,11 @@ class C1
                 39 33 33 39 35 41 33 45 35 30 44 46 30 36 39 43
                 45 36 32 37 31 30 32 00 00
             )
-            // Method begins at RVA 0x20e7
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20ff
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$8048A6C8BE30A622530249B904B537EB`1'::M2
     } // end of class <G>$8048A6C8BE30A622530249B904B537EB`1
     .class nested private auto ansi abstract sealed beforefieldinit '<local>O__1_0`3'<T, U, V>
@@ -10891,7 +11007,7 @@ class C1
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2078
+        // Method begins at RVA 0x208f
         // Code size 12 (0xc)
         .maxstack 8
         IL_0000: call class [mscorlib]System.Func`1<!!2> Extensions::'<M2>g__local|1_0'<!!T, !!U, int64>()
@@ -10905,7 +11021,7 @@ class C1
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2085
+        // Method begins at RVA 0x209c
         // Code size 28 (0x1c)
         .maxstack 8
         IL_0000: ldsfld class [mscorlib]System.Func`1<!2> class Extensions/'<local>O__1_0`3'<!!T, !!U, !!V>::'<0>__M1'
@@ -10962,7 +11078,6 @@ class C1
     public void Implementation_DelegateCaching_02()
     {
         var src = """
-
 42.M2();
 
 public static class Extensions
@@ -11016,7 +11131,7 @@ class C1
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20b5
+                // Method begins at RVA 0x20d0
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -11031,11 +11146,11 @@ class C1
                 39 33 33 39 35 41 33 45 35 30 44 46 30 36 39 43
                 45 36 32 37 31 30 32 00 00
             )
-            // Method begins at RVA 0x20b2
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20c9
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$8048A6C8BE30A622530249B904B537EB`1'::M2
     } // end of class <G>$8048A6C8BE30A622530249B904B537EB`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>O__1_0`1'<T>
@@ -11056,7 +11171,7 @@ class C1
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2078
+        // Method begins at RVA 0x208f
         // Code size 11 (0xb)
         .maxstack 8
         IL_0000: call class [mscorlib]System.Action Extensions::'<M2>g__local|1_0'<!!T>()
@@ -11069,7 +11184,7 @@ class C1
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2084
+        // Method begins at RVA 0x209b
         // Code size 28 (0x1c)
         .maxstack 8
         IL_0000: ldsfld class [mscorlib]System.Action class Extensions/'<>O__1_0`1'<!!T>::'<0>__M1'
@@ -11177,7 +11292,7 @@ class C1
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2067
+                // Method begins at RVA 0x207e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -11192,11 +11307,11 @@ class C1
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x208e
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20a5
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi abstract sealed beforefieldinit '<>O'
@@ -11217,7 +11332,7 @@ class C1
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
@@ -11228,7 +11343,7 @@ class C1
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2069
+        // Method begins at RVA 0x2080
         // Code size 28 (0x1c)
         .maxstack 8
         IL_0000: ldsfld class [mscorlib]System.Action Extensions/'<>O'::'<0>__M1'
@@ -11323,34 +11438,34 @@ public static class Extensions
             extends [mscorlib]System.Object
         {
             // Methods
-            .method private hidebysig specialname static
+            .method private hidebysig specialname static 
                 void '<Extension>$' (
                     !T o
-                ) cil managed
+                ) cil managed 
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2099
+                // Method begins at RVA 0x20b4
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
             } // end of method '<M>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
         } // end of class <M>$D3EAC011D93395A3E50DF069CE627102
         // Methods
-        .method private hidebysig
-            instance class [mscorlib]System.Action M2 () cil managed
+        .method private hidebysig 
+            instance class [mscorlib]System.Action M2 () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 44 33 45 41 43 30 31 31 44
                 39 33 33 39 35 41 33 45 35 30 44 46 30 36 39 43
                 45 36 32 37 31 30 32 00 00
             )
-            // Method begins at RVA 0x2096
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20ad
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$8048A6C8BE30A622530249B904B537EB`1'::M2
     } // end of class <G>$8048A6C8BE30A622530249B904B537EB`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>O__1_0`1'<T>
@@ -11363,15 +11478,15 @@ public static class Extensions
         .field public static class [mscorlib]System.Action '<0>__local'
     } // end of class <>O__1_0`1
     // Methods
-    .method private hidebysig static
+    .method private hidebysig static 
         class [mscorlib]System.Action M2<T> (
             !!T o
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 28 (0x1c)
         .maxstack 8
         IL_0000: ldsfld class [mscorlib]System.Action class Extensions/'<>O__1_0`1'<!!T>::'<0>__local'
@@ -11385,13 +11500,13 @@ public static class Extensions
         IL_0016: stsfld class [mscorlib]System.Action class Extensions/'<>O__1_0`1'<!!T>::'<0>__local'
         IL_001b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static
-        void '<M2>g__local|1_0'<T> () cil managed
+    .method assembly hidebysig static 
+        void '<M2>g__local|1_0'<T> () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2084
+        // Method begins at RVA 0x209b
         // Code size 17 (0x11)
         .maxstack 8
         IL_0000: ldtoken !!T
@@ -11487,7 +11602,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2099
+                // Method begins at RVA 0x20b4
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -11502,11 +11617,11 @@ public static class Extensions
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x2096
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20ad
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi abstract sealed beforefieldinit '<>O'
@@ -11527,7 +11642,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 28 (0x1c)
         .maxstack 8
         IL_0000: ldsfld class [mscorlib]System.Action Extensions/'<>O'::'<0>__local'
@@ -11547,7 +11662,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2084
+        // Method begins at RVA 0x209b
         // Code size 17 (0x11)
         .maxstack 8
         IL_0000: ldtoken [mscorlib]System.Object
@@ -11642,34 +11757,34 @@ public static class Extensions
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     !T o
-                ) cil managed
+                ) cil managed 
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2155
+                // Method begins at RVA 0x2171
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
             } // end of method '<M>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
         } // end of class <M>$D3EAC011D93395A3E50DF069CE627102
         // Methods
-        .method public hidebysig
-            instance void M2<U> () cil managed
+        .method public hidebysig 
+            instance void M2<U> () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 44 33 45 41 43 30 31 31 44
                 39 33 33 39 35 41 33 45 35 30 44 46 30 36 39 43
                 45 36 32 37 31 30 32 00 00
             )
-            // Method begins at RVA 0x2152
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x216a
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$8048A6C8BE30A622530249B904B537EB`1'::M2
     } // end of class <G>$8048A6C8BE30A622530249B904B537EB`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__0|1`3'<T, U, V>
@@ -11682,15 +11797,15 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`5<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !T, !U, !V>> '<>p__0'
     } // end of class <>o__0|1`3
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         void M2<T, U> (
             !!T o
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x20a8
+        // Method begins at RVA 0x20c0
         // Code size 32 (0x20)
         .maxstack 4
         .locals init (
@@ -11709,13 +11824,13 @@ public static class Extensions
         IL_001a: call void Extensions::'<M2>g__local|1_0'<!!T, !!U, int64>(object, !!0, !!1, !!2)
         IL_001f: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static
+    .method assembly hidebysig static 
         void '<M2>g__local|1_0'<T, U, V> (
             object d,
             !!T t,
             !!U u,
             !!V v
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -11724,7 +11839,7 @@ public static class Extensions
             .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x20d4
+        // Method begins at RVA 0x20ec
         // Code size 114 (0x72)
         .maxstack 9
         IL_0000: ldsfld class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`5<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !0, !1, !2>> class Extensions/'<>o__0|1`3'<!!T, !!U, !!V>::'<>p__0'
@@ -11849,34 +11964,34 @@ public static class Extensions
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     !T o
-                ) cil managed
+                ) cil managed 
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2067
+                // Method begins at RVA 0x207e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
             } // end of method '<M>$D3EAC011D93395A3E50DF069CE627102'::'<Extension>$'
         } // end of class <M>$D3EAC011D93395A3E50DF069CE627102
         // Methods
-        .method public hidebysig
-            instance void M2 () cil managed
+        .method public hidebysig 
+            instance void M2 () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 44 33 45 41 43 30 31 31 44
                 39 33 33 39 35 41 33 45 35 30 44 46 30 36 39 43
                 45 36 32 37 31 30 32 00 00
             )
-            // Method begins at RVA 0x20d4
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20e8
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$8048A6C8BE30A622530249B904B537EB`1'::M2
     } // end of class <G>$8048A6C8BE30A622530249B904B537EB`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__1`1'<T>
@@ -11889,24 +12004,24 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`3<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !T>> '<>p__0'
     } // end of class <>o__1`1
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         void M2<T> (
             !!T o
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static
+    .method assembly hidebysig static 
         void '<M2>g__local|1_0'<T> (
             object d,
             !!T t
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -11915,7 +12030,7 @@ public static class Extensions
             .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x206c
+        // Method begins at RVA 0x2080
         // Code size 92 (0x5c)
         .maxstack 9
         IL_0000: ldsfld class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`3<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !0>> class Extensions/'<>o__1`1'<!!T>::'<>p__0'
@@ -12034,7 +12149,7 @@ public static class Extensions
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2067
+                // Method begins at RVA 0x207e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -12049,11 +12164,11 @@ public static class Extensions
                 31 34 33 35 34 37 35 36 33 32 35 30 43 41 46 38
                 39 42 34 38 41 37 36 00 00
             )
-            // Method begins at RVA 0x20c9
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20dd
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__1'
@@ -12074,7 +12189,7 @@ public static class Extensions
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
@@ -12091,7 +12206,7 @@ public static class Extensions
             .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x206c
+        // Method begins at RVA 0x2080
         // Code size 81 (0x51)
         .maxstack 9
         IL_0000: ldsfld class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`2<class [System.Core]System.Runtime.CompilerServices.CallSite, object>> Extensions/'<>o__1'::'<>p__0'
@@ -12380,9 +12495,9 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,5): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.extension<T>(T)'
             // _ = object.P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.P").WithArguments("object", "P").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "object.P").WithArguments("E.extension<T>(T)", "T", "object").WithLocation(1, 5));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -13207,7 +13322,7 @@ static class E
         Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<int>().M<string>");
-        AssertEx.SequenceEqual(["void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -13268,9 +13383,8 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<,>()");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
-        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
-
-        AssertEx.SequenceEqual(["void E.<G>$4A1E373BE5A70EE56E2FA5F469AC30F9<System.Int32>.M<U, V>()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(invocation));
+        Assert.Empty(model.GetMemberGroup(invocation.Expression));
     }
 
     [Fact]
@@ -13769,9 +13883,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // o.Method();
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "extension(object)").WithLocation(4, 1));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "E.extension(object)").WithLocation(4, 1));
 
         CompileAndVerify(comp, expectedOutput: "Method");
     }
@@ -14041,11 +14155,10 @@ static class E
             }
             """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality consider reporting a better containing symbol
         comp.VerifyEmitDiagnostics(
             // (3,19): warning CS8604: Possible null reference argument for parameter 'c' in 'extension(C)'.
             // foreach (var x in c) // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "c").WithArguments("c", "extension(C)").WithLocation(3, 19));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "c").WithArguments("c", "E.extension(C)").WithLocation(3, 19));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
@@ -14631,8 +14744,8 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object, object>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<T>(System.Int32 i)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M(System.Int32 i)", "void E.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.M<T>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Empty(model.GetSymbolInfo(memberAccess).CandidateSymbols);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -15018,18 +15131,18 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,26): error CS1061: 'C<object, dynamic>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C<object, dynamic>' could be found (are you missing a using directive or an assembly reference?)
+            // (1,26): error CS0411: The type arguments for method 'E.extension<T>(C<T, T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // new C<object, dynamic>().M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C<object, dynamic>", "M").WithLocation(1, 26),
-            // (2,26): error CS1061: 'C<dynamic, object>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C<dynamic, object>' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("E.extension<T>(C<T, T>).M()").WithLocation(1, 26),
+            // (2,26): error CS0411: The type arguments for method 'E.extension<T>(C<T, T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // new C<dynamic, object>().M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C<dynamic, object>", "M").WithLocation(2, 26),
-            // (4,26): error CS1061: 'C<object, dynamic>' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'C<object, dynamic>' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("E.extension<T>(C<T, T>).M()").WithLocation(2, 26),
+            // (4,26): error CS0411: The type arguments for method 'E.M2<T>(C<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // new C<object, dynamic>().M2();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("C<object, dynamic>", "M2").WithLocation(4, 26),
-            // (5,26): error CS1061: 'C<dynamic, object>' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'C<dynamic, object>' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("E.M2<T>(C<T, T>)").WithLocation(4, 26),
+            // (5,26): error CS0411: The type arguments for method 'E.M2<T>(C<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // new C<dynamic, object>().M2();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("C<dynamic, object>", "M2").WithLocation(5, 26));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("E.M2<T>(C<T, T>)").WithLocation(5, 26));
     }
 
     [Fact]
@@ -15338,9 +15451,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS1061: 'C' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,9): error CS0411: The type arguments for method 'E.extension<T>(I<T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // new C().M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C", "M").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("E.extension<T>(I<T>).M()").WithLocation(1, 9));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -15465,9 +15578,9 @@ class C : I1<int>, I2 { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,30): error CS1061: 'C' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,30): error CS0411: The type arguments for method 'E1.extension<T>(I1<T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // System.Console.Write(new C().M());
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C", "M").WithLocation(1, 30));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("E1.extension<T>(I1<T>).M()").WithLocation(1, 30));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -15576,9 +15689,9 @@ static class E
             // (4,1): error CS1929: 'IEnumerable<object>' does not contain a definition for 'M' and the best extension method overload 'E.extension(IEnumerable<string>).M()' requires a receiver of type 'System.Collections.Generic.IEnumerable<string>'
             // i.M();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("System.Collections.Generic.IEnumerable<object>", "M", "E.extension(System.Collections.Generic.IEnumerable<string>).M()", "System.Collections.Generic.IEnumerable<string>").WithLocation(4, 1),
-            // (5,5): error CS9286: 'IEnumerable<object>' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'IEnumerable<object>' could be found (are you missing a using directive or an assembly reference?)
+            // (5,5): error CS1929: 'IEnumerable<object>' does not contain a definition for 'P' and the best extension method overload 'E.extension(IEnumerable<string>).P' requires a receiver of type 'System.Collections.Generic.IEnumerable<string>'
             // _ = i.P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.P").WithArguments("System.Collections.Generic.IEnumerable<object>", "P").WithLocation(5, 5)
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("System.Collections.Generic.IEnumerable<object>", "P", "E.extension(System.Collections.Generic.IEnumerable<string>).P", "System.Collections.Generic.IEnumerable<string>").WithLocation(5, 5)
             );
     }
 
@@ -15665,12 +15778,12 @@ static class E
             // (2,1): error CS1929: 'int' does not contain a definition for 'M2' and the best extension method overload 'E.M2(int?)' requires a receiver of type 'int?'
             // 42.M2();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "42").WithArguments("int", "M2", "E.M2(int?)", "int?").WithLocation(2, 1),
-            // (4,5): error CS9286: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (4,5): error CS1929: 'int' does not contain a definition for 'P' and the best extension method overload 'E.extension(int?).P' requires a receiver of type 'int?'
             // _ = int.P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "int.P").WithArguments("int", "P").WithLocation(4, 5),
-            // (5,5): error CS9286: 'int' does not contain a definition for 'P2' and no accessible extension member 'P2' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "int").WithArguments("int", "P", "E.extension(int?).P", "int?").WithLocation(4, 5),
+            // (5,5): error CS1929: 'int' does not contain a definition for 'P2' and the best extension method overload 'E.extension(int?).P2' requires a receiver of type 'int?'
             // _ = 42.P2;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "42.P2").WithArguments("int", "P2").WithLocation(5, 5));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "42").WithArguments("int", "P2", "E.extension(int?).P2", "int?").WithLocation(5, 5));
     }
 
     [Fact]
@@ -15741,6 +15854,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
+            // (2,3): error CS1061: 'object' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // o.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("object", "M").WithLocation(2, 3),
+            // (3,3): error CS1061: 'object' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // o.M2();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("object", "M2").WithLocation(3, 3),
             // (7,15): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
             //     extension(dynamic d)
             Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(7, 15),
@@ -15983,9 +16102,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,19): error CS1061: 'I<object, string>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'I<object, string>' could be found (are you missing a using directive or an assembly reference?)
+            // (1,19): error CS0411: The type arguments for method 'E.extension<T>(I<T, T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // I<object, string>.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("I<object, string>", "M").WithLocation(1, 19));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("E.extension<T>(I<T, T>).M()").WithLocation(1, 19));
     }
 
     [Fact]
@@ -16260,9 +16379,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS0176: Member 'Extensions.extension(object).P' cannot be accessed with an instance reference; qualify it with a type name instead
             // System.Console.Write(new object().P);
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new object().P").WithArguments("object", "P").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object()").WithArguments("Extensions.extension(object).P").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -16438,9 +16557,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS0176: Member 'Extensions.extension(object).P' cannot be accessed with an instance reference; qualify it with a type name instead
             // System.Console.Write(new object().P);
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new object().P").WithArguments("object", "P").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object()").WithArguments("Extensions.extension(object).P").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -16595,12 +16714,12 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (2,16): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (2,16): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // string x = b ? D.f : D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 16),
-            // (2,22): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(2, 16),
+            // (2,22): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // string x = b ? D.f : D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 22));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(2, 22));
     }
 
     [Fact]
@@ -16631,12 +16750,12 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (2,23): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (2,23): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E.extension(D).f'
             // System.Action x = b ? D.f : D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 23),
-            // (2,29): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E.extension(D).f").WithLocation(2, 23),
+            // (2,29): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E.extension(D).f'
             // System.Action x = b ? D.f : D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 29));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E.extension(D).f").WithLocation(2, 29));
     }
 
     [Fact]
@@ -16693,9 +16812,9 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,17): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,17): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // var x = (string)D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 17));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 17));
     }
 
     [Fact]
@@ -16725,12 +16844,12 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,24): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,24): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // var x = (System.Action)D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 24),
-            // (2,19): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 24),
+            // (2,19): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // System.Action a = D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 19));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(2, 19));
 
         // Note: a conversion to a delegate type does not provide invocation context for resolving the member access
         source = """
@@ -18051,9 +18170,9 @@ public static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS9286: 'object' does not contain a definition for 'Member' and no accessible extension member 'Member' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (2,5): error CS9339: The extension resolution is ambiguous between the following members: 'E2.Member(object)' and 'E1.extension(object).Member'
             // C.M(o.Member);
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "o.Member").WithArguments("object", "Member").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "o.Member").WithArguments("E2.Member(object)", "E1.extension(object).Member").WithLocation(2, 5));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18122,15 +18241,15 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,10): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,10): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // bool b = D.f + D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 10),
-            // (1,16): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 10),
+            // (1,16): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // bool b = D.f + D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 16));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 16));
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78830")]
     public void ResolveAll_Lambda_Static_TwoAsGoodExtensions_LambdaConverted()
     {
         var src = """
@@ -18152,12 +18271,11 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the diagnostic should describe what went wrong
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,38): error CS9286: 'object' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,38): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(object).f'
             // System.Func<System.Action> l = () => object.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.f").WithArguments("object", "f").WithLocation(1, 38)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.f").WithArguments("E2.extension(object).f()", "E1.extension(object).f").WithLocation(1, 38)
             );
 
         var tree = comp.SyntaxTrees.First();
@@ -18185,9 +18303,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,43): error CS9286: 'object' does not contain a definition for 'Member' and no accessible extension member 'Member' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,43): error CS9339: The extension resolution is ambiguous between the following members: 'E.Member(object)' and 'E.extension(object).Member'
             // System.Func<System.Action> lambda = () => new object().Member;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new object().Member").WithArguments("object", "Member").WithLocation(1, 43));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "new object().Member").WithArguments("E.Member(object)", "E.extension(object).Member").WithLocation(1, 43));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18245,9 +18363,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,29): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,29): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(object).f'
             // var l = System.Action () => D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 29)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(object).f").WithLocation(1, 29)
             );
     }
 
@@ -18277,9 +18395,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,38): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,38): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).f()' and 'E1.extension(D).f'
             // System.Func<System.Action> l = () => D.f;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 38)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "D.f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 38)
             );
     }
 
@@ -18335,6 +18453,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
+            // (5,20): error CS1061: 'string' does not contain a definition for 'f' and no accessible extension method 'f' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // var x = b ? ref s1.f : ref s2.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "f").WithArguments("string", "f").WithLocation(5, 20),
+            // (5,31): error CS1061: 'string' does not contain a definition for 'f' and no accessible extension method 'f' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // var x = b ? ref s1.f : ref s2.f;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "f").WithArguments("string", "f").WithLocation(5, 31),
             // (10,19): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
             //     extension(ref string s)
             Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "string").WithLocation(10, 19),
@@ -18345,7 +18469,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s1.f");
-        AssertEx.Equal("ref System.String E.<G>$34505F560D9EACF86A87F3ED1F85E448.f { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 
     [Fact]
@@ -18828,12 +18952,12 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (2,13): error CS9286: 'object' does not contain a definition for 'StaticProperty' and no accessible extension member 'StaticProperty' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (2,13): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(object).StaticProperty' and 'E2.extension(object).StaticProperty'
             // var x = b ? object.StaticProperty : object.StaticProperty;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.StaticProperty").WithArguments("object", "StaticProperty").WithLocation(2, 13),
-            // (2,37): error CS9286: 'object' does not contain a definition for 'StaticProperty' and no accessible extension member 'StaticProperty' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.StaticProperty").WithArguments("E1.extension(object).StaticProperty", "E2.extension(object).StaticProperty").WithLocation(2, 13),
+            // (2,37): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(object).StaticProperty' and 'E2.extension(object).StaticProperty'
             // var x = b ? object.StaticProperty : object.StaticProperty;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.StaticProperty").WithArguments("object", "StaticProperty").WithLocation(2, 37));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.StaticProperty").WithArguments("E1.extension(object).StaticProperty", "E2.extension(object).StaticProperty").WithLocation(2, 37));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -24584,12 +24708,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS9286: 'int' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (1,1): error CS1929: 'int' does not contain a definition for 'Property' and the best extension method overload 'E.extension(long).Property' requires a receiver of type 'long'
             // 1.Property = 42;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "1.Property").WithArguments("int", "Property").WithLocation(1, 1),
-            // (2,5): error CS9286: 'int' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "1").WithArguments("int", "Property", "E.extension(long).Property", "long").WithLocation(1, 1),
+            // (2,5): error CS1929: 'int' does not contain a definition for 'Property' and the best extension method overload 'E.extension(long).Property' requires a receiver of type 'long'
             // _ = 2.Property;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "2.Property").WithArguments("int", "Property").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "2").WithArguments("int", "Property", "E.extension(long).Property", "long").WithLocation(2, 5));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -24925,12 +25049,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS9286: '(int, int)' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+            // (1,1): error CS1929: '(int, int)' does not contain a definition for 'Property' and the best extension method overload 'E.extension((long, long)).Property' requires a receiver of type '(long, long)'
             // (1, 1).Property = 1;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "(1, 1).Property").WithArguments("(int, int)", "Property").WithLocation(1, 1),
-            // (2,5): error CS9286: '(int, int)' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(1, 1)").WithArguments("(int, int)", "Property", "E.extension((long, long)).Property", "(long, long)").WithLocation(1, 1),
+            // (2,5): error CS1929: '(int, int)' does not contain a definition for 'Property' and the best extension method overload 'E.extension((long, long)).Property' requires a receiver of type '(long, long)'
             // _ = (2, 2).Property;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "(2, 2).Property").WithArguments("(int, int)", "Property").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(2, 2)").WithArguments("(int, int)", "Property", "E.extension((long, long)).Property", "(long, long)").WithLocation(2, 5));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -24969,9 +25093,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(object).M()' and 'E2.extension(object).M'
             // System.Console.Write(object.M);
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.M").WithArguments("E1.extension(object).M()", "E2.extension(object).M").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -25006,9 +25130,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension<T>(T).M()' and 'E2.extension<object>(object).M'
             // System.Console.Write(object.M);
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.M").WithArguments("E1.extension<T>(T).M()", "E2.extension<object>(object).M").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -25076,12 +25200,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (1,3): error CS1061: 'C' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,3): error CS0411: The type arguments for method 'E.extension<T>(I<T>).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // C.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C", "M").WithLocation(1, 3),
-            // (2,9): error CS1061: 'C' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("E.extension<T>(I<T>).M()").WithLocation(1, 3),
+            // (2,9): error CS0411: The type arguments for method 'E.M2<T>(I<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // new C().M2();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("C", "M2").WithLocation(2, 9));
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("E.M2<T>(I<T>)").WithLocation(2, 9));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -25143,9 +25267,9 @@ class C { }
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'C' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9339: The extension resolution is ambiguous between the following members: 'E3.extension(C).M()' and 'E2.extension(C).M'
             // System.Console.Write(C.M());
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "C.M").WithArguments("C", "M").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "C.M").WithArguments("E3.extension(C).M()", "E2.extension(C).M").WithLocation(1, 22));
     }
 
     [Fact]
@@ -25162,11 +25286,10 @@ interface I<T>
 interface I2 : I<int>, I<string> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider improving the symbols in this error message
         comp.VerifyEmitDiagnostics(
-            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<T>.M()' and 'I<T>.M()'
+            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<int>.M()' and 'I<string>.M()'
             // I2.M();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("I<T>.M()", "I<T>.M()").WithLocation(1, 4));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("I<int>.M()", "I<string>.M()").WithLocation(1, 4));
     }
 
     [Fact]
@@ -25184,9 +25307,9 @@ interface I2 : I<int>, I<string> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<T>.M<U>()' and 'I<T>.M<U>()'
+            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<int>.M<U>()' and 'I<string>.M<U>()'
             // I2.M<int>();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("I<T>.M<U>()", "I<T>.M<U>()").WithLocation(1, 4));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("I<int>.M<U>()", "I<string>.M<U>()").WithLocation(1, 4));
     }
 
     [Fact]
@@ -27643,9 +27766,9 @@ static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-            // (2,12): error CS9286: 'string[]' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'string[]' could be found (are you missing a using directive or an assembly reference?)
+            // (2,12): error CS1929: 'string[]' does not contain a definition for 'Property' and the best extension method overload 'E.extension(Span<object>).Property' requires a receiver of type 'System.Span<object>'
             // _ = i is { Property: 42 };
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "Property").WithArguments("string[]", "Property").WithLocation(2, 12),
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "Property").WithArguments("string[]", "Property", "E.extension(System.Span<object>).Property", "System.Span<object>").WithLocation(2, 12),
             // (3,1): error CS1929: 'string[]' does not contain a definition for 'M' and the best extension method overload 'E.M(Span<object>)' requires a receiver of type 'System.Span<object>'
             // i.M();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("string[]", "M", "E.M(System.Span<object>)", "System.Span<object>").WithLocation(3, 1));
@@ -28846,9 +28969,9 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,9): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).P<T>()' and 'E1.extension(object).P'
             // int i = object.P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.P").WithArguments("object", "P").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.P").WithArguments("E2.extension(object).P<T>()", "E1.extension(object).P").WithLocation(1, 9));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -28917,8 +29040,8 @@ static class E1
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<int>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<T1, T2>()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        AssertEx.SequenceEqual(["void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()", "void E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<T1, T2>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Empty(model.GetSymbolInfo(memberAccess).CandidateSymbols);
+        Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -29128,9 +29251,9 @@ static class E2
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(object).M()' and 'E2.extension(object).M'
             // System.Console.Write(object.M());
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.M").WithArguments("E1.extension(object).M()", "E2.extension(object).M").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29389,9 +29512,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,29): error CS9286: 'C' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,29): error CS1061: 'C' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
             // System.Console.Write(nameof(C.Property));
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "C.Property").WithArguments("C", "Property").WithLocation(1, 29));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "C.Property").WithArguments("C", "Property").WithLocation(1, 29));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29713,7 +29836,7 @@ public static partial class C
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2096
+                // Method begins at RVA 0x20b1
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -29728,11 +29851,11 @@ public static partial class C
                 37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
                 39 42 46 30 32 38 30 00 00
             )
-            // Method begins at RVA 0x2093
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20aa
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
         .method public hidebysig static 
             void M2 () cil managed 
@@ -29742,18 +29865,18 @@ public static partial class C
                 37 42 42 46 39 32 38 34 41 46 32 32 46 42 38 41
                 39 42 46 30 32 38 30 00 00
             )
-            // Method begins at RVA 0x2093
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20aa
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
     .method public hidebysig static 
         void M () cil managed 
     {
-        // Method begins at RVA 0x207b
+        // Method begins at RVA 0x2092
         // Code size 11 (0xb)
         .maxstack 8
         IL_0000: ldstr "ran "
@@ -29763,7 +29886,7 @@ public static partial class C
     .method public hidebysig static 
         void M2 () cil managed 
     {
-        // Method begins at RVA 0x2087
+        // Method begins at RVA 0x209e
         // Code size 11 (0xb)
         .maxstack 8
         IL_0000: ldstr "ran2"
@@ -29922,7 +30045,7 @@ static class E
         var symbol = model.GetDeclaredSymbol(extension);
 
         var format = new SymbolDisplayFormat(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints);
-        AssertEx.Equal("extension<T>(T) where T : struct", symbol.ToDisplayString(format));
+        AssertEx.Equal("E.extension<T>(T) where T : struct", symbol.ToDisplayString(format));
     }
 
     [Fact]
@@ -29945,7 +30068,7 @@ static class E
         var symbol = model.GetDeclaredSymbol(extension);
 
         var format = new SymbolDisplayFormat(parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeModifiers);
-        AssertEx.Equal("extension(ref readonly Int32)", symbol.ToDisplayString(format));
+        AssertEx.Equal("E.extension(ref readonly Int32)", symbol.ToDisplayString(format));
     }
 
     [Fact]
@@ -33246,34 +33369,34 @@ class C<T, S> {}
             extends [mscorlib]System.Object
         {
             // Methods
-            .method assembly hidebysig specialname static
+            .method assembly hidebysig specialname static 
                 void '<Extension>$' (
                     class C`2<!T, !S> c
-                ) cil managed
+                ) cil managed 
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2067
+                // Method begins at RVA 0x207e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
             } // end of method '<M>$80D5112A03B26C94C628316C4DA793B2'::'<Extension>$'
         } // end of class <M>$80D5112A03B26C94C628316C4DA793B2
         // Methods
-        .method assembly hidebysig
-            instance void M1 () cil managed
+        .method assembly hidebysig 
+            instance void M1 () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 38 30 44 35 31 31 32 41 30
                 33 42 32 36 43 39 34 43 36 32 38 33 31 36 43 34
                 44 41 37 39 33 42 32 00 00
             )
-            // Method begins at RVA 0x2071
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2088
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$373395272A45479DE48E8BB1CCB2C42B`2'::M1
     } // end of class <G>$373395272A45479DE48E8BB1CCB2C42B`2
     .class nested public auto ansi sealed specialname '<G>$6D4255504AB27A230E5AB4858D9E46EB`2'<$T0, $T1>
@@ -33287,59 +33410,59 @@ class C<T, S> {}
             extends [mscorlib]System.Object
         {
             // Methods
-            .method assembly hidebysig specialname static
+            .method assembly hidebysig specialname static 
                 void '<Extension>$' (
                     class C`2<!S, !T> c
-                ) cil managed
+                ) cil managed 
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2067
+                // Method begins at RVA 0x207e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
             } // end of method '<M>$2237E852D2E9F48E0CC6BF2FD528DA2A'::'<Extension>$'
         } // end of class <M>$2237E852D2E9F48E0CC6BF2FD528DA2A
         // Methods
-        .method assembly hidebysig
-            instance void M1 () cil managed
+        .method assembly hidebysig 
+            instance void M1 () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 32 32 33 37 45 38 35 32 44
                 32 45 39 46 34 38 45 30 43 43 36 42 46 32 46 44
                 35 32 38 44 41 32 41 00 00
             )
-            // Method begins at RVA 0x2071
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2088
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$6D4255504AB27A230E5AB4858D9E46EB`2'::M1
     } // end of class <G>$6D4255504AB27A230E5AB4858D9E46EB`2
     // Methods
-    .method assembly hidebysig static
+    .method assembly hidebysig static 
         void M1<T, S> (
             class C`2<!!T, !!S> c
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions1::M1
-    .method assembly hidebysig static
+    .method assembly hidebysig static 
         void M1<T, S> (
             class C`2<!!S, !!T> c
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
@@ -34922,9 +35045,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(int).M<T>(T)' and 'E2.extension<T>(T).M(int)'
+            // (1,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(int).M<T>(T)' and 'E2.extension<int>(int).M(int)'
             // int.M(42);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(int).M<T>(T)", "E2.extension<T>(T).M(int)").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(int).M<T>(T)", "E2.extension<int>(int).M(int)").WithLocation(1, 5));
     }
 
     [Fact]
@@ -35337,9 +35460,9 @@ class A
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS9286: 'A.C' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'A.C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,5): error CS0122: 'E1.extension<A.B>(I<A.B>).P' is inaccessible due to its protection level
             // _ = new A.C().P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new A.C().P").WithArguments("A.C", "P").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_BadAccess, "new A.C().P").WithArguments("E1.extension<A.B>(I<A.B>).P").WithLocation(1, 5));
     }
 
     [Fact]
@@ -35727,9 +35850,9 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (5,13): error CS9286: 'Color' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'Color' could be found (are you missing a using directive or an assembly reference?)
+            // (5,13): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(Color).P' and 'E2.extension(Color).P'
             //         _ = Color.P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "Color.P").WithArguments("Color", "P").WithLocation(5, 13));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "Color.P").WithArguments("E1.extension(Color).P", "E2.extension(Color).P").WithLocation(5, 13));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -35859,6 +35982,9 @@ static class E
 ";
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
+            // (6,3): error CS1061: 'C' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // c.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C", "M").WithLocation(6, 3),
             // (7,3): error CS1061: 'C' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
             // c.M2();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("C", "M2").WithLocation(7, 3),
@@ -36311,11 +36437,10 @@ static class E2
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, we'll want to describe what went wrong in a useful way
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9286: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(int).P' and 'E2.extension(in int).P'
             // System.Console.Write(int.P);
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "int.P").WithArguments("int", "P").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "int.P").WithArguments("E1.extension(int).P", "E2.extension(in int).P").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -36481,9 +36606,9 @@ static class E2
 ";
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (9,13): error CS9286: 'T' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'T' could be found (are you missing a using directive or an assembly reference?)
+            // (9,13): error CS0176: Member 'E1.extension<T>(ref T).P' cannot be accessed with an instance reference; qualify it with a type name instead
             //         _ = t.P; // Note: T is not COM import type...
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "t.P").WithArguments("T", "P").WithLocation(9, 13));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "t").WithArguments("E1.extension<T>(ref T).P").WithLocation(9, 13));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -36516,9 +36641,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,1): error CS9286: 'string' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // (2,1): error CS9339: The extension resolution is ambiguous between the following members: 'E.extension(object).M()' and 'E.extension(string).M'
             // s.M();
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "s.M").WithArguments("string", "M").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "s.M").WithArguments("E.extension(object).M()", "E.extension(string).M").WithLocation(2, 1));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -36547,9 +36672,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS9286: 'string' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // (1,1): error CS9339: The extension resolution is ambiguous between the following members: 'E.extension(string).M()' and 'E.extension(object).M'
             // string.M();
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "string.M").WithArguments("string", "M").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "string.M").WithArguments("E.extension(string).M()", "E.extension(object).M").WithLocation(1, 1));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -36581,9 +36706,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,1): error CS9286: 'I<string>' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'I<string>' could be found (are you missing a using directive or an assembly reference?)
+            // (2,1): error CS9339: The extension resolution is ambiguous between the following members: 'E.extension(I<object>).M()' and 'E.extension(I<string>).M'
             // i.M();
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.M").WithArguments("I<string>", "M").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "i.M").WithArguments("E.extension(I<object>).M()", "E.extension(I<string>).M").WithLocation(2, 1));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -36619,9 +36744,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,1): error CS9286: 'I<string>' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'I<string>' could be found (are you missing a using directive or an assembly reference?)
+            // (2,1): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(I<string>).M()' and 'E1.extension(I<object>).M'
             // i.M();
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.M").WithArguments("I<string>", "M").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "i.M").WithArguments("E2.extension(I<string>).M()", "E1.extension(I<object>).M").WithLocation(2, 1));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -37088,9 +37213,9 @@ public static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,9): error CS9339: The extension resolution is ambiguous between the following members: 'E2.M(object)' and 'E1.extension(object).M'
             // int x = new object().M;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new object().M").WithArguments("object", "M").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "new object().M").WithArguments("E2.M(object)", "E1.extension(object).M").WithLocation(1, 9));
     }
 
     [Fact]
@@ -37283,9 +37408,9 @@ _ = i.P;
 """;
         comp = CreateCompilationWithIL(src, ilSrc);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS9286: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (2,5): error CS1929: 'int' does not contain a definition for 'P' and the best extension method overload 'E.extension(params int[]).P' requires a receiver of type 'params int[]'
             // _ = i.P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.P").WithArguments("int", "P").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("int", "P", "E.extension(params int[]).P", "params int[]").WithLocation(2, 5));
 
         src = """
 int i = 0;
@@ -37435,7 +37560,27 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M<string>");
-        AssertEx.SequenceEqual(["void E.<G>$8048A6C8BE30A622530249B904B537EB<System.String>.M<U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Empty(model.GetMemberGroup(memberAccess));
+
+        src = """
+string s = null;
+s.M<string>();
+
+static class E
+{
+    public static void M<T, U>(this T t) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,3): error CS1061: 'string' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // s.M<string>();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<string>").WithArguments("string", "M").WithLocation(2, 3));
+
+        tree = comp.SyntaxTrees.First();
+        model = comp.GetSemanticModel(tree);
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M<string>");
+        AssertEx.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -37462,7 +37607,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<string, string>.M<string>");
-        AssertEx.SequenceEqual(["void E.<G>$373395272A45479DE48E8BB1CCB2C42B<System.String, System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        AssertEx.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -37728,9 +37873,9 @@ public static class E
             // (1,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension(string).M()' requires a receiver of type 'string'
             // object.M();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "object").WithArguments("object", "M", "E.extension(string).M()", "string").WithLocation(1, 1),
-            // (2,5): error CS9286: 'object' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (2,5): error CS1929: 'object' does not contain a definition for 'Property' and the best extension method overload 'E.extension(string).Property' requires a receiver of type 'string'
             // _ = object.Property;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.Property").WithArguments("object", "Property").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "object").WithArguments("object", "Property", "E.extension(string).Property", "string").WithLocation(2, 5));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -37975,6 +38120,178 @@ public static class E
         position = extension.OpenBraceToken.Position;
         Assert.Empty(model.LookupSymbols(position, null, name: "o"));
         Assert.Empty(model.LookupSymbols(position, null, name: null).OfType<IParameterSymbol>());
+    }
+
+    [Fact]
+    public void LookupSymbols_InField()
+    {
+        var src = """
+class C
+{
+    object field = null;
+}
+
+public static class E
+{
+    extension(object o)
+    {
+        public void M() { }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        int position = GetSyntax<LiteralExpressionSyntax>(tree, "null").EndPosition - 1;
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        Assert.Empty(model.LookupSymbols(position, o, name: "M"));
+        Assert.Empty(model.LookupNamespacesAndTypes(position, o, name: "M"));
+    }
+
+    [Fact]
+    public void LookupSymbols_UsedImports()
+    {
+        var src = """
+// here
+
+using N;
+
+namespace N
+{
+    public static class E
+    {
+        extension(object)
+        {
+            public static void M() => throw null;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertEqualAndNoDuplicates(["void N.E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M()"],
+            model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        model.GetDiagnostics().Verify(
+            // (3,1): hidden CS8019: Unnecessary using directive.
+            // using N;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(3, 1));
+    }
+
+    [Fact]
+    public void LookupSymbols_WasNotFullyInferred()
+    {
+        var src = """
+
+public static class E
+{
+    extension<T, U>(T t)
+    {
+        public void M() => throw null;
+        public int Property => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,20): error CS9295: The type parameter `U` is not referenced by either the extension parameter or a parameter of this member
+            //         public int Property => throw null;
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "Property").WithArguments("U").WithLocation(7, 20));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertEqualAndNoDuplicates(["void E.<G>$B7F0343159FB3A22D67EC9801612841A<System.Object, U>.M()"],
+            model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertEqualAndNoDuplicates(["System.Int32 E.<G>$B7F0343159FB3A22D67EC9801612841A<System.Object, U>.Property { get; }"],
+            model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertEqualAndNoDuplicates([
+            "void E.<G>$B7F0343159FB3A22D67EC9801612841A<System.Object, U>.M()",
+            "System.Int32 E.<G>$B7F0343159FB3A22D67EC9801612841A<System.Object, U>.Property { get; }",
+            .. _objectMembers
+            ], model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26549")]
+    public void LookupSymbols_FromBaseInterface_01()
+    {
+        var src = """
+
+public static class E
+{
+    extension<T>(I<T> i)
+    {
+        public void M(T t) => throw null;
+    }
+}
+
+public interface I<T> { }
+public class C : I<int> { }
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+        AssertEqualAndNoDuplicates(["void E.<G>$74EBC78B2187AB07A25EEFC1322000B0<System.Int32>.M(System.Int32 t)"],
+            model.LookupSymbols(position: 0, c, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        AssertEx.Equal("void E.<G>$74EBC78B2187AB07A25EEFC1322000B0<System.Int32>.M(System.Int32 t)",
+            method.ReduceExtensionMember(c).ToTestDisplayString());
+
+        var extensionMethod = comp.GlobalNamespace.GetTypeMember("E").GetMember<MethodSymbol>("M").GetPublicSymbol();
+        AssertEx.Equal("void I<System.Int32>.M<System.Int32>(System.Int32 t)", extensionMethod.ReduceExtensionMethod(c).ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26549")]
+    public void LookupSymbols_FromBaseInterface_02()
+    {
+        var src = """
+
+public static class E
+{
+    extension<T>(I<T> i)
+    {
+        public void M(T t) => throw null;
+    }
+}
+
+public interface I<T> { }
+public class C : I<int>, I<double> { }
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var c = ((Compilation)comp).GlobalNamespace.GetTypeMember("C");
+        Assert.Empty(model.LookupSymbols(position: 0, c, name: "M", includeReducedExtensionMethods: true));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        Assert.Null(method.ReduceExtensionMember(c));
+
+        var extensionMethod = comp.GlobalNamespace.GetTypeMember("E").GetMember<MethodSymbol>("M").GetPublicSymbol();
+        Assert.Null(extensionMethod.ReduceExtensionMethod(c));
     }
 
     [Fact]
@@ -38258,9 +38575,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<T>(T).M()' and 'E2.extension<T>(T).M()'
+            // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<string>(string).M()' and 'E2.extension<string>(string).M()'
             // string.M();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension<T>(T).M()", "E2.extension<T>(T).M()").WithLocation(1, 8));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension<string>(string).M()", "E2.extension<string>(string).M()").WithLocation(1, 8));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -39451,6 +39768,11 @@ static class E
         invocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
         AssertEx.Equal("void E.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
 
+        var symbolInfo = model.GetSymbolInfo(GetSyntax<ThisExpressionSyntax>(tree, "this"));
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason);
+        Assert.True(symbolInfo.CandidateSymbols is [IParameterSymbol { Name: "this", ContainingSymbol: INamedTypeSymbol { IsExtension: true } }]);
+
         invocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2(new object())");
         AssertEx.Equal("void E.M2(this System.Object o)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
     }
@@ -39495,12 +39817,20 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
         AssertEx.Equal("void E.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify).VerifyDiagnostics();
+
+        void verify(ModuleSymbol m)
+        {
+            var type = m.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
+            var method = type.GetTypeMember("").GetMember<MethodSymbol>("M");
+            Assert.Null(method.ThisParameter);
+        }
     }
 
     [Fact]
@@ -39673,7 +40003,6 @@ static class E
 
     public partial class RegionAnalysisTests : FlowTestBase
     {
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : consider removing `this` from the region analysis tests
         [Fact]
         public void RegionAnalysis_01()
         {
@@ -39697,12 +40026,12 @@ CapturedInside:
 CapturedOutside:
 DataFlowsIn: i, i2
 DataFlowsOut:
-DefinitelyAssignedOnEntry: i, this, i2
-DefinitelyAssignedOnExit: i, this, i2
+DefinitelyAssignedOnEntry: i, i2
+DefinitelyAssignedOnExit: i, i2
 ReadInside: i, i2
 ReadOutside:
 WrittenInside:
-WrittenOutside: i, this, i2
+WrittenOutside: i, i2
 """, analysisResults);
         }
 
@@ -39727,14 +40056,14 @@ AlwaysAssigned:
 Captured:
 CapturedInside:
 CapturedOutside:
-DataFlowsIn: this
+DataFlowsIn:
 DataFlowsOut:
-DefinitelyAssignedOnEntry: i, this, i2
-DefinitelyAssignedOnExit: i, this, i2
-ReadInside: this
+DefinitelyAssignedOnEntry: i, i2
+DefinitelyAssignedOnExit: i, i2
+ReadInside:
 ReadOutside:
 WrittenInside:
-WrittenOutside: i, this, i2
+WrittenOutside: i, i2
 """, analysisResults);
         }
 
@@ -39764,12 +40093,12 @@ CapturedInside: i, i2, i3
 CapturedOutside:
 DataFlowsIn: i, i2, i3
 DataFlowsOut:
-DefinitelyAssignedOnEntry: i, this, i2, i3
-DefinitelyAssignedOnExit: i, this, i2, i3
+DefinitelyAssignedOnEntry: i, i2, i3
+DefinitelyAssignedOnExit: i, i2, i3
 ReadInside: i, i2, i3
 ReadOutside:
 WrittenInside:
-WrittenOutside: i, this, i2, i3
+WrittenOutside: i, i2, i3
 """, analysisResults);
         }
 
@@ -39796,12 +40125,12 @@ CapturedInside:
 CapturedOutside:
 DataFlowsIn: i, i2
 DataFlowsOut:
-DefinitelyAssignedOnEntry: i, this, i2
-DefinitelyAssignedOnExit: i, this, i2
+DefinitelyAssignedOnEntry: i, i2
+DefinitelyAssignedOnExit: i, i2
 ReadInside: i, i2
 ReadOutside: i, i2
 WrittenInside:
-WrittenOutside: i, this, i2
+WrittenOutside: i, i2
 """, analysisResults);
         }
 
@@ -39828,12 +40157,12 @@ CapturedInside:
 CapturedOutside:
 DataFlowsIn:
 DataFlowsOut: i, i2
-DefinitelyAssignedOnEntry: this
-DefinitelyAssignedOnExit: i, this, i2
+DefinitelyAssignedOnEntry:
+DefinitelyAssignedOnExit: i, i2
 ReadInside:
 ReadOutside: i, i2
 WrittenInside: i, i2
-WrittenOutside: this
+WrittenOutside:
 """, analysisResults);
         }
 
@@ -39860,12 +40189,12 @@ CapturedInside:
 CapturedOutside:
 DataFlowsIn:
 DataFlowsOut:
-DefinitelyAssignedOnEntry: i, this, i2
-DefinitelyAssignedOnExit: i, this, i2
+DefinitelyAssignedOnEntry: i, i2
+DefinitelyAssignedOnExit: i, i2
 ReadInside:
 ReadOutside:
 WrittenInside: i, i2
-WrittenOutside: i, this, i2
+WrittenOutside: i, i2
 """, analysisResults);
         }
 
@@ -39892,12 +40221,12 @@ CapturedInside:
 CapturedOutside:
 DataFlowsIn: i2
 DataFlowsOut: i, i2
-DefinitelyAssignedOnEntry: i, this, i2
-DefinitelyAssignedOnExit: i, this, i2
+DefinitelyAssignedOnEntry: i, i2
+DefinitelyAssignedOnExit: i, i2
 ReadInside: i2
 ReadOutside: i, i2
 WrittenInside: i, i2
-WrittenOutside: i, this, i2
+WrittenOutside: i, i2
 """, analysisResults);
         }
 
@@ -39927,12 +40256,12 @@ CapturedInside: i, i2
 CapturedOutside:
 DataFlowsIn: i3
 DataFlowsOut:
-DefinitelyAssignedOnEntry: i, this, i2, i3
-DefinitelyAssignedOnExit: i, this, i2, i3
+DefinitelyAssignedOnEntry: i, i2, i3
+DefinitelyAssignedOnExit: i, i2, i3
 ReadInside: i, i2, i3
 ReadOutside:
 WrittenInside:
-WrittenOutside: i, this, i2, i3
+WrittenOutside: i, i2, i3
 """, analysisResults);
         }
 
@@ -39962,12 +40291,12 @@ CapturedInside: i, i2
 CapturedOutside:
 DataFlowsIn:
 DataFlowsOut: i, i2, i3
-DefinitelyAssignedOnEntry: this
-DefinitelyAssignedOnExit: i, this, i2, i3
+DefinitelyAssignedOnEntry:
+DefinitelyAssignedOnExit: i, i2, i3
 ReadInside:
 ReadOutside: i, i2, i3
 WrittenInside: i, i2, i3
-WrittenOutside: this
+WrittenOutside:
 """, analysisResults);
         }
     }
@@ -40465,6 +40794,32 @@ public class C : Base
     }
 
     [Fact]
+    public void FunctionType_InstanceReceiver_13()
+    {
+        var src = """
+var x = 42.M;
+
+public static class E
+{
+    extension<T, U>(T t)
+    {
+        public void M(U u) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var x = 42.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "42.M").WithLocation(1, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, "var x = 42.M");
+        Assert.True(model.GetTypeInfo(localDeclaration.Type).Type.IsErrorType());
+    }
+
+    [Fact]
     public void FunctionType_ColorColorReceiver_01()
     {
         var src = """
@@ -40588,9 +40943,9 @@ public static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,17): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<T>(T).M()' and 'E2.extension<T>(T).M()'
+            // (5,17): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<Color>(Color).M()' and 'E2.extension<Color>(Color).M()'
             //         var x = Color.M;
-            Diagnostic(ErrorCode.ERR_AmbigCall, "Color.M").WithArguments("E1.extension<T>(T).M()", "E2.extension<T>(T).M()").WithLocation(5, 17));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "Color.M").WithArguments("E1.extension<Color>(Color).M()", "E2.extension<Color>(Color).M()").WithLocation(5, 17));
     }
 
     [Fact]
@@ -42948,7 +43303,7 @@ static class E
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206a
+                // Method begins at RVA 0x2085
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -42963,11 +43318,11 @@ static class E
                 35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
                 39 45 44 34 44 36 39 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname static 
             int32 get_P () cil managed 
@@ -42977,11 +43332,11 @@ static class E
                 35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
                 39 45 44 34 44 36 39 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname static 
             void set_P (
@@ -42993,11 +43348,11 @@ static class E
                 35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
                 39 45 44 34 44 36 39 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property int32 P()
@@ -43081,7 +43436,7 @@ static class E
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206a
+                // Method begins at RVA 0x2085
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -43096,11 +43451,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname 
             instance int32 get_P () cil managed 
@@ -43110,11 +43465,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname 
             instance void set_P (
@@ -43126,11 +43481,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property instance int32 P()
@@ -43232,7 +43587,7 @@ static class E
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206a
+                // Method begins at RVA 0x2085
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -43247,11 +43602,11 @@ static class E
                 35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
                 39 45 44 34 44 36 39 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname static 
             int32 get_P () cil managed 
@@ -43261,11 +43616,11 @@ static class E
                 35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
                 39 45 44 34 44 36 39 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname static 
             void set_P (
@@ -43277,11 +43632,11 @@ static class E
                 35 45 44 41 45 42 38 43 31 42 39 30 36 32 46 35
                 39 45 44 34 44 36 39 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property int32 P()
@@ -43372,7 +43727,7 @@ static class E
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206a
+                // Method begins at RVA 0x2085
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -43387,11 +43742,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname 
             instance int32 get_P () cil managed 
@@ -43401,11 +43756,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname 
             instance void set_P (
@@ -43417,11 +43772,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property instance int32 P()
@@ -43558,7 +43913,7 @@ static class E
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206a
+                // Method begins at RVA 0x2085
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -43573,11 +43928,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname static 
             int32 get_P () cil managed 
@@ -43587,11 +43942,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname static 
             void set_P (
@@ -43603,11 +43958,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property int32 P()
@@ -43714,7 +44069,7 @@ static class E
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206a
+                // Method begins at RVA 0x2085
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -43729,11 +44084,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname static 
             int32 get_P () cil managed 
@@ -43743,11 +44098,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname static 
             void set_P (
@@ -43759,11 +44114,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property int32 P()
@@ -43848,7 +44203,7 @@ static class E
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206a
+                // Method begins at RVA 0x2085
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -43863,11 +44218,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
         .method private hidebysig specialname 
             instance int32 get_P () cil managed 
@@ -43877,11 +44232,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         .method private hidebysig specialname 
             instance void set_P (
@@ -43893,11 +44248,11 @@ static class E
                 41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
                 46 36 45 42 33 37 32 00 00
             )
-            // Method begins at RVA 0x2067
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x207e
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::set_P
         // Properties
         .property instance int32 P()
@@ -44289,9 +44644,6 @@ static class E
             Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69").WithLocation(1, 1));
 
         AssertEx.Equal("<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69", comp.GetTypeByMetadataName("E").GetTypeMembers().Single().ExtensionGroupingName);
-
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : we should find the unspeakable nested type
-        Assert.Null(comp.GetTypeByMetadataName("E+<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69"));
     }
 
     [Fact]
@@ -45746,12 +46098,11 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality consider reporting a better containing symbol
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // oNull.M(); // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(4, 1));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object)").WithLocation(4, 1));
     }
 
     [Fact]
@@ -45978,12 +46329,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (6,5): warning CS8604: Possible null reference argument for parameter 'o2' in 'void extension(object).M(object o2)'.
+            // (6,5): warning CS8604: Possible null reference argument for parameter 'o2' in 'void E.extension(object).M(object o2)'.
             // o.M(oNull1);
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull1").WithArguments("o2", "void extension(object).M(object o2)").WithLocation(6, 5),
-            // (15,11): warning CS8604: Possible null reference argument for parameter 'o2' in 'void extension(object).M2(object o2)'.
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull1").WithArguments("o2", "void E.extension(object).M(object o2)").WithLocation(6, 5),
+            // (15,11): warning CS8604: Possible null reference argument for parameter 'o2' in 'void E.extension(object).M2(object o2)'.
             // object.M2(oNull3);
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull3").WithArguments("o2", "void extension(object).M2(object o2)").WithLocation(15, 11));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull3").WithArguments("o2", "void E.extension(object).M2(object o2)").WithLocation(15, 11));
     }
 
     [Fact]
@@ -46172,9 +46523,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,9): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (4,9): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // var x = oNull.M;
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(4, 9));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object)").WithLocation(4, 9));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -46228,15 +46579,15 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (8,26): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(object?).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // (8,26): warning CS8621: Nullability of reference types in return type of 'object? E.extension<object?>(object?).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
             // System.Func<object> x3 = oNull2.M; // 1
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull2.M").WithArguments("object? extension<object?>(object?).M()", "System.Func<object>").WithLocation(8, 26),
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull2.M").WithArguments("object? E.extension<object?>(object?).M()", "System.Func<object>").WithLocation(8, 26),
             // (9,26): warning CS8621: Nullability of reference types in return type of 'object? E.M2<object?>(object? t)' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
             // System.Func<object> x4 = oNull2.M2; // 2
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull2.M2").WithArguments("object? E.M2<object?>(object? t)", "System.Func<object>").WithLocation(9, 26),
-            // (12,29): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(object?).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // (12,29): warning CS8621: Nullability of reference types in return type of 'object? E.extension<object?>(object?).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
             // _ = new System.Func<object>(oNull3.M); // 3
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull3.M").WithArguments("object? extension<object?>(object?).M()", "System.Func<object>").WithLocation(12, 29),
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull3.M").WithArguments("object? E.extension<object?>(object?).M()", "System.Func<object>").WithLocation(12, 29),
             // (13,29): warning CS8621: Nullability of reference types in return type of 'object? E.M2<object?>(object? t)' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
             // _ = new System.Func<object>(oNull3.M2); // 4
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull3.M2").WithArguments("object? E.M2<object?>(object? t)", "System.Func<object>").WithLocation(13, 29));
@@ -46303,11 +46654,11 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,33): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(object?).M(object? t2)' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+            // (4,33): warning CS8621: Nullability of reference types in return type of 'object? E.extension<object?>(object?).M(object? t2)' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
             // System.Func<object, object> x = oNull.M; // 1
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull.M").WithArguments("object? extension<object?>(object?).M(object? t2)", "System.Func<object, object>").WithLocation(4, 33),
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull.M").WithArguments("object? E.extension<object?>(object?).M(object? t2)", "System.Func<object, object>").WithLocation(4, 33),
             // (5,34): warning CS8621: Nullability of reference types in return type of 'object? E.M2<object?>(object? t, object? t2)' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
-            // System.Func<object, object> xx = oNull.M2; // 2
+            // System.Func<object, object> x2 = oNull.M2; // 2
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "oNull.M2").WithArguments("object? E.M2<object?>(object? t, object? t2)", "System.Func<object, object>").WithLocation(5, 34));
     }
 
@@ -46339,15 +46690,15 @@ class C<T> { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (6,28): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void extension<object?>(C<object?>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
+            // (6,28): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void E.extension<object?>(C<object?>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
             // System.Action<object?> z = Derived1.M2;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived1.M2").WithArguments("t2", "void extension<object?>(C<object?>).M2(object t2)", "System.Action<object?>").WithLocation(6, 28),
-            // (7,28): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void extension<object>(C<object>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived1.M2").WithArguments("t2", "void E.extension<object?>(C<object?>).M2(object t2)", "System.Action<object?>").WithLocation(6, 28),
+            // (7,28): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void E.extension<object>(C<object>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
             // System.Action<object?> t = Derived2.M2;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived2.M2").WithArguments("t2", "void extension<object>(C<object>).M2(object t2)", "System.Action<object?>").WithLocation(7, 28),
-            // (8,32): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void extension<object>(C<object>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived2.M2").WithArguments("t2", "void E.extension<object>(C<object>).M2(object t2)", "System.Action<object?>").WithLocation(7, 28),
+            // (8,32): warning CS8622: Nullability of reference types in type of parameter 't2' of 'void E.extension<object>(C<object>).M2(object t2)' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
             // _ = new System.Action<object?>(Derived2.M2);
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived2.M2").WithArguments("t2", "void extension<object>(C<object>).M2(object t2)", "System.Action<object?>").WithLocation(8, 32));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Derived2.M2").WithArguments("t2", "void E.extension<object>(C<object>).M2(object t2)", "System.Action<object?>").WithLocation(8, 32));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78022")]
@@ -46420,9 +46771,9 @@ class C<T> { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,25): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(C<object?>).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // (3,25): warning CS8621: Nullability of reference types in return type of 'object? E.extension<object?>(C<object?>).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
             // System.Func<object> x = Derived1.M; // 1
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Derived1.M").WithArguments("object? extension<object?>(C<object?>).M()", "System.Func<object>").WithLocation(3, 25));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Derived1.M").WithArguments("object? E.extension<object?>(C<object?>).M()", "System.Func<object>").WithLocation(3, 25));
 
         // Tracked by https://github.com/dotnet/roslyn/issues/78022 : the semantic model is incorrect for re-inferred method group
         var tree = comp.SyntaxTrees.First();
@@ -46468,9 +46819,9 @@ class C<T> { }
             // (3,9): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(C<T>)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
             // var x = Derived1.M;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Derived1.M").WithArguments("E.extension<T>(C<T>)", "T", "object?").WithLocation(3, 9),
-            // (3,9): warning CS8621: Nullability of reference types in return type of 'object? extension<object?>(C<object?>).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+            // (3,9): warning CS8621: Nullability of reference types in return type of 'object? E.extension<object?>(C<object?>).M()' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
             // var x = Derived1.M;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Derived1.M").WithArguments("object? extension<object?>(C<object?>).M()", "System.Func<object>").WithLocation(3, 9),
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Derived1.M").WithArguments("object? E.extension<object?>(C<object?>).M()", "System.Func<object>").WithLocation(3, 9),
             // (6,9): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.M2<T>(C<T>)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
             // var z = new Derived1().M2;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "new Derived1().M2").WithArguments("E.M2<T>(C<T>)", "T", "object?").WithLocation(6, 9),
@@ -46573,9 +46924,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,16): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (4,16): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // var (x1, x2) = oNull; // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(4, 16));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object)").WithLocation(4, 16));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -46606,9 +46957,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,21): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (4,21): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // var ((x1, x2), _) = oNull; // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(4, 21));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object)").WithLocation(4, 21));
     }
 
     [Fact]
@@ -47010,9 +47361,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,23): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (5,23): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // foreach ((_, _, _) in oNull) { } // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(5, 23));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object)").WithLocation(5, 23));
     }
 
     [Fact]
@@ -47102,7 +47453,7 @@ public static class E
         var libComp = CreateCompilation(libSrc);
 
         CompileAndVerify(libComp).VerifyTypeIL("E", """
- .class public auto ansi abstract sealed beforefieldinit E
+.class public auto ansi abstract sealed beforefieldinit E
     extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
@@ -47131,7 +47482,7 @@ public static class E
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20a9
+                // Method begins at RVA 0x20c4
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -47152,7 +47503,7 @@ public static class E
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x20a9
+                // Method begins at RVA 0x20c4
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -47167,11 +47518,11 @@ public static class E
                 36 34 41 35 41 33 38 31 41 33 31 45 35 32 34 32
                 37 45 35 33 43 41 42 00 00
             )
-            // Method begins at RVA 0x20a6
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20bd
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M
         .method public hidebysig 
             instance void M2 () cil managed 
@@ -47181,11 +47532,11 @@ public static class E
                 44 31 42 33 38 38 33 41 39 39 45 32 31 33 43 32
                 44 36 31 38 45 38 32 00 00
             )
-            // Method begins at RVA 0x20a6
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20bd
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$C43E2675C7BBF9284AF22FB8A9BF0280'::M2
     } // end of class <G>$C43E2675C7BBF9284AF22FB8A9BF0280
     // Methods
@@ -47200,7 +47551,7 @@ public static class E
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x209d
+        // Method begins at RVA 0x20b4
         // Code size 8 (0x8)
         .maxstack 8
         IL_0000: ldarg.0
@@ -47219,7 +47570,7 @@ public static class E
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x209d
+        // Method begins at RVA 0x20b4
         // Code size 8 (0x8)
         .maxstack 8
         IL_0000: ldarg.0
@@ -47405,7 +47756,7 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object?)'.
             // oNull.M();
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object?)").WithLocation(4, 1));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object?)").WithLocation(4, 1));
     }
 
     [Fact]
@@ -47984,9 +48335,9 @@ class C
             // (7,5): warning CS8602: Dereference of a possibly null reference.
             //     o.P.ToString(); // 2
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(7, 5),
-            // (13,73): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (13,73): error CS0120: An object reference is required for the non-static field, method, or property 'E.extension(object).P'
             //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(object.P))]
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.P").WithArguments("object", "P").WithLocation(13, 73));
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "object").WithArguments("E.extension(object).P").WithLocation(13, 73));
 
         src = """
 #nullable enable
@@ -48363,7 +48714,7 @@ public static class E
                     .custom instance void [System.Runtime]System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute::.ctor(bool) = (
                         01 00 00 00 00
                     )
-                // Method begins at RVA 0x2094
+                // Method begins at RVA 0x20ac
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -48385,7 +48736,7 @@ public static class E
                     .custom instance void [System.Runtime]System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute::.ctor(bool) = (
                         01 00 01 00 00
                     )
-                // Method begins at RVA 0x2094
+                // Method begins at RVA 0x20ac
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -48400,11 +48751,11 @@ public static class E
                 41 39 41 46 31 37 38 46 37 38 43 39 44 46 42 32
                 45 43 31 43 46 43 42 00 00
             )
-            // Method begins at RVA 0x2096
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20ae
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [System.Runtime]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$A73C5770D9DE823384DE9FB3AFAAD000'::AssertTrue
         .method public hidebysig 
             instance class C AssertFalse () cil managed 
@@ -48414,11 +48765,11 @@ public static class E
                 37 35 44 32 36 46 46 30 45 39 43 42 36 46 32 42
                 33 30 41 41 33 46 37 00 00
             )
-            // Method begins at RVA 0x2096
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x20ae
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [System.Runtime]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$A73C5770D9DE823384DE9FB3AFAAD000'::AssertFalse
     } // end of class <G>$A73C5770D9DE823384DE9FB3AFAAD000
     // Methods
@@ -48434,7 +48785,7 @@ public static class E
             .custom instance void [System.Runtime]System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute::.ctor(bool) = (
                 01 00 00 00 00
             )
-        // Method begins at RVA 0x2091
+        // Method begins at RVA 0x20a9
         // Code size 2 (0x2)
         .maxstack 8
         IL_0000: ldnull
@@ -48452,7 +48803,7 @@ public static class E
             .custom instance void [System.Runtime]System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute::.ctor(bool) = (
                 01 00 01 00 00
             )
-        // Method begins at RVA 0x2091
+        // Method begins at RVA 0x20a9
         // Code size 2 (0x2)
         .maxstack 8
         IL_0000: ldnull
@@ -48692,9 +49043,9 @@ public class MyCollection : IEnumerable<object>
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (7,39): warning CS8604: Possible null reference argument for parameter 'o' in 'void extension(MyCollection).Add(object o)'.
+            // (7,39): warning CS8604: Possible null reference argument for parameter 'o' in 'void E.extension(MyCollection).Add(object o)'.
             // MyCollection c = new MyCollection() { oNull, oNotNull };
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void extension(MyCollection).Add(object o)").WithLocation(7, 39));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void E.extension(MyCollection).Add(object o)").WithLocation(7, 39));
     }
 
     [Fact]
@@ -48725,9 +49076,9 @@ public class MyCollection : IEnumerable<object>
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (7,19): warning CS8604: Possible null reference argument for parameter 'o' in 'void extension(MyCollection).Add(object o)'.
+            // (7,19): warning CS8604: Possible null reference argument for parameter 'o' in 'void E.extension(MyCollection).Add(object o)'.
             // MyCollection c = [oNull, oNotNull];
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void extension(MyCollection).Add(object o)").WithLocation(7, 19));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void E.extension(MyCollection).Add(object o)").WithLocation(7, 19));
     }
 
     [Fact]
@@ -49363,9 +49714,9 @@ static class E
 
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (7,11): warning CS8604: Possible null reference argument for parameter 'c' in 'extension(C)'.
+            // (7,11): warning CS8604: Possible null reference argument for parameter 'c' in 'E.extension(C)'.
             // _ = await cNull;
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "cNull").WithArguments("c", "extension(C)").WithLocation(7, 11));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "cNull").WithArguments("c", "E.extension(C)").WithLocation(7, 11));
     }
 
     [Fact]

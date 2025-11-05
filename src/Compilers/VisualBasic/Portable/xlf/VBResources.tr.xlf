@@ -558,11 +558,6 @@
         <target state="translated">VB'de yerel tamsayı türü yoktur.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Trees0">
-        <source>trees({0})</source>
-        <target state="translated">ağaçlar({0})</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TreesMustHaveRootNode">
         <source>trees({0}) must have root node with SyntaxKind.CompilationUnit.</source>
         <target state="translated">ağaçların({0}) SyntaxKind.CompilationUnit içeren kök düğümü olmalıdır.</target>
@@ -813,16 +808,6 @@
         <target state="translated">hiç bir giriş kaynağı belirtilmedi</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded">
-        <source>source file '{0}' specified multiple times</source>
-        <target state="translated">'{0}' kaynak dosyası birden çok kez belirtildi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_FileAlreadyIncluded_Title">
-        <source>Source file specified multiple times</source>
-        <target state="translated">Kaynak dosya birden çok kez belirtildi</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
         <source>can't open '{0}' for writing: {1}</source>
         <target state="translated">yazmak için '{0}' açılamıyor: {1}</target>
@@ -861,16 +846,6 @@
       <trans-unit id="WRN_NoConfigInResponseFile_Title">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
         <target state="translated">Bir yanıt dosyası içinde belirtildiğinden /noconfig seçeneği yoksayılıyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId">
-        <source>warning number '{0}' for the option '{1}' is either not configurable or not valid</source>
-        <target state="translated">'{1}' seçeneği için '{0}' uyarı numarası yapılandırılamıyor veya geçerli değil</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidWarningId_Title">
-        <source>Warning number is either not configurable or not valid</source>
-        <target state="translated">Uyarı numarası yapılandırılamaz veya geçersiz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSourcesOut">
@@ -2993,11 +2968,6 @@
       <trans-unit id="ERR_UnrecognizedEnd">
         <source>'End' statement not valid.</source>
         <target state="translated">'End' deyimi geçerli değil.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ArrayInitForNonArray2">
-        <source>Array initializers are valid only for arrays, but the type of '{0}' is '{1}'.</source>
-        <target state="translated">Dizi başlatıcılar yalnızca diziler için geçerlidir; ancak '{0}' öğesinin türü '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndRegionNoRegion">
@@ -6749,16 +6719,6 @@
         <target state="translated">Conditional' özniteliği yalnızca 'Sub' bildirimlerinde geçerlidir</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute">
-        <source>Use command-line option '{0}' or appropriate project settings instead of '{1}'.</source>
-        <target state="translated">'{1}' yerine '{0}' komut satırı seçeneğini veya uygun proje ayarlarını kullanın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UseSwitchInsteadOfAttribute_Title">
-        <source>Use command-line option /keyfile, /keycontainer, or /delaysign instead of AssemblyKeyFileAttribute, AssemblyKeyNameAttribute, or AssemblyDelaySignAttribute</source>
-        <target state="translated">/keyfile, /keycontainer veya /delaysign komut satırı seçeneğini AssemblyKeyFileAttribute, AssemblyKeyNameAttribute veya AssemblyDelaySignAttribute yerine kullanın</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_RecursiveAddHandlerCall">
         <source>Statement recursively calls the containing '{0}' for event '{1}'.</source>
         <target state="translated">Deyim, '{1}' olayı için kapsayan '{0}' öğesini yinelemeli olarak çağırıyor.</target>
@@ -7437,16 +7397,6 @@
       <trans-unit id="WRN_RelDelegatePassedToRemoveHandler_Title">
         <source>The 'AddressOf' expression has no effect in this context because the method argument to 'AddressOf' requires a relaxed conversion to the delegate type of the event</source>
         <target state="translated">AddressOf' deyimine geçirilen metot bağımsız değişkeni olayın temsilci türü için gevşek dönüştürme gerektirdiğinden bu bağlamda 'AddressOf' etkisizdir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred. Use an 'As' clause to specify a different type.</source>
-        <target state="translated">Aralık değişkeninin türü çıkarsanamadığından, Object türünde olduğu varsayıldı. Başka bir tür belirtmek için 'As' yan tümcesi kullanın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_QueryMissingAsClauseinVarDecl_Title">
-        <source>Range variable is assumed to be of type Object because its type cannot be inferred</source>
-        <target state="translated">Aralık değişkeninin türü çıkarsanamadığından Object türü olarak kabul edilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultilineLambdaMissingFunction">

@@ -8,12 +8,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -34,10 +32,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public sealed partial class CompilationVerifier
     {
         /// <summary>
-        /// When true this will dump assemblies to disk when verification fails or there are emit errors writing
-        /// the compilation to bytes
+        /// When non-null this will dump assemblies to disk in the given path
         /// </summary>
-        internal static bool DumpAssembliesOnFailure { get; set; }
+        internal static string? DumpAssemblyLocation { get; set; } = Environment.GetEnvironmentVariable("ROSLYN_TEST_DUMP_PATH");
 
         private static int s_dumpCount;
 
@@ -94,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public string Dump(string? methodName = null)
         {
             var emitData = Emit(manifestResources: null, EmitOptions.Default);
-            var dumpDir = DumpAssemblyData(emitData.Modules);
+            var dumpDir = DumpAssemblyData(emitData.Modules, DumpAssemblyLocation ?? "");
             string extension = emitData.EmittedModule.Kind == OutputKind.ConsoleApplication ? ".exe" : ".dll";
             string modulePath = Path.Combine(dumpDir, emitData.EmittedModule.SimpleName + extension);
 
@@ -168,10 +165,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return output.ToString();
         }
 
-        public static string DumpAssemblyData(IEnumerable<ModuleData> modules)
+        public static string DumpAssemblyData(IEnumerable<ModuleData> modules, string dumpBasePath)
         {
             var dumpCount = Interlocked.Increment(ref s_dumpCount);
-            var dumpDirectory = Path.Combine(TempRoot.Root, "dumps", dumpCount.ToString());
+            var dumpDirectory = Path.Combine(dumpBasePath is "" ? TempRoot.Root : dumpBasePath, "dumps", dumpCount.ToString());
             _ = Directory.CreateDirectory(dumpDirectory);
 
             // Limit the number of dumps to 10. After 10 we're likely in a bad state and are 
@@ -348,9 +345,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             catch (Exception)
             {
-                if (DumpAssembliesOnFailure)
+                if (DumpAssemblyLocation is string dumpPath)
                 {
-                    DumpAssemblyData(emitData.Modules);
+                    DumpAssemblyData(emitData.Modules, dumpPath);
                 }
 
                 if (peVerify.Status.HasFlag(VerificationStatus.PassesOrFailFast))
@@ -607,6 +604,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // can't be loaded as a dependency (via Assembly.ReflectionOnlyLoad) in the same domain.
                 dependencyList.Insert(0, moduleData);
 
+                if (DumpAssemblyLocation is string dumpAssemblyLocation)
+                {
+                    DumpAssemblyData(dependencyList, dumpAssemblyLocation);
+                }
+
                 _emitData = new EmitData(
                     moduleData,
                     dependencyList.ToImmutableArray(),
@@ -616,7 +618,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             else
             {
-                var dumpDir = DumpAssembliesOnFailure ? DumpAssemblyData(dependencyList) : null;
+                var dumpDir = DumpAssemblyLocation is string dumpAssemblyLocation ? DumpAssemblyData(dependencyList, dumpAssemblyLocation) : null;
                 throw new EmitException(diagnostics.ToReadOnlyAndFree(), dumpDir);
             }
         }
@@ -1085,6 +1087,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return null;
             }
         }
-
     }
 }

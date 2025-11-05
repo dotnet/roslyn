@@ -324,6 +324,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public static bool IsValidInOrRefReadonlyExtensionParameterType(this TypeSymbol type)
+        {
+            return type is { IsValueType: true, TypeKind: not TypeKind.TypeParameter };
+        }
+
         public static bool IsInterfaceType(this TypeSymbol type)
         {
             RoslynDebug.Assert((object)type != null);
@@ -673,6 +678,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            return type.FindTypeLessVisibleThan(sym, ref useSiteInfo) is null;
+        }
+
+        public static TypeSymbol? FindTypeLessVisibleThan(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
             var visitTypeData = s_visitTypeDataPool.Allocate();
 
             try
@@ -685,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                             canDigThroughNullable: true); // System.Nullable is public
 
                 useSiteInfo = visitTypeData.UseSiteInfo;
-                return result is null;
+                return result;
             }
             finally
             {

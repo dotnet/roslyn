@@ -67,6 +67,11 @@
         <target state="translated">無法將運算子 '{0}' 套用至 'default' 和類型為 '{1}' 的運算元，原因是其為未知參考型別的型別參數</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigExtension">
+        <source>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
         <target state="translated">在此內容中，類型 '{1}' 與參數 '{2}' 之間的識別碼 '{0}' 不明確。</target>
@@ -355,6 +360,11 @@
       <trans-unit id="ERR_BadUsingStaticType">
         <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
         <target state="translated">'{0}' 類型對 'using static' 無效。只能使用類別、結構、介面、列舉、委派或命名空間。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadVisBaseType">
+        <source>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </source>
+        <target state="new">Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
@@ -712,6 +722,16 @@
         <target state="translated">使用者定義的運算子 '{0}' 的明確實作必須宣告為靜態</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberReturnTypeMismatch">
+        <source>'{0}': return type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': return type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitInterfaceMemberTypeMismatch">
+        <source>'{0}': type must be '{1}' to match implemented member '{2}'</source>
+        <target state="new">'{0}': type must be '{1}' to match implemented member '{2}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">不允許明確應用 'System.Runtime.CompilerServices.NullableAttribute'。</target>
@@ -812,11 +832,6 @@
         <target state="translated">運算式樹狀架構不得包含元組 == 或 != 運算子</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
-        <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
-        <target state="translated">運算式樹狀結構不能包含 UTF-8 字串轉換或常值。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">運算式樹狀架構不得包含 with 運算式。</target>
@@ -893,11 +908,6 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
-        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
-        <target state="translated">C# 8.0 中無法使用功能 '{0}'。請使用 {1} 或更新的語言版本。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">C# 8.0 中無法使用功能 '{0}'。請使用 {1} 或更新的語言版本。</target>
         <note />
@@ -1080,6 +1090,11 @@
       <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
         <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedVariableUsedInForbiddenZone">
+        <source>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</source>
+        <target state="new">Reference to an implicitly-typed variable '{0}' is not permitted in this location.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -2258,8 +2273,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
-        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="translated">類型 'Microsoft.CodeAnalysis.EmbeddedAttribute' 必須是非泛型、內部、密封、非靜態、具有無參數建構函式、繼承自 System.Attribute，而且可以套用到任何類型。</target>
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, non-file, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="needs-review-translation">類型 'Microsoft.CodeAnalysis.EmbeddedAttribute' 必須是非泛型、內部、密封、非靜態、具有無參數建構函式、繼承自 System.Attribute，而且可以套用到任何類型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2370,11 +2385,6 @@
       <trans-unit id="ERR_SimpleProgramNotAnExecutable">
         <source>Program using top-level statements must be an executable.</source>
         <target state="translated">使用最上層陳述式的程式必須是可執行檔。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
-        <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
-        <target state="translated">單一元素解構模式需要一些其他語法才能使其明確。建議在右括弧 ')' 後新增捨棄指示項 '_'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
@@ -2607,11 +2617,6 @@
         <target state="translated">類型 '{0}' 的值不可使用清單模式。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
-        <source>Slice patterns may not be used for a value of type '{0}'.</source>
-        <target state="translated">類型 '{0}' 的值不可使用切片模式。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
         <source>Unterminated raw string literal.</source>
         <target state="translated">未結束的原始字串常值。</target>
@@ -2660,6 +2665,26 @@
       <trans-unit id="HDN_DuplicateWithGlobalUsing_Title">
         <source>The using directive appeared previously as global using</source>
         <target state="translated">Using 指示詞先前顯示為全域 using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPattern">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPatternStackGuard">
+        <source>The pattern is too complex to analyze for redundancy.</source>
+        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPatternStackGuard_Title">
+        <source>The pattern is too complex to analyze for redundancy.</source>
+        <target state="new">The pattern is too complex to analyze for redundancy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_RedundantPattern_Title">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -3002,6 +3027,21 @@
         <target state="translated">{0} 不是有效的 C# spread 作業</target>
         <note />
       </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingDeclaration">
+        <source>'node' is not an 'await using' declaration</source>
+        <target state="new">'node' is not an 'await using' declaration</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="NodeIsNotAwaitUsingStatement">
+        <source>'node' is not an 'await using' statement</source>
+        <target state="new">'node' is not an 'await using' statement</target>
+        <note>node and await using are not localizable</note>
+      </trans-unit>
+      <trans-unit id="ParameterRequiresTypeOrIdentifier">
+        <source>ParameterSyntax requires either a type or an identifier.</source>
+        <target state="new">ParameterSyntax requires either a type or an identifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
         <target state="translated">屬性 '{1}' 的 '{0}' 存取子應該使用 『field』，因為其他存取子正在使用它。</target>
@@ -3080,16 +3120,6 @@
       <trans-unit id="WRN_ByValArraySizeConstRequired_Title">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
         <target state="translated">必須指定屬性參數 'SizeConst'。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CallArgMixing">
-        <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">對 '{0}' 使用此引數組合，會在其宣告範圍外公開參數 '{1}' 所參考的變數</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CallArgMixing_Title">
-        <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">此引數組合會在其宣告範圍外公開參數所參考的變數</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -3230,26 +3260,6 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">已指定多次分析器參考</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall">
-        <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">在此內容中使用 '{0}' 的結果，可能會將參數 '{1}' 參考的變數公開在其宣告範圍外</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall2">
-        <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="translated">此內容中使用 '{0}' 的結果成員，可能會將參數 '{1}' 參考的變數公開在其宣告範圍外</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall2_Title">
-        <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">無法在此內容中使用結果的成員，因為它會將參數參考的變數公開在其宣告範圍外</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_EscapeCall_Title">
-        <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="translated">在此內容中使用結果，可能會將參數參考的變數公開在其宣告範圍外</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeStackAlloc">
@@ -3545,6 +3555,16 @@
       <trans-unit id="WRN_RecordNamedDisallowed_Title">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="translated">類型與別名不應命名為 'record'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern_Title">
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
@@ -10382,11 +10402,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <target state="translated">無法使用集合初始設定式來初始設定類型 '{0}'，因為其未實作 'System.Collections.IEnumerable'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantSetWin32Manifest">
-        <source>Error reading Win32 manifest file '{0}' -- '{1}'</source>
-        <target state="translated">讀取 Win32 資訊清單檔 '{0}' 時發生錯誤 -- '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_CantHaveManifestForModule">
         <source>Ignoring /win32manifest for module because it only applies to assemblies</source>
         <target state="translated">因為模組的 /win32manifest 僅適用於組件，因此將予以忽略</target>
@@ -11130,7 +11145,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <target state="translated">await' 運算子只能用在初始 'from' 子句的第一個集合運算式或 'join' 子句的集合運算式中的查詢運算式</target>
         <note />
       </trans-unit>
-                  <trans-unit id="WRN_UnobservedAwaitableExpression">
+      <trans-unit id="WRN_UnobservedAwaitableExpression">
         <source>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</source>
         <target state="translated">因為未等候此呼叫，所以在呼叫完成之前會繼續執行目前的方法。請考慮將 'await' 運算子套用至呼叫的結果。</target>
         <note />
@@ -11265,11 +11280,6 @@ You should consider suppressing the warning only if you're sure that you don't w
       <trans-unit id="ERR_NamedArgumentForArray">
         <source>An array access may not have a named argument specifier</source>
         <target state="translated">陣列存取不能有具名引數規範</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotYetImplementedInRoslyn">
-        <source>This language feature ('{0}') is not yet implemented.</source>
-        <target state="translated">尚未實作語言功能 ('{0}')。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueNotAllowed">
@@ -11800,36 +11810,6 @@ You should consider suppressing the warning only if you're sure that you don't w
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
         <source>'{0}' cannot implement '{1}' because '{2}' is a Windows Runtime event and '{3}' is a regular .NET event.</source>
         <target state="translated">'{0}' 不可實作 '{1}'，因為 '{2}' 是 Windows 執行階段事件，而 '{3}' 是一般 .NET 事件。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1">
-        <source>Call System.IDisposable.Dispose() on allocated instance of {0} before all references to it are out of scope.</source>
-        <target state="translated">於配置的 {0} 執行個體的所有參考都超出範圍之前，在該執行個體上呼叫 System.IDisposable.Dispose()。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope1_Title">
-        <source>Call System.IDisposable.Dispose() on allocated instance before all references to it are out of scope</source>
-        <target state="translated">在所配置執行個體的所有參考超出範圍之前，對其呼叫 System.IDisposable.Dispose()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2">
-        <source>Allocated instance of {0} is not disposed along all exception paths.  Call System.IDisposable.Dispose() before all references to it are out of scope.</source>
-        <target state="translated">配置的 {0} 執行個體並非沿著所有例外狀況路徑處置。請在其所有參考都超出範圍之前，呼叫 System.IDisposable.Dispose()。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2000_DisposeObjectsBeforeLosingScope2_Title">
-        <source>Allocated instance is not disposed along all exception paths</source>
-        <target state="translated">所配置的執行個體未沿著所有例外路徑處置</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes">
-        <source>Object '{0}' can be disposed more than once.</source>
-        <target state="translated">可以多次處置物件 '{0}'。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_CA2202_DoNotDisposeObjectsMultipleTimes_Title">
-        <source>Object can be disposed more than once</source>
-        <target state="translated">可以多次處置物件</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewCoClassOnLink">
@@ -12515,11 +12495,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">自動實作的屬性必須覆寫已覆寫屬性的所有存取子。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
-        <source>Structs without explicit constructors cannot contain members with initializers.</source>
-        <target state="translated">沒有明確建構函式的結構，不可包含有初始設定式的成員。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EncodinglessSyntaxTree">
         <source>Cannot emit debug information for a source text without encoding.</source>
         <target state="translated">無法在不編碼的情況下，對原始程式文字發出偵錯資訊。</target>
@@ -12533,11 +12508,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_SwitchFallOut">
         <source>Control cannot fall out of switch from final case label ('{0}')</source>
         <target state="translated">控制項的位置不可位於最後一個 case 標籤 ('{0}') 的參數之外</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnexpectedBoundGenericName">
-        <source>Type arguments are not allowed in the nameof operator.</source>
-        <target state="translated">Nameof 運算子中不可使用類型引數。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullPropagatingOpInExpressionTree">
@@ -12815,19 +12785,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">無法藉傳址方式傳回 '{0}' 的成員，因為已將其初始化為無法藉傳址方式傳回的值</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal">
-        <source>Cannot return '{0}' by reference because it is read-only</source>
-        <target state="translated">無法藉傳址方式傳回 '{0}'，因其為唯讀</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefReturnRangeVariable">
         <source>Cannot return the range variable '{0}' by reference</source>
         <target state="translated">無法藉傳址方式傳回範圍變數 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocalCause">
-        <source>Cannot return '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">無法藉傳址方式傳回 '{0}'，因其為 '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">
@@ -13050,11 +13010,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">out 變數宣告</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList">
-        <source>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</source>
-        <target state="translated">不允許在相同引數清單中參考隱含型別 out 變數 '{0}'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable">
         <source>Cannot infer the type of implicitly-typed out variable '{0}'.</source>
         <target state="translated">無法推斷隱含型別 out 變數 '{0}' 的類型。</target>
@@ -13271,8 +13226,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
-        <source>Compiler version: '{0}'. Language version: {1}.</source>
-        <target state="translated">編譯器版本: '{0}'。語言版本: {1}。</target>
+        <source>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</source>
+        <target state="new">Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">

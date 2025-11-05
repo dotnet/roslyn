@@ -61,6 +61,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Apex" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Debugger" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.UnitTesting" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.HotReload" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.HotReload.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.DevKit" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" Key="$(UnitTestingKey)" />

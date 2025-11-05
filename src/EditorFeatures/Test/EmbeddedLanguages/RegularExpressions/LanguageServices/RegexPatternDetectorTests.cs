@@ -26,7 +26,7 @@ public sealed class RegexPatternDetectorTests
 
             if (expectedOptions != null)
             {
-                Assert.True(EmbeddedLanguageCommentOptions<RegexOptions>.TryGetOptions(captures!, out var actualOptions));
+                Assert.True(EmbeddedLanguageCommentOptions<RegexOptions>.TryGetOptions(captures, out var actualOptions));
                 Assert.Equal(expectedOptions.Value, actualOptions);
             }
         }

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -136,6 +137,69 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
 
             Assert.Equal(5, count);
+        }
+
+        [Fact]
+        public void GetServerEnvironmentVariables_IncludesDotNetRoot()
+        {
+            // This test verifies that GetServerEnvironmentVariables properly sets up DOTNET_ROOT
+            // without modifying the current process environment
+            var currentEnvironment = Environment.GetEnvironmentVariables();
+            var originalDotNetRoot = currentEnvironment[RuntimeHostInfo.DotNetRootEnvironmentName];
+
+            var envVars = BuildServerConnection.GetServerEnvironmentVariables(currentEnvironment);
+
+            if (RuntimeHostInfo.GetToolDotNetRoot() is { } dotNetRoot)
+            {
+                // Should have environment variables including DOTNET_ROOT
+                Assert.NotNull(envVars);
+                Assert.True(envVars.ContainsKey(RuntimeHostInfo.DotNetRootEnvironmentName));
+                Assert.Equal(dotNetRoot, envVars[RuntimeHostInfo.DotNetRootEnvironmentName]);
+
+                // Should include other environment variables from current process
+                Assert.True(envVars.Count > 1);
+
+                // Should not have modified the current process environment
+                Assert.Equal(originalDotNetRoot, Environment.GetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName));
+            }
+            else
+            {
+                // If no DOTNET_ROOT is needed, should return null
+                Assert.Null(envVars);
+            }
+        }
+
+        [Fact]
+        public void GetServerEnvironmentVariables_ExcludesDotNetRootVariants()
+        {
+            // This test verifies that DOTNET_ROOT* variables are properly cleared and replaced
+            var testEnvVars = new[] { "DOTNET_ROOT_X64", "DOTNET_ROOT_X86", "DOTNET_ROOT_ARM64", "DOTNET_ROOT(x86)" };
+
+            // Create a test environment with DOTNET_ROOT* variants
+            var testEnvironment = new System.Collections.Hashtable();
+            foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
+            {
+                testEnvironment[entry.Key] = entry.Value;
+            }
+
+            // Add test DOTNET_ROOT* variants
+            foreach (var testEnvVar in testEnvVars)
+            {
+                testEnvironment[testEnvVar] = "test_value";
+            }
+
+            var envVars = BuildServerConnection.GetServerEnvironmentVariables(testEnvironment);
+
+            if (envVars != null)
+            {
+
+                // Should set DOTNET_ROOT* variants to empty string to prevent inheritance
+                foreach (var testEnvVar in testEnvVars)
+                {
+                    Assert.True(envVars.ContainsKey(testEnvVar), $"Environment variables should contain {testEnvVar}");
+                    Assert.Equal(string.Empty, envVars[testEnvVar]);
+                }
+            }
         }
     }
 }

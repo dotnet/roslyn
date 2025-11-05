@@ -352,7 +352,7 @@ public sealed partial class CSharpRegexParserTests
                 ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
                 """, RegexOptions.None, conversionFailureOk: false);
         Assert.False(token.IsMissing);
-        Assert.False(chars.IsDefaultOrEmpty);
+        Assert.False(chars.IsDefaultOrEmpty());
         Assert.Null(tree);
     }
 
@@ -366,7 +366,7 @@ public sealed partial class CSharpRegexParserTests
                 @"{text}"
                 """, RegexOptions.None, conversionFailureOk: false);
             Assert.False(token.IsMissing);
-            Assert.False(chars.IsDefaultOrEmpty);
+            Assert.False(chars.IsDefaultOrEmpty());
         }
     }
 
@@ -376,7 +376,7 @@ public sealed partial class CSharpRegexParserTests
         foreach (var (charClass, _) in RegexCharClass.EscapeCategories)
         {
             foreach (var ch in charClass)
-                Assert.True(RegexLexer.IsEscapeCategoryChar(VirtualChar.Create(new Rune(ch), new TextSpan(0, 1))));
+                Assert.True(RegexLexer.IsEscapeCategoryChar(new(new(ch, offset: 0, width: 1), tokenStart: 0)));
         }
     }
 }

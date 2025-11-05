@@ -116,7 +116,7 @@ extends:
       autoEnableRoslynWithNewRuleset: false
     sdl:
       sourceAnalysisPool:
-        name: NetCore1ESPool-Svc-Internal
+        name: NetCore1ESPool-Internal
         image: 1es-windows-2022
         os: windows
       sbom:
@@ -129,7 +129,7 @@ extends:
         enabled: true
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
-      name: NetCore1ESPool-Svc-Internal
+      name: NetCore1ESPool-Internal
       image: windows.vs2022preview.scout.amd64
       os: windows
     customBuildTags:
@@ -140,11 +140,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.14') }}:
+      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev18.0') }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev17.14
+            MirrorBranch: release/dev18.0
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -336,7 +336,7 @@ extends:
           displayName: Publish Assets
           inputs:
             filePath: 'eng\publish-assets.ps1'
-            arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)"'
+            arguments: '-configuration $(BuildConfiguration)'
           condition: succeeded()
 
         # Publish OptProf configuration files to the artifact service
@@ -368,7 +368,7 @@ extends:
           dependsOn:
           - OfficialBuild
           pool:
-            name: NetCore1ESPool-Svc-Internal
+            name: NetCore1ESPool-Internal
             demands: ImageOverride -equals windows.vs2022.amd64
 
       - ${{ if eq(variables.enableSourceIndex, 'true') }}:

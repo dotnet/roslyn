@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return [];
             }
 
-            Debug.Assert(sortedSymbols.All(s => s.GetIsNewExtensionMember()));
+            Debug.Assert(sortedSymbols.All(s => s.IsExtensionBlockMember()));
 
             return ProcessCrefMemberLookupResults(sortedSymbols, arity, syntax, typeArgumentListSyntax, parameters, out ambiguityWinner, diagnostics);
 
@@ -341,6 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (result.Kind == LookupResultKind.Viable)
                         {
+                            Debug.Assert(result.Symbol is not null);
                             sortedSymbolsBuilder ??= ArrayBuilder<Symbol>.GetInstance();
                             sortedSymbolsBuilder.Add(result.Symbol);
                         }

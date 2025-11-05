@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImportOnPaste
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.ColorSchemes
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.DocumentationComments
@@ -20,8 +19,8 @@ Imports Microsoft.CodeAnalysis.Editor.InlineHints
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
-Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
+Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.InheritanceMargin
@@ -100,6 +99,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Comments
             BindToOption(GenerateXmlDocCommentsForTripleApostrophes, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.VisualBasic)
+            BindToOption(GenerateXmlDocCommentsOnSingleLine, DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, LanguageNames.VisualBasic)
+            BindToOption(GenerateOnlySummaryTag, DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, LanguageNames.VisualBasic)
             BindToOption(InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments, SplitCommentOptionsStorage.Enabled, LanguageNames.VisualBasic)
 
             ' Editor help
@@ -124,9 +125,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Colorize_JSON_strings, ClassificationOptionsStorage.ColorizeJsonPatterns, LanguageNames.VisualBasic)
             BindToOption(Report_invalid_JSON_strings, JsonDetectionOptionsStorage.ReportInvalidJsonPatterns, LanguageNames.VisualBasic)
             BindToOption(Highlight_related_JSON_components_under_cursor, HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.VisualBasic)
-
-            ' Editor color scheme
-            BindToOption(Editor_color_scheme, ColorSchemeOptionsStorage.ColorScheme)
 
             ' Implement Interface or Abstract Class
             BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptionsStorage.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.VisualBasic)

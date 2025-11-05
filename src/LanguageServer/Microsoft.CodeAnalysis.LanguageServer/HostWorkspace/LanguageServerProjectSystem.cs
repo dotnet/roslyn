@@ -37,8 +37,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         ServerConfigurationFactory serverConfigurationFactory,
         IBinLogPathProvider binLogPathProvider)
             : base(
-                workspaceFactory.TargetFrameworkManager,
-                workspaceFactory.ProjectSystemHostInfo,
+                workspaceFactory,
                 fileChangeWatcher,
                 globalOptionService,
                 loggerFactory,
@@ -90,7 +89,15 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
 
         var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
-        return new RemoteProjectLoadResult(loadedFile, _hostProjectFactory, IsMiscellaneousFile: false, preferredBuildHostKind, actualBuildHostKind);
+        return new RemoteProjectLoadResult
+        {
+            ProjectFile = loadedFile,
+            ProjectFactory = _hostProjectFactory,
+            IsFileBasedProgram = false,
+            IsMiscellaneousFile = false,
+            PreferredBuildHostKind = preferredBuildHostKind,
+            ActualBuildHostKind = actualBuildHostKind
+        };
     }
 
     protected override ValueTask OnProjectUnloadedAsync(string projectFilePath)

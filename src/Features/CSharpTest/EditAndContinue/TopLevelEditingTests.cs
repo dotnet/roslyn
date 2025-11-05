@@ -7448,7 +7448,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             Diagnostic(RudeEditKind.Delete, "static class Ext1", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "void M()", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "object o", GetResource("extension block")),
-            Diagnostic(RudeEditKind.Delete, "static class Ext1", "extension block 'extension(object)'"),
+            Diagnostic(RudeEditKind.Delete, "static class Ext1", "extension block 'Ext1.extension(object)'"),
             Diagnostic(RudeEditKind.Update, "static class Ext1", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "static class Ext1", GetResource("extension block"))
         );
@@ -7498,7 +7498,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Delete, "static class Ext", GetResource("extension block")),
-            Diagnostic(RudeEditKind.Delete, "static class Ext", DeletedSymbolDisplay(FeaturesResources.extension_block, "extension(string)")),
+            Diagnostic(RudeEditKind.Delete, "static class Ext", DeletedSymbolDisplay(FeaturesResources.extension_block, "Ext.extension(string)")),
             Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block"))
         );
@@ -7562,7 +7562,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         );
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Delete, "static class Ext", GetResource("extension block")),
-            Diagnostic(RudeEditKind.Delete, "static class Ext", DeletedSymbolDisplay(FeaturesResources.extension_block, "extension(object)")),
+            Diagnostic(RudeEditKind.Delete, "static class Ext", DeletedSymbolDisplay(FeaturesResources.extension_block, "Ext.extension(object)")),
             Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block")),
             Diagnostic(RudeEditKind.Update, "static class Ext", GetResource("extension block"))
         );
@@ -16496,6 +16496,91 @@ public sealed class TopLevelEditingTests : EditingTestBase
             ]);
 
     [Fact]
+    public void Constructor_Instance_Partial_Multiple()
+    {
+        var srcA1 = """
+            partial class C
+            {
+                C(int a)
+                {
+                    _ = new System.Func<int>(() => 1);
+                }
+
+                C(byte a)
+                {
+                    _ = new System.Func<int>(() => 2);
+                }
+            }
+
+            partial class C
+            {
+                C(string a)
+                {
+                    _ = new System.Func<int>(() => 3);
+                }
+            }
+            """;
+
+        var srcB1 = """
+            partial class C
+            {
+                C(bool a)
+                {
+                    _ = new System.Func<int>(() => 4);
+                }
+            }
+            """;
+
+        var srcA2 = """
+            partial class C
+            {
+                C(int a)
+                {
+                    _ = new System.Func<int>(() => 10);
+                }
+            
+                C(byte a)
+                {
+                    _ = new System.Func<int>(() => 20);
+                }
+            }
+            
+            partial class C
+            {
+                C(string a)
+                {
+                    _ = new System.Func<int>(() => 30);
+                }
+            }
+            """;
+
+        var srcB2 = """
+            partial class C
+            {
+                C(bool a)
+                {
+                    _ = new System.Func<int>(() => 40);
+                }
+            }
+            """;
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(semanticEdits:
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Int32 }]), partialType: "C", preserveLocalVariables: true),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Byte }]), partialType: "C", preserveLocalVariables: true),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_String }]), partialType: "C", preserveLocalVariables: true),
+                ]),
+                DocumentResults(semanticEdits:
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Boolean }]), partialType: "C", preserveLocalVariables: true),
+                ]),
+            ]);
+    }
+
+    [Fact]
     public void PartialDeclaration_Delete()
         => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { public C() { } void F() { } }", ""), GetTopEdits("partial class C { int x = 1; }", "partial class C { int x = 2; void F() { } }")],
@@ -16958,7 +17043,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     }
 
     [Fact]
-    public void MemberInitializer_Field_Delete()
+    public void MemberInitializer_Delete_Field()
     {
         var src1 = "class C { int a = 1; }";
         var src2 = "class C { }";
@@ -16973,7 +17058,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
     [InlineData("")]
     [InlineData("public C() { }")]
     [InlineData("public C(int x) { }")]
-    public void MemberInitializer_PropertyDelete(string ctor)
+    public void MemberInitializer_Delete_Property(string ctor)
     {
         var src1 = "class C { " + ctor + " int a { get; set; } = 1; }";
         var src2 = "class C { " + ctor + " }";
@@ -16987,6 +17072,60 @@ public sealed class TopLevelEditingTests : EditingTestBase
                 SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_a"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                 SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_a"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
+            ]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79320")]
+    public void MemberInitializer_Delete_Partial()
+    {
+        var srcA1 = """
+            partial class C
+            {
+                C()
+                {
+                    // comment
+                    _ = new System.Action(() => {});
+                }
+            }
+            """;
+            
+        var srcB1 = """
+            partial class C { object P { get; set; } = new(); }
+            """;
+
+        // The updated comment is not changing the positions of any active statements and hence
+        // we do not consider the constructor body changed.
+        // However, since the initializer changed in the other document,
+        // the syntax mapping for the constructor still needs to find the matching lambda expression.
+        var srcA2 = """
+            partial class C
+            {
+                C()
+                {
+                    // updated comment
+                    _ = new System.Action(() => {});
+                }
+            }
+            """;
+
+        var srcB2 = """
+            partial class C { }
+            """;
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(semanticEdits:
+                [
+                ]),
+                DocumentResults(semanticEdits:
+                [
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), deletedSymbolContainerProvider: c => c.GetMember("C")),
+                    SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.P"),deletedSymbolContainerProvider: c => c.GetMember("C")),
+                ]),
             ]);
     }
 

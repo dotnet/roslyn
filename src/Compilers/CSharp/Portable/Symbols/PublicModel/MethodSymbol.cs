@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
@@ -200,12 +201,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 GetPublicSymbol();
         }
 
-        IMethodSymbol IMethodSymbol.ReduceExtensionMethod(ITypeSymbol receiverType)
+#nullable enable
+        IMethodSymbol? IMethodSymbol.ReduceExtensionMethod(ITypeSymbol receiverType)
         {
             return _underlying.ReduceExtensionMethod(
                 receiverType.EnsureCSharpSymbolOrNull(nameof(receiverType)), compilation: null).
                 GetPublicSymbol();
         }
+
+        IMethodSymbol? IMethodSymbol.ReduceExtensionMember(ITypeSymbol receiverType)
+        {
+            if (_underlying.IsExtensionBlockMember() && SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(_underlying))
+            {
+                var csharpReceiver = receiverType.EnsureCSharpSymbolOrNull(nameof(receiverType));
+                return (IMethodSymbol?)SourceNamedTypeSymbol.ReduceExtensionMember(compilation: null, _underlying, csharpReceiver, wasExtensionFullyInferred: out _).GetPublicSymbol();
+            }
+
+            return null;
+        }
+#nullable disable
 
         ImmutableArray<IMethodSymbol> IMethodSymbol.ExplicitInterfaceImplementations
         {
@@ -337,12 +351,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                if (!_underlying.IsDefinition || !_underlying.GetIsNewExtensionMember())
+                if (!_underlying.IsExtensionBlockMember())
                 {
                     return null;
                 }
 
-                return _underlying.TryGetCorrespondingExtensionImplementationMethod().GetPublicSymbol();
+                var implDefinition = _underlying.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod();
+                if (implDefinition is null)
+                {
+                    return null;
+                }
+
+                var enclosing = _underlying.ContainingType.ContainingType;
+                var implementation = implDefinition.AsMember(enclosing);
+                if (implementation.Arity != 0)
+                {
+                    var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance(implementation.Arity);
+                    typeArguments.AddRange(_underlying.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
+                    typeArguments.AddRange(_underlying.TypeArgumentsWithAnnotations);
+                    implementation = implementation.Construct(typeArguments.ToImmutableAndFree());
+                }
+
+                return implementation.GetPublicSymbol();
             }
         }
 #nullable disable

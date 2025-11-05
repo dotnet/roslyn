@@ -28,9 +28,6 @@ internal sealed class CSharpCopilotProposalAdjusterService(IGlobalOptionService 
     protected override async Task<Document> AddMissingTokensIfAppropriateAsync(
         Document originalDocument, Document forkedDocument, CancellationToken cancellationToken)
     {
-        if (!globalOptions.GetOption(CopilotOptions.FixAddMissingTokens))
-            return forkedDocument;
-
         var newRoot = await forkedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var changes = await forkedDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);

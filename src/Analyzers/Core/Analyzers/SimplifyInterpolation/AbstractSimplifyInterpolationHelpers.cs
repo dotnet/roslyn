@@ -256,9 +256,9 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
     private static TextSpan GetSpanWithinLiteralQuotes(IVirtualCharService virtualCharService, SyntaxToken formatToken)
     {
         var sequence = virtualCharService.TryConvertToVirtualChars(formatToken);
-        return sequence.IsDefaultOrEmpty
+        return sequence.IsDefaultOrEmpty()
             ? default
-            : TextSpan.FromBounds(sequence.First().Span.Start, sequence.Last().Span.End);
+            : TextSpan.FromBounds(sequence[0].Span.Start, sequence[^1].Span.End);
     }
 
     private void UnwrapAlignmentPadding(

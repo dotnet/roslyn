@@ -184,11 +184,8 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
     private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(
         Document document, string diagnosticId, DiagnosticSeverity minimumSeverity, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
-        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var textSpan = new TextSpan(0, tree.Length);
-
         var fixCollection = await _codeFixService.GetDocumentFixAllForIdInSpanAsync(
-            document, textSpan, diagnosticId, minimumSeverity, cancellationToken).ConfigureAwait(false);
+            document, textSpan: null, diagnosticId, minimumSeverity, cancellationToken).ConfigureAwait(false);
         if (fixCollection == null)
         {
             return document;
@@ -243,7 +240,7 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
             progressTracker.Report(CodeAnalysisProgress.Description(string.Format(FeaturesResources.Fixing_0, title ?? diagnosticId)));
             // Apply codefixes for diagnostics with a severity of warning or higher
             var updatedDocument = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
-                document, diagnosticId, DiagnosticSeverity.Warning, progressTracker, cancellationToken).ConfigureAwait(false);
+                document, textSpan: null, diagnosticId, DiagnosticSeverity.Warning, progressTracker, cancellationToken).ConfigureAwait(false);
 
             // If changes were made to the solution snap shot outside the current document discard the changes.
             // The assumption here is that if we are applying a third party code fix to a document it only affects the document.

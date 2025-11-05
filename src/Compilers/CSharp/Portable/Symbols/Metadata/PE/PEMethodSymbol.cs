@@ -434,12 +434,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _flags = (ushort)localflags;
         }
 
-        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+#nullable enable
+
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
-            thisParameter = IsStatic ? null :
+            thisParameter = IsStatic || this.IsExtensionBlockMember() ? null :
                            _uncommonFields?._lazyThisParameter ?? InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyThisParameter, new ThisParameterSymbol(this));
             return true;
         }
+
+#nullable disable
 
         public override Symbol ContainingSymbol => _containingType;
 
@@ -1012,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
                 bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
 
-                bool isNewExtensionMember = this.GetIsNewExtensionMember();
+                bool isNewExtensionMember = this.IsExtensionBlockMember();
 
                 bool isExtensionMethod = false;
                 bool isReadOnly = false;

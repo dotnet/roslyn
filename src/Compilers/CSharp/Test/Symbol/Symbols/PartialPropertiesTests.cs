@@ -5531,5 +5531,30 @@ public partial class C
 } // end of class S1
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80509")]
+        public void CS8659_ReadonlyPartialPropertyWithSetter()
+        {
+            var source = """
+                using System;
+
+                var x = new X();
+                x.V = 9;
+                Console.WriteLine(x.V);
+
+                public partial struct X
+                {
+                    public readonly partial int V { get; set; }
+                    public readonly partial int V { get => field * 100; set; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,33): error CS8659: Auto-implemented property 'X.V' cannot be marked 'readonly' because it has a 'set' accessor.
+                //     public readonly partial int V { get; set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "V").WithArguments("X.V").WithLocation(9, 33)
+                );
+        }
     }
 }

@@ -369,7 +369,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
 
             return;
         }
-        else if (name is DocumentationCommentXmlNames.CElementName or "tt")
+        else if (name is DocumentationCommentXmlNames.CElementName or DocumentationCommentXmlNames.TtElementName)
         {
             needPopStyle = true;
             state.PushStyle(TaggedTextStyle.Code);
@@ -379,12 +379,12 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             needPopStyle = true;
             state.PushStyle(TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace);
         }
-        else if (name is "em" or "i")
+        else if (name is DocumentationCommentXmlNames.EmElementName or DocumentationCommentXmlNames.IElementName)
         {
             needPopStyle = true;
             state.PushStyle(TaggedTextStyle.Emphasis);
         }
-        else if (name is "strong" or "b" or DocumentationCommentXmlNames.TermElementName)
+        else if (name is DocumentationCommentXmlNames.StrongElementName or DocumentationCommentXmlNames.BElementName or DocumentationCommentXmlNames.TermElementName)
         {
             needPopStyle = true;
             state.PushStyle(TaggedTextStyle.Strong);

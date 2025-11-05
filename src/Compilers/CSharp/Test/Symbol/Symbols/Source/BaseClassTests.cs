@@ -337,9 +337,9 @@ internal class F : A
 }";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (16,22): error CS0060: Inconsistent accessibility: base type 'A.B.C.X' is less accessible than class 'F.D.E'
+                // (16,22): error CS9338: Inconsistent accessibility: type 'A.B.C' is less accessible than class 'F.D.E'
                 //         public class E : C.X { }
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "E").WithArguments("F.D.E", "A.B.C.X")
+                Diagnostic(ErrorCode.ERR_BadVisBaseType, "E").WithArguments("F.D.E", "A.B.C")
                 );
         }
 
@@ -2407,6 +2407,82 @@ class A : I<System.ValueTuple<object, A.B>>
                 // (4,41): error CS0146: Circular base type dependency involving 'A' and 'A'
                 // class A : I<System.ValueTuple<object, A.B>>
                 Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "A").WithLocation(4, 41));
+        }
+
+        [Fact]
+        public void TestBadBaseClassVisibility()
+        {
+            var source = @"
+class A { }
+public class B : A { }";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,14): error CS0060: Inconsistent accessibility: base class 'A' is less accessible than class 'B'
+                //     public class B : A { }
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "B").WithArguments("B", "A").WithLocation(3, 14));
+        }
+
+        [Fact]
+        public void TestBadTypeParameterVisibility()
+        {
+            var source = @"
+class A { }
+public class B<T> { }
+public class C : B<A> { }";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,14): error CS9338: Inconsistent accessibility: type 'A' is less accessible than class 'C'
+                //     public class C : B<A> { }
+                Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("C", "A").WithLocation(4, 14));
+        }
+
+        [Fact]
+        public void TestBadContainedTypeVisibility()
+        {
+            var source = @"
+public class A { internal class B { } }
+public class C : A.B { }";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0060: Inconsistent accessibility: base class 'A.B' is less accessible than class 'C'
+                //     public class C : A.B { }
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("C", "A.B").WithLocation(3, 14));
+        }
+
+        [Fact]
+        public void TestBadContainingTypeVisibility()
+        {
+            var source = @"
+class A { public class B { } }
+public class C : A.B { }";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,14): error CS9338: Inconsistent accessibility: type 'A' is less accessible than class 'C'
+                //     public class C : A.B { }
+                Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("C", "A").WithLocation(3, 14));
+        }
+
+        [Fact]
+        public void TestBadContainingTypeVisibilityWithoutExplicitReference()
+        {
+            var source = @"
+using static A;
+
+static class A
+{
+    public class B { }
+}
+
+public class C : B { }";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,14): error CS9338: Inconsistent accessibility: type 'A' is less accessible than class 'C' 
+                //     public class C : B { }
+                Diagnostic(ErrorCode.ERR_BadVisBaseType, "C").WithArguments("C", "A").WithLocation(9, 14));
         }
     }
 }

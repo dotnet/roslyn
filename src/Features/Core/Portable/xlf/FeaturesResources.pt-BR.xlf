@@ -2575,11 +2575,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Renomear uma variável capturada de '{0}' para '{1}' requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Renomear membros de tipo anônimo ainda não é suportado.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Substituir '{0}' por '{1}'</target>
@@ -4150,8 +4145,8 @@ Deseja continuar?</target>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="translated">Alterar assinatura...</target>
-        <note />
+        <target state="needs-review-translation">Alterar assinatura...</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
         <source>Generate new type...</source>

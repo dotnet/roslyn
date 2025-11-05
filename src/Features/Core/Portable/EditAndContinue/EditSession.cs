@@ -809,7 +809,7 @@ internal sealed class EditSession
                 }
             }
 
-            MergePartialEdits(oldCompilation, newCompilation, allEdits, out var mergedEdits, out var addedSymbols, cancellationToken);
+            var (mergedEdits, addedSymbols) = await MergePartialEditsAsync(oldCompilation, newCompilation, oldProject, newProject, allEdits, cancellationToken).ConfigureAwait(false);
 
             return new ProjectChanges(
                 mergedEdits,
@@ -824,18 +824,146 @@ internal sealed class EditSession
         }
     }
 
-    internal static void MergePartialEdits(
+    internal static async ValueTask<(ImmutableArray<SemanticEdit> mergedEdits, ImmutableHashSet<ISymbol> addedSymbols)> MergePartialEditsAsync(
         Compilation oldCompilation,
         Compilation newCompilation,
+        Project oldProject,
+        Project newProject,
         IReadOnlyList<SemanticEditInfo> edits,
-        out ImmutableArray<SemanticEdit> mergedEdits,
-        out ImmutableHashSet<ISymbol> addedSymbols,
         CancellationToken cancellationToken)
     {
         using var _0 = ArrayBuilder<SemanticEdit>.GetInstance(edits.Count, out var mergedEditsBuilder);
         using var _1 = PooledHashSet<ISymbol>.GetInstance(out var addedSymbolsBuilder);
         using var _2 = ArrayBuilder<(ISymbol? oldSymbol, ISymbol? newSymbol)>.GetInstance(edits.Count, out var resolvedSymbols);
 
+        ResolveSymbols(edits, oldCompilation, newCompilation, resolvedSymbols, cancellationToken);
+
+        for (var i = 0; i < edits.Count; i++)
+        {
+            var edit = edits[i];
+
+            if (edit.PartialType == null)
+            {
+                var (oldSymbol, newSymbol) = resolvedSymbols[i];
+
+                if (edit.Kind == SemanticEditKind.Insert)
+                {
+                    Contract.ThrowIfNull(newSymbol);
+                    addedSymbolsBuilder.Add(newSymbol);
+                }
+
+                mergedEditsBuilder.Add(new SemanticEdit(
+                    edit.Kind,
+                    oldSymbol: oldSymbol,
+                    newSymbol: newSymbol,
+                    syntaxMap: edit.SyntaxMaps.MatchingNodes,
+                    runtimeRudeEdit: edit.SyntaxMaps.RuntimeRudeEdits));
+            }
+        }
+
+        // no partial type merging needed:
+        if (edits.Count == mergedEditsBuilder.Count)
+        {
+            return (mergedEdits: mergedEditsBuilder.ToImmutable(), addedSymbols: [.. addedSymbolsBuilder]);
+        }
+
+        // Calculate merged syntax map for each partial type symbol:
+
+        var symbolKeyComparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true);
+        var mergedUpdateEditSyntaxMaps = new Dictionary<SymbolKey, (Func<SyntaxNode, SyntaxNode?>? matchingNodes, Func<SyntaxNode, RuntimeRudeEdit?>? runtimeRudeEdits)>(symbolKeyComparer);
+
+        var updatesByPartialType = edits
+            .Where(static edit => edit is { PartialType: not null, Kind: SemanticEditKind.Update })
+            .GroupBy(keySelector: static edit => edit.PartialType!.Value, symbolKeyComparer);
+
+        foreach (var partialTypeEdits in updatesByPartialType)
+        {
+            Func<SyntaxNode, SyntaxNode?>? mergedMatchingNodes;
+            Func<SyntaxNode, RuntimeRudeEdit?>? mergedRuntimeRudeEdits;
+
+            if (partialTypeEdits.Any(static e => e.SyntaxMaps.HasMap))
+            {
+                var newMaps = partialTypeEdits.SelectAsArray(
+                    predicate: static edit => edit.SyntaxMaps.HasMap,
+                    selector: static edit => edit.SyntaxMaps);
+#if DEBUG
+                // All edits of constructors of the same partial class share the same syntax mapping function
+                // that aggregates all syntax maps of member bodies (changed or unchanged) comprising the constructor's emitted body
+                // (the constructor and any contributing member initializers) in the analyzed document (tree).
+                // See AbstractEditAndContinueAnalyzer.AddConstructorEdits.
+                foreach (var g in newMaps.GroupBy(m => m.NewTree))
+                {
+                    var first = g.First();
+                    foreach (var m in g)
+                    {
+                        Debug.Assert(m.MatchingNodes == first.MatchingNodes);
+                        Debug.Assert(m.RuntimeRudeEdits == first.RuntimeRudeEdits);
+                    }
+                }
+#endif
+                var treeMap = await GetPartialTypeDeclarationTreeMapAsync(
+                    partialTypeEdits.Key,
+                    newCompilation,
+                    oldProject,
+                    newProject,
+                    cancellationToken).ConfigureAwait(false);
+
+                mergedMatchingNodes = newNode =>
+                {
+                    var syntaxMapsForTree = newMaps.FirstOrDefault(static (m, newNode) => m.NewTree == newNode.SyntaxTree, newNode);
+                    if (syntaxMapsForTree.NewTree != null)
+                    {
+                        Contract.ThrowIfNull(syntaxMapsForTree.MatchingNodes);
+                        return syntaxMapsForTree.MatchingNodes(newNode);
+                    }
+
+                    // The node is in a syntax tree that may only differ in trivia that do not affect active statements.
+                    // Otherwise, it would already be mapped via a syntax map above correspondign to the changed syntax tree.
+                    return treeMap.TryGetValue(newNode.SyntaxTree, out var oldRoot)
+                        ? oldRoot.FindCorrespondingNodeInEquivalentTree(newNode)
+                        : null;
+                };
+
+                mergedRuntimeRudeEdits = node => newMaps.FirstOrDefault(static (m, node) => m.NewTree == node.SyntaxTree, node).RuntimeRudeEdits?.Invoke(node);
+            }
+            else
+            {
+                mergedMatchingNodes = null;
+                mergedRuntimeRudeEdits = null;
+            }
+
+            mergedUpdateEditSyntaxMaps.Add(partialTypeEdits.Key, (mergedMatchingNodes, mergedRuntimeRudeEdits));
+        }
+
+        // Deduplicate edits based on their target symbol and use merged syntax map calculated above for a given partial type.
+
+        using var _3 = PooledHashSet<ISymbol>.GetInstance(out var visitedSymbols);
+
+        for (var i = 0; i < edits.Count; i++)
+        {
+            var edit = edits[i];
+
+            if (edit.PartialType != null)
+            {
+                var (oldSymbol, newSymbol) = resolvedSymbols[i];
+                if (visitedSymbols.Add(newSymbol ?? oldSymbol!))
+                {
+                    var syntaxMaps = (edit.Kind == SemanticEditKind.Update) ? mergedUpdateEditSyntaxMaps[edit.PartialType.Value] : default;
+                    mergedEditsBuilder.Add(new SemanticEdit(edit.Kind, oldSymbol, newSymbol, syntaxMaps.matchingNodes, syntaxMaps.runtimeRudeEdits));
+                }
+            }
+        }
+
+        return (mergedEdits: mergedEditsBuilder.ToImmutable(), addedSymbols: [.. addedSymbolsBuilder]);
+    }
+
+    private static void ResolveSymbols(
+        IReadOnlyList<SemanticEditInfo> edits,
+        Compilation oldCompilation,
+        Compilation newCompilation,
+        ArrayBuilder<(ISymbol? oldSymbol, ISymbol? newSymbol)> resolvedSymbols,
+        CancellationToken cancellationToken)
+    {
         foreach (var edit in edits)
         {
             SymbolKeyResolution oldResolution;
@@ -868,91 +996,46 @@ internal sealed class EditSession
 
             resolvedSymbols.Add((oldResolution.Symbol, newResolution.Symbol));
         }
+    }
 
-        for (var i = 0; i < edits.Count; i++)
+    /// <summary>
+    /// Maps all syntax trees containing partial declarations of the specified type in the new compilation
+    /// to the corresponding syntax roots in the old compilation.
+    /// </summary>
+    private static async ValueTask<ImmutableDictionary<SyntaxTree, SyntaxNode>> GetPartialTypeDeclarationTreeMapAsync(
+        SymbolKey typeKey,
+        Compilation newCompilation,
+        Project oldProject,
+        Project newProject,
+        CancellationToken cancellationToken)
+    {
+        var newType = typeKey.Resolve(newCompilation, cancellationToken: cancellationToken).Symbol;
+        Contract.ThrowIfNull(newType);
+
+        var map = ImmutableDictionary.CreateBuilder<SyntaxTree, SyntaxNode>();
+        foreach (var newSyntaxRef in newType.DeclaringSyntaxReferences)
         {
-            var edit = edits[i];
-
-            if (edit.PartialType == null)
+            if (map.ContainsKey(newSyntaxRef.SyntaxTree))
             {
-                var (oldSymbol, newSymbol) = resolvedSymbols[i];
-
-                if (edit.Kind == SemanticEditKind.Insert)
-                {
-                    Contract.ThrowIfNull(newSymbol);
-                    addedSymbolsBuilder.Add(newSymbol);
-                }
-
-                mergedEditsBuilder.Add(new SemanticEdit(
-                    edit.Kind,
-                    oldSymbol: oldSymbol,
-                    newSymbol: newSymbol,
-                    syntaxMap: edit.SyntaxMaps.MatchingNodes,
-                    runtimeRudeEdit: edit.SyntaxMaps.RuntimeRudeEdits));
-            }
-        }
-
-        // no partial type merging needed:
-        if (edits.Count == mergedEditsBuilder.Count)
-        {
-            mergedEdits = mergedEditsBuilder.ToImmutable();
-            addedSymbols = [.. addedSymbolsBuilder];
-            return;
-        }
-
-        // Calculate merged syntax map for each partial type symbol:
-
-        var symbolKeyComparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true);
-        var mergedUpdateEditSyntaxMaps = new Dictionary<SymbolKey, (Func<SyntaxNode, SyntaxNode?>? matchingNodes, Func<SyntaxNode, RuntimeRudeEdit?>? runtimeRudeEdits)>(symbolKeyComparer);
-
-        var updatesByPartialType = edits
-            .Where(edit => edit is { PartialType: not null, Kind: SemanticEditKind.Update })
-            .GroupBy(edit => edit.PartialType!.Value, symbolKeyComparer);
-
-        foreach (var partialTypeEdits in updatesByPartialType)
-        {
-            Func<SyntaxNode, SyntaxNode?>? mergedMatchingNodes;
-            Func<SyntaxNode, RuntimeRudeEdit?>? mergedRuntimeRudeEdits;
-
-            if (partialTypeEdits.Any(static e => e.SyntaxMaps.HasMap))
-            {
-                var newMaps = partialTypeEdits.SelectAsArray(
-                    predicate: static edit => edit.SyntaxMaps.HasMap,
-                    selector: static edit => edit.SyntaxMaps);
-
-                mergedMatchingNodes = node => newMaps[newMaps.IndexOf(static (m, node) => m.NewTree == node.SyntaxTree, node)].MatchingNodes!(node);
-                mergedRuntimeRudeEdits = node => newMaps[newMaps.IndexOf(static (m, node) => m.NewTree == node.SyntaxTree, node)].RuntimeRudeEdits?.Invoke(node);
-            }
-            else
-            {
-                mergedMatchingNodes = null;
-                mergedRuntimeRudeEdits = null;
+                continue;
             }
 
-            mergedUpdateEditSyntaxMaps.Add(partialTypeEdits.Key, (mergedMatchingNodes, mergedRuntimeRudeEdits));
-        }
+            var documentId = newProject.GetRequiredDocument(newSyntaxRef.SyntaxTree).Id;
 
-        // Deduplicate edits based on their target symbol and use merged syntax map calculated above for a given partial type.
-
-        using var _3 = PooledHashSet<ISymbol>.GetInstance(out var visitedSymbols);
-
-        for (var i = 0; i < edits.Count; i++)
-        {
-            var edit = edits[i];
-
-            if (edit.PartialType != null)
+            var oldDocument = await oldProject.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            if (oldDocument == null)
             {
-                var (oldSymbol, newSymbol) = resolvedSymbols[i];
-                if (visitedSymbols.Add(newSymbol ?? oldSymbol!))
-                {
-                    var syntaxMaps = (edit.Kind == SemanticEditKind.Update) ? mergedUpdateEditSyntaxMaps[edit.PartialType.Value] : default;
-                    mergedEditsBuilder.Add(new SemanticEdit(edit.Kind, oldSymbol, newSymbol, syntaxMaps.matchingNodes, syntaxMaps.runtimeRudeEdits));
-                }
+                // The document didn't exist in the old project. This can happen if the document was added
+                // and contains a partial declaration of an existing type.
+                continue;
             }
+
+            var oldRoot = await oldDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            map.Add(newSyntaxRef.SyntaxTree, oldRoot);
         }
 
-        mergedEdits = mergedEditsBuilder.ToImmutable();
-        addedSymbols = [.. addedSymbolsBuilder];
+        return map.ToImmutable();
     }
 
     public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(

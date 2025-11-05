@@ -2575,11 +2575,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Das Umbenennen einer erfassten Variablen von „{0}“ in „{1}“ erfordert einen Neustart der Anwendung.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Das Umbenennen von Elementen des Typs anonym wird noch nicht unterstützt.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">"{0}" durch "{1}" ersetzen</target>
@@ -4150,8 +4145,8 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="translated">Signatur ändern...</target>
-        <note />
+        <target state="needs-review-translation">Signatur ändern...</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
         <source>Generate new type...</source>

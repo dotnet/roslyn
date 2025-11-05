@@ -1205,9 +1205,9 @@ public static class E
 }
 """;
         DiagnosticDescription[] expected = [
-            // (4,5): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (4,5): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // _ = oNull.P;
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(4, 5),
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "E.extension(object)").WithLocation(4, 5),
             // (7,9): warning CS8604: Possible null reference argument for parameter 'o' in 'int E.get_P(object o)'.
             // E.get_P(oNull2);
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull2").WithArguments("o", "int E.get_P(object o)").WithLocation(7, 9)
@@ -1570,9 +1570,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (4,5): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
+            // (4,5): warning CS8604: Possible null reference argument for parameter 'o' in 'E.extension(object)'.
             // _ = sNull.P;
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "sNull").WithArguments("o", "extension(object)").WithLocation(4, 5));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "sNull").WithArguments("o", "E.extension(object)").WithLocation(4, 5));
     }
 
     [Fact]
@@ -1610,12 +1610,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (7,5): warning CS8620: Argument of type 'S<object>' cannot be used for parameter 'o' of type 'S<object?>' in 'extension(ref S<object?>)' due to differences in the nullability of reference types.
+            // (7,5): warning CS8620: Argument of type 'S<object>' cannot be used for parameter 'o' of type 'S<object?>' in 'E.extension(ref S<object?>)' due to differences in the nullability of reference types.
             // _ = s2.P; // 1
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "s2").WithArguments("S<object>", "S<object?>", "o", "extension(ref S<object?>)").WithLocation(7, 5),
-            // (10,5): warning CS8620: Argument of type 'S<object?>' cannot be used for parameter 'o' of type 'S<object>' in 'extension(ref S<object>)' due to differences in the nullability of reference types.
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "s2").WithArguments("S<object>", "S<object?>", "o", "E.extension(ref S<object?>)").WithLocation(7, 5),
+            // (10,5): warning CS8620: Argument of type 'S<object?>' cannot be used for parameter 'o' of type 'S<object>' in 'E.extension(ref S<object>)' due to differences in the nullability of reference types.
             // _ = s3.P2; // 2
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "s3").WithArguments("S<object?>", "S<object>", "o", "extension(ref S<object>)").WithLocation(10, 5));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "s3").WithArguments("S<object?>", "S<object>", "o", "E.extension(ref S<object>)").WithLocation(10, 5));
     }
 
     [Fact]
@@ -1655,12 +1655,12 @@ public static class E
 }
 """;
         DiagnosticDescription[] expected = [
-            // (7,5): warning CS8620: Argument of type 'S<object>' cannot be used for parameter 'o' of type 'S<object?>' in 'extension(in S<object?>)' due to differences in the nullability of reference types.
+            // (7,5): warning CS8620: Argument of type 'S<object>' cannot be used for parameter 'o' of type 'S<object?>' in 'E.extension(in S<object?>)' due to differences in the nullability of reference types.
             // _ = s2.P; // 1
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "s2").WithArguments("S<object>", "S<object?>", "o", "extension(in S<object?>)").WithLocation(7, 5),
-            // (10,5): warning CS8620: Argument of type 'S<object?>' cannot be used for parameter 'o' of type 'S<object>' in 'extension(in S<object>)' due to differences in the nullability of reference types.
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "s2").WithArguments("S<object>", "S<object?>", "o", "E.extension(in S<object?>)").WithLocation(7, 5),
+            // (10,5): warning CS8620: Argument of type 'S<object?>' cannot be used for parameter 'o' of type 'S<object>' in 'E.extension(in S<object>)' due to differences in the nullability of reference types.
             // _ = s3.P2; // 2
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "s3").WithArguments("S<object?>", "S<object>", "o", "extension(in S<object>)").WithLocation(10, 5)
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "s3").WithArguments("S<object?>", "S<object>", "o", "E.extension(in S<object>)").WithLocation(10, 5)
             ];
 
         var comp = CreateCompilation([src, libSrc]);
@@ -2522,9 +2522,9 @@ class C
         var comp = CreateCompilation(source);
         comp.VerifyTypes();
         comp.VerifyEmitDiagnostics(
-            // (15,23): warning CS8620: Argument of type 'List<string?>' cannot be used for parameter 'list' of type 'List<string>' in 'extension(List<string>)' due to differences in the nullability of reference types.
+            // (15,23): warning CS8620: Argument of type 'List<string?>' cannot be used for parameter 'list' of type 'List<string>' in 'ListExtensions.extension(List<string>)' due to differences in the nullability of reference types.
             //         if (list is { First: var first }) // 1
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "First").WithArguments("System.Collections.Generic.List<string?>", "System.Collections.Generic.List<string>", "list", "extension(List<string>)").WithLocation(15, 23));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "First").WithArguments("System.Collections.Generic.List<string?>", "System.Collections.Generic.List<string>", "list", "ListExtensions.extension(List<string>)").WithLocation(15, 23));
     }
 
     [Fact]
@@ -2563,7 +2563,6 @@ class C
             }
             """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality consider reporting a better containing symbol
         var comp = CreateCompilation(source);
         comp.VerifyTypes();
         comp.VerifyEmitDiagnostics(
@@ -2735,14 +2734,13 @@ static class E2
 """;
 
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the diagnostic should describe what went wrong
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,9): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(object).M()' and 'E2.extension(object).M'
             // var x = object.M; // 1
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(1, 9),
-            // (4,19): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.M").WithArguments("E1.extension(object).M()", "E2.extension(object).M").WithLocation(1, 9),
+            // (4,19): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(object).M()' and 'E2.extension(object).M'
             // System.Action y = object.M; // 2
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(4, 19));
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.M").WithArguments("E1.extension(object).M()", "E2.extension(object).M").WithLocation(4, 19));
 
         src = """
 var x = I.M; // binds to I1.M (method)
@@ -3867,6 +3865,9 @@ int.M();
             // (1,5): error CS0570: 'E.extension(int).M<T>()' is not supported by the language
             // int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M<T>()").WithLocation(1, 5));
+
+        var method = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
+        Assert.Null(method.AssociatedExtensionImplementation);
     }
 
     [Fact]
@@ -8310,8 +8311,9 @@ class Program
 }
 """;
 
+        var expectedOutput = "124124:124124";
         var comp = CreateCompilation([src], options: TestOptions.DebugExe.WithAllowUnsafe(true));
-        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124", verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Skipped).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>()",
 @"
@@ -8346,8 +8348,10 @@ class Program
 }
 ");
 
-        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.UnsafeReleaseExe.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress));
-        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.UnsafeReleaseExe);
+        // The goal of this test is to validate that there's a `ldsfld     "T Program<T>.F"` after the async call. Regular state machine code is so large that it's
+        // very hard to verify this by reading the IL, so it does what is undefined behavior (modifying a static readonly field) to observe this. In runtime async
+        // mode, this undefined behavior results in a different output, but the IL is also smaller so we can easily verify that the read occurs where it should in the IL.
         verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
         {
             ILVerifyMessage = """
@@ -9020,8 +9024,9 @@ class Program
 }
 """;
 
+        var expectedOutput = "123125125:123125125:123125125";
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -9082,61 +9087,66 @@ class Program
 }
 ");
 
-        comp = CreateRuntimeAsyncCompilation(src);
-        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.DebugExe);
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
         {
             ILVerifyMessage = """
-                [Main]: Return value missing on the stack. { Offset = 0xa4 }
-                [Test3]: Return value missing on the stack. { Offset = 0x67 }
-                [Get1Async]: Unexpected type on the stack. { Offset = 0x34, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                [Main]: Return value missing on the stack. { Offset = 0xad }
+                [Test3]: Return value missing on the stack. { Offset = 0x70 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x3b, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                 """
         });
 
         verifier.VerifyIL("Program.Test3<T>()", """
             {
-              // Code size      104 (0x68)
+              // Code size      113 (0x71)
               .maxstack  2
               .locals init (T V_0,
-                            int V_1,
+                            T& V_1,
                             int V_2,
-                            T V_3)
-              IL_0000:  ldloca.s   V_3
-              IL_0002:  initobj    "T"
-              IL_0008:  ldloc.3
-              IL_0009:  box        "T"
-              IL_000e:  brtrue.s   IL_0018
-              IL_0010:  ldsfld     "T Program<T>.F"
-              IL_0015:  stloc.0
-              IL_0016:  br.s       IL_001e
-              IL_0018:  ldsfld     "T Program<T>.F"
-              IL_001d:  pop
-              IL_001e:  ldloca.s   V_3
-              IL_0020:  initobj    "T"
-              IL_0026:  ldloc.3
-              IL_0027:  box        "T"
-              IL_002c:  brtrue.s   IL_0031
-              IL_002e:  ldloc.0
-              IL_002f:  br.s       IL_0036
-              IL_0031:  ldsfld     "T Program<T>.F"
-              IL_0036:  call       "int E.get_P1<T>(T)"
-              IL_003b:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
-              IL_0040:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-              IL_0045:  stloc.1
-              IL_0046:  ldloc.1
-              IL_0047:  add
-              IL_0048:  stloc.2
-              IL_0049:  ldloca.s   V_3
-              IL_004b:  initobj    "T"
-              IL_0051:  ldloc.3
-              IL_0052:  box        "T"
-              IL_0057:  brtrue.s   IL_005c
-              IL_0059:  ldloc.0
-              IL_005a:  br.s       IL_0061
-              IL_005c:  ldsfld     "T Program<T>.F"
-              IL_0061:  ldloc.2
-              IL_0062:  call       "void E.set_P1<T>(T, int)"
-              IL_0067:  ret
+                            int V_3,
+                            int V_4,
+                            T V_5)
+              IL_0000:  nop
+              IL_0001:  ldloca.s   V_5
+              IL_0003:  initobj    "T"
+              IL_0009:  ldloc.s    V_5
+              IL_000b:  box        "T"
+              IL_0010:  brtrue.s   IL_001a
+              IL_0012:  ldsfld     "T Program<T>.F"
+              IL_0017:  stloc.0
+              IL_0018:  br.s       IL_0020
+              IL_001a:  ldsfld     "T Program<T>.F"
+              IL_001f:  pop
+              IL_0020:  ldloca.s   V_5
+              IL_0022:  initobj    "T"
+              IL_0028:  ldloc.s    V_5
+              IL_002a:  box        "T"
+              IL_002f:  brtrue.s   IL_0034
+              IL_0031:  ldloc.0
+              IL_0032:  br.s       IL_0039
+              IL_0034:  ldsfld     "T Program<T>.F"
+              IL_0039:  call       "int E.get_P1<T>(T)"
+              IL_003e:  stloc.2
+              IL_003f:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0044:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0049:  stloc.3
+              IL_004a:  ldloc.2
+              IL_004b:  ldloc.3
+              IL_004c:  add
+              IL_004d:  stloc.s    V_4
+              IL_004f:  ldloca.s   V_5
+              IL_0051:  initobj    "T"
+              IL_0057:  ldloc.s    V_5
+              IL_0059:  box        "T"
+              IL_005e:  brtrue.s   IL_0063
+              IL_0060:  ldloc.0
+              IL_0061:  br.s       IL_0068
+              IL_0063:  ldsfld     "T Program<T>.F"
+              IL_0068:  ldloc.s    V_4
+              IL_006a:  call       "void E.set_P1<T>(T, int)"
+              IL_006f:  nop
+              IL_0070:  ret
             }
             """);
     }
@@ -9217,8 +9227,9 @@ class Program
 }
 """;
 
+        var expectedOutput = "123125125:123125125";
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test2<T>(ref T)",
 @"
@@ -9237,35 +9248,37 @@ class Program
 }
 ");
 
-        comp = CreateRuntimeAsyncCompilation(src);
-        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.DebugExe);
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
         {
             ILVerifyMessage = """
-                [Main]: Return value missing on the stack. { Offset = 0x6a }
-                [Test3]: Return value missing on the stack. { Offset = 0x23 }
-                [Get1Async]: Unexpected type on the stack. { Offset = 0x34, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                [Main]: Return value missing on the stack. { Offset = 0x70 }
+                [Test3]: Return value missing on the stack. { Offset = 0x25 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x3b, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                 """
         });
 
         verifier.VerifyIL("Program.Test3<T>()", """
             {
-              // Code size       36 (0x24)
+              // Code size       38 (0x26)
               .maxstack  3
-              .locals init (int V_0,
-                            int V_1)
-              IL_0000:  ldsflda    "T Program<T>.F"
-              IL_0005:  call       "int E.get_P1<T>(ref T)"
-              IL_000a:  stloc.0
-              IL_000b:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
-              IL_0010:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-              IL_0015:  stloc.1
-              IL_0016:  ldsflda    "T Program<T>.F"
-              IL_001b:  ldloc.0
+              .locals init (T& V_0,
+                            int V_1,
+                            int V_2)
+              IL_0000:  nop
+              IL_0001:  ldsflda    "T Program<T>.F"
+              IL_0006:  call       "int E.get_P1<T>(ref T)"
+              IL_000b:  stloc.1
+              IL_000c:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0011:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0016:  stloc.2
+              IL_0017:  ldsflda    "T Program<T>.F"
               IL_001c:  ldloc.1
-              IL_001d:  add
-              IL_001e:  call       "void E.set_P1<T>(ref T, int)"
-              IL_0023:  ret
+              IL_001d:  ldloc.2
+              IL_001e:  add
+              IL_001f:  call       "void E.set_P1<T>(ref T, int)"
+              IL_0024:  nop
+              IL_0025:  ret
             }
             """);
 
@@ -9409,7 +9422,8 @@ class Program
 """;
 
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125").VerifyDiagnostics();
+        var expectedOutput = "123123125:123123125:123123125";
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -9466,61 +9480,66 @@ class Program
 }
 ");
 
-        comp = CreateRuntimeAsyncCompilation(src);
-        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.DebugExe);
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
         {
             ILVerifyMessage = """
-                [Main]: Return value missing on the stack. { Offset = 0x95 }
-                [Test3]: Return value missing on the stack. { Offset = 0x67 }
-                [Get1Async]: Unexpected type on the stack. { Offset = 0x41, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                [Main]: Return value missing on the stack. { Offset = 0x9e }
+                [Test3]: Return value missing on the stack. { Offset = 0x70 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                 """
         });
 
         verifier.VerifyIL("Program.Test3<T>()", """
             {
-              // Code size      104 (0x68)
+              // Code size      113 (0x71)
               .maxstack  2
               .locals init (T V_0,
-                            int V_1,
+                            T& V_1,
                             int V_2,
-                            T V_3)
-              IL_0000:  ldloca.s   V_3
-              IL_0002:  initobj    "T"
-              IL_0008:  ldloc.3
-              IL_0009:  box        "T"
-              IL_000e:  brtrue.s   IL_0018
-              IL_0010:  ldsfld     "T Program<T>.F"
-              IL_0015:  stloc.0
-              IL_0016:  br.s       IL_001e
-              IL_0018:  ldsfld     "T Program<T>.F"
-              IL_001d:  pop
-              IL_001e:  ldloca.s   V_3
-              IL_0020:  initobj    "T"
-              IL_0026:  ldloc.3
-              IL_0027:  box        "T"
-              IL_002c:  brtrue.s   IL_0031
-              IL_002e:  ldloc.0
-              IL_002f:  br.s       IL_0036
-              IL_0031:  ldsfld     "T Program<T>.F"
-              IL_0036:  call       "int E.get_P1<T>(T)"
-              IL_003b:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
-              IL_0040:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-              IL_0045:  stloc.1
-              IL_0046:  ldloc.1
-              IL_0047:  add
-              IL_0048:  stloc.2
-              IL_0049:  ldloca.s   V_3
-              IL_004b:  initobj    "T"
-              IL_0051:  ldloc.3
-              IL_0052:  box        "T"
-              IL_0057:  brtrue.s   IL_005c
-              IL_0059:  ldloc.0
-              IL_005a:  br.s       IL_0061
-              IL_005c:  ldsfld     "T Program<T>.F"
-              IL_0061:  ldloc.2
-              IL_0062:  call       "void E.set_P1<T>(T, int)"
-              IL_0067:  ret
+                            int V_3,
+                            int V_4,
+                            T V_5)
+              IL_0000:  nop
+              IL_0001:  ldloca.s   V_5
+              IL_0003:  initobj    "T"
+              IL_0009:  ldloc.s    V_5
+              IL_000b:  box        "T"
+              IL_0010:  brtrue.s   IL_001a
+              IL_0012:  ldsfld     "T Program<T>.F"
+              IL_0017:  stloc.0
+              IL_0018:  br.s       IL_0020
+              IL_001a:  ldsfld     "T Program<T>.F"
+              IL_001f:  pop
+              IL_0020:  ldloca.s   V_5
+              IL_0022:  initobj    "T"
+              IL_0028:  ldloc.s    V_5
+              IL_002a:  box        "T"
+              IL_002f:  brtrue.s   IL_0034
+              IL_0031:  ldloc.0
+              IL_0032:  br.s       IL_0039
+              IL_0034:  ldsfld     "T Program<T>.F"
+              IL_0039:  call       "int E.get_P1<T>(T)"
+              IL_003e:  stloc.2
+              IL_003f:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0044:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0049:  stloc.3
+              IL_004a:  ldloc.2
+              IL_004b:  ldloc.3
+              IL_004c:  add
+              IL_004d:  stloc.s    V_4
+              IL_004f:  ldloca.s   V_5
+              IL_0051:  initobj    "T"
+              IL_0057:  ldloc.s    V_5
+              IL_0059:  box        "T"
+              IL_005e:  brtrue.s   IL_0063
+              IL_0060:  ldloc.0
+              IL_0061:  br.s       IL_0068
+              IL_0063:  ldsfld     "T Program<T>.F"
+              IL_0068:  ldloc.s    V_4
+              IL_006a:  call       "void E.set_P1<T>(T, int)"
+              IL_006f:  nop
+              IL_0070:  ret
             }
             """);
     }
@@ -9658,8 +9677,10 @@ class Program
 }
 ");
 
-        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.UnsafeReleaseExe.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress));
-        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.UnsafeReleaseExe);
+        // The goal of this test is to validate that there's a `ldsfld     "T Program<T>.F"` after the async call. Regular state machine code is so large that it's
+        // very hard to verify this by reading the IL, so it does what is undefined behavior (modifying a static readonly field) to observe this. In runtime async
+        // mode, this undefined behavior results in a different output, but the IL is also smaller so we can easily verify that the read occurs where it should in the IL.
         verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
         {
             ILVerifyMessage = """
@@ -12192,8 +12213,9 @@ class Program
 }
 """;
 
+        var expectedOutput = "123125125:123125125:123125125:123125125:123125125:123125125";
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125:123125125:123125125:123125125").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test11<T>(ref T)",
 @"
@@ -12357,118 +12379,143 @@ class Program
 }
 ");
 
-        comp = CreateRuntimeAsyncCompilation(src);
-        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.DebugExe);
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
         {
             ILVerifyMessage = """
-                [Main]: Return value missing on the stack. { Offset = 0x152 }
-                [Test13]: Return value missing on the stack. { Offset = 0x6d }
-                [Test23]: Return value missing on the stack. { Offset = 0x7f }
-                [Get1Async]: Unexpected type on the stack. { Offset = 0x34, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                [Main]: Return value missing on the stack. { Offset = 0x164 }
+                [Test13]: Return value missing on the stack. { Offset = 0x80 }
+                [Test23]: Return value missing on the stack. { Offset = 0x90 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x3b, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                 """
         });
 
         verifier.VerifyIL("Program.Test13<T>()", """
             {
-              // Code size      110 (0x6e)
+              // Code size      129 (0x81)
               .maxstack  3
               .locals init (T V_0,
-                            T V_1,
+                            T& V_1,
                             object V_2,
-                            object V_3)
-              IL_0000:  ldloca.s   V_1
-              IL_0002:  initobj    "T"
-              IL_0008:  ldloc.1
-              IL_0009:  box        "T"
-              IL_000e:  brtrue.s   IL_0018
-              IL_0010:  ldsfld     "T Program<T>.F"
-              IL_0015:  stloc.0
-              IL_0016:  br.s       IL_001e
-              IL_0018:  ldsfld     "T Program<T>.F"
-              IL_001d:  pop
-              IL_001e:  ldloca.s   V_1
-              IL_0020:  initobj    "T"
-              IL_0026:  ldloc.1
-              IL_0027:  box        "T"
-              IL_002c:  brtrue.s   IL_0031
-              IL_002e:  ldloc.0
-              IL_002f:  br.s       IL_0036
-              IL_0031:  ldsfld     "T Program<T>.F"
-              IL_0036:  call       "object E.get_P1<T>(T)"
-              IL_003b:  brtrue.s   IL_006d
-              IL_003d:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
-              IL_0042:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-              IL_0047:  box        "int"
-              IL_004c:  stloc.2
-              IL_004d:  ldloca.s   V_1
-              IL_004f:  initobj    "T"
-              IL_0055:  ldloc.1
-              IL_0056:  box        "T"
-              IL_005b:  brtrue.s   IL_0060
-              IL_005d:  ldloc.0
-              IL_005e:  br.s       IL_0065
-              IL_0060:  ldsfld     "T Program<T>.F"
-              IL_0065:  ldloc.2
-              IL_0066:  dup
-              IL_0067:  stloc.3
-              IL_0068:  call       "void E.set_P1<T>(T, object)"
-              IL_006d:  ret
+                            object V_3,
+                            T V_4,
+                            int V_5,
+                            object V_6,
+                            object V_7)
+              IL_0000:  nop
+              IL_0001:  ldloca.s   V_4
+              IL_0003:  initobj    "T"
+              IL_0009:  ldloc.s    V_4
+              IL_000b:  box        "T"
+              IL_0010:  brtrue.s   IL_001a
+              IL_0012:  ldsfld     "T Program<T>.F"
+              IL_0017:  stloc.0
+              IL_0018:  br.s       IL_0020
+              IL_001a:  ldsfld     "T Program<T>.F"
+              IL_001f:  pop
+              IL_0020:  ldloca.s   V_4
+              IL_0022:  initobj    "T"
+              IL_0028:  ldloc.s    V_4
+              IL_002a:  box        "T"
+              IL_002f:  brtrue.s   IL_0034
+              IL_0031:  ldloc.0
+              IL_0032:  br.s       IL_0039
+              IL_0034:  ldsfld     "T Program<T>.F"
+              IL_0039:  call       "object E.get_P1<T>(T)"
+              IL_003e:  stloc.2
+              IL_003f:  ldloc.2
+              IL_0040:  stloc.3
+              IL_0041:  ldloc.3
+              IL_0042:  brtrue.s   IL_0080
+              IL_0044:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0049:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_004e:  stloc.s    V_5
+              IL_0050:  ldloc.s    V_5
+              IL_0052:  box        "int"
+              IL_0057:  stloc.s    V_6
+              IL_0059:  ldloca.s   V_4
+              IL_005b:  initobj    "T"
+              IL_0061:  ldloc.s    V_4
+              IL_0063:  box        "T"
+              IL_0068:  brtrue.s   IL_006d
+              IL_006a:  ldloc.0
+              IL_006b:  br.s       IL_0072
+              IL_006d:  ldsfld     "T Program<T>.F"
+              IL_0072:  ldloc.s    V_6
+              IL_0074:  dup
+              IL_0075:  stloc.s    V_7
+              IL_0077:  call       "void E.set_P1<T>(T, object)"
+              IL_007c:  nop
+              IL_007d:  ldloc.s    V_7
+              IL_007f:  stloc.3
+              IL_0080:  ret
             }
             """);
 
         verifier.VerifyIL("Program.Test23<T>()", """
             {
-              // Code size      128 (0x80)
+              // Code size      145 (0x91)
               .maxstack  3
               .locals init (T V_0,
-                            int? V_1,
-                            int V_2,
-                            T V_3,
-                            int? V_4)
-              IL_0000:  ldloca.s   V_3
-              IL_0002:  initobj    "T"
-              IL_0008:  ldloc.3
-              IL_0009:  box        "T"
-              IL_000e:  brtrue.s   IL_0018
-              IL_0010:  ldsfld     "T Program<T>.F"
-              IL_0015:  stloc.0
-              IL_0016:  br.s       IL_001e
-              IL_0018:  ldsfld     "T Program<T>.F"
-              IL_001d:  pop
-              IL_001e:  ldloca.s   V_3
-              IL_0020:  initobj    "T"
-              IL_0026:  ldloc.3
-              IL_0027:  box        "T"
-              IL_002c:  brtrue.s   IL_0031
-              IL_002e:  ldloc.0
-              IL_002f:  br.s       IL_0036
-              IL_0031:  ldsfld     "T Program<T>.F"
-              IL_0036:  call       "int? E.get_P2<T>(T)"
-              IL_003b:  stloc.1
-              IL_003c:  ldloca.s   V_1
-              IL_003e:  call       "readonly int int?.GetValueOrDefault()"
-              IL_0043:  stloc.2
-              IL_0044:  ldloca.s   V_1
-              IL_0046:  call       "readonly bool int?.HasValue.get"
-              IL_004b:  brtrue.s   IL_007f
-              IL_004d:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
-              IL_0052:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-              IL_0057:  stloc.2
-              IL_0058:  ldloca.s   V_3
-              IL_005a:  initobj    "T"
-              IL_0060:  ldloc.3
-              IL_0061:  box        "T"
-              IL_0066:  brtrue.s   IL_006b
-              IL_0068:  ldloc.0
-              IL_0069:  br.s       IL_0070
-              IL_006b:  ldsfld     "T Program<T>.F"
-              IL_0070:  ldloca.s   V_4
-              IL_0072:  ldloc.2
-              IL_0073:  call       "int?..ctor(int)"
-              IL_0078:  ldloc.s    V_4
-              IL_007a:  call       "void E.set_P2<T>(T, int?)"
-              IL_007f:  ret
+                            T& V_1,
+                            int? V_2,
+                            int V_3,
+                            int V_4,
+                            T V_5,
+                            int V_6,
+                            int? V_7)
+              IL_0000:  nop
+              IL_0001:  ldloca.s   V_5
+              IL_0003:  initobj    "T"
+              IL_0009:  ldloc.s    V_5
+              IL_000b:  box        "T"
+              IL_0010:  brtrue.s   IL_001a
+              IL_0012:  ldsfld     "T Program<T>.F"
+              IL_0017:  stloc.0
+              IL_0018:  br.s       IL_0020
+              IL_001a:  ldsfld     "T Program<T>.F"
+              IL_001f:  pop
+              IL_0020:  ldloca.s   V_5
+              IL_0022:  initobj    "T"
+              IL_0028:  ldloc.s    V_5
+              IL_002a:  box        "T"
+              IL_002f:  brtrue.s   IL_0034
+              IL_0031:  ldloc.0
+              IL_0032:  br.s       IL_0039
+              IL_0034:  ldsfld     "T Program<T>.F"
+              IL_0039:  call       "int? E.get_P2<T>(T)"
+              IL_003e:  stloc.2
+              IL_003f:  ldloca.s   V_2
+              IL_0041:  call       "readonly int int?.GetValueOrDefault()"
+              IL_0046:  stloc.3
+              IL_0047:  ldloca.s   V_2
+              IL_0049:  call       "readonly bool int?.HasValue.get"
+              IL_004e:  brfalse.s  IL_0055
+              IL_0050:  ldloc.3
+              IL_0051:  stloc.s    V_4
+              IL_0053:  br.s       IL_0090
+              IL_0055:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_005a:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_005f:  stloc.s    V_6
+              IL_0061:  ldloc.s    V_6
+              IL_0063:  stloc.3
+              IL_0064:  ldloca.s   V_5
+              IL_0066:  initobj    "T"
+              IL_006c:  ldloc.s    V_5
+              IL_006e:  box        "T"
+              IL_0073:  brtrue.s   IL_0078
+              IL_0075:  ldloc.0
+              IL_0076:  br.s       IL_007d
+              IL_0078:  ldsfld     "T Program<T>.F"
+              IL_007d:  ldloca.s   V_7
+              IL_007f:  ldloc.3
+              IL_0080:  call       "int?..ctor(int)"
+              IL_0085:  ldloc.s    V_7
+              IL_0087:  call       "void E.set_P2<T>(T, int?)"
+              IL_008c:  nop
+              IL_008d:  ldloc.3
+              IL_008e:  stloc.s    V_4
+              IL_0090:  ret
             }
             """);
     }
@@ -12584,8 +12631,9 @@ class Program
 }
 """;
 
+        var expectedOutput = "123125125:123125125:123125125:123125125";
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125:123125125").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test12<T>(ref T)",
 @"
@@ -12646,66 +12694,88 @@ class Program
 }
 ");
 
-        comp = CreateRuntimeAsyncCompilation(src);
-        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.DebugExe);
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
         {
             ILVerifyMessage = """
-                [Main]: Return value missing on the stack. { Offset = 0xde }
-                [Test13]: Return value missing on the stack. { Offset = 0x29 }
-                [Test23]: Return value missing on the stack. { Offset = 0x3a }
-                [Get1Async]: Unexpected type on the stack. { Offset = 0x34, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                [Main]: Return value missing on the stack. { Offset = 0xea }
+                [Test13]: Return value missing on the stack. { Offset = 0x33 }
+                [Test23]: Return value missing on the stack. { Offset = 0x47 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x3b, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                 """
         });
 
         verifier.VerifyIL("Program.Test13<T>()", """
             {
-              // Code size       42 (0x2a)
+              // Code size       52 (0x34)
               .maxstack  3
-              .locals init (int V_0,
-                            object V_1)
-              IL_0000:  ldsflda    "T Program<T>.F"
-              IL_0005:  call       "object E.get_P1<T>(ref T)"
-              IL_000a:  brtrue.s   IL_0029
-              IL_000c:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
-              IL_0011:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-              IL_0016:  stloc.0
-              IL_0017:  ldsflda    "T Program<T>.F"
-              IL_001c:  ldloc.0
-              IL_001d:  box        "int"
-              IL_0022:  dup
-              IL_0023:  stloc.1
-              IL_0024:  call       "void E.set_P1<T>(ref T, object)"
-              IL_0029:  ret
+              .locals init (T& V_0,
+                            object V_1,
+                            object V_2,
+                            int V_3,
+                            object V_4)
+              IL_0000:  nop
+              IL_0001:  ldsflda    "T Program<T>.F"
+              IL_0006:  call       "object E.get_P1<T>(ref T)"
+              IL_000b:  stloc.1
+              IL_000c:  ldloc.1
+              IL_000d:  stloc.2
+              IL_000e:  ldloc.2
+              IL_000f:  brtrue.s   IL_0033
+              IL_0011:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0016:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_001b:  stloc.3
+              IL_001c:  ldsflda    "T Program<T>.F"
+              IL_0021:  ldloc.3
+              IL_0022:  box        "int"
+              IL_0027:  dup
+              IL_0028:  stloc.s    V_4
+              IL_002a:  call       "void E.set_P1<T>(ref T, object)"
+              IL_002f:  nop
+              IL_0030:  ldloc.s    V_4
+              IL_0032:  stloc.2
+              IL_0033:  ret
             }
             """);
 
         verifier.VerifyIL("Program.Test23<T>()", """
             {
-              // Code size       59 (0x3b)
+              // Code size       72 (0x48)
               .maxstack  3
-              .locals init (int? V_0,
-                            int V_1,
-                            int? V_2)
-              IL_0000:  ldsflda    "T Program<T>.F"
-              IL_0005:  call       "int? E.get_P2<T>(ref T)"
-              IL_000a:  stloc.0
-              IL_000b:  ldloca.s   V_0
-              IL_000d:  call       "readonly int int?.GetValueOrDefault()"
-              IL_0012:  stloc.1
-              IL_0013:  ldloca.s   V_0
-              IL_0015:  call       "readonly bool int?.HasValue.get"
-              IL_001a:  brtrue.s   IL_003a
-              IL_001c:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
-              IL_0021:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-              IL_0026:  stloc.1
-              IL_0027:  ldsflda    "T Program<T>.F"
-              IL_002c:  ldloca.s   V_2
-              IL_002e:  ldloc.1
-              IL_002f:  call       "int?..ctor(int)"
-              IL_0034:  ldloc.2
-              IL_0035:  call       "void E.set_P2<T>(ref T, int?)"
-              IL_003a:  ret
+              .locals init (T& V_0,
+                            int? V_1,
+                            int V_2,
+                            int V_3,
+                            int V_4,
+                            int? V_5)
+              IL_0000:  nop
+              IL_0001:  ldsflda    "T Program<T>.F"
+              IL_0006:  call       "int? E.get_P2<T>(ref T)"
+              IL_000b:  stloc.1
+              IL_000c:  ldloca.s   V_1
+              IL_000e:  call       "readonly int int?.GetValueOrDefault()"
+              IL_0013:  stloc.2
+              IL_0014:  ldloca.s   V_1
+              IL_0016:  call       "readonly bool int?.HasValue.get"
+              IL_001b:  brfalse.s  IL_0021
+              IL_001d:  ldloc.2
+              IL_001e:  stloc.3
+              IL_001f:  br.s       IL_0047
+              IL_0021:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0026:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_002b:  stloc.s    V_4
+              IL_002d:  ldloc.s    V_4
+              IL_002f:  stloc.2
+              IL_0030:  ldsflda    "T Program<T>.F"
+              IL_0035:  ldloca.s   V_5
+              IL_0037:  ldloc.2
+              IL_0038:  call       "int?..ctor(int)"
+              IL_003d:  ldloc.s    V_5
+              IL_003f:  call       "void E.set_P2<T>(ref T, int?)"
+              IL_0044:  nop
+              IL_0045:  ldloc.2
+              IL_0046:  stloc.3
+              IL_0047:  ret
             }
             """);
 
@@ -12902,8 +12972,9 @@ class Program
 }
 """;
 
+        var expectedOutput = "123123125:123123125:123123125:123123125:123123125:123123125";
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125:123123125:123123125:123123125").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test11<T>(ref T)",
 @"
@@ -13062,118 +13133,143 @@ class Program
 }
 ");
 
-        comp = CreateRuntimeAsyncCompilation(src);
-        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.DebugExe);
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
         {
             ILVerifyMessage = """
-                [Main]: Return value missing on the stack. { Offset = 0x134 }
-                [Test13]: Return value missing on the stack. { Offset = 0x6d }
-                [Test23]: Return value missing on the stack. { Offset = 0x7f }
-                [Get1Async]: Unexpected type on the stack. { Offset = 0x41, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                [Main]: Return value missing on the stack. { Offset = 0x146 }
+                [Test13]: Return value missing on the stack. { Offset = 0x80 }
+                [Test23]: Return value missing on the stack. { Offset = 0x90 }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                 """
         });
 
         verifier.VerifyIL("Program.Test13<T>()", """
             {
-              // Code size      110 (0x6e)
+              // Code size      129 (0x81)
               .maxstack  3
               .locals init (T V_0,
-                            T V_1,
+                            T& V_1,
                             object V_2,
-                            object V_3)
-              IL_0000:  ldloca.s   V_1
-              IL_0002:  initobj    "T"
-              IL_0008:  ldloc.1
-              IL_0009:  box        "T"
-              IL_000e:  brtrue.s   IL_0018
-              IL_0010:  ldsfld     "T Program<T>.F"
-              IL_0015:  stloc.0
-              IL_0016:  br.s       IL_001e
-              IL_0018:  ldsfld     "T Program<T>.F"
-              IL_001d:  pop
-              IL_001e:  ldloca.s   V_1
-              IL_0020:  initobj    "T"
-              IL_0026:  ldloc.1
-              IL_0027:  box        "T"
-              IL_002c:  brtrue.s   IL_0031
-              IL_002e:  ldloc.0
-              IL_002f:  br.s       IL_0036
-              IL_0031:  ldsfld     "T Program<T>.F"
-              IL_0036:  call       "object E.get_P1<T>(T)"
-              IL_003b:  brtrue.s   IL_006d
-              IL_003d:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
-              IL_0042:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-              IL_0047:  box        "int"
-              IL_004c:  stloc.2
-              IL_004d:  ldloca.s   V_1
-              IL_004f:  initobj    "T"
-              IL_0055:  ldloc.1
-              IL_0056:  box        "T"
-              IL_005b:  brtrue.s   IL_0060
-              IL_005d:  ldloc.0
-              IL_005e:  br.s       IL_0065
-              IL_0060:  ldsfld     "T Program<T>.F"
-              IL_0065:  ldloc.2
-              IL_0066:  dup
-              IL_0067:  stloc.3
-              IL_0068:  call       "void E.set_P1<T>(T, object)"
-              IL_006d:  ret
+                            object V_3,
+                            T V_4,
+                            int V_5,
+                            object V_6,
+                            object V_7)
+              IL_0000:  nop
+              IL_0001:  ldloca.s   V_4
+              IL_0003:  initobj    "T"
+              IL_0009:  ldloc.s    V_4
+              IL_000b:  box        "T"
+              IL_0010:  brtrue.s   IL_001a
+              IL_0012:  ldsfld     "T Program<T>.F"
+              IL_0017:  stloc.0
+              IL_0018:  br.s       IL_0020
+              IL_001a:  ldsfld     "T Program<T>.F"
+              IL_001f:  pop
+              IL_0020:  ldloca.s   V_4
+              IL_0022:  initobj    "T"
+              IL_0028:  ldloc.s    V_4
+              IL_002a:  box        "T"
+              IL_002f:  brtrue.s   IL_0034
+              IL_0031:  ldloc.0
+              IL_0032:  br.s       IL_0039
+              IL_0034:  ldsfld     "T Program<T>.F"
+              IL_0039:  call       "object E.get_P1<T>(T)"
+              IL_003e:  stloc.2
+              IL_003f:  ldloc.2
+              IL_0040:  stloc.3
+              IL_0041:  ldloc.3
+              IL_0042:  brtrue.s   IL_0080
+              IL_0044:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0049:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_004e:  stloc.s    V_5
+              IL_0050:  ldloc.s    V_5
+              IL_0052:  box        "int"
+              IL_0057:  stloc.s    V_6
+              IL_0059:  ldloca.s   V_4
+              IL_005b:  initobj    "T"
+              IL_0061:  ldloc.s    V_4
+              IL_0063:  box        "T"
+              IL_0068:  brtrue.s   IL_006d
+              IL_006a:  ldloc.0
+              IL_006b:  br.s       IL_0072
+              IL_006d:  ldsfld     "T Program<T>.F"
+              IL_0072:  ldloc.s    V_6
+              IL_0074:  dup
+              IL_0075:  stloc.s    V_7
+              IL_0077:  call       "void E.set_P1<T>(T, object)"
+              IL_007c:  nop
+              IL_007d:  ldloc.s    V_7
+              IL_007f:  stloc.3
+              IL_0080:  ret
             }
             """);
 
         verifier.VerifyIL("Program.Test23<T>()", """
             {
-              // Code size      128 (0x80)
+              // Code size      145 (0x91)
               .maxstack  3
               .locals init (T V_0,
-                            int? V_1,
-                            int V_2,
-                            T V_3,
-                            int? V_4)
-              IL_0000:  ldloca.s   V_3
-              IL_0002:  initobj    "T"
-              IL_0008:  ldloc.3
-              IL_0009:  box        "T"
-              IL_000e:  brtrue.s   IL_0018
-              IL_0010:  ldsfld     "T Program<T>.F"
-              IL_0015:  stloc.0
-              IL_0016:  br.s       IL_001e
-              IL_0018:  ldsfld     "T Program<T>.F"
-              IL_001d:  pop
-              IL_001e:  ldloca.s   V_3
-              IL_0020:  initobj    "T"
-              IL_0026:  ldloc.3
-              IL_0027:  box        "T"
-              IL_002c:  brtrue.s   IL_0031
-              IL_002e:  ldloc.0
-              IL_002f:  br.s       IL_0036
-              IL_0031:  ldsfld     "T Program<T>.F"
-              IL_0036:  call       "int? E.get_P2<T>(T)"
-              IL_003b:  stloc.1
-              IL_003c:  ldloca.s   V_1
-              IL_003e:  call       "readonly int int?.GetValueOrDefault()"
-              IL_0043:  stloc.2
-              IL_0044:  ldloca.s   V_1
-              IL_0046:  call       "readonly bool int?.HasValue.get"
-              IL_004b:  brtrue.s   IL_007f
-              IL_004d:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
-              IL_0052:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-              IL_0057:  stloc.2
-              IL_0058:  ldloca.s   V_3
-              IL_005a:  initobj    "T"
-              IL_0060:  ldloc.3
-              IL_0061:  box        "T"
-              IL_0066:  brtrue.s   IL_006b
-              IL_0068:  ldloc.0
-              IL_0069:  br.s       IL_0070
-              IL_006b:  ldsfld     "T Program<T>.F"
-              IL_0070:  ldloca.s   V_4
-              IL_0072:  ldloc.2
-              IL_0073:  call       "int?..ctor(int)"
-              IL_0078:  ldloc.s    V_4
-              IL_007a:  call       "void E.set_P2<T>(T, int?)"
-              IL_007f:  ret
+                            T& V_1,
+                            int? V_2,
+                            int V_3,
+                            int V_4,
+                            T V_5,
+                            int V_6,
+                            int? V_7)
+              IL_0000:  nop
+              IL_0001:  ldloca.s   V_5
+              IL_0003:  initobj    "T"
+              IL_0009:  ldloc.s    V_5
+              IL_000b:  box        "T"
+              IL_0010:  brtrue.s   IL_001a
+              IL_0012:  ldsfld     "T Program<T>.F"
+              IL_0017:  stloc.0
+              IL_0018:  br.s       IL_0020
+              IL_001a:  ldsfld     "T Program<T>.F"
+              IL_001f:  pop
+              IL_0020:  ldloca.s   V_5
+              IL_0022:  initobj    "T"
+              IL_0028:  ldloc.s    V_5
+              IL_002a:  box        "T"
+              IL_002f:  brtrue.s   IL_0034
+              IL_0031:  ldloc.0
+              IL_0032:  br.s       IL_0039
+              IL_0034:  ldsfld     "T Program<T>.F"
+              IL_0039:  call       "int? E.get_P2<T>(T)"
+              IL_003e:  stloc.2
+              IL_003f:  ldloca.s   V_2
+              IL_0041:  call       "readonly int int?.GetValueOrDefault()"
+              IL_0046:  stloc.3
+              IL_0047:  ldloca.s   V_2
+              IL_0049:  call       "readonly bool int?.HasValue.get"
+              IL_004e:  brfalse.s  IL_0055
+              IL_0050:  ldloc.3
+              IL_0051:  stloc.s    V_4
+              IL_0053:  br.s       IL_0090
+              IL_0055:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_005a:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_005f:  stloc.s    V_6
+              IL_0061:  ldloc.s    V_6
+              IL_0063:  stloc.3
+              IL_0064:  ldloca.s   V_5
+              IL_0066:  initobj    "T"
+              IL_006c:  ldloc.s    V_5
+              IL_006e:  box        "T"
+              IL_0073:  brtrue.s   IL_0078
+              IL_0075:  ldloc.0
+              IL_0076:  br.s       IL_007d
+              IL_0078:  ldsfld     "T Program<T>.F"
+              IL_007d:  ldloca.s   V_7
+              IL_007f:  ldloc.3
+              IL_0080:  call       "int?..ctor(int)"
+              IL_0085:  ldloc.s    V_7
+              IL_0087:  call       "void E.set_P2<T>(T, int?)"
+              IL_008c:  nop
+              IL_008d:  ldloc.3
+              IL_008e:  stloc.s    V_4
+              IL_0090:  ret
             }
             """);
     }
@@ -13595,8 +13691,9 @@ class Program
 }
 """;
 
+        var expectedOutput = "123124124:123124124:123124124";
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124124:123124124:123124124").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -13649,48 +13746,53 @@ class Program
 }
 ");
 
-        comp = CreateRuntimeAsyncCompilation(src);
-        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.DebugExe);
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
         {
             ILVerifyMessage = """
-                [Main]: Return value missing on the stack. { Offset = 0xa4 }
-                [Test3]: Return value missing on the stack. { Offset = 0x47 }
-                [Get1Async]: Unexpected type on the stack. { Offset = 0x43, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                [Main]: Return value missing on the stack. { Offset = 0xad }
+                [Test3]: Return value missing on the stack. { Offset = 0x4d }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x4b, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                 """
         });
 
         verifier.VerifyIL("Program.Test3<T>()", """
             {
-              // Code size       72 (0x48)
+              // Code size       78 (0x4e)
               .maxstack  2
               .locals init (T V_0,
-                            int V_1,
-                            T V_2)
-              IL_0000:  ldloca.s   V_2
-              IL_0002:  initobj    "T"
-              IL_0008:  ldloc.2
-              IL_0009:  box        "T"
-              IL_000e:  brtrue.s   IL_0018
-              IL_0010:  ldsfld     "T Program<T>.F"
-              IL_0015:  stloc.0
-              IL_0016:  br.s       IL_001e
-              IL_0018:  ldsfld     "T Program<T>.F"
-              IL_001d:  pop
-              IL_001e:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
-              IL_0023:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-              IL_0028:  stloc.1
-              IL_0029:  ldloca.s   V_2
-              IL_002b:  initobj    "T"
-              IL_0031:  ldloc.2
-              IL_0032:  box        "T"
-              IL_0037:  brtrue.s   IL_003c
-              IL_0039:  ldloc.0
-              IL_003a:  br.s       IL_0041
-              IL_003c:  ldsfld     "T Program<T>.F"
-              IL_0041:  ldloc.1
-              IL_0042:  call       "void E.set_P1<T>(T, int)"
-              IL_0047:  ret
+                            T& V_1,
+                            int V_2,
+                            int V_3,
+                            T V_4)
+              IL_0000:  nop
+              IL_0001:  ldloca.s   V_4
+              IL_0003:  initobj    "T"
+              IL_0009:  ldloc.s    V_4
+              IL_000b:  box        "T"
+              IL_0010:  brtrue.s   IL_001a
+              IL_0012:  ldsfld     "T Program<T>.F"
+              IL_0017:  stloc.0
+              IL_0018:  br.s       IL_0020
+              IL_001a:  ldsfld     "T Program<T>.F"
+              IL_001f:  pop
+              IL_0020:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0025:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_002a:  stloc.2
+              IL_002b:  ldloc.2
+              IL_002c:  stloc.3
+              IL_002d:  ldloca.s   V_4
+              IL_002f:  initobj    "T"
+              IL_0035:  ldloc.s    V_4
+              IL_0037:  box        "T"
+              IL_003c:  brtrue.s   IL_0041
+              IL_003e:  ldloc.0
+              IL_003f:  br.s       IL_0046
+              IL_0041:  ldsfld     "T Program<T>.F"
+              IL_0046:  ldloc.3
+              IL_0047:  call       "void E.set_P1<T>(T, int)"
+              IL_004c:  nop
+              IL_004d:  ret
             }
             """);
     }
@@ -13771,8 +13873,9 @@ class Program
 }
 """;
 
+        var expectedOutput = "123124124:123124124";
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124124:123124124").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test2<T>(ref T)",
 @"
@@ -13791,29 +13894,34 @@ class Program
 }
 ");
 
-        comp = CreateRuntimeAsyncCompilation(src);
-        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.DebugExe);
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
         {
             ILVerifyMessage = """
-                [Main]: Return value missing on the stack. { Offset = 0x6a }
-                [Test3]: Return value missing on the stack. { Offset = 0x16 }
-                [Get1Async]: Unexpected type on the stack. { Offset = 0x43, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                [Main]: Return value missing on the stack. { Offset = 0x70 }
+                [Test3]: Return value missing on the stack. { Offset = 0x1a }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x4b, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                 """
         });
 
         verifier.VerifyIL("Program.Test3<T>()", """
             {
-              // Code size       23 (0x17)
+              // Code size       27 (0x1b)
               .maxstack  2
-              .locals init (int V_0)
-              IL_0000:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
-              IL_0005:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-              IL_000a:  stloc.0
-              IL_000b:  ldsflda    "T Program<T>.F"
-              IL_0010:  ldloc.0
-              IL_0011:  call       "void E.set_P1<T>(ref T, int)"
-              IL_0016:  ret
+              .locals init (T& V_0,
+                            int V_1,
+                            int V_2)
+              IL_0000:  nop
+              IL_0001:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0006:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_000b:  stloc.1
+              IL_000c:  ldloc.1
+              IL_000d:  stloc.2
+              IL_000e:  ldsflda    "T Program<T>.F"
+              IL_0013:  ldloc.2
+              IL_0014:  call       "void E.set_P1<T>(ref T, int)"
+              IL_0019:  nop
+              IL_001a:  ret
             }
             """);
 
@@ -13956,8 +14064,9 @@ class Program
 }
 """;
 
+        var expectedOutput = "123123124:123123124:123123124";
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123124:123123124:123123124").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -14010,48 +14119,53 @@ class Program
 }
 ");
 
-        comp = CreateRuntimeAsyncCompilation(src);
-        // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-        verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+        comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.DebugExe);
+        verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
         {
             ILVerifyMessage = """
-                [Main]: Return value missing on the stack. { Offset = 0x95 }
-                [Test3]: Return value missing on the stack. { Offset = 0x47 }
-                [Get1Async]: Unexpected type on the stack. { Offset = 0x50, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                [Main]: Return value missing on the stack. { Offset = 0x9e }
+                [Test3]: Return value missing on the stack. { Offset = 0x4d }
+                [Get1Async]: Unexpected type on the stack. { Offset = 0x58, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                 """
         });
 
         verifier.VerifyIL("Program.Test3<T>()", """
             {
-              // Code size       72 (0x48)
+              // Code size       78 (0x4e)
               .maxstack  2
               .locals init (T V_0,
-                            int V_1,
-                            T V_2)
-              IL_0000:  ldloca.s   V_2
-              IL_0002:  initobj    "T"
-              IL_0008:  ldloc.2
-              IL_0009:  box        "T"
-              IL_000e:  brtrue.s   IL_0018
-              IL_0010:  ldsfld     "T Program<T>.F"
-              IL_0015:  stloc.0
-              IL_0016:  br.s       IL_001e
-              IL_0018:  ldsfld     "T Program<T>.F"
-              IL_001d:  pop
-              IL_001e:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
-              IL_0023:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-              IL_0028:  stloc.1
-              IL_0029:  ldloca.s   V_2
-              IL_002b:  initobj    "T"
-              IL_0031:  ldloc.2
-              IL_0032:  box        "T"
-              IL_0037:  brtrue.s   IL_003c
-              IL_0039:  ldloc.0
-              IL_003a:  br.s       IL_0041
-              IL_003c:  ldsfld     "T Program<T>.F"
-              IL_0041:  ldloc.1
-              IL_0042:  call       "void E.set_P1<T>(T, int)"
-              IL_0047:  ret
+                            T& V_1,
+                            int V_2,
+                            int V_3,
+                            T V_4)
+              IL_0000:  nop
+              IL_0001:  ldloca.s   V_4
+              IL_0003:  initobj    "T"
+              IL_0009:  ldloc.s    V_4
+              IL_000b:  box        "T"
+              IL_0010:  brtrue.s   IL_001a
+              IL_0012:  ldsfld     "T Program<T>.F"
+              IL_0017:  stloc.0
+              IL_0018:  br.s       IL_0020
+              IL_001a:  ldsfld     "T Program<T>.F"
+              IL_001f:  pop
+              IL_0020:  call       "System.Threading.Tasks.Task<int> Program.Get1Async()"
+              IL_0025:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_002a:  stloc.2
+              IL_002b:  ldloc.2
+              IL_002c:  stloc.3
+              IL_002d:  ldloca.s   V_4
+              IL_002f:  initobj    "T"
+              IL_0035:  ldloc.s    V_4
+              IL_0037:  box        "T"
+              IL_003c:  brtrue.s   IL_0041
+              IL_003e:  ldloc.0
+              IL_003f:  br.s       IL_0046
+              IL_0041:  ldsfld     "T Program<T>.F"
+              IL_0046:  ldloc.3
+              IL_0047:  call       "void E.set_P1<T>(T, int)"
+              IL_004c:  nop
+              IL_004d:  ret
             }
             """);
     }
@@ -26656,19 +26770,39 @@ public static class E
         4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
         72 69 74 65 64 00
     )
+    // Fields
+    .field private initonly string '<Name>k__BackingField'
     // Methods
+    .method public hidebysig specialname 
+        instance string get_Name () cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld string System.Runtime.CompilerServices.ExtensionMarkerAttribute::'<Name>k__BackingField'
+        IL_0006: ret
+    } // end of method ExtensionMarkerAttribute::get_Name
     .method public hidebysig specialname rtspecialname 
         instance void .ctor (
             string name
         ) cil managed 
     {
-        // Method begins at RVA 0x2050
-        // Code size 7 (0x7)
+        // Method begins at RVA 0x206f
+        // Code size 14 (0xe)
         .maxstack 8
         IL_0000: ldarg.0
         IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
-        IL_0006: ret
+        IL_0006: ldarg.0
+        IL_0007: ldarg.1
+        IL_0008: stfld string System.Runtime.CompilerServices.ExtensionMarkerAttribute::'<Name>k__BackingField'
+        IL_000d: ret
     } // end of method ExtensionMarkerAttribute::.ctor
+    // Properties
+    .property instance string Name()
+    {
+        .get instance string System.Runtime.CompilerServices.ExtensionMarkerAttribute::get_Name()
+    }
 } // end of class System.Runtime.CompilerServices.ExtensionMarkerAttribute
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -26917,6 +27051,84 @@ class C3<[ExtensionMarker("type parameter")] T> { }
             // (44,11): error CS0592: Attribute 'ExtensionMarker' is not valid on this declaration type. It is only valid on 'class, struct, enum, method, property, indexer, field, event, interface, delegate' declarations.
             // class C3<[ExtensionMarker("type parameter")] T> { }namespace System.Runtime.CompilerServices
             Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtensionMarker").WithArguments("ExtensionMarker", "class, struct, enum, method, property, indexer, field, event, interface, delegate").WithLocation(44, 11));
+    }
+
+    [Fact]
+    public void ExtensionMarkerAttribute_08()
+    {
+        // implementation of Name property
+        var src = """
+var type = System.Type.GetType("E+<G>$C43E2675C7BBF9284AF22FB8A9BF0280"); 
+var method = type.GetMethod("M", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+var attrType = System.Type.GetType("System.Runtime.CompilerServices.ExtensionMarkerAttribute");
+var nameProp = attrType.GetProperty("Name", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+var attr = System.Attribute.GetCustomAttribute(method, attrType);
+var value = nameProp.GetValue(attr);
+System.Console.Write(value);
+
+public static class E
+{
+    extension(object o)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        var verifier = CompileAndVerify(comp, expectedOutput: "<M>$119AA281C143547563250CAF89B48A76").VerifyDiagnostics();
+
+        verifier.VerifyTypeIL("ExtensionMarkerAttribute", """
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ExtensionMarkerAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 dc 17 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 00 54 02 09 49 6e 68 65
+        72 69 74 65 64 00
+    )
+    // Fields
+    .field private initonly string '<Name>k__BackingField'
+    // Methods
+    .method public hidebysig specialname 
+        instance string get_Name () cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: ldfld string System.Runtime.CompilerServices.ExtensionMarkerAttribute::'<Name>k__BackingField'
+        IL_0006: ret
+    } // end of method ExtensionMarkerAttribute::get_Name
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string name
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 14 (0xe)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ldarg.0
+        IL_0007: ldarg.1
+        IL_0008: stfld string System.Runtime.CompilerServices.ExtensionMarkerAttribute::'<Name>k__BackingField'
+        IL_000d: ret
+    } // end of method ExtensionMarkerAttribute::.ctor
+    // Properties
+    .property instance string Name()
+    {
+        .get instance string System.Runtime.CompilerServices.ExtensionMarkerAttribute::get_Name()
+    }
+} // end of class System.Runtime.CompilerServices.ExtensionMarkerAttribute
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
 
     [Fact]
@@ -30584,7 +30796,7 @@ class C<T> { }
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x212f
+                // Method begins at RVA 0x214b
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -30602,11 +30814,11 @@ class C<T> { }
                 32 38 31 43 39 31 35 37 44 46 46 45 37 35 45 39
                 42 46 39 33 44 46 33 00 00
             )
-            // Method begins at RVA 0x212c
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2144
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$DCC6408136F6EFC8A90FB693F174BE24'::SelectMany
         .method public hidebysig 
             instance class C`1<!!T> Cast<T> () cil managed 
@@ -30616,11 +30828,11 @@ class C<T> { }
                 32 38 31 43 39 31 35 37 44 46 46 45 37 35 45 39
                 42 46 39 33 44 46 33 00 00
             )
-            // Method begins at RVA 0x212c
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2144
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$DCC6408136F6EFC8A90FB693F174BE24'::Cast
     } // end of class <G>$DCC6408136F6EFC8A90FB693F174BE24
     // Methods
@@ -30634,7 +30846,7 @@ class C<T> { }
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x20cb
+        // Method begins at RVA 0x20e3
         // Code size 16 (0x10)
         .maxstack 8
         IL_0000: ldstr "SelectMany"
@@ -30650,7 +30862,7 @@ class C<T> { }
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x20dc
+        // Method begins at RVA 0x20f4
         // Code size 16 (0x10)
         .maxstack 8
         IL_0000: ldstr "Cast "
@@ -31974,7 +32186,7 @@ namespace N1
 {
     static class E1
     {
-        public static void M1(this object o) { }
+        public static void M1(this object o) { System.Console.Write("ran"); }
     }
 }
 
@@ -31984,14 +32196,398 @@ namespace N2
     {
         extension(object o)
         {
-            public void M2() { }
+            public void M2() => throw null;
         }
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/79440 : using directives, consider refining used imports logic
-        comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_13()
+    {
+        // tracking unnecessary imports
+        var src = """
+using N1;
+using N2;
+
+_ = new object().P1;
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int P2 => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_14()
+    {
+        // tracking unnecessary imports
+        var src = """
+using N1;
+using N2;
+
+_ = new object().P1;
+
+namespace N1 
+{
+    static class E1
+    {
+        extension<T>(T t)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(T t)
+        {
+            public int P2 => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_15()
+    {
+        // tracking unnecessary imports, invocable
+        var src = """
+using N1;
+using N2;
+
+new object().P1();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public System.Action P1 { get { System.Console.Write("ran"); return () => { }; } }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int P1 => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_16()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_17()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() => 0;
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => 0;
+            public int M<T>() => 0;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,18): error CS0121: The call is ambiguous between the following methods or properties: 'N1.E1.extension(object).M<T>()' and 'N2.E2.extension(object).M<T>()'
+            // _ = new object().M<int>();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("N1.E1.extension(object).M<T>()", "N2.E2.extension(object).M<T>()").WithLocation(4, 18));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var opNode = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M<int>");
+        var symbolInfo = model.GetSymbolInfo(opNode);
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+        AssertEx.SetEqual([
+            "System.Int32 N1.E1.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Int32>()",
+            "System.Int32 N2.E2.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.M<System.Int32>()"
+            ], symbolInfo.CandidateSymbols.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Using_18()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(object o)
+        {
+            public int M(int i) => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_19()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M<T>(int i) => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_20()
+    {
+        // tracking unnecessary imports, explicit arity
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M<int>();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M<T>() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension<T>(object o)
+        {
+            public int M<U>(int i) => 0;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using N2;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N2;").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Using_21()
+    {
+        // tracking unnecessary imports, value receiver
+        var src = """
+using N1;
+using N2;
+
+_ = new object().M();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object o)
+        {
+            public int M() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object)
+        {
+            public static int M() => throw null;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Using_22()
+    {
+        // tracking unnecessary imports, type receiver
+        var src = """
+using N1;
+using N2;
+
+_ = object.M();
+
+namespace N1 
+{
+    static class E1
+    {
+        extension(object)
+        {
+            public static int M() { System.Console.Write("ran"); return 0; }
+        }
+    }
+}
+
+namespace N2
+{
+    static class E2
+    {
+        extension(object o)
+        {
+            public int M() => throw null;
+        }
+    }
+}
+""";
+        CompileAndVerify(src, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -32040,41 +32636,41 @@ public class AAttribute : System.Attribute { }
                     01 00 00 00
                 )
             // Methods
-            .method public hidebysig specialname static
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
-                ) cil managed
+                ) cil managed 
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2067
+                // Method begins at RVA 0x207e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
             } // end of method '<M>$73F5560BE55A0A0B23905153DB511F4E'::'<Extension>$'
         } // end of class <M>$73F5560BE55A0A0B23905153DB511F4E
         // Methods
-        .method public hidebysig
-            instance void M () cil managed
+        .method public hidebysig 
+            instance void M () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 37 33 46 35 35 36 30 42 45
                 35 35 41 30 41 30 42 32 33 39 30 35 31 35 33 44
                 42 35 31 31 46 34 45 00 00
             )
-            // Method begins at RVA 0x2069
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2080
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$B8D310208B4544F25EEBACB9990FC73B`1'::M
     } // end of class <G>$B8D310208B4544F25EEBACB9990FC73B`1
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         void M<T> (
             int32 i
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -32083,7 +32679,7 @@ public class AAttribute : System.Attribute { }
             .custom instance void AAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
@@ -32544,41 +33140,41 @@ public static class E
                     01 00 00 00
                 )
             // Methods
-            .method public hidebysig specialname static
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
-                ) cil managed
+                ) cil managed 
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x2067
+                // Method begins at RVA 0x207e
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
             } // end of method '<M>$A888E0AEEFB4AB1872CCB8E7D5472CC8'::'<Extension>$'
         } // end of class <M>$A888E0AEEFB4AB1872CCB8E7D5472CC8
         // Methods
-        .method public hidebysig
-            instance void M () cil managed
+        .method public hidebysig 
+            instance void M () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 41 38 38 38 45 30 41 45 45
                 46 42 34 41 42 31 38 37 32 43 43 42 38 45 37 44
                 35 34 37 32 43 43 38 00 00
             )
-            // Method begins at RVA 0x2069
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2080
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$8A1E908054B5C3DCE56554F1F294FA98`1'::M
     } // end of class <G>$8A1E908054B5C3DCE56554F1F294FA98`1
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         void M<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T> (
             int32 i
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -32587,7 +33183,7 @@ public static class E
             .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
@@ -32803,23 +33399,23 @@ public class AAttribute : System.Attribute { }
             extends [mscorlib]System.Object
         {
             // Methods
-            .method public hidebysig specialname static
+            .method public hidebysig specialname static 
                 void '<Extension>$' (
                     int32 i
-                ) cil managed
+                ) cil managed 
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206d
+                // Method begins at RVA 0x2088
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
             } // end of method '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
         } // end of class <M>$F4B4FFE41AB49E80A4ECF390CF6EB372
         // Methods
-        .method public hidebysig specialname
-            instance int32 get_P () cil managed
+        .method public hidebysig specialname 
+            instance int32 get_P () cil managed 
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
                 01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
@@ -32830,11 +33426,11 @@ public class AAttribute : System.Attribute { }
                 .custom instance void AAttribute::.ctor() = (
                     01 00 00 00
                 )
-            // Method begins at RVA 0x206a
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x2081
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::get_P
         // Properties
         .property instance int32 P()
@@ -32848,16 +33444,16 @@ public class AAttribute : System.Attribute { }
         }
     } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         int32 get_P (
             int32 i
-        ) cil managed
+        ) cil managed 
     {
         .param [0]
             .custom instance void AAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x2067
+        // Method begins at RVA 0x207e
         // Code size 2 (0x2)
         .maxstack 8
         IL_0000: ldc.i4.0
@@ -32928,11 +33524,11 @@ public static class E
     {
         public void M()
         {
-            local(0);
+            local<int>(0);
 
             [return: A]
             [B]
-            void local([C] int i2) { }
+            void local<[D] T>([C] int i2) { }
         }
     }
 }
@@ -32942,6 +33538,127 @@ public class AAttribute : System.Attribute { }
 
 {{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
 public class BAttribute : System.Attribute { }
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class CAttribute : System.Attribute { }
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class DAttribute : System.Attribute { }
+""";
+
+        var verifier = CompileAndVerify([src, CompilerLoweringPreserveAttributeDefinition]).VerifyDiagnostics();
+        verifier.VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$531E7AC45D443AE2243E7FFAB9455D60'
+            extends [mscorlib]System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 i1
+                ) cil managed 
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x2086
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$531E7AC45D443AE2243E7FFAB9455D60'::'<Extension>$'
+        } // end of class <M>$531E7AC45D443AE2243E7FFAB9455D60
+        // Methods
+        .method public hidebysig 
+            instance void M () cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 35 33 31 45 37 41 43 34 35
+                44 34 34 33 41 45 32 32 34 33 45 37 46 46 41 42
+                39 34 35 35 44 36 30 00 00
+            )
+            // Method begins at RVA 0x2088
+            // Code size 6 (0x6)
+            .maxstack 8
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    // Methods
+    .method public hidebysig static 
+        void M (
+            int32 i1
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x207e
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldc.i4.0
+        IL_0001: call void E::'<M>g__local|1_0'<int32>(int32)
+        IL_0006: ret
+    } // end of method E::M
+    .method assembly hidebysig static 
+        void '<M>g__local|1_0'<T> (
+            int32 i2
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void BAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param type T
+            .custom instance void DAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .param [0]
+            .custom instance void AAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .param [1]
+            .custom instance void CAttribute::.ctor() = (
+                01 00 00 00
+            )
+        // Method begins at RVA 0x2086
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::'<M>g__local|1_0'
+} // end of class E
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80017")]
+    public void PropagateAttributes_21(bool withPreserve)
+    {
+        // attributes on lambdas in extension
+        var src = $$"""
+public static class E
+{
+    extension(int i1)
+    {
+        public void M()
+        {
+            var d = static void ([C] int i2) => { };
+        }
+    }
+}
 
 {{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
 public class CAttribute : System.Attribute { }
@@ -32975,7 +33692,7 @@ public class CAttribute : System.Attribute { }
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                     01 00 00 00
                 )
-                // Method begins at RVA 0x206f
+                // Method begins at RVA 0x20b7
                 // Code size 1 (0x1)
                 .maxstack 8
                 IL_0000: ret
@@ -32990,13 +33707,58 @@ public class CAttribute : System.Attribute { }
                 44 34 34 33 41 45 32 32 34 33 45 37 46 46 41 42
                 39 34 35 35 44 36 30 00 00
             )
-            // Method begins at RVA 0x2071
-            // Code size 2 (0x2)
+            // Method begins at RVA 0x209c
+            // Code size 6 (0x6)
             .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
         } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M
     } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    .class nested private auto ansi sealed serializable beforefieldinit '<>c'
+        extends [mscorlib]System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Fields
+        .field public static initonly class E/'<>c' '<>9'
+        .field public static class [mscorlib]System.Action`1<int32> '<>9__1_0'
+        // Methods
+        .method private hidebysig specialname rtspecialname static 
+            void .cctor () cil managed 
+        {
+            // Method begins at RVA 0x20a3
+            // Code size 11 (0xb)
+            .maxstack 8
+            IL_0000: newobj instance void E/'<>c'::.ctor()
+            IL_0005: stsfld class E/'<>c' E/'<>c'::'<>9'
+            IL_000a: ret
+        } // end of method '<>c'::.cctor
+        .method public hidebysig specialname rtspecialname 
+            instance void .ctor () cil managed 
+        {
+            // Method begins at RVA 0x20af
+            // Code size 7 (0x7)
+            .maxstack 8
+            IL_0000: ldarg.0
+            IL_0001: call instance void [mscorlib]System.Object::.ctor()
+            IL_0006: ret
+        } // end of method '<>c'::.ctor
+        .method assembly hidebysig 
+            instance void '<M>b__1_0' (
+                int32 i2
+            ) cil managed 
+        {
+            .param [1]
+                .custom instance void CAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            // Method begins at RVA 0x20b7
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>c'::'<M>b__1_0'
+    } // end of class <>c
     // Methods
     .method public hidebysig static 
         void M (
@@ -33006,37 +33768,17 @@ public class CAttribute : System.Attribute { }
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
-        // Code size 7 (0x7)
+        // Method begins at RVA 0x207e
+        // Code size 29 (0x1d)
         .maxstack 8
-        IL_0000: ldc.i4.0
-        IL_0001: call void E::'<M>g__local|1_0'(int32)
-        IL_0006: ret
+        IL_0000: ldsfld class [mscorlib]System.Action`1<int32> E/'<>c'::'<>9__1_0'
+        IL_0005: brtrue.s IL_001c
+        IL_0007: ldsfld class E/'<>c' E/'<>c'::'<>9'
+        IL_000c: ldftn instance void E/'<>c'::'<M>b__1_0'(int32)
+        IL_0012: newobj instance void class [mscorlib]System.Action`1<int32>::.ctor(object, native int)
+        IL_0017: stsfld class [mscorlib]System.Action`1<int32> E/'<>c'::'<>9__1_0'
+        IL_001c: ret
     } // end of method E::M
-    .method assembly hidebysig static 
-        void '<M>g__local|1_0' (
-            int32 i2
-        ) cil managed 
-    {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-            01 00 00 00
-        )
-        .custom instance void BAttribute::.ctor() = (
-            01 00 00 00
-        )
-        .param [0]
-            .custom instance void AAttribute::.ctor() = (
-                01 00 00 00
-            )
-        .param [1]
-            .custom instance void CAttribute::.ctor() = (
-                01 00 00 00
-            )
-        // Method begins at RVA 0x206f
-        // Code size 1 (0x1)
-        .maxstack 8
-        IL_0000: ret
-    } // end of method E::'<M>g__local|1_0'
 } // end of class E
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
@@ -33081,8 +33823,7 @@ public static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
         var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, add support for constructed symbols
-        Assert.Null(method.AssociatedExtensionImplementation);
+        AssertEx.Equal("void E.M<System.Int32>(this System.Int32 t)", method.AssociatedExtensionImplementation.ToTestDisplayString());
         Assert.Equal("void E.M<T>(this T t)", method.OriginalDefinition.AssociatedExtensionImplementation.ToTestDisplayString());
     }
 
@@ -33186,6 +33927,195 @@ public class E
         var comp = CreateCompilationWithIL("", ilSrc);
         var method = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M").GetPublicSymbol();
         Assert.Null(method.AssociatedExtensionImplementation);
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_06()
+    {
+        // not a definition, generic extension and method
+        var src = """
+42.M(43L, "");
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M<U, V>(U u, V v) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M");
+        var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
+        AssertEx.Equal("void E.M<System.Int32, System.Int64, System.String>(this System.Int32 t, System.Int64 u, System.String v)",
+            method.AssociatedExtensionImplementation.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_07()
+    {
+        // generic definition
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M<U, V>(U u, V v)
+        {
+            t.M(u, v);
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.M");
+        var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
+        Assert.True(method.IsDefinition);
+        var associated = method.AssociatedExtensionImplementation;
+        AssertEx.Equal("void E.M<T, U, V>(this T t, U u, V v)", associated.ToTestDisplayString());
+        Assert.False(associated.IsDefinition);
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_08()
+    {
+        // not a definition, generic extension and method, partially constructed with type parameters
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M<U, V>(U u, V v)
+        {
+            t.M(42L, "");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.M");
+        var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
+        AssertEx.Equal("void E.M<T, System.Int64, System.String>(this T t, System.Int64 u, System.String v)",
+            method.AssociatedExtensionImplementation.ToTestDisplayString());
+
+        // The T in associated implementation is from the extension definition
+        var t = method.AssociatedExtensionImplementation.TypeArguments[0];
+        Assert.Equal("T", t.ToTestDisplayString());
+        Assert.True(t.ContainingSymbol is INamedTypeSymbol { IsExtension: true });
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_09()
+    {
+        // generic enclosing class, generic implementation method
+        var src = """
+public static class E<T0>
+{
+    extension<T1>(T1 t1)
+    {
+        public void M<T2>(T2 t2)
+        {
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension<T1>(T1 t1)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers("").Single();
+        var method = extension.GetMethod("M").GetPublicSymbol();
+        Assert.True(method.IsDefinition);
+        var associated = method.AssociatedExtensionImplementation;
+        AssertEx.Equal("void E<T0>.M<T1, T2>(this T1 t1, T2 t2)", associated.ToTestDisplayString());
+        Assert.False(associated.IsDefinition);
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        var constructedE = e.Construct(comp.GetSpecialType(SpecialType.System_Int32));
+        var constructedMethod = constructedE.GetTypeMembers("").Single().GetMethod("M").GetPublicSymbol();
+        AssertEx.Equal("void E<System.Int32>.<G>$8048A6C8BE30A622530249B904B537EB<T1>.M<T2>(T2 t2)", constructedMethod.ToTestDisplayString());
+        AssertEx.Equal("void E<System.Int32>.M<T1, T2>(this T1 t1, T2 t2)", constructedMethod.AssociatedExtensionImplementation.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_10()
+    {
+        // generic enclosing class, non-generic implementation method
+        var src = """
+public static class E<T0>
+{
+    extension(int i)
+    {
+        public void M()
+        {
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension<T1>(T1 t1)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
+
+        var e = comp.GlobalNamespace.GetTypeMember("E");
+        var constructedE = e.Construct(comp.GetSpecialType(SpecialType.System_Int32));
+        var constructedMethod = constructedE.GetTypeMembers("").Single().GetMethod("M").GetPublicSymbol();
+        AssertEx.Equal("void E<System.Int32>.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M()", constructedMethod.ToTestDisplayString());
+        AssertEx.Equal("void E<System.Int32>.M(this System.Int32 i)", constructedMethod.AssociatedExtensionImplementation.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void AssociatedExtensionImplementation_11()
+    {
+        // not a definition, generic extension and method, partially constructed with type parameters
+        var src = """
+public static class E
+{
+    extension<T1, T2>(T1 t1)
+    {
+        public void M<U1, U2>(T2 t2, U1 u1, U2 u2)
+        {
+            t1.M(42, u1, "");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t1.M");
+        var method = (IMethodSymbol)model.GetSymbolInfo(memberAccess).Symbol;
+        AssertEx.Equal("void E.M<T1, System.Int32, U1, System.String>(this T1 t1, System.Int32 t2, U1 u1, System.String u2)",
+            method.AssociatedExtensionImplementation.ToTestDisplayString());
+
+        // The T1 in associated implementation is from the extension definition 
+        var t1 = method.AssociatedExtensionImplementation.TypeArguments[0];
+        Assert.Equal("T1", t1.ToTestDisplayString());
+        Assert.True(t1.ContainingSymbol is INamedTypeSymbol { IsExtension: true });
+
+        // The U1 in associated implementation is from the extension member definition 
+        var u1 = method.AssociatedExtensionImplementation.TypeArguments[2];
+        Assert.Equal("U1", u1.ToTestDisplayString());
+        AssertEx.Equal("void E.<G>$B7F0343159FB3A22D67EC9801612841A<T1, T2>.M<U1, U2>(T2 t2, U1 u1, U2 u2)",
+            u1.ContainingSymbol.ToTestDisplayString());
+        Assert.True(u1.ContainingSymbol.ContainingSymbol is INamedTypeSymbol { IsExtension: true });
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78606")]
@@ -34071,6 +35001,1858 @@ public static class E
         var parameter = extension.GetMember<MethodSymbol>("Print").Parameters[1];
         AssertEx.Equal("""[System.String caller = ""]""", parameter.ToTestDisplayString());
         Assert.Equal(1, parameter.CallerArgumentExpressionParameterIndex);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void Params_Nullable_01()
+    {
+        var callerSrc = """
+            #nullable enable
+            E.Extension1(new C());
+            C.Extension1(new C());
+            E.Extension2(new C());
+            C.Extension2(new C());
+            """;
+
+        var src = $$"""
+            #nullable enable
+
+            using System.Collections.Generic;
+
+            public class C;
+
+            public static class E
+            {
+                extension(C)
+                {
+                    public static void Extension1(params C[] values)
+                    {
+                        System.Console.Write(values.Length);
+                    }
+
+                    public static void Extension2(params List<C> values)
+                    {
+                        System.Console.Write(values.Count);
+                    }
+                }
+            }
+            """;
+
+        var expectedOutput = "1111";
+        var comp = CreateCompilation([src, callerSrc]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var libComp = CreateCompilation(src);
+        var comp2 = CreateCompilation(callerSrc, references: [AsReference(libComp, useCompilationReference: false)]);
+        CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var comp3 = CreateCompilation(callerSrc, references: [AsReference(libComp, useCompilationReference: true)]);
+        CompileAndVerify(comp3, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void Params_Nullable_02()
+    {
+        var source = """
+            #nullable enable
+
+            string x = "a";
+            if (x != null)
+                return;
+
+            C.Extension(C.Create(x));
+
+            public class C
+            {
+                public static C<T> Create<T>(T value) => throw null!;
+            }
+            public class C<T>;
+
+            public static class E
+            {
+                extension(C)
+                {
+                    public static void Extension<T>(params C<T>[] values)
+                    {
+                        System.Console.Write(values.Length);
+                    }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var root = tree.GetRoot();
+
+        var call = root.DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        var symbol = model.GetSymbolInfo(call);
+        AssertEx.Equal("void E.extension(C!).Extension<System.String?>(params C<System.String?>![]! values)", symbol.Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78189")]
+    public void Params_Nullable_03()
+    {
+        var source = """
+            #nullable enable
+
+            string[]? arr = null;
+            string.Extension(arr); // 1
+
+            string? str = null;
+            string.Extension(str); // 2
+
+            public static class E
+            {
+                extension(string)
+                {
+                    public static void Extension(params string[] values) { }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+                // (4,18): warning CS8604: Possible null reference argument for parameter 'values' in 'void E.extension(string).Extension(params string[] values)'.
+                // string.Extension(arr); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "arr").WithArguments("values", "void E.extension(string).Extension(params string[] values)").WithLocation(4, 18),
+                // (7,18): warning CS8604: Possible null reference argument for parameter 'values' in 'void E.extension(string).Extension(params string[] values)'.
+                // string.Extension(str); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "str").WithArguments("values", "void E.extension(string).Extension(params string[] values)").WithLocation(7, 18)
+                );
+    }
+
+    [Fact]
+    public void GetTypeByMetadataName_01()
+    {
+        string source = """
+static class E
+{
+    extension(int i)
+    {
+        public static void Main() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+        validate(comp);
+
+        var comp2 = CreateCompilation("", references: [comp.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics();
+        validate(comp2);
+
+        static void validate(CSharpCompilation comp)
+        {
+            var groupingName = "<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69";
+            var markerName = "<M>$F4B4FFE41AB49E80A4ECF390CF6EB372";
+
+            var extension = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+            AssertEx.Equal(groupingName, extension.ExtensionGroupingName);
+            AssertEx.Equal(markerName, extension.ExtensionMarkerName);
+            Assert.Null(comp.GetTypeByMetadataName($"E+{groupingName}"));
+            Assert.Null(comp.GetTypeByMetadataName($"E+{groupingName}+{markerName}"));
+            Assert.Null(comp.GetTypeByMetadataName($"E+{markerName}"));
+        }
+    }
+
+    [Fact]
+    public void ParameterSyntax_01()
+    {
+        string src = """
+static class E
+{
+    extension(int i)
+    {
+    }
+}
+""";
+        var tree = CSharpSyntaxTree.ParseText(src);
+        var parameter = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+        Assert.Equal("int i", parameter.ToFullString());
+
+        var withoutType = parameter.WithType(null);
+        Assert.Equal("i", withoutType.ToFullString());
+
+        var withoutIdentifer = parameter.WithIdentifier(default);
+        Assert.Equal("int ", withoutIdentifer.ToFullString());
+
+        // Type and identifier cannot both be missing
+        Assert.Throws<ArgumentException>(() => SyntaxFactory.Parameter(identifier: default));
+        Assert.Throws<ArgumentException>(() => withoutType.WithIdentifier(default));
+    }
+
+    [Fact]
+    public void SyntaxFacts_01()
+    {
+        Assert.Equal(SyntaxKind.ExtensionBlockDeclaration, SyntaxFacts.GetTypeDeclarationKind(SyntaxKind.ExtensionKeyword));
+        Assert.Equal(SyntaxKind.ExtensionBlockDeclaration, SyntaxFacts.GetBaseTypeDeclarationKind(SyntaxKind.ExtensionKeyword));
+        Assert.True(SyntaxFacts.IsTypeDeclaration(SyntaxKind.ExtensionBlockDeclaration));
+        Assert.Equal(SyntaxKind.ExtensionKeyword, SyntaxFacts.GetContextualKeywordKind("extension"));
+        Assert.Equal(SyntaxKind.None, SyntaxFacts.GetKeywordKind("extension"));
+        Assert.True(SyntaxFacts.IsContextualKeyword(SyntaxKind.ExtensionKeyword));
+
+        Assert.Equal("extension", SyntaxFacts.GetText(SyntaxKind.ExtensionKeyword));
+    }
+
+    [Theory, WorkItem("https://developercommunity.visualstudio.com/t/NRE-in-Roslyn-v500-225451107/10979295")]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersion.Latest)]
+    public void InvalidReceiverWithOldExtensionInFileClass(LanguageVersion languageVersion)
+    {
+        var code = """
+            #nullable enable
+            using System.Threading.Tasks;
+            using N2;
+            namespace N1
+            {
+                class C
+                {
+                    async Task M(object o)
+                    {
+                        await using var test = await nonExistent.ExtensionMethod(o);
+                    }
+                }
+            }
+            """;
+
+        var code2 = """
+            namespace N2;
+
+            file static class E
+            {
+                public static void ExtensionMethod(this object o) { }
+            }
+            """;
+
+        var comp = CreateCompilation([(code, "file1.cs"), (code2, "file2.cs")], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        if (languageVersion == LanguageVersion.CSharp10)
+        {
+            comp.VerifyEmitDiagnostics(
+                // file2.cs(3,19): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // file static class E
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "E").WithArguments("file types", "11.0").WithLocation(3, 19),
+                // file1.cs(10,42): error CS0103: The name 'nonExistent' does not exist in the current context
+                //             await using var test = await nonExistent.ExtensionMethod(o);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nonExistent").WithArguments("nonExistent").WithLocation(10, 42)
+            );
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics(
+                    // file1.cs(10,42): error CS0103: The name 'nonExistent' does not exist in the current context
+                    //             await using var test = await nonExistent.ExtensionMethod(o);
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "nonExistent").WithArguments("nonExistent").WithLocation(10, 42)
+                );
+        }
+    }
+
+    [Fact, WorkItem("https://developercommunity.visualstudio.com/t/NRE-in-Roslyn-v500-225451107/10979295")]
+    public void InvalidReceiverWithNewExtensionInFileClass()
+    {
+        var code = """
+            #nullable enable
+            using System.Threading.Tasks;
+            using N2;
+            namespace N1
+            {
+                class C
+                {
+                    async Task M(object o)
+                    {
+                        await using var test = await nonExistent.ExtensionMethod(o);
+                    }
+                }
+            }
+            """;
+
+        var code2 = """
+            namespace N2;
+
+            file static class E
+            {
+                extension(object o)
+                {
+                    public void ExtensionMethod(object o2) { }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([(code, "file1.cs"), (code2, "file2.cs")]);
+        comp.VerifyEmitDiagnostics(
+            // file1.cs(10,42): error CS0103: The name 'nonExistent' does not exist in the current context
+            //             await using var test = await nonExistent.ExtensionMethod(o);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "nonExistent").WithArguments("nonExistent").WithLocation(10, 42)
+        );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80512")]
+    public void Params_01()
+    {
+        var src = """
+var c = new C();
+c.Add(1);
+
+interface I<T1> { }
+class C : I<int> { }
+
+static class E
+{
+    extension<T1>(I<T1> node)
+    {
+        public void Add(T1 value) { System.Console.Write("ran"); }
+        public void Add(params T1[] values) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        src = """
+var c = new C();
+c.Add(1);
+
+interface I<T1> { }
+class C : I<int> { }
+
+static class E
+{
+    public static void Add<T1>(this I<T1> node, T1 value) { System.Console.Write("ran"); }
+    public static void Add<T1>(this I<T1> node, params T1[] values) => throw null;
+}
+""";
+        comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Params_02()
+    {
+        var src = """
+var c = new C();
+c.Add(x: 1, y: 2);
+
+interface I<T> { }
+class C : I<int> { }
+
+static class E
+{
+    extension<T>(I<T> node) where T : struct
+    {
+        public void Add(T x, params T[] y) { }
+        public void Add(T y, params System.Span<T> x) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension<int>(I<int>).Add(int, params int[])' and 'E.extension<int>(I<int>).Add(int, params System.Span<int>)'
+            // c.Add(x: 1, y: 2);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "Add").WithArguments("E.extension<int>(I<int>).Add(int, params int[])", "E.extension<int>(I<int>).Add(int, params System.Span<int>)").WithLocation(2, 3));
+    }
+
+    [Fact]
+    public void Params_03()
+    {
+        var src = """
+var c = new C();
+c.Add(1, 2);
+
+interface I<T> { }
+class C : I<int> { }
+
+static class E
+{
+    extension<T>(I<T> node) where T : struct
+    {
+        public void Add(T x, params T[] y) { }
+        public void Add(T y, params System.Span<T> x) { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConversionInParamsArguments_02()
+    {
+        var code = """
+using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
+
+object.M("", $"test");
+
+public static class E
+{
+    extension(object)
+    {
+        public static void M(string s, [InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+        {
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false)]);
+        comp.VerifyEmitDiagnostics(
+            // (11,41): error CS8946: 'CustomHandler[]' is not an interpolated string handler type.
+            //         public static void M(string s, [InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+            Diagnostic(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, "InterpolatedStringHandlerArgument(nameof(s))").WithArguments("CustomHandler[]").WithLocation(11, 41));
+
+        code = """
+using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
+
+"".M($"test");
+
+public static class E
+{
+    extension(string s)
+    {
+        public void M([InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+        {
+        }
+    }
+}
+""";
+
+        comp = CreateCompilation([code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false)]);
+        comp.VerifyEmitDiagnostics(
+            // (11,24): error CS8946: 'CustomHandler[]' is not an interpolated string handler type.
+            //         public void M([InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+            Diagnostic(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, "InterpolatedStringHandlerArgument(nameof(s))").WithArguments("CustomHandler[]").WithLocation(11, 24));
+    }
+
+    [Fact]
+    public void OptionalArguments_01()
+    {
+        var src = """
+new object().M1();
+object.M2();
+
+static class E
+{
+    extension(object o)
+    {
+        public void M1(int x = 4, int y = 2) { System.Console.Write($"ran1 {x}{y} "); }
+        public static void M2(int x = 4, int y = 2) { System.Console.Write($"ran2 {x}{y} "); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran1 42 ran2 42").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OptionalArguments_02()
+    {
+        var src = """
+new object().M1(y: 3);
+object.M2(y: 3);
+
+static class E
+{
+    extension(object o)
+    {
+        public void M1(int x = 4, int y = 2) { System.Console.Write($"ran1 {x}{y} "); }
+        public static void M2(int x = 4, int y = 2) { System.Console.Write($"ran2 {x}{y} "); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran1 43 ran2 43").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OptionalArguments_03()
+    {
+        var src = """
+new object().M1(z: 3, x: 1);
+object.M2(z: 3, x: 1);
+
+static class E
+{
+    extension(object o)
+    {
+        public void M1(int x, int y = 2, params int[] z) { System.Console.Write($"ran1 {x}{y}{z[0]} "); }
+        public static void M2(int x, int y = 2, params int[] z) { System.Console.Write($"ran2 {x}{y}{z[0]} "); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran1 123 ran2 123").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ThisModifier_01()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public void M1(this int i = 0) => throw null;
+        public static void M2(this int i = 0) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,24): error CS0027: Keyword 'this' is not available in the current context
+            //         public void M1(this int i = 0) => throw null;
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(5, 24),
+            // (6,31): error CS0027: Keyword 'this' is not available in the current context
+            //         public static void M2(this int i = 0) => throw null;
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 31));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers("").Single();
+        var m1 = extension.GetMember<MethodSymbol>("M1");
+        Assert.False(m1.IsExtensionMethod);
+
+        var m2 = extension.GetMember<MethodSymbol>("M2");
+        Assert.False(m2.IsExtensionMethod);
+    }
+
+    [Fact]
+    public void ThisModifier_02()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public void M1(int i, this int j) => throw null;
+        public static void M2(int i, this int j) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,31): error CS0027: Keyword 'this' is not available in the current context
+            //         public void M1(int i, this int j) => throw null;
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(5, 31),
+            // (6,38): error CS0027: Keyword 'this' is not available in the current context
+            //         public static void M2(int i, this int j) => throw null;
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 38));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_01()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(T t) where T : class
+    {
+        public void M() { }
+        public int Property { get => 0; set { } }
+        public void operator +=(T t2) { }
+    }
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+
+        INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+
+        AssertEx.Equal("void E.extension<T>(T).M()", method.ToDisplayString(displayOptions));
+        Assert.Null(method.ReduceExtensionMember(receiverType: null));
+
+        var substitutedMethod = method.ReduceExtensionMember(systemObject);
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).M()",
+            substitutedMethod.ToDisplayString(displayOptions));
+
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).M()",
+            substitutedMethod.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
+        AssertEx.Equal("System.Int32 E.extension<T>(T).Property { get; set; }", property.ToDisplayString(displayOptions));
+        AssertEx.Equal("System.Int32 E.extension<System.Object>(System.Object).Property { get; set; }",
+            property.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        var getter = property.GetMethod;
+        AssertEx.Equal("System.Int32 E.extension<T>(T).Property.get", getter.ToDisplayString(displayOptions));
+        AssertEx.Equal("System.Int32 E.extension<System.Object>(System.Object).Property.get",
+            getter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        var setter = property.SetMethod;
+        AssertEx.Equal("void E.extension<T>(T).Property.set", setter.ToDisplayString(displayOptions));
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).Property.set",
+            setter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        var op_AdditionAssignment = extension.GetMember<MethodSymbol>("op_AdditionAssignment").GetPublicSymbol();
+        AssertEx.Equal("void E.extension<T>(T).operator +=(T t2)", op_AdditionAssignment.ToDisplayString(displayOptions));
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).operator +=(System.Object t2)",
+            op_AdditionAssignment.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        // broken constraint
+        INamedTypeSymbol systemInt32 = comp.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+        Assert.Null(method.ReduceExtensionMember(systemInt32));
+        Assert.Null(property.ReduceExtensionMember(systemInt32));
+        Assert.Null(getter.ReduceExtensionMember(systemInt32));
+        Assert.Null(setter.ReduceExtensionMember(systemInt32));
+        Assert.Null(op_AdditionAssignment.ReduceExtensionMember(systemInt32));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_02()
+    {
+        // not fully inferred
+        var src = """
+public static class E
+{
+    extension<T, U>(T t) where T : class
+    {
+        public void M(U u) { }
+        public void operator +=(U u) { }
+    }
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
+        INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+        var extensionMethod = comp.GlobalNamespace.GetTypeMember("E").GetMember<MethodSymbol>("M").GetPublicSymbol();
+        AssertEx.Equal("void System.Object.M<System.Object, U>(U u)", extensionMethod.ReduceExtensionMethod(systemObject).ToDisplayString(displayOptions));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        var substitutedMethod = method.ReduceExtensionMember(systemObject);
+        AssertEx.Equal("void E.extension<System.Object, U>(System.Object).M(U u)", substitutedMethod.ToDisplayString(displayOptions));
+
+        AssertEx.Equal("void E.extension<System.Object, U>(System.Object).M(U u)",
+            substitutedMethod.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        var op_AdditionAssignment = extension.GetMember<MethodSymbol>("op_AdditionAssignment").GetPublicSymbol();
+        AssertEx.Equal("void E.extension<System.Object, U>(System.Object).operator +=(U u)",
+            op_AdditionAssignment.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_03()
+    {
+        // not fully inferred, property
+        var src = """
+public static class E
+{
+    extension<T, U>(T t)
+    {
+        public int Property { get => 0; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics(
+            // (5,20): error CS9295: The type parameter `U` is not referenced by either the extension parameter or a parameter of this member
+            //         public int Property { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "Property").WithArguments("U").WithLocation(5, 20));
+
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
+        INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
+        AssertEx.Equal("System.Int32 E.extension<System.Object, U>(System.Object).Property { get; set; }",
+            property.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        var getter = property.GetMethod;
+        AssertEx.Equal("System.Int32 E.extension<System.Object, U>(System.Object).Property.get",
+            getter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        var setter = property.SetMethod;
+        AssertEx.Equal("void E.extension<System.Object, U>(System.Object).Property.set",
+            setter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_04()
+    {
+        // member is generic
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M<U>(U u) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).M<U>(U u)",
+            method.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol()).ToDisplayString(displayOptions));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_05()
+    {
+        // void and error types
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        INamedTypeSymbol systemVoid = comp.GetSpecialType(SpecialType.System_Void).GetPublicSymbol();
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        Assert.Null(method.ReduceExtensionMember(systemVoid));
+
+        var error = comp.CreateErrorTypeSymbol(null, name: "Error", arity: 0);
+        Assert.Null(method.ReduceExtensionMember(error));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_06()
+    {
+        // non-extension members
+        var src = """
+public class C
+{
+    public void M() { }
+    public int Property => 0;
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        var systemInt32 = comp.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol();
+        var extension = comp.GlobalNamespace.GetTypeMember("C");
+
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        Assert.Null(method.ReduceExtensionMember(systemInt32));
+
+        var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
+        Assert.Null(property.ReduceExtensionMember(systemInt32));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_07()
+    {
+        // indexer
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        public int this[int i] { get => 0; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,20): error CS9282: This member is not allowed in an extension block
+            //         public int this[int i] { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 20));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var indexer = extension.GetMember<PropertySymbol>("this[]").GetPublicSymbol();
+        Assert.Null(indexer.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol()));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_08()
+    {
+        // conversion operator
+        var src = """
+public static class E
+{
+    extension<T>(T)
+    {
+        public static explicit operator int(T t) => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,41): error CS9282: This member is not allowed in an extension block
+            //         public static explicit operator int(T t) => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "int").WithLocation(5, 41));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var op_Explicit = extension.GetMember<MethodSymbol>("op_Explicit").GetPublicSymbol();
+        Assert.Null(op_Explicit.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol()));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_09()
+    {
+        // non-generic
+        var src = """
+public static class E
+{
+    extension(Base b)
+    {
+        public void M() { }
+        public int Property { get => 0; set { } }
+        public void operator +=(int i) { }
+    }
+}
+
+public class Base { }
+public class Derived : Base { }
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
+        var getter = property.GetMethod;
+        var setter = property.SetMethod;
+        var op_AdditionAssignment = extension.GetMember<MethodSymbol>("op_AdditionAssignment").GetPublicSymbol();
+
+        // object
+        INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+
+        Assert.Null(method.ReduceExtensionMember(systemObject));
+        Assert.Null(property.ReduceExtensionMember(systemObject));
+        Assert.Null(getter.ReduceExtensionMember(systemObject));
+        Assert.Null(setter.ReduceExtensionMember(systemObject));
+        Assert.Null(op_AdditionAssignment.ReduceExtensionMember(systemObject));
+
+        // Base
+        INamedTypeSymbol baseType = comp.GlobalNamespace.GetTypeMember("Base").GetPublicSymbol();
+
+        AssertEx.Equal("void E.extension(Base).M()",
+            method.ReduceExtensionMember(baseType).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("System.Int32 E.extension(Base).Property { get; set; }",
+            property.ReduceExtensionMember(baseType).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("System.Int32 E.extension(Base).Property.get",
+            getter.ReduceExtensionMember(baseType).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("void E.extension(Base).Property.set",
+            setter.ReduceExtensionMember(baseType).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("void E.extension(Base).operator +=(System.Int32 i)",
+            op_AdditionAssignment.ReduceExtensionMember(baseType).ToDisplayString(displayOptions));
+
+        // Derived
+        INamedTypeSymbol derivedType = comp.GlobalNamespace.GetTypeMember("Derived").GetPublicSymbol();
+
+        AssertEx.Equal("void E.extension(Base).M()",
+            method.ReduceExtensionMember(derivedType).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("System.Int32 E.extension(Base).Property { get; set; }",
+            property.ReduceExtensionMember(derivedType).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("System.Int32 E.extension(Base).Property.get",
+            getter.ReduceExtensionMember(derivedType).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("void E.extension(Base).Property.set",
+            setter.ReduceExtensionMember(derivedType).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("void E.extension(Base).operator +=(System.Int32 i)",
+            op_AdditionAssignment.ReduceExtensionMember(derivedType).ToDisplayString(displayOptions));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_10()
+    {
+        // static members
+        var src = """
+public static class E
+{
+    extension(object)
+    {
+        public static void M() { }
+        public static int Property { get => 0; set { } }
+        public static object operator +(object o1, object o2) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
+        var getter = property.GetMethod;
+        var setter = property.SetMethod;
+        var op_Addition = extension.GetMember<MethodSymbol>("op_Addition").GetPublicSymbol();
+
+        // object
+        INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+
+        AssertEx.Equal("void E.extension(System.Object).M()",
+            method.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("System.Int32 E.extension(System.Object).Property { get; set; }",
+            property.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("System.Int32 E.extension(System.Object).Property.get",
+            getter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("void E.extension(System.Object).Property.set",
+            setter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("System.Object E.extension(System.Object).operator +(System.Object o1, System.Object o2)",
+            op_Addition.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
+    public void ReduceExtensionMember_11()
+    {
+        // static members, generic extension block
+        var src = """
+public static class E
+{
+    extension<T>(T)
+    {
+        public static void M() { }
+        public static int Property { get => 0; set { } }
+        public static T operator +(T t1, T t2) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute]);
+        comp.VerifyEmitDiagnostics();
+
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        var property = extension.GetMember<PropertySymbol>("Property").GetPublicSymbol();
+        var getter = property.GetMethod;
+        var setter = property.SetMethod;
+        var op_Addition = extension.GetMember<MethodSymbol>("op_Addition").GetPublicSymbol();
+
+        // object
+        INamedTypeSymbol systemObject = comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol();
+
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).M()",
+            method.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("System.Int32 E.extension<System.Object>(System.Object).Property { get; set; }",
+            property.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("System.Int32 E.extension<System.Object>(System.Object).Property.get",
+            getter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("void E.extension<System.Object>(System.Object).Property.set",
+            setter.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+
+        AssertEx.Equal("System.Object E.extension<System.Object>(System.Object).operator +(System.Object t1, System.Object t2)",
+            op_Addition.ReduceExtensionMember(systemObject).ToDisplayString(displayOptions));
+    }
+
+    [Fact]
+    public void ReduceExtensionMember_12()
+    {
+        // probe handling of wasExtensionFullyinferred
+        var src = """
+_ = object.M;
+_ = nameof(object.M);
+
+static class E
+{
+    extension<T>(T)
+    {
+        public static void M<U>() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS8183: Cannot infer the type of implicitly-typed discard.
+            // _ = object.M;
+            Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(1, 1),
+            // (2,12): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+            // _ = nameof(object.M);
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "object.M").WithLocation(2, 12));
+    }
+
+    [Fact]
+    public void ReduceExtensionMember_13()
+    {
+        // probe handling of wasExtensionFullyinferred
+        var src = """
+_ = object.M;
+_ = nameof(object.M);
+
+static class E
+{
+    extension<T, U>(T)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS8183: Cannot infer the type of implicitly-typed discard.
+            // _ = object.M;
+            Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(1, 1),
+            // (2,12): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+            // _ = nameof(object.M);
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "object.M").WithLocation(2, 12));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_01()
+    {
+        // two properties
+        var src = """
+string s = object.Property;
+
+static class E1
+{
+    extension(object)
+    {
+        public static string Property => null;
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static string Property => null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,12): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(object).Property' and 'E2.extension(object).Property'
+            // string s = object.Property;
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Property").WithArguments("E1.extension(object).Property", "E2.extension(object).Property").WithLocation(1, 12));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_02()
+    {
+        // two methods
+        var src = """
+object.M();
+
+static class E1
+{
+    extension(object)
+    {
+        public static void M() { }
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(object).M()' and 'E2.extension(object).M()'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(object).M()", "E2.extension(object).M()").WithLocation(1, 8));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_03()
+    {
+        // two operators
+        var src = """
+_ = new C() + new C();
+
+class C { }
+
+static class E1
+{
+    extension(C)
+    {
+        public static C operator+(C c1, C c2) => null;
+    }
+}
+
+static class E2
+{
+    extension(C)
+    {
+        public static C operator+(C c1, C c2) => null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'C'
+            // _ = new C() + new C();
+            Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new C()").WithArguments("+", "C", "C").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_04()
+    {
+        // three properties
+        var src = """
+string s = object.Property;
+
+static class E1
+{
+    extension(object)
+    {
+        public static string Property => null;
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static string Property => null;
+    }
+}
+
+static class E3
+{
+    extension(object)
+    {
+        public static string Property => null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,12): error CS9339: The extension resolution is ambiguous between the following members: 'E1.extension(object).Property' and 'E2.extension(object).Property'
+            // string s = object.Property;
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Property").WithArguments("E1.extension(object).Property", "E2.extension(object).Property").WithLocation(1, 12));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_05()
+    {
+        // three methods
+        var src = """
+object.M();
+
+static class E1
+{
+    extension(object)
+    {
+        public static void M() { }
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static void M() { }
+    }
+}
+
+static class E3
+{
+    extension(object)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(object).M()' and 'E2.extension(object).M()'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(object).M()", "E2.extension(object).M()").WithLocation(1, 8));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_06()
+    {
+        // three operators
+        var src = """
+_ = new C() + new C();
+
+class C { }
+
+static class E1
+{
+    extension(C)
+    {
+        public static C operator+(C c1, C c2) => null;
+    }
+}
+
+static class E2
+{
+    extension(C)
+    {
+        public static C operator+(C c1, C c2) => null;
+    }
+}
+
+static class E3
+{
+    extension(C)
+    {
+        public static C operator+(C c1, C c2) => null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'C'
+            // _ = new C() + new C();
+            Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new C()").WithArguments("+", "C", "C").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_07()
+    {
+        // static/instance mismatch
+        var src = """
+string s1 = object.P1;
+string s2 = new object().P2;
+
+static class E
+{
+    extension(object o)
+    {
+        public string P1 => null;
+        public static string P2 => null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,13): error CS0120: An object reference is required for the non-static field, method, or property 'E.extension(object).P1'
+            // string s1 = object.P1;
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "object").WithArguments("E.extension(object).P1").WithLocation(1, 13),
+            // (2,13): error CS0176: Member 'E.extension(object).P2' cannot be accessed with an instance reference; qualify it with a type name instead
+            // string s2 = new object().P2;
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object()").WithArguments("E.extension(object).P2").WithLocation(2, 13));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_08()
+    {
+        // wrong ref kind in return
+        var src = """
+D d = object.M;
+
+unsafe
+{
+    delegate*<ref int> p = &object.M;
+}
+
+delegate ref int D();
+
+static class E
+{
+    extension(object)
+    {
+        public static int M() => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyEmitDiagnostics(
+            // (1,7): error CS8189: Ref mismatch between 'E.extension(object).M()' and delegate 'D'
+            // D d = object.M;
+            Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "object.M").WithArguments("E.extension(object).M()", "D").WithLocation(1, 7),
+            // (5,29): error CS8758: Ref mismatch between 'E.extension(object).M()' and function pointer 'delegate*<ref int>'
+            //     delegate*<ref int> p = &object.M;
+            Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "object.M").WithArguments("E.extension(object).M()", "delegate*<ref int>").WithLocation(5, 29));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_09()
+    {
+        // wrong return type
+        var src = """
+D d = object.M;
+
+delegate int D();
+
+static class E
+{
+    extension(object)
+    {
+        public static string M() => null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,7): error CS0407: 'string E.extension(object).M()' has the wrong return type
+            // D d = object.M;
+            Diagnostic(ErrorCode.ERR_BadRetType, "object.M").WithArguments("E.extension(object).M()", "string").WithLocation(1, 7));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_10()
+    {
+        // broken constraint
+        var src = """
+int i = object.P;
+_ = new C() + new C();
+object.M(42);
+
+class C { }
+
+static class E
+{
+    extension<T>(T) where T : struct
+    {
+        public static int P => 0;
+        public static T operator+(T t1, T t2) => t1;
+    }
+
+    extension(object)
+    {
+        public static void M<T>(T t) where T : class { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.extension<T>(T)'
+            // int i = object.P;
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "object.P").WithArguments("E.extension<T>(T)", "T", "object").WithLocation(1, 9),
+            // (2,5): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'C'
+            // _ = new C() + new C();
+            Diagnostic(ErrorCode.ERR_BadBinaryOps, "new C() + new C()").WithArguments("+", "C", "C").WithLocation(2, 5),
+            // (3,8): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'E.extension(object).M<T>(T)'
+            // object.M(42);
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M").WithArguments("E.extension(object).M<T>(T)", "T", "int").WithLocation(3, 8));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_11()
+    {
+        // bad arguments
+        var src = """
+D d = object.M;
+object.M(42, 43);
+
+delegate void D(int i, int j);
+
+static class E
+{
+    extension(object)
+    {
+        public static void M(string s1, string s2) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS0123: No overload for 'M' matches delegate 'D'
+            // D d = object.M;
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "D").WithLocation(1, 14),
+            // (2,10): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+            // object.M(42, 43);
+            Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("2", "int", "string").WithLocation(2, 10),
+            // (2,14): error CS1503: Argument 3: cannot convert from 'int' to 'string'
+            // object.M(42, 43);
+            Diagnostic(ErrorCode.ERR_BadArgType, "43").WithArguments("3", "int", "string").WithLocation(2, 14));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_12()
+    {
+        // bad lambda argument
+        var src = """
+object.M(() => { return 0; });
+
+static class E
+{
+    extension(object)
+    {
+        public static void M(System.Action a) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,18): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
+            // object.M(() => { return 0; });
+            Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(1, 18));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_13()
+    {
+        // bad method group argument
+        var src = """
+object.M(C.Method);
+
+static class C
+{
+    public static int Method() => 0;
+}
+
+static class E
+{
+    extension(object)
+    {
+        public static void M(System.Action a) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,10): error CS0407: 'int C.Method()' has the wrong return type
+            // object.M(C.Method);
+            Diagnostic(ErrorCode.ERR_BadRetType, "C.Method").WithArguments("C.Method()", "int").WithLocation(1, 10));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_14()
+    {
+        // method group argument without addressof, function pointer parameter type
+        var src = """
+object.M(C.Method);
+
+static class C
+{
+    public static int Method() => 0;
+}
+
+unsafe static class E
+{
+    extension(object)
+    {
+        public static void M(delegate*<void> d) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyEmitDiagnostics(
+            // (1,10): error CS8787: Cannot convert method group to function pointer (Are you missing a '&'?)
+            // object.M(C.Method);
+            Diagnostic(ErrorCode.ERR_MissingAddressOf, "C.Method").WithLocation(1, 10));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_15()
+    {
+        // bad method group argument (signature mismatch), function pointer parameter type
+        var src = """
+unsafe
+{
+    object.M(&C.Method);
+}
+
+static class C
+{
+    public static int Method() => 0;
+}
+
+unsafe static class E
+{
+    extension(object)
+    {
+        public static void M(delegate*<void> d) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS0407: 'int C.Method()' has the wrong return type
+            //     object.M(&C.Method);
+            Diagnostic(ErrorCode.ERR_BadRetType, "C.Method").WithArguments("C.Method()", "int").WithLocation(3, 15));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_16()
+    {
+        // bad collection argument
+        var src = """
+object.M([10]);
+
+static class E
+{
+    extension(object)
+    {
+        public static void M(object o) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,10): error CS9174: Cannot initialize type 'object' with a collection expression because the type is not constructible.
+            // object.M([10]);
+            Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[10]").WithArguments("object").WithLocation(1, 10));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_17()
+    {
+        // bad null argument
+        var src = """
+object.M(null);
+
+static class E
+{
+    extension(object)
+    {
+        public static void M(ref int i) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,10): error CS1503: Argument 2: cannot convert from '<null>' to 'ref int'
+            // object.M(null);
+            Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("2", "<null>", "ref int").WithLocation(1, 10));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_18()
+    {
+        // failed type inference
+        var src = """
+object.M();
+object.M2();
+
+static class E
+{
+    extension<T>(object)
+    {
+        public static void M() { }
+    }
+    extension(object)
+    {
+        public static void M2<T>() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0411: The type arguments for method 'E.extension<T>(object).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            // object.M();
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("E.extension<T>(object).M()").WithLocation(1, 8),
+            // (2,8): error CS0411: The type arguments for method 'E.extension(object).M2<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            // object.M2();
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("E.extension(object).M2<T>()").WithLocation(2, 8));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_19()
+    {
+        // bad argument ref kind
+        var src = """
+object.M(0);
+
+static class E
+{
+    extension(object)
+    {
+        public static void M(ref int i) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,10): error CS1620: Argument 2 must be passed with the 'ref' keyword
+            // object.M(0);
+            Diagnostic(ErrorCode.ERR_BadArgRef, "0").WithArguments("2", "ref").WithLocation(1, 10));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_20()
+    {
+        var src = """
+object.M<int>(0);
+
+static class E
+{
+    extension(object)
+    {
+        public static void M<T>(string s) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,15): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+            // object.M<int>(0);
+            Diagnostic(ErrorCode.ERR_BadArgType, "0").WithArguments("2", "int", "string").WithLocation(1, 15));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_21()
+    {
+        var src = """
+System.Action a = object.Property;
+
+static class E
+{
+    extension(object)
+    {
+        public static System.Func<object> Property => null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): error CS0029: Cannot implicitly convert type 'System.Func<object>' to 'System.Action'
+            // System.Action a = object.Property;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "object.Property").WithArguments("System.Func<object>", "System.Action").WithLocation(1, 19));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_22()
+    {
+        // failed type inference
+        var src = """
+_ = object.Property;
+
+static class E
+{
+    extension<T>(object)
+    {
+        public static int Property => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS1061: 'object' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // _ = object.Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "object.Property").WithArguments("object", "Property").WithLocation(1, 5),
+            // (7,27): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
+            //         public static int Property => 0;
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "Property").WithArguments("T").WithLocation(7, 27));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_23()
+    {
+        // method vs. two equivalent (ie worse) properties
+        var src = """
+_ = object.Member;
+
+static class E1
+{
+    extension(object)
+    {
+        public static int Member => 0;
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static int Member => 0;
+    }
+}
+
+static class E3
+{
+    extension(object)
+    {
+        public static int Member() => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS9339: The extension resolution is ambiguous between the following members: 'E3.extension(object).Member()' and 'E1.extension(object).Member'
+            // _ = object.Member;
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Member").WithArguments("E3.extension(object).Member()", "E1.extension(object).Member").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_24()
+    {
+        // method vs. three properties, two equivalent (ie worse) and one that fails type constraints
+        var src = """
+_ = object.Member;
+
+static class E1
+{
+    extension(object)
+    {
+        public static int Member => 0;
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static int Member => 0;
+    }
+}
+
+static class E3
+{
+    extension<T>(T) where T : struct
+    {
+        public static int Member => 0;
+    }
+}
+
+static class E4
+{
+    extension(object)
+    {
+        public static int Member() => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS9339: The extension resolution is ambiguous between the following members: 'E4.extension(object).Member()' and 'E1.extension(object).Member'
+            // _ = object.Member;
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Member").WithArguments("E4.extension(object).Member()", "E1.extension(object).Member").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_25()
+    {
+        // property vs. two methods
+        var src = """
+_ = object.Member;
+
+static class E1
+{
+    extension(object)
+    {
+        public static int Member => 0;
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static int Member() => 0;
+    }
+}
+
+static class E3
+{
+    extension(object)
+    {
+        public static int Member() => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).Member()' and 'E1.extension(object).Member'
+            // _ = object.Member;
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Member").WithArguments("E2.extension(object).Member()", "E1.extension(object).Member").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_26()
+    {
+        // property vs. three methods, two are applicable but equivalent (ie worse), one fails type inference
+        var src = """
+_ = object.Member(42);
+
+static class E1
+{
+    extension(object)
+    {
+        public static System.Action<int> Member => null;
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static int Member(int i, params int[] j) => 0;
+    }
+}
+
+static class E3
+{
+    extension(object)
+    {
+        public static int Member(int i, params string[] j) => 0;
+    }
+}
+
+static class E4
+{
+    extension(object)
+    {
+        public static int Member<T>(int i) => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS9339: The extension resolution is ambiguous between the following members: 'E2.extension(object).Member(int, params int[])' and 'E1.extension(object).Member'
+            // _ = object.Member(42);
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Member").WithArguments("E2.extension(object).Member(int, params int[])", "E1.extension(object).Member").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void ReportDiagnostics_27()
+    {
+        // property vs. three methods, two are applicable but equivalent (ie worse), one applicable and better
+        var src = """
+_ = object.Member(42);
+
+static class E1
+{
+    extension(object)
+    {
+        public static System.Action<int> Member => null;
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static int Member(int i, params int[] j) => 0;
+    }
+}
+
+static class E3
+{
+    extension(object)
+    {
+        public static int Member(int i, params string[] j) => 0;
+    }
+}
+
+static class E4
+{
+    extension(object)
+    {
+        public static int Member(int i) => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS9339: The extension resolution is ambiguous between the following members: 'E4.extension(object).Member(int)' and 'E1.extension(object).Member'
+            // _ = object.Member(42);
+            Diagnostic(ErrorCode.ERR_AmbigExtension, "object.Member").WithArguments("E4.extension(object).Member(int)", "E1.extension(object).Member").WithLocation(1, 5));
     }
 }
 

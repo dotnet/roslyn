@@ -3118,7 +3118,7 @@ public " + keyword + @" Test1(
     [field: A]
     int P1)
 {
-    int M1() => P1;
+    [A] int M1() => P1;
 }
 
 [System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
@@ -3133,7 +3133,12 @@ public " + keyword + @" Test2(
     int M1() => P1;
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            var test1 = comp.GetTypeByMetadataName("Test1");
+            var ctor = test1.InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            ctor.GetAttributes();
+
             comp.VerifyDiagnostics(
                 // (8,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
                 //     [field: A]
@@ -3143,7 +3148,12 @@ public " + keyword + @" Test2(
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "C").WithArguments("C", "field").WithLocation(20, 6)
                 );
 
-            Assert.Empty(comp.GetTypeByMetadataName("Test1").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single().Parameters[0].GetAttributes());
+            Assert.Empty(ctor.Parameters[0].GetAttributes());
+
+            var field = test1.GetMembers().OfType<FieldSymbol>().Single();
+            Assert.Equal(ObsoleteAttributeKind.None, field.ObsoleteKind);
+            Assert.Empty(field.GetAttributes());
+
             Assert.Equal(1, comp.GetTypeByMetadataName("Test2").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single().Parameters[0].GetAttributes().Count());
         }
 

@@ -347,11 +347,6 @@
         <target state="translated">편집(_E)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Editor_Color_Scheme">
-        <source>Editor Color Scheme</source>
-        <target state="translated">편집기 색 구성표</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
         <target state="translated">편집기 도움말</target>
@@ -485,6 +480,16 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">설정에서 .editorconfig 파일 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_only_summary_tag">
+        <source>Generate only &lt;summary&gt; tag</source>
+        <target state="new">Generate only &lt;summary&gt; tag</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_summary_on_single_line">
+        <source>Generate &lt;summary&gt; on single line</source>
+        <target state="new">Generate &lt;summary&gt; on single line</target>
         <note />
       </trans-unit>
       <trans-unit id="Generator_running">
@@ -1292,6 +1297,11 @@
         <target state="translated">검색 결과 없음: C# 또는 Visual Basic 프로젝트가 열려 있지 않음</target>
         <note />
       </trans-unit>
+      <trans-unit id="Search_members">
+        <source>Search members</source>
+        <target state="new">Search members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
         <source>Select an appropriate symbol to start value tracking</source>
         <target state="translated">적절한 기호를 선택하여 값 추적 시작</target>
@@ -1675,16 +1685,6 @@
       <trans-unit id="Value_to_inject_at_call_sites">
         <source>Value to inject at call sites</source>
         <target state="translated">호출 사이트에서 삽입할 값</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Studio_2017">
-        <source>Visual Studio 2017</source>
-        <target state="translated">Visual Studio 2017</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Studio_2019">
-        <source>Visual Studio 2019</source>
-        <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_Settings">

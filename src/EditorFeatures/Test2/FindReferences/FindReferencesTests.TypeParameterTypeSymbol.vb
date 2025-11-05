@@ -319,5 +319,21 @@ class A : I
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/80580")>
+        Public Async Function TestReferenceToTypeParameterInConversionReturnType(kind As TestKind, host As TestHost) As Task
+            Await TestAPIAndFeature(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document><![CDATA[
+public readonly record struct Wrapper<{|Definition:T|}>([|T|] Value)
+{
+    public static implicit operator Wrapper<$$[|T|]>([|T|] value) => new(value);
+}
+                        ]]></Document>
+                    </Project>
+                </Workspace>, kind, host)
+        End Function
     End Class
 End Namespace

@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var compilationState = new TypeCompilationState(null, _compilation, _moduleBeingBuiltOpt);
             var context = new EmitContext(_moduleBeingBuiltOpt, null, diagnostics.DiagnosticBag, metadataOnly: false, includePrivateMembers: true);
-            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context).Concat(privateImplClass.GetTopLevelAndNestedTypeMethods(context)))
+            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context))
             {
                 var method = (MethodSymbol)definition.GetInternalSymbol();
                 if (method is not null)
@@ -725,6 +725,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 compilationState.Free();
+
+                CompileSynthesizedMethods(additionalType.GetTypeMembers(), diagnostics);
             }
         }
 
@@ -1181,7 +1183,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             });
                             }
 
-                            // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, Ensure we are not messing up relative order of events for extension members (with relation to events for enclosing types, etc.)
                             _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(
                                 _compilation, methodSymbol, semanticModelWithCachedBoundNodes));
                         }
@@ -1418,11 +1419,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_moduleBeingBuiltOpt != null);
 
             ILBuilder builder = new ILBuilder(_moduleBeingBuiltOpt, new LocalSlotManager(slotAllocator: null), _diagnostics.DiagnosticBag, OptimizationLevel.Release, areLocalsZeroed: false);
+            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
+            var ctor = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_NotSupportedException__ctor, _diagnostics, syntax: syntax, isOptional: false);
 
-            // Emit methods in extensions as skeletons:
-            // => throw null;
-            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Should throw NotSupportedException instead
-            builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Ldnull);
+            if (ctor is not null)
+            {
+                builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Newobj, stackAdjustment: 1);
+                builder.EmitToken(_moduleBeingBuiltOpt.Translate(ctor, syntax, _diagnostics.DiagnosticBag, optArgList: null, needDeclaration: false), syntax, 0);
+            }
+            else
+            {
+                builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Ldnull);
+            }
+
             builder.EmitThrow(isRethrow: false);
             builder.Realize();
 

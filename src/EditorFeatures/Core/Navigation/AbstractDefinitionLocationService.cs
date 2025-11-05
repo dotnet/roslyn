@@ -215,7 +215,8 @@ internal abstract partial class AbstractDefinitionLocationService(
                 var title = string.Format(EditorFeaturesResources._0_intercepted_locations,
                     FindUsagesHelpers.GetDisplayName(method));
 
-                var definitionItem = method.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+                var definitionItem = await method.ToNonClassifiedDefinitionItemAsync(
+                    solution, includeHiddenLocations: true, cancellationToken).ConfigureAwait(false);
 
                 var referenceItems = new List<SourceReferenceItem>(capacity: documentSpans.Count);
                 var classificationOptions = ClassificationOptions.Default with { ClassifyObsoleteSymbols = false };

@@ -47,7 +47,7 @@ internal readonly struct UpdateExpressionState<
     /// <summary>
     /// The statement containing <see cref="StartExpression"/>
     /// </summary>
-    public readonly TStatementSyntax? ContainingStatement = startExpression.FirstAncestorOrSelf<TStatementSyntax>()!;
+    public readonly TStatementSyntax? ContainingStatement = startExpression.FirstAncestorOrSelf<TStatementSyntax>();
 
     /// <summary>
     /// The name of the value being mutated.  It is whatever the new object-creation or collection-builder is assigned to.
@@ -338,7 +338,7 @@ internal readonly struct UpdateExpressionState<
             return TryAnalyzeExpressionStatement(statement);
 
         if (SyntaxFacts.IsForEachStatement(statement))
-            return TryAnalyzeForeachStatement(statement);
+            return TryAnalyzeForeachStatement(this.SemanticModel, statement);
 
         if (SyntaxFacts.IsIfStatement(statement))
             return TryAnalyzeIfStatement(statement);
@@ -359,9 +359,12 @@ internal readonly struct UpdateExpressionState<
             return null;
         }
 
-        CollectionMatch<SyntaxNode>? TryAnalyzeForeachStatement(TStatementSyntax foreachStatement)
+        CollectionMatch<SyntaxNode>? TryAnalyzeForeachStatement(
+            SemanticModel semanticModel, TStatementSyntax foreachStatement)
         {
-            syntaxHelper.GetPartsOfForeachStatement(foreachStatement, out var awaitKeyword, out var identifier, out _, out var foreachStatements);
+            syntaxHelper.GetPartsOfForeachStatement(
+                semanticModel, foreachStatement,
+                out var awaitKeyword, out var identifier, out _, out var foreachStatements, out var needsCast);
             if (awaitKeyword != default)
                 return null;
 
@@ -383,7 +386,7 @@ internal readonly struct UpdateExpressionState<
                 @this.ValuePatternMatches(instance))
             {
                 // `foreach` will become `..expr` when we make it into a collection expression.
-                return new(foreachStatement, UseSpread: true);
+                return new(foreachStatement, UseSpread: true, needsCast);
             }
 
             return null;

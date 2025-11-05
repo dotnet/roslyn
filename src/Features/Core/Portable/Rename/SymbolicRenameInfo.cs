@@ -198,9 +198,6 @@ internal sealed class SymbolicRenameInfo
             return new SymbolicRenameInfo(FeaturesResources.You_cannot_rename_this_element);
         }
 
-        if (symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType)
-            return new SymbolicRenameInfo(FeaturesResources.Renaming_anonymous_type_members_is_not_yet_supported);
-
         if (symbol.IsErrorType())
             return new SymbolicRenameInfo(FeaturesResources.Please_resolve_errors_in_your_code_before_renaming_this_element);
 

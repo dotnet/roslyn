@@ -29,14 +29,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // The last is because when we hit a token, we will have processed its leading trivia, and will have moved
             // forward.
-            // <para/>However, the offset for a diagnostic is relative to its FullStart (see <see
-            // cref="SyntaxDiagnosticInfo.Offset"/>). Because of this, the offset can be directly combined with the
-            // position for the first 3, but will need to be adjusted when processing a token itself.
+            //
+            // Note that the offset for a diagnostic is relative to its Start (see <see
+            // cref="SyntaxDiagnosticInfo.Offset"/>). So for tokens we don't need to do anything.  For all other
+            // constructs, we need to add the leading trivia width to the offset to get the correct location.
 
             Debug.Assert(root.ContainsDiagnostics, "Caller should have checked that the root has diagnostics");
 
             using var stack = new NodeIterationStack(DefaultStackCapacity);
             stack.PushNodeOrToken(root);
+
+            var fullTreeLength = syntaxTree.GetRoot().FullSpan.Length;
 
             while (stack.Any())
             {
@@ -46,19 +49,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (SyntaxDiagnosticInfo sdi in node.GetDiagnostics())
                     {
-                        // For tokens, we've already seen leading trivia (as we push leading/trailing trivia explicit as
-                        // green nodes to process on the stack), so we have to roll back.  For nodes, we have yet to see the
-                        // leading trivia, so those don't need an adjustment.
-                        int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
+                        // For tokens, we've already seen leading trivia on the stack.  So we don't need to adjust the
+                        // offset. For everything else, we need to add the leading trivia offset so that we are at the
+                        // right 'Start' position that offset is relative to.  See documentation of position above.
+                        int leadingWidthToAdd = node.IsToken ? 0 : node.GetLeadingTriviaWidth();
 
                         // don't produce locations outside of tree span
-                        var length = syntaxTree.GetRoot().FullSpan.Length;
-                        var spanStart = Math.Min(position - leadingWidthAlreadyCounted + sdi.Offset, length);
-                        var spanWidth = Math.Min(spanStart + sdi.Width, length) - spanStart;
-
-                        yield return new CSDiagnostic(sdi, new SourceLocation(syntaxTree, new TextSpan(spanStart, spanWidth)));
+                        var spanStart = Math.Min(position + leadingWidthToAdd + sdi.Offset, fullTreeLength);
+                        var spanEnd = Math.Min(spanStart + sdi.Width, fullTreeLength);
+                        yield return new CSDiagnostic(sdi, new SourceLocation(syntaxTree, TextSpan.FromBounds(spanStart, spanEnd)));
                     }
-
                     stack.Top.ProcessedDiagnostics = true;
                 }
 

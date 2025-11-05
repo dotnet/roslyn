@@ -2575,11 +2575,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Le changement de nom d’une variable capturée, de « {0} » à « {1} », requiert le redémarrage de l’application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Le changement de nom des membres de type anonyme n'est pas encore pris en charge.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Remplacer '{0}' par '{1}'</target>
@@ -4150,8 +4145,8 @@ Voulez-vous continuer ?</target>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="translated">Modifier la signature...</target>
-        <note />
+        <target state="needs-review-translation">Modifier la signature...</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
         <source>Generate new type...</source>

@@ -1164,6 +1164,158 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
             }
             """, offeredWhenRequireForClarityIsEnabled: true);
 
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithSimpleLiteralOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                public const int A = 1 | $$(2);
+            }
+            """,
+            """
+            class C
+            {
+                public const int A = 1 | 2;
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithSimpleLiteralOperandAnd()
+        => TestAsync(
+            """
+            class C
+            {
+                public const int A = 1 & $$(2);
+            }
+            """,
+            """
+            class C
+            {
+                public const int A = 1 & 2;
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithSimpleIdentifierOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var a = 1;
+                    var q = 1 | $$(a);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var a = 1;
+                    var q = 1 | a;
+                }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithMemberAccessOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                int Field = 1;
+                void M()
+                {
+                    var q = 1 | $$(Field);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int Field = 1;
+                void M()
+                {
+                    var q = 1 | Field;
+                }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithInvocationOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var q = 1 | $$(GetValue());
+                }
+                int GetValue() => 2;
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var q = 1 | GetValue();
+                }
+                int GetValue() => 2;
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithElementAccessOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var array = new[] { 1, 2, 3 };
+                    var q = 1 | $$(array[0]);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    var array = new[] { 1, 2, 3 };
+                    var q = 1 | array[0];
+                }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
+    [Fact]
+    public Task TestBitwiseExpression_TestAvailableWithThisExpressionOperand()
+        => TestAsync(
+            """
+            class C
+            {
+                public static implicit operator int(C c) => 1;
+                void M()
+                {
+                    var q = 1 | $$(this);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static implicit operator int(C c) => 1;
+                void M()
+                {
+                    var q = 1 | this;
+                }
+            }
+            """, offeredWhenRequireForClarityIsEnabled: true);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25554")]
     public Task TestSwitchCase_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         => TestAsync(
