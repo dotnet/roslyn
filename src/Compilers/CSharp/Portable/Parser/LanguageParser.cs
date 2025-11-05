@@ -4174,23 +4174,31 @@ parse_member_name:;
             private readonly bool _previousInAsyncContext;
             private readonly bool _previousInQueryContext;
             private readonly bool _previousInFieldKeywordContext;
+            private readonly bool _previousForceConditionalAccessExpression;
 
             public ParserSyntaxContextResetter(
                 LanguageParser parser,
                 Optional<bool> isInAsyncContext = default,
                 Optional<bool> isInQueryContext = default,
-                Optional<bool> isInFieldKeywordContext = default)
+                Optional<bool> isInFieldKeywordContext = default,
+                Optional<bool> forceConditionalAccessExpression = default)
             {
-                Debug.Assert(isInAsyncContext.HasValue || isInQueryContext.HasValue || isInFieldKeywordContext.HasValue);
+                Debug.Assert(
+                    isInAsyncContext.HasValue ||
+                    isInQueryContext.HasValue ||
+                    isInFieldKeywordContext.HasValue ||
+                    forceConditionalAccessExpression.HasValue);
 
                 _parser = parser;
                 _previousInAsyncContext = parser.IsInAsync;
                 _previousInQueryContext = parser.IsInQuery;
                 _previousInFieldKeywordContext = parser.IsInFieldKeywordContext;
+                _previousForceConditionalAccessExpression = parser.ForceConditionalAccessExpression;
 
                 _parser.IsInAsync = isInAsyncContext.HasValue ? isInAsyncContext.Value : parser.IsInAsync;
                 _parser.IsInQuery = isInQueryContext.HasValue ? isInQueryContext.Value : parser.IsInQuery;
                 _parser.IsInFieldKeywordContext = isInFieldKeywordContext.HasValue ? isInFieldKeywordContext.Value : parser.IsInFieldKeywordContext;
+                _parser.ForceConditionalAccessExpression = forceConditionalAccessExpression.HasValue ? forceConditionalAccessExpression.Value : parser.ForceConditionalAccessExpression;
             }
 
             public void Dispose()
@@ -4198,6 +4206,7 @@ parse_member_name:;
                 _parser.IsInAsync = _previousInAsyncContext;
                 _parser.IsInQuery = _previousInQueryContext;
                 _parser.IsInFieldKeywordContext = _previousInFieldKeywordContext;
+                _parser.ForceConditionalAccessExpression = _previousForceConditionalAccessExpression;
             }
         }
 
@@ -11402,9 +11411,12 @@ done:
                     afterQuestionToken.Reset();
 
                     // try reparsing with `?[` as a conditional access, not a ternary+collection
-                    this.ForceConditionalAccessExpression = true;
-                    var newWhenTrue = this.ParsePossibleRefExpression();
-                    this.ForceConditionalAccessExpression = false;
+                    ExpressionSyntax newWhenTrue;
+                    using (var _ = new ParserSyntaxContextResetter(this, forceConditionalAccessExpression: true))
+                    {
+                        // reparse the when-true portion
+                        newWhenTrue = this.ParsePossibleRefExpression();
+                    }
 
                     if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
@@ -13417,17 +13429,12 @@ done:
 
         private AnonymousMethodExpressionSyntax ParseAnonymousMethodExpression()
         {
-            var parentScopeForceConditionalAccess = this.ForceConditionalAccessExpression;
-            this.ForceConditionalAccessExpression = false;
-
             var modifiers = ParseAnonymousFunctionModifiers();
-            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: this.IsInAsync || modifiers.Any((int)SyntaxKind.AsyncKeyword));
+            using var _ = new ParserSyntaxContextResetter(this,
+                isInAsyncContext: this.IsInAsync || modifiers.Any((int)SyntaxKind.AsyncKeyword),
+                forceConditionalAccessExpression: false);
 
-            var result = parseAnonymousMethodExpressionWorker();
-
-            this.ForceConditionalAccessExpression = parentScopeForceConditionalAccess;
-
-            return result;
+            return parseAnonymousMethodExpressionWorker();
 
             AnonymousMethodExpressionSyntax parseAnonymousMethodExpressionWorker()
             {
@@ -13540,16 +13547,11 @@ done:
 
             var modifiers = ParseAnonymousFunctionModifiers();
 
-            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: this.IsInAsync || modifiers.Any((int)SyntaxKind.AsyncKeyword));
+            using var _ = new ParserSyntaxContextResetter(this,
+                isInAsyncContext: this.IsInAsync || modifiers.Any((int)SyntaxKind.AsyncKeyword),
+                forceConditionalAccessExpression: false);
 
-            var parentScopeForceConditionalAccess = this.ForceConditionalAccessExpression;
-            this.ForceConditionalAccessExpression = false;
-
-            var result = parseLambdaExpressionWorker();
-
-            this.ForceConditionalAccessExpression = parentScopeForceConditionalAccess;
-
-            return result;
+            return parseLambdaExpressionWorker();
 
             LambdaExpressionSyntax parseLambdaExpressionWorker()
             {
