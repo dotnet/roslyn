@@ -550,8 +550,6 @@ public sealed class CollectionExpressionTests_WithElement_Constructors : CSharpT
         var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
         var root = semanticModel.SyntaxTree.GetRoot();
 
-        // PROTOTYPE: Update IOp to represent with(...) creation.
-
         var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(root.DescendantNodes().OfType<BlockSyntax>().ToArray()[1], semanticModel);
         ControlFlowGraphVerifier.VerifyGraph(compilation, """
             Block[B0] - Entry
