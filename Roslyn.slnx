@@ -376,7 +376,6 @@
     <Project Path="src/Setup/DevDivVsix/CompilersPackage/arm64/Microsoft.CodeAnalysis.Compilers.Setup.arm64.csproj" />
     <Project Path="src/Setup/DevDivVsix/CompilersPackage/x64/Microsoft.CodeAnalysis.Compilers.Setup.x64.csproj" />
     <Project Path="src/Setup/DevDivVsix/CompilersPackage/x86/Microsoft.CodeAnalysis.Compilers.Setup.x86.csproj" />
-    <Project Path="src/Setup/Installer/Installer.Package.csproj" />
   </Folder>
   <Folder Name="/Workspaces/">
     <Project Path="src/Workspaces/Core/Desktop/Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" />
