@@ -337,8 +337,8 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         (string target, string hint)? navigationTarget = null;
 
         if (name is DocumentationCommentXmlNames.SeeElementName or
-            DocumentationCommentXmlNames.SeeAlsoElementName or
-            "a")
+                    DocumentationCommentXmlNames.SeeAlsoElementName or
+                    "a")
         {
             if (element.IsEmpty || element.FirstNode == null)
             {
@@ -485,7 +485,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
             else
             {
                 state.AppendParts(
-                    CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format, kind).ToTaggedText(state.Style));
+                    CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.TypeDisplayInfo, state.Format, kind).ToTaggedText(state.Style));
             }
         }
         else
@@ -504,7 +504,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
     }
 
     internal static IEnumerable<SymbolDisplayPart> CrefToSymbolDisplayParts(
-        string crefValue, int position, SemanticModel semanticModel, SymbolDisplayFormat format = null, SymbolDisplayPartKind kind = SymbolDisplayPartKind.Text)
+        string crefValue, int position, SemanticModel semanticModel, StructuralTypeDisplayInfo typeDisplayInfo, SymbolDisplayFormat format = null, SymbolDisplayPartKind kind = SymbolDisplayPartKind.Text)
     {
         // first try to parse the symbol
         if (crefValue != null && semanticModel != null)
@@ -518,7 +518,8 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
                     format = format.WithMemberOptions(SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeExplicitInterface);
                 }
 
-                return symbol.ToMinimalDisplayParts(semanticModel, position, format);
+                var parts = symbol.ToMinimalDisplayParts(semanticModel, position, format);
+                return typeDisplayInfo.ReplaceStructuralTypes(parts, semanticModel, position);
             }
         }
 
@@ -526,9 +527,14 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         return [new SymbolDisplayPart(kind, symbol: null, text: TrimCrefPrefix(crefValue))];
     }
 
-    internal static IEnumerable<SymbolDisplayPart> TypeParameterRefToSymbolDisplayParts(
+    private static IEnumerable<SymbolDisplayPart> TypeParameterRefToSymbolDisplayParts(
         string crefValue, FormatterState state)
     {
+        var typeResolutionSymbol = state.TypeResolutionSymbol;
+        var semanticModel = state.SemanticModel;
+        var position = state.Position;
+        var format = state.Format;
+
         if (semanticModel != null)
         {
             var typeParameterIndex = typeResolutionSymbol.OriginalDefinition.GetAllTypeParameters().IndexOf(tp => tp.Name == crefValue);
@@ -537,7 +543,8 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
                 var typeArgs = typeResolutionSymbol.GetAllTypeArguments();
                 if (typeArgs.Length > typeParameterIndex)
                 {
-                    return typeArgs[typeParameterIndex].ToMinimalDisplayParts(semanticModel, position, format);
+                    var parts = typeArgs[typeParameterIndex].ToMinimalDisplayParts(semanticModel, position, format);
+                    return state.TypeDisplayInfo.ReplaceStructuralTypes(parts, semanticModel, position);
                 }
             }
         }

@@ -182,8 +182,9 @@ internal static partial class ISymbolExtensions2
     }
 
     public static ImmutableArray<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
-        => formatter.Format(GetAppropriateDocumentationComment(symbol, semanticModel.Compilation, cancellationToken).SummaryText,
-            symbol, semanticModel, position, CrefFormat, cancellationToken);
+        => formatter.Format(
+            GetAppropriateDocumentationComment(symbol, semanticModel.Compilation, cancellationToken).SummaryText,
+            symbol, semanticModel, position, CrefFormat, typeDisplayInfo: default, cancellationToken);
 
     /// <summary>
     /// Returns the <see cref="DocumentationComment"/> for a symbol, even if it involves going to other symbols to find it.
