@@ -318,7 +318,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
             }
 
-            if (inputType.IsErrorType() || inputType.IsDynamic())
+            if (inputType.IsPointerOrFunctionPointer())
+            {
+                diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
+                hasErrors = true;
+            }
+
+            if (inputType.IsErrorType() || inputType.IsDynamic() || inputType.IsPointerOrFunctionPointer())
             {
                 hasErrors = true;
                 elementType = inputType;
