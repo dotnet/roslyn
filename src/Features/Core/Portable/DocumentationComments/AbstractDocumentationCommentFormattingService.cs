@@ -294,7 +294,14 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         if (rawXmlText is null)
             return [];
 
-        var state = new FormatterState() { SemanticModel = semanticModel, Position = position, Format = format, TypeResolutionSymbol = symbol };
+        var state = new FormatterState()
+        {
+            SemanticModel = semanticModel,
+            Position = position,
+            Format = format,
+            TypeResolutionSymbol = symbol,
+            TypeDisplayInfo = typeDisplayInfo,
+        };
 
         // In case the XML is a fragment (that is, a series of elements without a parent)
         // wrap it up in a single tag. This makes parsing it much, much easier.
