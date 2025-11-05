@@ -85,6 +85,7 @@ public readonly record struct DeclarationModifiers
                 isRef: field?.RefKind is RefKind.Ref or RefKind.RefReadOnly || type?.IsRefLikeType == true,
                 isVolatile: field?.IsVolatile == true,
                 isExtern: symbol.IsExtern,
+                isPartial: (method?.IsPartialDefinition == true) || (property?.IsPartialDefinition == true),
                 isAsync: method?.IsAsync == true,
                 isRequired: symbol.IsRequired(),
                 isFile: type?.IsFileLocal == true,
