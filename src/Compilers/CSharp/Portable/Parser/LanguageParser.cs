@@ -4188,41 +4188,74 @@ parse_member_name:;
                 semicolon);
         }
 
-        private readonly ref struct FieldKeywordContext : IDisposable
+        private readonly ref struct ParserSyntaxContextResetter : IDisposable
         {
             private readonly LanguageParser _parser;
+            private readonly bool _previousInAsyncContext;
+            private readonly bool _previousInQueryContext;
             private readonly bool _previousInFieldKeywordContext;
 
-            public FieldKeywordContext(LanguageParser parser, bool isInFieldKeywordContext)
+            public ParserSyntaxContextResetter(
+                LanguageParser parser,
+                Optional<bool> isInAsyncContext = default,
+                Optional<bool> isInQueryContext = default,
+                Optional<bool> isInFieldKeywordContext = default)
             {
+                Debug.Assert(isInAsyncContext.HasValue || isInQueryContext.HasValue || isInFieldKeywordContext.HasValue);
+
                 _parser = parser;
+                _previousInAsyncContext = parser.IsInAsync;
+                _previousInQueryContext = parser.IsInQuery;
                 _previousInFieldKeywordContext = parser.IsInFieldKeywordContext;
-                _parser.IsInFieldKeywordContext = isInFieldKeywordContext;
+
+                _parser.IsInAsync = isInAsyncContext.HasValue ? isInAsyncContext.Value : parser.IsInAsync;
+                _parser.IsInQuery = isInQueryContext.HasValue ? isInQueryContext.Value : parser.IsInQuery;
+                _parser.IsInFieldKeywordContext = isInFieldKeywordContext.HasValue ? isInFieldKeywordContext.Value : parser.IsInFieldKeywordContext;
             }
 
             public void Dispose()
             {
+                _parser.IsInAsync = _previousInAsyncContext;
+                _parser.IsInQuery = _previousInQueryContext;
                 _parser.IsInFieldKeywordContext = _previousInFieldKeywordContext;
             }
         }
 
-        private readonly ref struct AsyncContext : IDisposable
-        {
-            private readonly LanguageParser _parser;
-            private readonly bool _previousInAsync;
+        //private readonly ref struct FieldKeywordContext : IDisposable
+        //{
+        //    private readonly LanguageParser _parser;
+        //    private readonly bool _previousInFieldKeywordContext;
 
-            public AsyncContext(LanguageParser parser, bool isInAsync)
-            {
-                _parser = parser;
-                _previousInAsync = parser.IsInAsync;
-                _parser.IsInAsync = isInAsync;
-            }
+        //    public FieldKeywordContext(LanguageParser parser, bool isInFieldKeywordContext)
+        //    {
+        //        _parser = parser;
+        //        _previousInFieldKeywordContext = parser.IsInFieldKeywordContext;
+        //        _parser.IsInFieldKeywordContext = isInFieldKeywordContext;
+        //    }
 
-            public void Dispose()
-            {
-                _parser.IsInAsync = _previousInAsync;
-            }
-        }
+        //    public void Dispose()
+        //    {
+        //        _parser.IsInFieldKeywordContext = _previousInFieldKeywordContext;
+        //    }
+        //}
+
+        //private readonly ref struct AsyncContext : IDisposable
+        //{
+        //    private readonly LanguageParser _parser;
+        //    private readonly bool _previousInAsync;
+
+        //    public AsyncContext(LanguageParser parser, bool isInAsync)
+        //    {
+        //        _parser = parser;
+        //        _previousInAsync = parser.IsInAsync;
+        //        _parser.IsInAsync = isInAsync;
+        //    }
+
+        //    public void Dispose()
+        //    {
+        //        _parser.IsInAsync = _previousInAsync;
+        //    }
+        //}
 
         private enum AccessorDeclaringKind
         {
