@@ -341,16 +341,9 @@ internal static class ParenthesizedExpressionSyntaxExtensions
                 if (current is ConditionalAccessExpressionSyntax)
                     return true;
 
-                // For binary expressions, continue down the right side
-                if (current is BinaryExpressionSyntax binaryExpr)
-                {
-                    current = binaryExpr.Right;
-                }
-                else
-                {
-                    // For other expressions, take the first child expression
-                    current = current.ChildNodes().FirstOrDefault() as ExpressionSyntax;
-                }
+                current = current is BinaryExpressionSyntax binaryExpression
+                    ? binaryExpression.Right
+                    : current.ChildNodes().FirstOrDefault() as ExpressionSyntax;
             }
 
             return false;
