@@ -13892,17 +13892,14 @@ done:
 
         private QueryExpressionSyntax ParseQueryExpression(Precedence precedence)
         {
-            var previousIsInQuery = this.IsInQuery;
-            this.IsInQuery = true;
-            var fc = this.ParseFromClause();
+            using var _ = new ParserSyntaxContextResetter(this, isInQueryContext: true);
+            var fromClause = this.ParseFromClause();
             if (precedence > Precedence.Assignment)
             {
-                fc = this.AddError(fc, ErrorCode.WRN_PrecedenceInversion, SyntaxFacts.GetText(SyntaxKind.FromKeyword));
+                fromClause = this.AddError(fromClause, ErrorCode.WRN_PrecedenceInversion, SyntaxFacts.GetText(SyntaxKind.FromKeyword));
             }
 
-            var body = this.ParseQueryBody();
-            this.IsInQuery = previousIsInQuery;
-            return _syntaxFactory.QueryExpression(fc, body);
+            return _syntaxFactory.QueryExpression(fromClause, this.ParseQueryBody());
         }
 
         private QueryBodySyntax ParseQueryBody()
