@@ -323,6 +323,14 @@ namespace Microsoft.CodeAnalysis.Operations
                         _ => null
                     };
                     return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
+                case BoundKind.ValuePlaceholder:
+                    return new PlaceholderOperation(
+                        PlaceholderKind.Unspecified, _semanticModel, boundNode.Syntax,
+                        boundNode switch
+                        {
+                            BoundExpression boundExpr => boundExpr.GetPublicTypeSymbol(),
+                            _ => null
+                        }, boundNode.WasCompilerGenerated);
                 case BoundKind.UnconvertedInterpolatedString:
                 case BoundKind.UnconvertedConditionalOperator:
                 case BoundKind.UnconvertedSwitchExpression:
@@ -1262,8 +1270,18 @@ namespace Microsoft.CodeAnalysis.Operations
                 while (collectionCreation is BoundConversion conversion)
                     collectionCreation = conversion.Operand;
 
-                if (collectionCreation is BoundCall or BoundObjectCreationExpression)
+                if (collectionCreation is BoundObjectCreationExpression)
                     return DeriveArguments(collectionCreation);
+
+                if (collectionCreation is BoundCall)
+                {
+                    // With a CollectionBuilder, the last argument will be a placeholder where the .Elements will go.
+                    // We do *not* want to include that information in the Arguments we return.
+                    var arguments = DeriveArguments(collectionCreation);
+                    return arguments is [.. var normalArguments, _]
+                        ? normalArguments
+                        : arguments;
+                }
 
                 return [];
             }

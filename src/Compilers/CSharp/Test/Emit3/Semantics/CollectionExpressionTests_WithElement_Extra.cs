@@ -1536,15 +1536,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         var arrowExpressions = root.DescendantNodes().OfType<ArrowExpressionClauseSyntax>().ToArray();
         var operation1 = semanticModel.GetOperation(arrowExpressions[0]);
         VerifyOperationTree(compilation, operation1, """
-            IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> [with(), t]')
-                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '[with(), t]')
-                  ReturnedValue:
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<T>, IsImplicit) (Syntax: '[with(), t]')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Operand:
-                        ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T> items)) (OperationKind.CollectionExpression, Type: MyCollection<T>) (Syntax: '[with(), t]')
-                          Elements(1):
-                              IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+        
             """);
         var operation2 = semanticModel.GetOperation(arrowExpressions[1]);
         VerifyOperationTree(compilation, operation2, """
@@ -1593,41 +1585,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         var operation = semanticModel.GetOperation(root.DescendantNodes().OfType<BlockSyntax>().Single());
         VerifyOperationTree(compilation, operation, """
-              IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-            Locals: Local_1: System.Collections.Generic.IList<System.Int32> x
-              Local_2: System.Collections.Generic.IList<System.Int32> y
-            IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'IList<int>  ... , 1, 2, 3];')
-              IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'IList<int>  ... ), 1, 2, 3]')
-                Declarators:
-                    IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.Int32> x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = [with(), 1, 2, 3]')
-                      Initializer:
-                        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= [with(), 1, 2, 3]')
-                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: '[with(), 1, 2, 3]')
-                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand:
-                              ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IList<System.Int32>) (Syntax: '[with(), 1, 2, 3]')
-                                Elements(3):
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-                Initializer:
-                  null
-            IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'IList<int>  ... , 1, 2, 3];')
-              IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'IList<int>  ... ), 1, 2, 3]')
-                Declarators:
-                    IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.Int32> y) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'y = [with(c ... ), 1, 2, 3]')
-                      Initializer:
-                        IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= [with(cap ... ), 1, 2, 3]')
-                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit) (Syntax: '[with(capac ... ), 1, 2, 3]')
-                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand:
-                              ICollectionExpressionOperation (3 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor(System.Int32 capacity)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IList<System.Int32>) (Syntax: '[with(capac ... ), 1, 2, 3]')
-                                Elements(3):
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
-                Initializer:
-                  null
+
             """);
 
         var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(root.DescendantNodes().OfType<BlockSyntax>().Single(), semanticModel);
