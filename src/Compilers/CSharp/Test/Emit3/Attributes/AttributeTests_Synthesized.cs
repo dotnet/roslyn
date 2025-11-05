@@ -1851,6 +1851,67 @@ class Test
             verifier.VerifyDiagnostics();
         }
 
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_RuntimeAsync_Lambda(OptimizationLevel optimizationLevel)
+        {
+            string source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static void F()
+                    {
+                        Func<Task> f = async () => { await Task.Delay(0); };
+                    }
+                }
+                """;
+
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel);
+
+            var compilation = CreateRuntimeAsyncCompilation(source, options);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: static module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                var closureClass = type.GetTypeMember("<>c");
+                
+                // No state machine types should be generated for the lambda when runtime async is enabled
+                Assert.Empty(closureClass.GetTypeMembers());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_RuntimeAsync_LocalFunction(OptimizationLevel optimizationLevel)
+        {
+            string source = """
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async Task F()
+                    {
+                        async Task LocalAsync() { await Task.Delay(0); }
+                        await LocalAsync();
+                    }
+                }
+                """;
+
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel);
+
+            var compilation = CreateRuntimeAsyncCompilation(source, options);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: static module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                
+                // No state machine types should be generated for the local function when runtime async is enabled  
+                Assert.Empty(type.GetTypeMembers());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
         #endregion
 
         #region IteratorStateMachineAttribute
