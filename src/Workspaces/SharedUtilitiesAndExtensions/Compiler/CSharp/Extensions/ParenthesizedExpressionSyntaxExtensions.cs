@@ -280,11 +280,11 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         // case x when (y): -> case x when y:
         if (nodeParent.IsKind(SyntaxKind.WhenClause))
         {
-            // Subtle case, `when (a || x?[0]):`.  Can't remove the parentheses here as it can cause the conditional access
-            // to become a conditional expression.  For example: `when (a || x?[0]):` becomes `when a || x?[0]:` which
-            // would be parsed as `when a || x ? [0] :` (a ternary expression) instead of the intended conditional access.
-            // We need to check if removing the parentheses would put a conditional access immediately before the `:`.
-            // This happens when the RHS of a binary expression (or any rightmost descendant) is a conditional access.
+            // Subtle case: `when (a || x?[0]):` cannot have parentheses removed because it would become
+            // `when a || x?[0]:` which the parser interprets as `when a || x ? [0] :` (a ternary expression)
+            // instead of the intended conditional access `x?[0]` followed by the `:` from when clause syntax.
+            // To avoid this, we check if removing parentheses would put a conditional access at the end of the
+            // expression (on the rightmost path), immediately before the `:`.
             return !ContainsConditionalAccessOnRightmostPath(expression);
 
             static bool ContainsConditionalAccessOnRightmostPath(ExpressionSyntax expr)
@@ -302,7 +302,7 @@ internal static class ParenthesizedExpressionSyntaxExtensions
                     }
                     else
                     {
-                        // For other expressions, take the first child
+                        // For other expressions, take the first child expression
                         current = current.ChildNodes().FirstOrDefault() as ExpressionSyntax;
                     }
                 }
