@@ -1558,7 +1558,6 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                           Elements(1):
                               IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
             """);
-
     }
 
     [Fact]
