@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // Set DOTNET_ROOT so that the apphost executable launches properly.
             System.Collections.DictionaryEntry[] dotnetRootEnvVars = [];
-            if (RuntimeHostInfo.GetToolDotNetRoot() is { } dotNetRoot)
+            if (RuntimeHostInfo.GetToolDotNetRoot(logger.Log) is { } dotNetRoot)
             {
                 // Unset all other DOTNET_ROOT* variables so for example DOTNET_ROOT_X64 does not override ours.
                 dotnetRootEnvVars = Environment.GetEnvironmentVariables()

@@ -5,9 +5,11 @@
 #nullable enable
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
+using Microsoft.Win32.SafeHandles;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -92,5 +94,85 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         internal static extern IntPtr GetCommandLine();
+
+#if !NET
+        //------------------------------------------------------------------------------
+        // ResolveLinkTarget
+        //------------------------------------------------------------------------------
+        extension(File)
+        {
+            public static FileSystemInfo? ResolveLinkTarget(string path, bool returnFinalTarget)
+            {
+                if (!returnFinalTarget) throw new NotSupportedException();
+
+                using var handle = CreateFileW(
+                    lpFileName: path,
+                    dwDesiredAccess: FILE_READ_ATTRIBUTES,
+                    dwShareMode: FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                    lpSecurityAttributes: IntPtr.Zero,
+                    dwCreationDisposition: OPEN_EXISTING,
+                    dwFlagsAndAttributes: FILE_FLAG_BACKUP_SEMANTICS, // needed for directories
+                    hTemplateFile: IntPtr.Zero);
+
+                if (handle.IsInvalid)
+                {
+                    return null;
+                }
+
+                uint flags = FILE_NAME_NORMALIZED | VOLUME_NAME_DOS;
+                uint needed = GetFinalPathNameByHandleW(hFile: handle, lpszFilePath: null, cchFilePath: 0, dwFlags: flags);
+                if (needed == 0) return null;
+
+                var sb = new StringBuilder((int)needed + 1);
+                uint len = GetFinalPathNameByHandleW(hFile: handle, lpszFilePath: sb, cchFilePath: (uint)sb.Capacity, dwFlags: flags);
+                if (len == 0) return null;
+
+                return new FileInfo(TrimWin32ExtendedPrefix(sb.ToString()));
+            }
+        }
+
+        private static string TrimWin32ExtendedPrefix(string s)
+        {
+            if (s.StartsWith(@"\\?\UNC\", StringComparison.Ordinal))
+                return @"\\" + s.Substring(8);
+            if (s.StartsWith(@"\\?\", StringComparison.Ordinal))
+                return s.Substring(4);
+            return s;
+        }
+
+        // https://learn.microsoft.com/en-us/windows/win32/fileio/file-access-rights-constants
+        private const uint FILE_READ_ATTRIBUTES = 0x0080;
+
+        // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew
+        private const uint FILE_SHARE_READ = 0x00000001;
+        private const uint FILE_SHARE_WRITE = 0x00000002;
+        private const uint FILE_SHARE_DELETE = 0x00000004;
+        private const uint OPEN_EXISTING = 3;
+        private const uint FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
+
+        // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfinalpathnamebyhandlew
+        private const uint VOLUME_NAME_DOS = 0x0;
+        private const uint FILE_NAME_NORMALIZED = 0x0;
+
+        // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern SafeFileHandle CreateFileW(
+            string lpFileName,
+            uint dwDesiredAccess,
+            uint dwShareMode,
+            IntPtr lpSecurityAttributes,
+            uint dwCreationDisposition,
+            uint dwFlagsAndAttributes,
+            IntPtr hTemplateFile);
+
+        // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfinalpathnamebyhandlew
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern uint GetFinalPathNameByHandleW(
+            SafeFileHandle hFile,
+            StringBuilder? lpszFilePath,
+            uint cchFilePath,
+            uint dwFlags);
+#endif
+
     }
 }
