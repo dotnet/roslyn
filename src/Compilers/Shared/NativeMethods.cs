@@ -62,6 +62,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal const Int32 STARTF_USESTDHANDLES = 0x00000100;
         internal const int ERROR_SUCCESS = 0;
 
+        // WaitForSingleObject constants
+        internal const uint WAIT_OBJECT_0 = 0;
+        internal const uint WAIT_TIMEOUT = 0x00000102;
+
         #endregion
 
         //------------------------------------------------------------------------------
@@ -93,5 +97,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         internal static extern IntPtr GetCommandLine();
+
+        //------------------------------------------------------------------------------
+        // WaitForSingleObject
+        //------------------------------------------------------------------------------
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
+
+        //------------------------------------------------------------------------------
+        // GetExitCodeProcess
+        //------------------------------------------------------------------------------
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool GetExitCodeProcess(IntPtr hProcess, out uint lpExitCode);
     }
 }

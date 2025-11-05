@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         bool IsLogging { get; }
         void Log(string message);
+        void LogWarning(string message);
     }
 
     internal static class CompilerServerLoggerExtensions
@@ -50,6 +51,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             if (logger.IsLogging)
             {
                 logger.Log($"Error: {format}", arguments);
+            }
+        }
+
+        internal static void LogWarning(this ICompilerServerLogger logger, string format, params object?[] arguments)
+        {
+            if (logger.IsLogging)
+            {
+                logger.LogWarning(string.Format(format, arguments));
             }
         }
 
@@ -162,6 +171,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 _loggingStream.Flush();
             }
         }
+
+        public void LogWarning(string message)
+        {
+            // Log warnings the same way as regular messages in the file-based logger
+            Log($"Warning: {message}");
+        }
     }
 
     internal sealed class EmptyCompilerServerLogger : ICompilerServerLogger
@@ -175,6 +190,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         public void Log(string message)
+        {
+        }
+
+        public void LogWarning(string message)
         {
         }
     }

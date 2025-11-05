@@ -253,6 +253,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     $"{RuntimeHostInfo.DotNetRootEnvironmentName}={dotNetRoot}",
                 ];
             }
+            else
+            {
+                Log.LogWarning(ErrorString.General_ToolTask_DotNetHostPathNotSet,
+                    RuntimeHostInfo.DotNetRootEnvironmentName,
+                    RuntimeHostInfo.DotNetHostPathEnvironmentName);
+            }
 
             return base.ValidateParameters();
         }
