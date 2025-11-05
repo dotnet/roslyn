@@ -3955,6 +3955,12 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IMethodSymbol? ConstructMethod { get; }
         /// <summary>
+        /// Arguments passed to a <c>with(...)</c> element on the collection expression, if any.
+        /// If the collection expression does not have a <c>with(...)</c> element, or does not allow
+        /// any arguments, this can be an empty array.
+        /// </summary>
+        ImmutableArray<IArgumentOperation> CreationArguments { get; }
+        /// <summary>
         /// Collection expression elements.
         /// <para>
         ///   If the element is an expression, the entry is the expression, with a conversion to
@@ -10672,21 +10678,26 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class CollectionExpressionOperation : Operation, ICollectionExpressionOperation
     {
-        internal CollectionExpressionOperation(IMethodSymbol? constructMethod, ImmutableArray<IOperation> elements, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal CollectionExpressionOperation(IMethodSymbol? constructMethod, ImmutableArray<IArgumentOperation> creationArguments, ImmutableArray<IOperation> elements, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             ConstructMethod = constructMethod;
+            CreationArguments = SetParentOperation(creationArguments, this);
             Elements = SetParentOperation(elements, this);
             Type = type;
         }
         public IMethodSymbol? ConstructMethod { get; }
+        public ImmutableArray<IArgumentOperation> CreationArguments { get; }
         public ImmutableArray<IOperation> Elements { get; }
         internal override int ChildOperationsCount =>
+            CreationArguments.Length +
             Elements.Length;
         internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
-                0 when index < Elements.Length
+                0 when index < CreationArguments.Length
+                    => CreationArguments[index],
+                1 when index < Elements.Length
                     => Elements[index],
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
@@ -10695,13 +10706,18 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case -1:
-                    if (!Elements.IsEmpty) return (true, 0, 0);
+                    if (!CreationArguments.IsEmpty) return (true, 0, 0);
                     else goto case 0;
-                case 0 when previousIndex + 1 < Elements.Length:
+                case 0 when previousIndex + 1 < CreationArguments.Length:
                     return (true, 0, previousIndex + 1);
                 case 0:
+                    if (!Elements.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Elements.Length:
+                    return (true, 1, previousIndex + 1);
                 case 1:
-                    return (false, 1, 0);
+                case 2:
+                    return (false, 2, 0);
                 default:
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
@@ -10711,7 +10727,12 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case int.MaxValue:
-                    if (!Elements.IsEmpty) return (true, 0, Elements.Length - 1);
+                    if (!Elements.IsEmpty) return (true, 1, Elements.Length - 1);
+                    else goto case 1;
+                case 1 when previousIndex > 0:
+                    return (true, 1, previousIndex - 1);
+                case 1:
+                    if (!CreationArguments.IsEmpty) return (true, 0, CreationArguments.Length - 1);
                     else goto case 0;
                 case 0 when previousIndex > 0:
                     return (true, 0, previousIndex - 1);
@@ -11400,7 +11421,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitCollectionExpression(ICollectionExpressionOperation operation, object? argument)
         {
             var internalOperation = (CollectionExpressionOperation)operation;
-            return new CollectionExpressionOperation(internalOperation.ConstructMethod, VisitArray(internalOperation.Elements), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new CollectionExpressionOperation(internalOperation.ConstructMethod, VisitArray(internalOperation.CreationArguments), VisitArray(internalOperation.Elements), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitSpread(ISpreadOperation operation, object? argument)
         {

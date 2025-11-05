@@ -1222,13 +1222,15 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private ICollectionExpressionOperation CreateBoundCollectionExpression(BoundCollectionExpression expr)
         {
+            var compilation = (CSharpCompilation)_semanticModel.Compilation;
             SyntaxNode syntax = expr.Syntax;
             ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
             bool isImplicit = expr.WasCompilerGenerated;
-            IMethodSymbol? constructMethod = getConstructMethod((CSharpCompilation)_semanticModel.Compilation, expr).GetPublicSymbol();
+            IMethodSymbol? constructMethod = getConstructMethod(compilation, expr).GetPublicSymbol();
             ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray((element, expr) => CreateBoundCollectionExpressionElement(expr, element), expr);
             return new CollectionExpressionOperation(
                 constructMethod,
+                getCreationArguments(),
                 elements,
                 _semanticModel,
                 syntax,
@@ -1252,6 +1254,18 @@ namespace Microsoft.CodeAnalysis.Operations
                     default:
                         throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind);
                 }
+            }
+
+            ImmutableArray<IArgumentOperation> getCreationArguments()
+            {
+                var collectionCreation = expr.CollectionCreation;
+                while (collectionCreation is BoundConversion conversion)
+                    collectionCreation = conversion.Operand;
+
+                if (collectionCreation is BoundCall or BoundObjectCreationExpression)
+                    return DeriveArguments(collectionCreation);
+
+                return [];
             }
         }
 

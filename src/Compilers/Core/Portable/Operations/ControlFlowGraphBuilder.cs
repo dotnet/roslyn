@@ -6542,6 +6542,10 @@ oneMoreTime:
         public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
         {
             EvalStackFrame frame = PushStackFrame();
+            var creationArguments = VisitArguments(operation.CreationArguments, instancePushed: false);
+            PopStackFrame(frame);
+
+            frame = PushStackFrame();
             var elements = VisitArray(
                 operation.Elements,
                 unwrapper: static (IOperation element) =>
@@ -6565,6 +6569,7 @@ oneMoreTime:
             PopStackFrame(frame);
             return new CollectionExpressionOperation(
                 operation.ConstructMethod,
+                creationArguments,
                 elements,
                 semanticModel: null,
                 operation.Syntax,
