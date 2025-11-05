@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -13,10 +13,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Microsoft.CodeAnalysis.Text;
@@ -269,16 +267,6 @@ internal sealed partial class SolutionCompilationState
             if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                 return (compilationWithoutGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorDriver);
 
-            // Hold onto the prior results so we can compare when filtering
-            var priorRunResult = generatorDriver?.GetRunResult();
-
-            // If we don't already have an existing generator driver, create one from scratch
-            generatorDriver ??= CreateGeneratorDriver(this.ProjectState);
-
-            CheckGeneratorDriver(generatorDriver, this.ProjectState);
-
-            Contract.ThrowIfNull(generatorDriver);
-
             // HACK HACK HACK HACK to address https://github.com/dotnet/roslyn/issues/59818. There, we were running into issues where
             // a generator being present and consuming syntax was causing all red nodes to be processed. This was problematic when
             // Razor design time files are also fed in, since those files tend to be quite large. The Razor design time files
@@ -298,9 +286,19 @@ internal sealed partial class SolutionCompilationState
             var compilationToRunGeneratorsOn = compilationWithoutGeneratedFiles.RemoveSyntaxTrees(treesToRemove);
             // END HACK HACK HACK HACK.
 
-            generatorDriver = generatorDriver.RunGenerators(compilationToRunGeneratorsOn, ShouldGeneratorRun, cancellationToken);
+            // Hold onto the prior results so we can compare when filtering
+            var priorRunResult = generatorDriver?.GetRunResult();
 
-            Contract.ThrowIfNull(generatorDriver);
+            if (generatorDriver == null)
+            {
+                generatorDriver = await compilationState.GeneratorDriverCache.CreateAndRunGeneratorDriverAsync(this.ProjectState, compilationToRunGeneratorsOn, ShouldGeneratorRun, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                generatorDriver = generatorDriver.RunGenerators(compilationToRunGeneratorsOn, ShouldGeneratorRun, cancellationToken);
+            }
+
+            CheckGeneratorDriver(generatorDriver, this.ProjectState);
 
             var runResult = generatorDriver.GetRunResult();
 
@@ -424,20 +422,6 @@ internal sealed partial class SolutionCompilationState
                 }
 
                 return null;
-            }
-
-            static GeneratorDriver CreateGeneratorDriver(ProjectState projectState)
-            {
-                var generatedFilesBaseDirectory = projectState.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory();
-                var additionalTexts = projectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
-                var compilationFactory = projectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
-
-                return compilationFactory.CreateGeneratorDriver(
-                    projectState.ParseOptions!,
-                    GetSourceGenerators(projectState),
-                    projectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider,
-                    additionalTexts,
-                    generatedFilesBaseDirectory);
             }
 
             [Conditional("DEBUG")]

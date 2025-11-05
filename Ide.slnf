@@ -162,7 +162,6 @@
       "src\\Setup\\DevDivVsix\\CompilersPackage\\arm64\\Microsoft.CodeAnalysis.Compilers.Setup.arm64.csproj",
       "src\\Setup\\DevDivVsix\\CompilersPackage\\x64\\Microsoft.CodeAnalysis.Compilers.Setup.x64.csproj",
       "src\\Setup\\DevDivVsix\\CompilersPackage\\x86\\Microsoft.CodeAnalysis.Compilers.Setup.x86.csproj",
-      "src\\Setup\\Installer\\Installer.Package.csproj",
       "src\\Test\\PdbUtilities\\Roslyn.Test.PdbUtilities.csproj",
       "src\\Test\\Perf\\StackDepthTest\\StackDepthTest.csproj",
       "src\\Test\\Perf\\Utilities\\Roslyn.Test.Performance.Utilities.csproj",

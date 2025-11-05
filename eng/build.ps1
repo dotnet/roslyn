@@ -65,6 +65,7 @@ param (
   [switch]$testCompilerOnly = $false,
   [switch]$testIOperation,
   [switch]$testUsedAssemblies,
+  [switch]$testRuntimeAsync,
   [switch]$sequential,
   [switch]$helix,
   [string]$helixQueueName = "",
@@ -101,6 +102,7 @@ function Print-Usage() {
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
   Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature (see ROSLYN_TEST_USEDASSEMBLIES in codebase)"
+  Write-Host "  -testRuntimeAsync         Run tests with runtime async validation enabled (see DOTNET_RuntimeAsync in codebase)"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -394,6 +396,10 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
 
+  if ($testRuntimeAsync) {
+    $env:DOTNET_RuntimeAsync = 1
+  }
+
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net9.0"
 
   if (!(Test-Path $runTests)) {
@@ -418,6 +424,11 @@ function TestUsingRunTests() {
   elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
     $args += " --runtime framework"
     $args += " --timeout 90"
+
+    if ($testRuntimeAsync) {
+      Write-Host "Cannot run desktop tests with runtime async validation enabled."
+      ExitWithExitCode 1
+    }
 
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
@@ -486,6 +497,10 @@ function TestUsingRunTests() {
 
     if ($testUsedAssemblies) {
       Remove-Item env:\ROSLYN_TEST_USEDASSEMBLIES
+    }
+
+    if ($testRuntimeAsync) {
+      Remove-Item env:\DOTNET_RuntimeAsync
     }
 
     if ($testVsi) {
@@ -776,7 +791,7 @@ try {
 
   try
   {
-    if ($testDesktop -or $testVsi -or $testIOperation -or $testCoreClr) {
+    if ($testDesktop -or $testVsi -or $testIOperation -or $testCoreClr -or $testRuntimeAsync) {
       TestUsingRunTests
     }
   }
