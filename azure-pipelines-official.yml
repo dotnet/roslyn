@@ -54,6 +54,9 @@ schedules:
     batch: false # Do not run the pipeline if the previously scheduled run is in-progress
 
 variables:
+  # Defines $(DncEngInternalBuildPool)
+  - template: /eng/common/templates-official/variables/pool-providers.yml@self
+
   - group: DotNet-Roslyn-SDLValidation-Params
   - name: Codeql.Enabled
     value: true
@@ -101,7 +104,7 @@ extends:
       autoBaseline: true
     sdl:
       sourceAnalysisPool:
-        name: NetCore1ESPool-Svc-Internal
+        name: $(DncEngInternalBuildPool)
         image: 1es-windows-2022
         os: windows
       sbom:
@@ -112,7 +115,7 @@ extends:
         enabled: true
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
     pool:
-      name: NetCore1ESPool-Svc-Internal
+      name: $(DncEngInternalBuildPool)
       image: windows.vs2022.amd64
       os: windows
     customBuildTags:
@@ -402,7 +405,7 @@ extends:
           dependsOn:
           - OfficialBuild
           pool:
-            name: NetCore1ESPool-Svc-Internal
+            name: $(DncEngInternalBuildPool)
             demands: ImageOverride -equals windows.vs2022.amd64
 
       - ${{ if eq(variables.enableSourceIndex, 'true') }}:
