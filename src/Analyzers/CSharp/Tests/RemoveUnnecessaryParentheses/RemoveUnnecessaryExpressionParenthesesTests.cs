@@ -1543,6 +1543,44 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
             """, offeredWhenRequireForClarityIsEnabled: false);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
+    public Task TestWhenClauseWithNullableIndexing_NoAmbiguityOnLeft_EntireExpression()
+        => TestAsync(
+            """
+            class C
+            {
+                public void M(C[] x, bool a)
+                {
+                    switch ("")
+                    {
+                        case "" when $$((x?[0] || a)):
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                public static implicit operator bool(C? c) => true;
+            }
+            """,
+            """
+            class C
+            {
+                public void M(C[] x, bool a)
+                {
+                    switch ("")
+                    {
+                        case "" when (x?[0] || a):
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                public static implicit operator bool(C? c) => true;
+            }
+            """, offeredWhenRequireForClarityIsEnabled: false);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
     public Task TestWhenClauseWithoutNullableIndexing_CanRemove()
         => TestAsync(
             """

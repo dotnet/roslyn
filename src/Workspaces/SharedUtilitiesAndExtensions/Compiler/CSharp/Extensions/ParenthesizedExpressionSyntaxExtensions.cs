@@ -286,29 +286,6 @@ internal static class ParenthesizedExpressionSyntaxExtensions
             // To avoid this, we check if removing parentheses would put a conditional access at the end of the
             // expression (on the rightmost path), immediately before the `:`.
             return !ContainsConditionalAccessOnRightmostPath(expression);
-
-            static bool ContainsConditionalAccessOnRightmostPath(ExpressionSyntax expr)
-            {
-                // Walk down the rightmost path of the expression tree
-                for (var current = expr; current != null;)
-                {
-                    if (current is ConditionalAccessExpressionSyntax)
-                        return true;
-
-                    // For binary expressions, continue down the right side
-                    if (current is BinaryExpressionSyntax binaryExpr)
-                    {
-                        current = binaryExpr.Right;
-                    }
-                    else
-                    {
-                        // For other expressions, take the first child expression
-                        current = current.ChildNodes().FirstOrDefault() as ExpressionSyntax;
-                    }
-                }
-
-                return false;
-            }
         }
 
         // #if (x)   ->   #if x
@@ -355,6 +332,29 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         // - If the parent is not an expression, do not remove parentheses
         // - Otherwise, parentheses may be removed if doing so does not change operator associations.
         return parentExpression != null && !RemovalChangesAssociation(node, parentExpression, semanticModel);
+
+        static bool ContainsConditionalAccessOnRightmostPath(ExpressionSyntax expr)
+        {
+            // Walk down the rightmost path of the expression tree
+            for (var current = expr; current != null;)
+            {
+                if (current is ConditionalAccessExpressionSyntax)
+                    return true;
+
+                // For binary expressions, continue down the right side
+                if (current is BinaryExpressionSyntax binaryExpr)
+                {
+                    current = binaryExpr.Right;
+                }
+                else
+                {
+                    // For other expressions, take the first child expression
+                    current = current.ChildNodes().FirstOrDefault() as ExpressionSyntax;
+                }
+            }
+
+            return false;
+        }
     }
 
     private static bool RemovalWouldChangeConstantReferenceToTypeReference(
