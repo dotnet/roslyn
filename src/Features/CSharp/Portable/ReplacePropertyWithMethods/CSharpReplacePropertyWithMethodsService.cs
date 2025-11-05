@@ -134,6 +134,12 @@ internal sealed partial class CSharpReplacePropertyWithMethodsService() :
 
             methodDeclaration = methodDeclaration.WithAttributeLists(setAccessorDeclaration.AttributeLists);
 
+            // If this is a partial definition, return a declaration without a body
+            if (setMethod.IsPartialDefinition)
+            {
+                return methodDeclaration;
+            }
+
             if (setAccessorDeclaration.Body != null)
             {
                 return methodDeclaration.WithBody(setAccessorDeclaration.Body)
@@ -185,6 +191,12 @@ internal sealed partial class CSharpReplacePropertyWithMethodsService() :
                 && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
             {
                 methodDeclaration = methodDeclaration.AddModifiers(UnsafeKeyword);
+            }
+
+            // If this is a partial definition, return a declaration without a body
+            if (getMethod.IsPartialDefinition)
+            {
+                return methodDeclaration;
             }
 
             if (propertyDeclaration.ExpressionBody != null)
