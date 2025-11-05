@@ -1297,6 +1297,11 @@
         <target state="translated">搜索未找到任何结果: 未打开任何 C# 或 Visual Basic 项目</target>
         <note />
       </trans-unit>
+      <trans-unit id="Search_members">
+        <source>Search members</source>
+        <target state="new">Search members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
         <source>Select an appropriate symbol to start value tracking</source>
         <target state="translated">选择适当的符号以启动值跟踪</target>

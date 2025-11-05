@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Property
 
         Public Overrides Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
-            Return _additionalTypes
+            Return _additionalTypes.Concat(MyBase.GetAdditionalTopLevelTypes())
         End Function
 
         Public Overrides Function GetEmbeddedTypes(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)

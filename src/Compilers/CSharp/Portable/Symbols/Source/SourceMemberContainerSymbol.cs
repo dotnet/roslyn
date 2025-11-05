@@ -2296,7 +2296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (checkCollisionWithTypeParameters && typeParameterNames == null)
                         {
-                            if (!indexer.GetIsNewExtensionMember() && indexer.ContainingType.Arity > 0)
+                            if (!indexer.IsExtensionBlockMember() && indexer.ContainingType.Arity > 0)
                             {
                                 typeParameterNames = PooledHashSet<string>.GetInstance();
                                 foreach (TypeParameterSymbol typeParameter in indexer.ContainingType.TypeParameters)

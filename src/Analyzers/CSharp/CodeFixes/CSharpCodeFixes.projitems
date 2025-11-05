@@ -86,6 +86,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Nullable\CSharpDeclareAsNullableCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveInKeyword\RemoveInKeywordCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveNewModifier\RemoveNewModifierCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnneccessaryUnsafeModifier\CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\CSharpRemoveUnnecessaryNullableWarningSuppressionsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedLocalFunction\CSharpRemoveUnusedLocalFunctionCodeFixProvider.cs" />

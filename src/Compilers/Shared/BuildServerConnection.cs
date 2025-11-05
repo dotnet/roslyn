@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>Dictionary of environment variables to set, or null if no custom environment is needed</returns>
         internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment, ICompilerServerLogger? logger = null)
         {
-            if (RuntimeHostInfo.GetToolDotNetRoot() is not { } dotNetRoot)
+            if (RuntimeHostInfo.GetToolDotNetRoot(logger is null ? null : logger.Log) is not { } dotNetRoot)
             {
                 return null;
             }

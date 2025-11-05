@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Unused 8193-8195
 
         #region diagnostics for out var
-        ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
+        ERR_ImplicitlyTypedVariableUsedInForbiddenZone = 8196,
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
         ERR_ExpressionTreeContainsOutVariable = 8198,
         #endregion diagnostics for out var
@@ -2435,6 +2435,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         HDN_RedundantPatternStackGuard = 9337,
 
         ERR_BadVisBaseType = 9338,
+        ERR_AmbigExtension = 9339,
+        ERR_SingleInapplicableBinaryOperator = 9340,
+        ERR_SingleInapplicableUnaryOperator = 9341,
+        ERR_AmbigOperator = 9342,
 
         // PROTOTYPE: Renumber accordingly.
         ERR_CollectionArgumentsMustBeFirst = 9400,

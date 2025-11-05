@@ -39,4 +39,7 @@ internal sealed class SdkAppDirectiveCompletionProvider() : AbstractAppDirective
                 new(SymbolDisplayPartKind.Text, symbol: null, CSharpFeaturesResources.Adds_an_SDK_reference),
                 ]));
     }
+
+    protected override Task AddDirectiveContentCompletionsAsync(CompletionContext context, ReadOnlyMemory<char> contentPrefix)
+        => Task.CompletedTask;
 }

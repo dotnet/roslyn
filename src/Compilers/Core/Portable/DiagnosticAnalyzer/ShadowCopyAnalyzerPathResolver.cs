@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis
         private string GetAnalyzerShadowDirectory(string analyzerFilePath)
         {
             var originalDirName = Path.GetDirectoryName(analyzerFilePath)!;
-            var shadowDirName = OriginalDirectoryMap.GetOrAdd(originalDirName, _ => Interlocked.Increment(ref _directoryCount)).ToString();
+            var shadowDirName = OriginalDirectoryMap.GetOrAdd(originalDirName, _ => Interlocked.Increment(ref _directoryCount)).ToString(System.Globalization.CultureInfo.InvariantCulture);
             return Path.Combine(ShadowDirectory, shadowDirName);
         }
 

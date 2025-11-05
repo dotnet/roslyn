@@ -16,10 +16,6 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
     where TSimpleNameSyntax : TExpressionSyntax
     where TExpressionSyntax : SyntaxNode
 {
-    protected AbstractGenerateMemberService()
-    {
-    }
-
     protected static readonly ISet<TypeKind> EnumType = new HashSet<TypeKind> { TypeKind.Enum };
     protected static readonly ISet<TypeKind> ClassInterfaceModuleStructTypes = new HashSet<TypeKind>
     {
@@ -164,7 +160,22 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
         {
             // Generating into the containing type.
             typeToGenerateIn = containingType;
-            isStatic = syntaxFacts.IsInStaticContext(expression);
+            isStatic = IsInStaticContext();
+        }
+
+        bool IsInStaticContext()
+        {
+            if (syntaxFacts.IsInStaticContext(expression))
+                return true;
+
+            // If the expression is used in an '&' operator, the method must be static.
+            if (expression.Parent?.RawKind == syntaxFacts.SyntaxKinds.AddressOfExpression &&
+                expression.Language == LanguageNames.CSharp)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 

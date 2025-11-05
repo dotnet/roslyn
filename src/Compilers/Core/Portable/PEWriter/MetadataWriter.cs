@@ -1453,7 +1453,7 @@ namespace Microsoft.Cci
 
         protected static Location GetSymbolLocation(ISymbolInternal symbolOpt)
         {
-            return symbolOpt != null && !symbolOpt.Locations.IsDefaultOrEmpty ? symbolOpt.Locations[0] : Location.None;
+            return symbolOpt?.GetFirstLocationOrNone() ?? Location.None;
         }
 
         internal TypeAttributes GetTypeAttributes(ITypeDefinition typeDef)

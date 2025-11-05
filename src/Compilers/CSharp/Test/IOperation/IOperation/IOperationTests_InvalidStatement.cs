@@ -398,16 +398,16 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto 
                 PropertySubpatterns (0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(10,13): error CS0163: Control cannot fall through from one case label ('case (string s1, string s2) _:') to another
+                // (10,13): error CS0163: Control cannot fall through from one case label ('case (string s1, string s2) _:') to another
                 //             case (string s1, string s2) _:
                 Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (string s1, string s2) _:").WithArguments("case (string s1, string s2) _:").WithLocation(10, 13),
-                // file.cs(11,27): error CS0029: Cannot implicitly convert type 'bool' to '(string, string)'
+                // (11,27): error CS0029: Cannot implicitly convert type 'bool' to '(string, string)'
                 //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case args is (var x1, var x2);").WithArguments("bool", "(string, string)").WithLocation(11, 27),
-                // file.cs(11,45): error CS1061: 'string[]' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'string[]' could be found (are you missing a using directive or an assembly reference?)
+                // (11,45): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2>(Tuple<T1, T2>, out T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var x1, var x2)").WithArguments("string[]", "Deconstruct").WithLocation(11, 45),
-                // file.cs(11,45): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'string[]', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(var x1, var x2)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2>(System.Tuple<T1, T2>, out T1, out T2)").WithLocation(11, 45),
+                // (11,45): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'string[]', with 2 out parameters and a void return type.
                 //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(var x1, var x2)").WithArguments("string[]", "2").WithLocation(11, 45)
             };

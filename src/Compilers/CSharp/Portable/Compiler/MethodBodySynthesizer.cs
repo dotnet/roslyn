@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var property = (SourcePropertySymbolBase)accessor.AssociatedSymbol;
             CSharpSyntaxNode syntax = property.CSharpSyntaxNode;
             BoundExpression thisReference = null;
-            if (!accessor.IsStatic && !accessor.GetIsNewExtensionMember())
+            if (!accessor.IsStatic && !accessor.IsExtensionBlockMember())
             {
                 var thisSymbol = accessor.ThisParameter;
                 thisReference = new BoundThisReference(syntax, thisSymbol.Type) { WasCompilerGenerated = true };

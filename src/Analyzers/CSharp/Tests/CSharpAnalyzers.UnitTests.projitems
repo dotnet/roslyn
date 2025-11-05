@@ -93,6 +93,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveUnnecessaryNullableDirectiveTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessaryNullableWarningSuppressionsFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessaryNullableWarningSuppressionsTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryUnsafeModifier\RemoveUnnecessaryUnsafeModifierTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedLocalFunction\RemoveUnusedLocalFunctionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ReplaceDefaultLiteral\ReplaceDefaultLiteralTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionFixAllTests.cs" />
@@ -202,6 +203,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer\" />
+    <Folder Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryUnsafeModifier\" />
     <Folder Include="$(MSBuildThisFileDirectory)UseImplicitlyTypedLambdaExpression\" />
   </ItemGroup>
 </Project>

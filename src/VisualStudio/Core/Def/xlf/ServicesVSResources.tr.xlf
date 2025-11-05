@@ -1297,6 +1297,11 @@
         <target state="translated">Arama sonucu bulunamadı: C# veya Visual Basic projesi açılmadı</target>
         <note />
       </trans-unit>
+      <trans-unit id="Search_members">
+        <source>Search members</source>
+        <target state="new">Search members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
         <source>Select an appropriate symbol to start value tracking</source>
         <target state="translated">Değer takibini başlatmak için uygun bir sembol seçin</target>

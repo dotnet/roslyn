@@ -34,7 +34,7 @@ try {
 
   if ($bootstrap) {
     Write-Host "Building Roslyn"
-    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog
+    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog /p:RoslynCompilerType=Framework
     Test-LastExitCode
   }
 

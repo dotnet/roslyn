@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var setMethod = replace(SetMethod);
                 Symbol symbol = ReferenceEquals(Symbol, Method) && method is not null ? method : Symbol;
 
-                Debug.Assert(SetMethod?.GetIsNewExtensionMember() != true);
+                Debug.Assert(SetMethod?.IsExtensionBlockMember() != true);
                 wasError = (Method is not null && method is null) || (SetMethod is not null && setMethod is null);
 
                 return new MethodInfo(symbol, method, setMethod);
@@ -220,13 +220,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public static MethodInvocationInfo FromBinaryOperator(BoundBinaryOperator binaryOperator)
             {
-                Debug.Assert(binaryOperator.Method is not null);
+                var binaryOperatorMethod = binaryOperator.BinaryOperatorMethod;
+                Debug.Assert(binaryOperatorMethod is not null);
                 return new MethodInvocationInfo
                 {
-                    MethodInfo = MethodInfo.Create(binaryOperator.Method),
+                    MethodInfo = MethodInfo.Create(binaryOperatorMethod),
                     Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown,
-                    Parameters = binaryOperator.Method.Parameters,
+                    Parameters = binaryOperatorMethod.Parameters,
                     ArgsOpt = [binaryOperator.Left, binaryOperator.Right],
                     ArgumentRefKindsOpt = default,
                     ArgsToParamsOpt = default,
@@ -691,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // Tracked by https://github.com/dotnet/roslyn/issues/78829 : caller info on extension parameter of an extension indexer will need the receiver/argument to be passed
-                    Debug.Assert(!indexerAccess.Indexer.GetIsNewExtensionMember());
+                    Debug.Assert(!indexerAccess.Indexer.IsExtensionBlockMember());
                     BindDefaultArguments(indexerAccess.Syntax, parameters, extensionReceiver: null, argumentsBuilder, refKindsBuilderOpt, namesBuilder, ref argsToParams, out defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics: diagnostics);
 
                     if (namesBuilder is object)
@@ -2363,7 +2364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodInvocationInfo ReplaceWithExtensionImplementationIfNeeded(ref readonly MethodInvocationInfo methodInvocationInfo)
         {
             Symbol? symbol = methodInvocationInfo.MethodInfo.Symbol;
-            if (symbol?.GetIsNewExtensionMember() != true || symbol.IsStatic)
+            if (symbol?.IsExtensionBlockMember() != true || symbol.IsStatic)
             {
                 return methodInvocationInfo;
             }
@@ -3894,7 +3895,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
-                    return GetRefEscape(assignment.Left, localScopeDepth);
+                    // The result of a ref assignment is its right-hand side.
+                    return GetRefEscape(assignment.Right, localScopeDepth);
 
                 case BoundKind.Conversion:
                     Debug.Assert(expr is BoundConversion conversion &&
@@ -3912,7 +3914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.BinaryOperator:
                     Debug.Assert(expr is BoundBinaryOperator binaryOperator &&
-                        (binaryOperator.Method is not { } binaryMethod ||
+                        (binaryOperator.BinaryOperatorMethod is not { } binaryMethod ||
                         binaryMethod.HasUnsupportedMetadata ||
                         binaryMethod.RefKind == RefKind.None));
                     break;
@@ -4228,9 +4230,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                    // The result of a ref assignment is its right-hand side.
                     return CheckRefEscape(
                         node,
-                        assignment.Left,
+                        assignment.Right,
                         escapeFrom,
                         escapeTo,
                         checkingReceiver: false,
@@ -4257,7 +4260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.BinaryOperator:
                     Debug.Assert(expr is BoundBinaryOperator binaryOperator &&
-                        (binaryOperator.Method is not { } binaryMethod ||
+                        (binaryOperator.BinaryOperatorMethod is not { } binaryMethod ||
                         binaryMethod.HasUnsupportedMetadata ||
                         binaryMethod.RefKind == RefKind.None));
                     break;
@@ -4586,7 +4589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
                     {
                         return HasLocalScope((BoundCollectionExpression)conversion.Operand) ?
-                            SafeContext.CurrentMethod :
+                            localScopeDepth :
                             SafeContext.CallingMethod;
                     }
 
@@ -4616,14 +4619,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(conversion.Operand, localScopeDepth);
 
                 case BoundKind.AssignmentOperator:
-                    // https://github.com/dotnet/roslyn/issues/73549:
-                    // We do not have a test that demonstrates that the statement below makes a difference.
-                    // If 'localScopeDepth' is always returned, not a single test fails.
-                    // Same for the 'case BoundKind.NullCoalescingAssignmentOperator:' below.
+                    // The result of an assignment is its right-hand side.
                     return GetValEscape(((BoundAssignmentOperator)expr).Right, localScopeDepth);
 
                 case BoundKind.NullCoalescingAssignmentOperator:
-                    return GetValEscape(((BoundNullCoalescingAssignmentOperator)expr).RightOperand, localScopeDepth);
+                    var nullCoalescingAssignment = (BoundNullCoalescingAssignmentOperator)expr;
+                    return GetValEscape(nullCoalescingAssignment.LeftOperand, localScopeDepth)
+                        .Intersect(GetValEscape(nullCoalescingAssignment.RightOperand, localScopeDepth));
 
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;
@@ -4673,7 +4675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.BinaryOperator:
                     var binary = (BoundBinaryOperator)expr;
 
-                    if (binary.Method is { } binaryMethod)
+                    if (binary.BinaryOperatorMethod is { } binaryMethod)
                     {
                         return GetInvocationEscapeScope(
                             MethodInvocationInfo.FromBinaryOperator(binary),
@@ -5328,7 +5330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
                     {
-                        if (HasLocalScope((BoundCollectionExpression)conversion.Operand) && !SafeContext.CurrentMethod.IsConvertibleTo(escapeTo))
+                        if (HasLocalScope((BoundCollectionExpression)conversion.Operand) && !escapeFrom.IsConvertibleTo(escapeTo))
                         {
                             Error(diagnostics, ErrorCode.ERR_CollectionExpressionEscape, node, expr.Type);
                             return false;
@@ -5371,11 +5373,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expr;
-                    return CheckValEscape(node, assignment.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    // The result of an assignment is its right-hand side.
+                    return CheckValEscape(node, assignment.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.NullCoalescingAssignmentOperator:
                     var nullCoalescingAssignment = (BoundNullCoalescingAssignmentOperator)expr;
-                    return CheckValEscape(node, nullCoalescingAssignment.LeftOperand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    return CheckValEscape(node, nullCoalescingAssignment.LeftOperand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
+                        CheckValEscape(node, nullCoalescingAssignment.RightOperand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;
@@ -5436,7 +5440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
 
-                    if (binary.Method is { } binaryMethod)
+                    if (binary.BinaryOperatorMethod is { } binaryMethod)
                     {
                         return CheckInvocationEscape(
                             binary.Syntax,
