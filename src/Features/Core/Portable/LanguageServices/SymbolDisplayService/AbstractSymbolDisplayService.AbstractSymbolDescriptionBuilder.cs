@@ -163,11 +163,11 @@ internal abstract partial class AbstractSymbolDisplayService
             await AddDescriptionPartAsync(firstSymbol).ConfigureAwait(false);
 
             AddOverloadCountPart(symbols);
-            FixAllStructuralTypes(firstSymbol);
+            var structuralTypeInfo = FixAllStructuralTypes(firstSymbol);
             AddExceptions(firstSymbolDocumentationComment);
             AddCaptures(firstSymbol);
 
-            AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment);
+            AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment, structuralTypeInfo);
         }
 
         private DocumentationComment GetAppropriateDocumentationComment(ISymbol firstSymbol, Compilation compilation, CancellationToken cancellationToken)
@@ -246,18 +246,21 @@ internal abstract partial class AbstractSymbolDisplayService
                 => index < 0 || index >= leadingTrivia.Count ? default : leadingTrivia[index];
         }
 
-        private void AddDocumentationContent(ISymbol symbol, DocumentationComment documentationComment)
+        private void AddDocumentationContent(
+            ISymbol symbol,
+            DocumentationComment documentationComment,
+            StructuralTypeDisplayInfo typeDisplayInfo)
         {
             var formatter = LanguageServices.GetRequiredService<IDocumentationCommentFormattingService>();
             var format = ISymbolExtensions2.CrefFormat;
 
             _documentationMap.Add(
                 SymbolDescriptionGroups.Documentation,
-                formatter.Format(documentationComment.SummaryText, symbol, _semanticModel, _position, format, CancellationToken));
+                formatter.Format(documentationComment.SummaryText, symbol, _semanticModel, _position, format, typeDisplayInfo, CancellationToken));
 
             _documentationMap.Add(
                 SymbolDescriptionGroups.RemarksDocumentation,
-                formatter.Format(documentationComment.RemarksText, symbol, _semanticModel, _position, format, CancellationToken));
+                formatter.Format(documentationComment.RemarksText, symbol, _semanticModel, _position, format, typeDisplayInfo, CancellationToken));
 
             AddDocumentationPartsWithPrefix(documentationComment.ReturnsText, SymbolDescriptionGroups.ReturnsDocumentation, FeaturesResources.Returns_colon);
             AddDocumentationPartsWithPrefix(documentationComment.ValueText, SymbolDescriptionGroups.ValueDocumentation, FeaturesResources.Value_colon);
@@ -269,7 +272,7 @@ internal abstract partial class AbstractSymbolDisplayService
                 if (string.IsNullOrEmpty(rawXmlText))
                     return;
 
-                var parts = formatter.Format(rawXmlText, symbol, _semanticModel, _position, format, CancellationToken);
+                var parts = formatter.Format(rawXmlText, symbol, _semanticModel, _position, format, typeDisplayInfo, CancellationToken);
                 if (!parts.IsDefaultOrEmpty)
                 {
                     _documentationMap.Add(group,
