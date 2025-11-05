@@ -1669,9 +1669,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 OverloadResolution.GetStaticUserDefinedUnaryOperatorMethodNames(kind, isChecked: false, out string staticOperatorName1, out string staticOperatorName2Opt);
 
-                return this.UnaryOperatorNonExtensionOverloadResolution(
+                OperatorResolutionForReporting operatorResolutionForReporting = default;
+                var result = this.UnaryOperatorNonExtensionOverloadResolution(
                     kind, isChecked: false, staticOperatorName1, staticOperatorName2Opt,
-                    operand: operand, node, diagnostics, resultKind: out _, originalUserDefinedOperators: out _);
+                    operand: operand, node, diagnostics, ref operatorResolutionForReporting, resultKind: out _, originalUserDefinedOperators: out _);
+                operatorResolutionForReporting.Free();
+
+                return result;
             }
         }
 
