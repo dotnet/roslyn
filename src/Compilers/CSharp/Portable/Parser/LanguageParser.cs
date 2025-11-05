@@ -2689,17 +2689,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             var saveTerm = _termState;
                             _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
-                            bool wasInAsync = IsInAsync;
-                            if (!IsScript)
-                            {
-                                IsInAsync = true; // We are implicitly in an async context
-                            }
+
+                            // We are implicitly in an async context
+                            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: this.IsInAsync || !IsScript);
+
                             // In Script we don't allow local declaration statements at the top level.  We want
                             // to fall out below and parse them instead as fields. For top-level statements, we allow
                             // them, but want to try properties , etc. first.
                             var statement = this.ParseStatementCore(attributes, isGlobal: true);
 
-                            IsInAsync = wasInAsync;
                             _termState = saveTerm;
 
                             if (isAcceptableNonDeclarationStatement(statement, IsScript))
@@ -2841,14 +2839,12 @@ parse_member_name:;
 
             bool tryParseLocalDeclarationStatement<DeclarationSyntax>(SyntaxList<AttributeListSyntax> attributes, out MemberDeclarationSyntax result) where DeclarationSyntax : StatementSyntax
             {
-                bool wasInAsync = IsInAsync;
-                IsInAsync = true; // We are implicitly in an async context
+                // We are implicitly in an async context
+                using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: true);
                 int lastTokenPosition = -1;
                 IsMakingProgress(ref lastTokenPosition);
 
                 var topLevelStatement = ParseLocalDeclarationStatement(attributes);
-                IsInAsync = wasInAsync;
-
                 if (topLevelStatement is DeclarationSyntax declaration && IsMakingProgress(ref lastTokenPosition, assertIfFalse: false))
                 {
                     result = _syntaxFactory.GlobalStatement(declaration);
@@ -2869,12 +2865,11 @@ parse_member_name:;
                 {
                     var saveTerm = _termState;
                     _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
-                    bool wasInAsync = IsInAsync;
-                    IsInAsync = true; // We are implicitly in an async context
 
+                    // We are implicitly in an async context
+                    using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: true);
                     var statement = this.ParseStatementCore(attributes, isGlobal: true);
 
-                    IsInAsync = wasInAsync;
                     _termState = saveTerm;
 
                     if (statement is not null)
@@ -3566,11 +3561,8 @@ parse_member_name:;
             // restored, just assumed to be false and reset accordingly after parsing the method body.
             Debug.Assert(!IsInAsync);
 
-            IsInAsync = modifiers.Any((int)SyntaxKind.AsyncKeyword);
-
+            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: modifiers.Any((int)SyntaxKind.AsyncKeyword);
             this.ParseBlockAndExpressionBodiesWithSemicolon(out var blockBody, out var expressionBody, out var semicolon);
-
-            IsInAsync = false;
 
             return _syntaxFactory.MethodDeclaration(
                 attributes,
@@ -8254,9 +8246,8 @@ done:
                 // context.
                 this.Reset(ref resetPointBeforeStatement);
 
-                IsInAsync = true;
+                using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: true);
                 result = ParseExpressionStatement(attributes);
-                IsInAsync = false;
             }
 
             // Didn't want to retry as an `await expr`.  Just return what we actually
