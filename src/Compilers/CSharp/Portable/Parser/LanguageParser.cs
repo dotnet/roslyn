@@ -2552,51 +2552,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //
                 if (!haveAttributes || !IsScript)
                 {
-                    bool wasInAsync = IsInAsync;
-                    if (!IsScript)
+                    // We are implicitly in an async context in a non-script environment.
+                    using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: this.IsInAsync || !IsScript);
+
+                    switch (this.CurrentToken.Kind)
                     {
-                        IsInAsync = true; // We are implicitly in an async context
-                    }
+                        case SyntaxKind.UnsafeKeyword:
+                            if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes));
+                            }
+                            break;
 
-                    try
-                    {
-                        switch (this.CurrentToken.Kind)
-                        {
-                            case SyntaxKind.UnsafeKeyword:
-                                if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
-                                {
-                                    return _syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes));
-                                }
-                                break;
+                        case SyntaxKind.FixedKeyword:
+                            if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseFixedStatement(attributes));
+                            }
+                            break;
 
-                            case SyntaxKind.FixedKeyword:
-                                if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
-                                {
-                                    return _syntaxFactory.GlobalStatement(ParseFixedStatement(attributes));
-                                }
-                                break;
+                        case SyntaxKind.DelegateKeyword:
+                            // Check if this is an anonymous delegate expression or a delegate type declaration.
+                            // Anonymous delegate: delegate { } or delegate (params) { }
+                            // Delegate declaration: delegate Type Name(params);
+                            if (IsAnonymousDelegateExpression())
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
+                            }
+                            break;
 
-                            case SyntaxKind.DelegateKeyword:
-                                // Check if this is an anonymous delegate expression or a delegate type declaration.
-                                // Anonymous delegate: delegate { } or delegate (params) { }
-                                // Delegate declaration: delegate Type Name(params);
-                                if (IsAnonymousDelegateExpression())
-                                {
-                                    return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
-                                }
-                                break;
-
-                            case SyntaxKind.NewKeyword:
-                                if (IsPossibleNewExpression())
-                                {
-                                    return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
-                                }
-                                break;
-                        }
-                    }
-                    finally
-                    {
-                        IsInAsync = wasInAsync;
+                        case SyntaxKind.NewKeyword:
+                            if (IsPossibleNewExpression())
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
+                            }
+                            break;
                     }
                 }
 
