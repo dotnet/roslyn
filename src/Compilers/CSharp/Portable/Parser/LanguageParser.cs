@@ -13593,7 +13593,10 @@ done:
         private LambdaExpressionSyntax ParseLambdaExpression()
         {
             var attributes = ParseAttributeDeclarations(inExpressionContext: true);
-            var parentScopeIsInAsync = this.IsInAsync;
+
+            var modifiers = ParseAnonymousFunctionModifiers();
+
+            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: modifiers.Any((int)SyntaxKind.AsyncKeyword));
 
             var parentScopeForceConditionalAccess = this.ForceConditionalAccessExpression;
             this.ForceConditionalAccessExpression = false;
@@ -13601,18 +13604,11 @@ done:
             var result = parseLambdaExpressionWorker();
 
             this.ForceConditionalAccessExpression = parentScopeForceConditionalAccess;
-            this.IsInAsync = parentScopeIsInAsync;
 
             return result;
 
             LambdaExpressionSyntax parseLambdaExpressionWorker()
             {
-                var modifiers = ParseAnonymousFunctionModifiers();
-                if (modifiers.Any((int)SyntaxKind.AsyncKeyword))
-                {
-                    this.IsInAsync = true;
-                }
-
                 TypeSyntax returnType;
                 using (var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false))
                 {
