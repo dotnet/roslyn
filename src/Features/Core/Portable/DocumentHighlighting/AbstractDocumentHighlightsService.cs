@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -168,25 +169,13 @@ internal abstract partial class AbstractDocumentHighlightsService :
         references = references.FilterNonMatchingMethodNames(solution, symbol);
         references = references.FilterToAliasMatches(symbol as IAliasSymbol);
 
-        if (symbol.IsConstructor())
+        if (symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor)
         {
+            var constructorParts1 = constructor.OriginalDefinition.GetAllMethodSymbolsOfPartialParts();
             references = references.WhereAsArray(r =>
             {
-                // Keep the reference if it's for the symbol we're highlighting
-                if (r.Definition.OriginalDefinition.Equals(symbol.OriginalDefinition))
-                    return true;
-
-                // Keep the reference if it's for the corresponding partial part
-                if (symbol is IMethodSymbol method && r.Definition is IMethodSymbol definitionMethod)
-                {
-                    if (method.PartialDefinitionPart?.OriginalDefinition.Equals(definitionMethod.OriginalDefinition) == true)
-                        return true;
-
-                    if (method.PartialImplementationPart?.OriginalDefinition.Equals(definitionMethod.OriginalDefinition) == true)
-                        return true;
-                }
-
-                return false;
+                var constructorParts2 = ((IMethodSymbol)r.Definition).GetAllMethodSymbolsOfPartialParts();
+                return constructorParts1.Intersect(constructorParts2).Any();
             });
         }
 

@@ -15,12 +15,9 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Highlights;
 
-public sealed class DocumentHighlightTests : AbstractLanguageServerProtocolTests
+public sealed class DocumentHighlightTests(ITestOutputHelper testOutputHelper)
+    : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
-    public DocumentHighlightTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-    {
-    }
-
     [Theory, CombinatorialData]
     public async Task TestGetDocumentHighlightAsync(bool lspMutatingWorkspace)
     {
