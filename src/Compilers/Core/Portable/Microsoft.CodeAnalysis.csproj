@@ -36,6 +36,7 @@
     -->
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Condition="'$(DotNetBuildSourceOnly)' != 'true'" PrivateAssets="ContentFiles" />
     <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="System.Memory" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
