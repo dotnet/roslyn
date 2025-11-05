@@ -1441,7 +1441,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
     public Task TestWhenClauseWithNullableIndexing_RequiredForParsing()
         => TestMissingAsync(
             """
@@ -1462,7 +1462,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
     public Task TestWhenClauseWithNullableIndexing_AndOperator()
         => TestMissingAsync(
             """
@@ -1483,7 +1483,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
     public Task TestWhenClauseWithNullableIndexing_NestedBinary()
         => TestMissingAsync(
             """
@@ -1504,7 +1504,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
     public Task TestWhenClauseWithNullableIndexing_NoAmbiguityOnLeft()
         => TestAsync(
             """
@@ -1542,7 +1542,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
             }
             """, offeredWhenRequireForClarityIsEnabled: false);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
     public Task TestWhenClauseWithoutNullableIndexing_CanRemove()
         => TestAsync(
             """
