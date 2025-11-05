@@ -157,9 +157,8 @@ internal abstract class AbstractOptionPreviewViewModel : AbstractNotifyPropertyC
 
         this.TextViewHost = _textEditorFactoryService.CreateTextViewHost(textView, setFocus: false);
 
-        if (this.TextViewHost?.HostControl != null)
+        if (this.TextViewHost?.HostControl is { } control)
         {
-            var control = this.TextViewHost.HostControl;
             var projectionText = projection.CurrentSnapshot.GetText();
             AutomationProperties.SetName(control,
                         $"{ServicesVSResources.Code_preview}: {projectionText}");
