@@ -1491,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
         public void ParseGenericNameInvocationWithPartiallyOmittedTypeArguments()
         {
             // Tests for partially closed generic type names where the first type argument is missing

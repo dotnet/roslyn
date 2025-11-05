@@ -2825,7 +2825,7 @@ class C
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
         public void TestGenericWithExtraCommasAndMissingTypes1()
         {
             UsingTree("""
@@ -2918,9 +2918,24 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            // Validate binding diagnostics
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<string,,>.Instance;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
+                //         var added = Goo<string,,>.Instance;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<string,,>").WithArguments("Goo").WithLocation(5, 21));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
         public void TestGenericWithExtraCommasAndMissingTypes2()
         {
             UsingTree("""
@@ -3013,9 +3028,27 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            // Validate binding diagnostics
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<Id,,>.Instance;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
+                //         var added = Goo<Id,,>.Instance;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<Id,,>").WithArguments("Goo").WithLocation(5, 21),
+                // (5,25): error CS0246: The type or namespace name 'Id' could not be found (are you missing a using directive or an assembly reference?)
+                //         var added = Goo<Id,,>.Instance;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Id").WithArguments("Id").WithLocation(5, 25));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
         public void TestGenericWithExtraCommasAndMissingTypes3()
         {
             UsingTree("""
@@ -3108,9 +3141,27 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            // Validate binding diagnostics
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<,Id,>.Instance;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
+                //         var added = Goo<,Id,>.Instance;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<,Id,>").WithArguments("Goo").WithLocation(5, 21),
+                // (5,26): error CS0246: The type or namespace name 'Id' could not be found (are you missing a using directive or an assembly reference?)
+                //         var added = Goo<,Id,>.Instance;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Id").WithArguments("Id").WithLocation(5, 26));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
         public void TestGenericWithExtraCommasAndMissingTypes4()
         {
             UsingTree("""
@@ -3203,9 +3254,27 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            // Validate binding diagnostics
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<,,Id>.Instance;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
+                //         var added = Goo<,,Id>.Instance;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<,,Id>").WithArguments("Goo").WithLocation(5, 21),
+                // (5,27): error CS0246: The type or namespace name 'Id' could not be found (are you missing a using directive or an assembly reference?)
+                //         var added = Goo<,,Id>.Instance;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Id").WithArguments("Id").WithLocation(5, 27));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
         public void TestGenericWithExtraCommasAndMissingTypes5()
         {
             UsingTree("""
@@ -3310,9 +3379,27 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            // Validate binding diagnostics
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<Id[],,>.Instance;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
+                //         var added = Goo<Id[],,>.Instance;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<Id[],,>").WithArguments("Goo").WithLocation(5, 21),
+                // (5,25): error CS0246: The type or namespace name 'Id' could not be found (are you missing a using directive or an assembly reference?)
+                //         var added = Goo<Id[],,>.Instance;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Id").WithArguments("Id").WithLocation(5, 25));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
         public void TestGenericWithExtraCommasAndMissingTypes6()
         {
             UsingTree("""
@@ -3423,9 +3510,24 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            // Validate binding diagnostics
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<(int i, int j),,>.Instance;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,21): error CS0103: The name 'Goo<,,>' does not exist in the current context
+                //         var added = Goo<(int i, int j),,>.Instance;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<(int i, int j),,>").WithArguments("Goo").WithLocation(5, 21));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
         public void TestGenericWithExtraCommasAndMissingTypes7()
         {
             UsingTree("""
@@ -3527,9 +3629,27 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            // Validate binding diagnostics
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<K<int>,,>.Instance;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
+                //         var added = Goo<K<int>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<K<int>,,>").WithArguments("Goo").WithLocation(5, 21),
+                // (5,25): error CS0246: The type or namespace name 'K<>' could not be found (are you missing a using directive or an assembly reference?)
+                //         var added = Goo<K<int>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "K<int>").WithArguments("K<>").WithLocation(5, 25));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
         public void TestGenericWithExtraCommasAndMissingTypes8()
         {
             UsingTree("""
@@ -3641,6 +3761,24 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            // Validate binding diagnostics
+            var source = """
+                class C
+                {
+                    void M()
+                    {
+                        var added = Goo<K<int,,>,,>.Instance;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
+                //         var added = Goo<K<int,,>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<K<int,,>,,>").WithArguments("Goo").WithLocation(5, 21),
+                // (5,25): error CS0246: The type or namespace name 'K<,,>' could not be found (are you missing a using directive or an assembly reference?)
+                //         var added = Goo<K<int,,>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "K<int,,>").WithArguments("K<,,>").WithLocation(5, 25));
         }
     }
 }
