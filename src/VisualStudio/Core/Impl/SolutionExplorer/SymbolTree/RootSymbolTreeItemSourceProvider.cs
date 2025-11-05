@@ -68,7 +68,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
 
     public readonly IContextMenuController ContextMenuController;
 
-    private bool? _disabled;
+    private bool? _isEnabled;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -175,30 +175,32 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             }).ConfigureAwait(false);
     }
 
-    private bool IsDisabled
+    private bool IsEnabled
     {
         get
         {
-            return _disabled ??= ComputeIsDisabled();
+            return _isEnabled ??= ComputeIsEnabled();
 
-            bool ComputeIsDisabled()
+            bool ComputeIsEnabled()
             {
                 try
                 {
-                    var settingsManager = RoslynServiceExtensions.GetService<SVsUnifiedSettingsManager, ISettingsManager>(
-                        _serviceProvider, ThreadingContext.JoinableTaskFactory);
+                    var settingsManager = _serviceProvider.GetService<SVsUnifiedSettingsManager, ISettingsManager>(ThreadingContext.JoinableTaskFactory);
 
                     // Key provided by the Solution Explorer team.
                     var setting = settingsManager.GetReader().GetValue<bool>("projectsAndSolutions.general.showLanguageSymbolsInsideSolutionExplorerFiles");
 
                     // Only if we can actually read the value successfully, and it is false, are we disabled.
                     // In all other circumstances (value missing, error reading, value true), we are enabled.
-                    return setting.Outcome == SettingRetrievalOutcome.Success && !setting.Value;
+                    if (setting.Outcome != SettingRetrievalOutcome.Success)
+                        return true;
+
+                    return setting.Value;
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                 {
-                    // On any error reading from unified settings, just assume we're not disabled.
-                    return false;
+                    // On any error reading from unified settings, just assume we're enabled.
+                    return true;
                 }
             }
         }
@@ -235,7 +237,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         if (guid != VSConstants.ItemTypeGuid.PhysicalFile_guid)
             return null;
 
-        if (IsDisabled)
+        if (!IsEnabled)
             return null;
 
         var source = new RootSymbolTreeItemCollectionSource(this, item);

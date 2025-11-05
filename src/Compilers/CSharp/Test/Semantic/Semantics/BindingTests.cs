@@ -4273,5 +4273,132 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (a) .
                 //         M<int>(default!); 
                 Diagnostic(ErrorCode.ERR_BadArity, "M<int>").WithArguments("Program.M<T1, T2>(T1)", "method", "2").WithLocation(5, 9));
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80987")]
+        public void MissingCoreReference_01()
+        {
+            var source =
+@"
+namespace Magic
+{
+    public enum Cookie : UInt32;
+}
+";
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,17): error CS0518: Predefined type 'System.Enum' is not defined or imported
+                //     public enum Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Cookie").WithArguments("System.Enum").WithLocation(4, 17),
+                // (4,26): error CS0518: Predefined type 'System.Enum' is not defined or imported
+                //     public enum Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "UInt32").WithArguments("System.Enum").WithLocation(4, 26),
+                // (4,26): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     public enum Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "UInt32").WithArguments("System.Object").WithLocation(4, 26),
+                // (4,26): error CS0246: The type or namespace name 'UInt32' could not be found (are you missing a using directive or an assembly reference?)
+                //     public enum Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UInt32").WithArguments("UInt32").WithLocation(4, 26),
+                // (4,26): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                //     public enum Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "UInt32").WithLocation(4, 26)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80987")]
+        public void MissingCoreReference_02()
+        {
+            var source =
+@"
+namespace Magic
+{
+    public enum Cookie : int;
+}
+";
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,17): error CS0518: Predefined type 'System.Enum' is not defined or imported
+                //     public enum Cookie : int;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Cookie").WithArguments("System.Enum").WithLocation(4, 17),
+                // (4,26): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     public enum Cookie : int;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 26)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80987")]
+        public void MissingCoreReference_03()
+        {
+            var source =
+@"
+namespace Magic
+{
+    public class Cookie : UInt32;
+}
+";
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,27): error CS0246: The type or namespace name 'UInt32' could not be found (are you missing a using directive or an assembly reference?)
+                //     public class Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UInt32").WithArguments("UInt32").WithLocation(4, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80987")]
+        public void MissingCoreReference_04()
+        {
+            var source =
+@"
+namespace Magic
+{
+    public struct Cookie : UInt32;
+}
+";
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0518: Predefined type 'System.ValueType' is not defined or imported
+                //     public struct Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Cookie").WithArguments("System.ValueType").WithLocation(4, 19),
+                // (4,28): error CS0246: The type or namespace name 'UInt32' could not be found (are you missing a using directive or an assembly reference?)
+                //     public struct Cookie : UInt32;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UInt32").WithArguments("UInt32").WithLocation(4, 28)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/80987")]
+        public void MissingCoreReference_05()
+        {
+            var source =
+@"
+static class Ext
+{
+    extension(Ext)
+    {
+    }
+}
+";
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,14): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // static class Ext
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Ext").WithArguments("System.Object").WithLocation(2, 14),
+                // (4,5): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     extension(Ext)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "extension").WithArguments("System.Object").WithLocation(4, 5),
+                // (4,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     extension(Ext)
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(4, 5),
+                // (4,14): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     extension(Ext)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(").WithArguments("System.Void").WithLocation(4, 14),
+                // (4,15): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     extension(Ext)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Ext").WithArguments("System.Object").WithLocation(4, 15)
+                );
+        }
     }
 }
