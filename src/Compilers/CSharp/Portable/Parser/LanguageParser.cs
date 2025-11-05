@@ -4206,6 +4206,24 @@ parse_member_name:;
             }
         }
 
+        private readonly ref struct AsyncContext : IDisposable
+        {
+            private readonly LanguageParser _parser;
+            private readonly bool _previousInAsync;
+
+            public AsyncContext(LanguageParser parser, bool isInAsync)
+            {
+                _parser = parser;
+                _previousInAsync = parser.IsInAsync;
+                _parser.IsInAsync = isInAsync;
+            }
+
+            public void Dispose()
+            {
+                _parser.IsInAsync = _previousInAsync;
+            }
+        }
+
         private enum AccessorDeclaringKind
         {
             Property,
