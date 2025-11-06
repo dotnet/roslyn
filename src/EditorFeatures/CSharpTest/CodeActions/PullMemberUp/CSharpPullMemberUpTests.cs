@@ -3980,7 +3980,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
 
                 public partial class TestClass : IInterface
                 {
-                    partial void Bar[||]Bar()
+                    partial void Bar[||]Bar();
                 }
 
                 public partial class TestClass
@@ -4004,7 +4004,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
 
                 public partial class TestClass : IInterface
                 {
-                    void BarBar()
+                    partial void BarBar();
                 }
 
                 public partial class TestClass
