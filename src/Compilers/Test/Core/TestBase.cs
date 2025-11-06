@@ -3,20 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Xml.Linq;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VisualBasic;
-using static TestReferences.NetFx;
-using Basic.Reference.Assemblies;
-using Roslyn.Utilities;
-using System.Globalization;
 
 namespace Roslyn.Test.Utilities
 {
@@ -363,5 +360,47 @@ namespace Roslyn.Test.Utilities
         }
 
         #endregion
+
+        public static void ApplyEnvironmentVariables(
+            IEnumerable<KeyValuePair<string, string?>> environmentVariables,
+            Action action)
+        {
+            ApplyEnvironmentVariables<object?>(
+                environmentVariables,
+                () =>
+                {
+                    action();
+                    return null;
+                });
+        }
+
+        public static T ApplyEnvironmentVariables<T>(
+            IEnumerable<KeyValuePair<string, string?>> environmentVariables,
+            Func<T> func)
+        {
+            if (environmentVariables == null)
+            {
+                return func();
+            }
+
+            var resetVariables = new Dictionary<string, string?>();
+            try
+            {
+                foreach (var variable in environmentVariables)
+                {
+                    resetVariables.Add(variable.Key, Environment.GetEnvironmentVariable(variable.Key));
+                    Environment.SetEnvironmentVariable(variable.Key, variable.Value);
+                }
+
+                return func();
+            }
+            finally
+            {
+                foreach (var variable in resetVariables)
+                {
+                    Environment.SetEnvironmentVariable(variable.Key, variable.Value);
+                }
+            }
+        }
     }
 }

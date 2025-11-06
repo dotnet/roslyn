@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,70 +12,68 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
 
-public sealed class RuntimeHostInfoTests(ITestOutputHelper output)
+public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
 {
     private readonly ITestOutputHelper _output = output;
 
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
     public void DotNetInPath()
     {
-        var previousPath = Environment.GetEnvironmentVariable("PATH");
-        try
-        {
-            using var tempRoot = new TempRoot();
-            var testDir = tempRoot.CreateDirectory();
-            var globalDotNetDir = testDir.CreateDirectory("global-dotnet");
-            var globalDotNetExe = globalDotNetDir.CreateFile($"dotnet{PlatformInformation.ExeExtension}");
-            Environment.SetEnvironmentVariable("PATH", globalDotNetDir.Path);
+        using var tempRoot = new TempRoot();
+        var testDir = tempRoot.CreateDirectory();
+        var globalDotNetDir = testDir.CreateDirectory("global-dotnet");
+        var globalDotNetExe = globalDotNetDir.CreateFile($"dotnet{PlatformInformation.ExeExtension}");
 
-            Assert.Equal(globalDotNetDir.Path, RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
-        }
-        finally
+        ApplyEnvironmentVariables(
+        [
+            new("PATH", globalDotNetDir.Path),
+            new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
+            new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
+        ],
+        () =>
         {
-            Environment.SetEnvironmentVariable("PATH", previousPath);
-        }
+            Assert.Equal(globalDotNetDir.Path, RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
+        });
     }
 
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
     public void DotNetInPath_None()
     {
-        var previousPath = Environment.GetEnvironmentVariable("PATH");
-        try
+        ApplyEnvironmentVariables(
+        [
+            new("PATH", ""),
+            new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
+            new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
+        ],
+        () =>
         {
-            Environment.SetEnvironmentVariable("PATH", "");
-
             Assert.Null(RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("PATH", previousPath);
-        }
+        });
     }
 
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
     public void DotNetInPath_Symlinked()
     {
-        var previousPath = Environment.GetEnvironmentVariable("PATH");
-        try
+        using var tempRoot = new TempRoot();
+        var testDir = tempRoot.CreateDirectory();
+        var globalDotNetDir = testDir.CreateDirectory("global-dotnet");
+        var globalDotNetExe = globalDotNetDir.CreateFile($"dotnet{PlatformInformation.ExeExtension}");
+        var binDir = testDir.CreateDirectory("bin");
+        var symlinkPath = Path.Combine(binDir.Path, $"dotnet{PlatformInformation.ExeExtension}");
+
+        // Create symlink from binDir to the actual dotnet executable
+        File.CreateSymbolicLink(path: symlinkPath, pathToTarget: globalDotNetExe.Path);
+
+        ApplyEnvironmentVariables(
+        [
+            new("PATH", binDir.Path),
+            new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
+            new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
+        ],
+        () =>
         {
-            using var tempRoot = new TempRoot();
-            var testDir = tempRoot.CreateDirectory();
-            var globalDotNetDir = testDir.CreateDirectory("global-dotnet");
-            var globalDotNetExe = globalDotNetDir.CreateFile($"dotnet{PlatformInformation.ExeExtension}");
-            var binDir = testDir.CreateDirectory("bin");
-            var symlinkPath = Path.Combine(binDir.Path, $"dotnet{PlatformInformation.ExeExtension}");
-
-            // Create symlink from binDir to the actual dotnet executable
-            File.CreateSymbolicLink(path: symlinkPath, pathToTarget: globalDotNetExe.Path);
-
-            Environment.SetEnvironmentVariable("PATH", binDir.Path);
-
             Assert.Equal(globalDotNetDir.Path, RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("PATH", previousPath);
-        }
+        });
     }
 }
 
