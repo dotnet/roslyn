@@ -159,13 +159,14 @@ internal abstract partial class AbstractSymbolDisplayService
             // Grab the doc comment once as computing it for each portion we're concatenating can be expensive for
             // LSIF (which does this for every symbol in an entire solution).
             var firstSymbolDocumentationComment = GetAppropriateDocumentationComment(firstSymbol);
-            var typeDisplayInfo = GetStructuralTypeDisplayInfo(firstSymbol);
 
             await AddDescriptionPartAsync(firstSymbol).ConfigureAwait(false);
             AddOverloadCountPart(symbols);
+
+            var typeDisplayInfo = GetStructuralTypeDisplayInfo(firstSymbol);
             FixAllStructuralTypes(typeDisplayInfo);
             AddExceptions(firstSymbolDocumentationComment, typeDisplayInfo);
-            AddCaptures(firstSymbol);
+            AddCaptures(this._semanticModel, firstSymbol, typeDisplayInfo);
             AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment, typeDisplayInfo);
         }
 
@@ -313,15 +314,14 @@ internal abstract partial class AbstractSymbolDisplayService
         /// by that local or anonymous function to the "Captures" group.
         /// </summary>
         /// <param name="symbol"></param>
-        protected abstract void AddCaptures(ISymbol symbol);
+        protected abstract void AddCaptures(SemanticModel semanticModel, ISymbol symbol, StructuralTypeDisplayInfo displayInfo);
 
         /// <summary>
         /// Given the body of a local or an anonymous function (lambda or delegate), add the variables captured
         /// by that local or anonymous function to the "Captures" group.
         /// </summary>
-        protected void AddCaptures(SyntaxNode syntax)
+        protected void AddCaptures(SemanticModel semanticModel, SyntaxNode syntax, StructuralTypeDisplayInfo displayInfo)
         {
-            var semanticModel = GetSemanticModel(syntax.SyntaxTree);
             if (semanticModel.IsSpeculativeSemanticModel)
             {
                 // The region analysis APIs used below are not meaningful/applicable in the context of speculation (because they are designed
@@ -350,7 +350,8 @@ internal abstract partial class AbstractSymbolDisplayService
                     }
 
                     parts.AddRange(Space(count: 1));
-                    parts.AddRange(ToMinimalDisplayParts(captured, s_formatForCaptures));
+                    parts.AddRange(displayInfo.ReplaceStructuralTypes(
+                        ToMinimalDisplayParts(captured, s_formatForCaptures), semanticModel, syntax.SpanStart));
                     first = false;
                 }
 
