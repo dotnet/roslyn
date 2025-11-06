@@ -21,16 +21,11 @@ internal static partial class ISymbolExtensions
             return true;
 
 #if !ROSLYN_4_12_OR_LOWER
-        isPartial = symbol switch
-        {
-            IMethodSymbol method => method.IsPartialDefinition,
-            IPropertySymbol property => property.IsPartialDefinition,
-            IEventSymbol @event => @event.IsPartialDefinition || @event.PartialDefinitionPart != null || @event.PartialImplementationPart != null,
-            _ => false
-        };
+        return symbol is IEventSymbol @event &&
+            (@event.PartialDefinitionPart != null || @event.PartialImplementationPart != null);
 #endif
 
-        return isPartial;
+        return false;
     }
 
     public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
