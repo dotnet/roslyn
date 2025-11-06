@@ -101,9 +101,10 @@ internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
         }
 
         return CasePatternSwitchLabel(
+            CaseKeyword.WithTrailingTrivia(Space),
             AsPatternSyntax(label.Pattern, feature),
             AsWhenClause(label),
-            ColonToken);
+            ColonToken.WithTrailingTrivia(ElasticCarriageReturnLineFeed));
     }
 
     private static PatternSyntax AsPatternSyntax(AnalyzedPattern pattern, Feature feature)
@@ -111,7 +112,7 @@ internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
         {
             AnalyzedPattern.And p => BinaryPattern(SyntaxKind.AndPattern, AsPatternSyntax(p.LeftPattern, feature).Parenthesize(), AsPatternSyntax(p.RightPattern, feature).Parenthesize()),
             AnalyzedPattern.Constant p => ConstantPattern(p.ExpressionSyntax),
-            AnalyzedPattern.Source p => p.PatternSyntax.WithoutLeadingTrivia(),
+            AnalyzedPattern.Source p => p.PatternSyntax,
             AnalyzedPattern.Type p when feature.HasFlag(Feature.TypePattern) => TypePattern((TypeSyntax)p.IsExpressionSyntax.Right),
             AnalyzedPattern.Type p => DeclarationPattern((TypeSyntax)p.IsExpressionSyntax.Right, DiscardDesignation()),
             AnalyzedPattern.Relational p => RelationalPattern(Token(s_operatorMap[p.OperatorKind]), p.Value),

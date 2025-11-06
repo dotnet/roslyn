@@ -2747,44 +2747,51 @@ public sealed class ConvertIfToSwitchTests
         => new VerifyCS.Test
         {
             TestCode = """
-            record R(int? P);
-            
-            class C
-            {
-                int M(R v)
+                class R(int? P)
                 {
-                    $$if (v.P == 0)
-                    {
-                        return 1;
-                    }
-            
-                    if (v.P is { } b && b > 0)
-                    {
-                        return 2;
-                    }
-            
-                    return 0;
+                    public int? P { get; } = P;
                 }
-            }
-            """,
-            FixedCode = """
-            record R(int? P);
             
-            class C
-            {
-                int M(R v)
+                class C
                 {
-                    switch (v.P)
+                    int M(R v)
                     {
-                        case 0:
+                        $$if (v.P == 0)
+                        {
                             return 1;
-                        case { } b when b > 0:
+                        }
+            
+                        if (v.P is { } b && b > 0)
+                        {
                             return 2;
-                        default:
-                            return 0;
+                        }
+            
+                        return 0;
                     }
                 }
-            }
-            """,
+                """,
+            FixedCode = """
+                class R(int? P)
+                {
+                    public int? P { get; } = P;
+                }
+            
+                class C
+                {
+                    int M(R v)
+                    {
+                        switch (v.P)
+                        {
+                            case 0:
+                                return 1;
+                            case { } b when b > 0:
+                                return 2;
+                            default:
+                                return 0;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 }
