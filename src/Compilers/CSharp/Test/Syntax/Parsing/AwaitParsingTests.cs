@@ -399,7 +399,6 @@ class C
                                         {
                                             N(SyntaxKind.AnonymousMethodExpression);
                                             {
-                                                N(SyntaxKind.AsyncKeyword);
                                                 N(SyntaxKind.DelegateKeyword);
                                                 N(SyntaxKind.ParameterList);
                                                 {
