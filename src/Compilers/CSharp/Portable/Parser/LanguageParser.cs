@@ -4184,10 +4184,10 @@ parse_member_name:;
 
             public ParserSyntaxContextResetter(
                 LanguageParser parser,
-                Optional<bool> isInAsyncContext = default,
-                Optional<bool> isInQueryContext = default,
-                Optional<bool> isInFieldKeywordContext = default,
-                Optional<bool> forceConditionalAccessExpression = default)
+                bool? isInAsyncContext = null,
+                bool? isInQueryContext = null,
+                bool? isInFieldKeywordContext = null,
+                bool? forceConditionalAccessExpression = null)
             {
                 Debug.Assert(
                     isInAsyncContext.HasValue ||
@@ -4202,10 +4202,10 @@ parse_member_name:;
                     (parser.IsInFieldKeywordContext ? LanguageParserState.IsInFieldKeywordContext : 0) |
                     (parser.ForceConditionalAccessExpression ? LanguageParserState.ForceConditionalAccessExpression : 0);
 
-                _parser.IsInAsync = isInAsyncContext.HasValue ? isInAsyncContext.Value : parser.IsInAsync;
-                _parser.IsInQuery = isInQueryContext.HasValue ? isInQueryContext.Value : parser.IsInQuery;
-                _parser.IsInFieldKeywordContext = isInFieldKeywordContext.HasValue ? isInFieldKeywordContext.Value : parser.IsInFieldKeywordContext;
-                _parser.ForceConditionalAccessExpression = forceConditionalAccessExpression.HasValue ? forceConditionalAccessExpression.Value : parser.ForceConditionalAccessExpression;
+                _parser.IsInAsync = isInAsyncContext.GetValueOrDefault(parser.IsInAsync);
+                _parser.IsInQuery = isInQueryContext.GetValueOrDefault(parser.IsInQuery);
+                _parser.IsInFieldKeywordContext = isInFieldKeywordContext.GetValueOrDefault(parser.IsInFieldKeywordContext);
+                _parser.ForceConditionalAccessExpression = forceConditionalAccessExpression.GetValueOrDefault(parser.ForceConditionalAccessExpression);
             }
 
             public void Dispose()
