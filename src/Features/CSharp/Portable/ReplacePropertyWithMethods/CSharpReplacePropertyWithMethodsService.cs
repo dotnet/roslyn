@@ -136,9 +136,7 @@ internal sealed partial class CSharpReplacePropertyWithMethodsService() :
 
             // If this is a partial definition, return a declaration without a body
             if (setMethod.IsPartialDefinition)
-            {
                 return methodDeclaration;
-            }
 
             if (setAccessorDeclaration.Body != null)
             {
@@ -196,9 +194,7 @@ internal sealed partial class CSharpReplacePropertyWithMethodsService() :
 
             // If this is a partial definition, return a declaration without a body
             if (getMethod.IsPartialDefinition)
-            {
                 return methodDeclaration;
-            }
 
             if (propertyDeclaration.ExpressionBody != null)
             {
