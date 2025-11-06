@@ -11,10 +11,10 @@ efforts behind them.
 | Feature | Branch | State | Developer | Reviewer | IDE Buddy | LDM Champ |
 | ------- | ------ | ----- | --------- | -------- | --------- | --------- |
 | Runtime Async | [runtime-async](https://github.com/dotnet/roslyn/tree/features/runtime-async) | [Merged into main in preview](https://github.com/dotnet/roslyn/issues/75960) | [333fred](https://github.com/333fred) | [jcouv](https://github.com/jcouv), [RikkiGibson](https://github.com/RikkiGibson) |  |  |
-| [Dictionary expressions](https://github.com/dotnet/csharplang/issues/8659) | [dictionary-expressions](https://github.com/dotnet/roslyn/tree/features/dictionary-expressions) | [In progress](https://github.com/dotnet/roslyn/issues/76310) | [cston](https://github.com/cston), [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [333fred](https://github.com/333fred), [jcouv](https://github.com/jcouv) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
+| [Dictionary expressions](https://github.com/dotnet/csharplang/issues/8659) | [dictionary-expressions](https://github.com/dotnet/roslyn/tree/features/dictionary-expressions) | [In progress](https://github.com/dotnet/roslyn/issues/76310) | [333fred](https://github.com/333fred)  | [CyrusNajmabadi](https://github.com/CyrusNajmabadi), [jcouv](https://github.com/jcouv) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 | [Collection expression arguments](https://github.com/dotnet/csharplang/issues/8887) | [collection-expression-arguments](https://github.com/dotnet/roslyn/tree/features/collection-expression-arguments) | [In progress](https://github.com/dotnet/roslyn/issues/80613) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [333fred](https://github.com/333fred), [jcouv](https://github.com/jcouv) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
+| [Unions](https://github.com/dotnet/csharplang/issues/9662) | | In Progress | [AlekseyTs](https://github.com/AlekseyTs) | [RikkiGibson](https://github.com/RikkiGibson), [333fred](https://github.com/333fred) | TBD | |
 | [Closed class hierarchies](https://github.com/dotnet/csharplang/issues/9499) | [closed-class](https://github.com/dotnet/roslyn/tree/features/closed-class) | [In progress](https://github.com/dotnet/roslyn/issues/81039) | [RikkiGibson](https://github.com/RikkiGibson) | TBD | TBD | [mattwar](https://github.com/mattwar) |
-
 # Working Set VB
 
 # C# 14.0

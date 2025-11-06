@@ -1895,4 +1895,7 @@ Additional information: {1}</value>
   <data name="Search_members" xml:space="preserve">
     <value>Search members</value>
   </data>
+  <data name="Code_preview" xml:space="preserve">
+    <value>Code preview</value>
+  </data>
 </root>

@@ -10779,12 +10779,12 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (10,13): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'method group'
+                // (10,15): error CS9342: Operator resolution is ambiguous between the following members: 'C.operator +(C, Delegate)' and 'C.operator +(C, Expression)'
                 //         _ = c + Main;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c + Main").WithArguments("+", "C", "method group").WithLocation(10, 13),
-                // (11,13): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'lambda expression'
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C.operator +(C, System.Delegate)", "C.operator +(C, System.Linq.Expressions.Expression)").WithLocation(10, 15),
+                // (11,15): error CS9342: Operator resolution is ambiguous between the following members: 'C.operator +(C, Delegate)' and 'C.operator +(C, Expression)'
                 //         _ = c + (() => 1);
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c + (() => 1)").WithArguments("+", "C", "lambda expression").WithLocation(11, 13)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C.operator +(C, System.Delegate)", "C.operator +(C, System.Linq.Expressions.Expression)").WithLocation(11, 15)
             };
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expectedDiagnostics);
