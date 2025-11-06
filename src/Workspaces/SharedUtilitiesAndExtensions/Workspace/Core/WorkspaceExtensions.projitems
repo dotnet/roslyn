@@ -13,6 +13,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\AbstractFixAllSpanMappingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAllContextHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\IFixAllSpanMappingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\MultiProjectSafeFixAllProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CleanCodeGenerationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeAndImportGenerationOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationOptionsProviders.cs" />

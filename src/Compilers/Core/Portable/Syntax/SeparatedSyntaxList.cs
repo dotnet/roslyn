@@ -573,13 +573,17 @@ namespace Microsoft.CodeAnalysis
             var index = nodesWithSeps.IndexOf(separatorToken);
             if (index < 0)
             {
-                throw new ArgumentException("separatorToken");
+                throw new ArgumentException(CodeAnalysisResources.MissingListItem, nameof(separatorToken));
             }
 
-            if (newSeparator.RawKind != nodesWithSeps[index].RawKind ||
-                newSeparator.Language != nodesWithSeps[index].Language)
+            if (newSeparator.RawKind != nodesWithSeps[index].RawKind)
             {
-                throw new ArgumentException("newSeparator");
+                throw new ArgumentException(CodeAnalysisResources.SeparatorTokenMustHaveSameRawKind, nameof(newSeparator));
+            }
+
+            if (newSeparator.Language != nodesWithSeps[index].Language)
+            {
+                throw new ArgumentException(CodeAnalysisResources.SeparatorTokenMustHaveSameLanguage, nameof(newSeparator));
             }
 
             return new SeparatedSyntaxList<TNode>(nodesWithSeps.Replace(separatorToken, newSeparator));

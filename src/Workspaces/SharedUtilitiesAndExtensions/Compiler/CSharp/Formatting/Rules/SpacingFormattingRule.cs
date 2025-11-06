@@ -175,7 +175,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
 
         // Semicolons in an empty for statement.  i.e.   for(;;)
         if (previousParentKind == SyntaxKind.ForStatement
-            && IsEmptyForStatement((ForStatementSyntax)previousToken.Parent!))
+            && IsEmptyForStatement((ForStatementSyntax)previousToken.Parent))
         {
             if (currentKind == SyntaxKind.SemicolonToken
                 && (previousKind != SyntaxKind.SemicolonToken
@@ -536,7 +536,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         // Right of Range expressions
         if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.RangeExpression)
         {
-            var rangeExpression = (RangeExpressionSyntax)previousToken.Parent!;
+            var rangeExpression = (RangeExpressionSyntax)previousToken.Parent;
             var hasRightOperand = rangeExpression.RightOperand != null;
             if (hasRightOperand)
             {
@@ -547,7 +547,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         // Left of Range expressions
         if (currentKind == SyntaxKind.DotDotToken && currentParentKind == SyntaxKind.RangeExpression)
         {
-            var rangeExpression = (RangeExpressionSyntax)currentToken.Parent!;
+            var rangeExpression = (RangeExpressionSyntax)currentToken.Parent;
             var hasLeftOperand = rangeExpression.LeftOperand != null;
             if (hasLeftOperand)
             {

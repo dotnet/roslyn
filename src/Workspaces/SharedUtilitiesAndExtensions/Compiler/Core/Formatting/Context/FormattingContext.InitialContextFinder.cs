@@ -66,7 +66,7 @@ internal sealed partial class FormattingContext
         private List<IndentBlockOperation> GetInitialIndentBlockOperations(SyntaxToken startToken, SyntaxToken endToken)
         {
             var span = TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
-            var node = startToken.GetCommonRoot(endToken)!.GetParentWithBiggerSpan();
+            var node = startToken.GetCommonRoot(endToken).GetParentWithBiggerSpan();
             var previous = (SyntaxNode?)null;
 
             // starting from the common node, move up to the parent

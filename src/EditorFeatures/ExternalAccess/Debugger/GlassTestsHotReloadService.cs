@@ -28,19 +28,20 @@ internal sealed class GlassTestsHotReloadService
         _debuggerService = debuggerService;
     }
 
-    public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
+#pragma warning disable IDE0060 // Remove unused parameter
+    public Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
+#pragma warning restore IDE0060
     {
-        var newSessionId = await _encService.StartDebuggingSessionAsync(
+        var newSessionId = _encService.StartDebuggingSession(
             solution,
             new ManagedHotReloadServiceBridge(_debuggerService),
             NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: [],
-            captureAllMatchingDocuments: true,
-            reportDiagnostics: false,
-            cancellationToken).ConfigureAwait(false);
+            reportDiagnostics: false);
 
         Contract.ThrowIfFalse(_sessionId == default, "Session already started");
         _sessionId = newSessionId;
+
+        return Task.CompletedTask;
     }
 
     private DebuggingSessionId GetSessionId()

@@ -219,7 +219,7 @@ internal sealed partial class ContainedDocument : IContainedDocument
         var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
         Marshal.ThrowExceptionForHR(BufferCoordinator.GetPrimaryBuffer(out var primaryTextLines));
 
-        var primaryBufferDocumentBuffer = editorAdaptersFactoryService.GetDocumentBuffer(primaryTextLines)!;
+        var primaryBufferDocumentBuffer = editorAdaptersFactoryService.GetDocumentBuffer(primaryTextLines);
 
         var textDocumentFactoryService = _componentModel.GetService<ITextDocumentFactoryService>();
         textDocumentFactoryService.TryGetTextDocument(primaryBufferDocumentBuffer, out var textDocument);

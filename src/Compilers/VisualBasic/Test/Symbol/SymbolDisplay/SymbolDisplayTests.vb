@@ -6146,6 +6146,77 @@ static class E
             AssertEx.Equal("Public Sub E.<G>$8048A6C8BE30A622530249B904B537EB(Of T).M()", SymbolDisplay.ToDisplayString(skeletonM, format))
         End Sub
 
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/80165")>
+        Public Sub UseArityForGenericTypes_CSharpSymbol(useMetadata As Boolean)
+            Dim text =
+"
+class A
+{
+    class B<T1> { }
+}
+
+class C<T2>
+{
+    class D<T3> { }
+    class E { }
+}
+"
+            Dim format = SymbolDisplayFormat.VisualBasicErrorMessageFormat.
+                WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes)
+
+            Dim comp As Compilation
+            If useMetadata Then
+                Dim libComp = CreateCSharpCompilation("c", text)
+                comp = CreateCSharpCompilation("d", code:="", referencedAssemblies:=libComp.References.Concat(libComp.EmitToImageReference()))
+            Else
+                comp = CreateCSharpCompilation("c", text)
+            End If
+
+            AssertEx.Equal("A", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A"), format))
+            AssertEx.Equal("A.B`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A+B`1"), format))
+            AssertEx.Equal("C`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1"), format))
+            AssertEx.Equal("C`1.D`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+D`1"), format))
+            AssertEx.Equal("C`1.E", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+E"), format))
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/80165")>
+        Public Sub UseArityForGenericTypes_VBSymbol(useMetadata As Boolean)
+            Dim source =
+"
+Class A
+    Class B(Of T1)
+    End Class
+End Class
+
+Class C(Of T2) 
+    Class D(Of T3)
+    End Class
+    Class E
+    End Class
+End Class
+"
+            Dim format = SymbolDisplayFormat.VisualBasicErrorMessageFormat.
+                WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes)
+
+            Dim comp As Compilation
+            If useMetadata Then
+                Dim libComp = CreateCompilation(source)
+                comp = CreateCompilation("", references:={libComp.EmitToImageReference()})
+            Else
+                comp = CreateCompilation(source)
+            End If
+
+            Dim c = DirectCast(comp.GlobalNamespace.GetMembers("C").Single(), ITypeSymbol)
+
+            AssertEx.Equal("A", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A"), format))
+            AssertEx.Equal("A.B`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("A+B`1"), format))
+            AssertEx.Equal("C`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1"), format))
+            AssertEx.Equal("C`1.D`1", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+D`1"), format))
+            AssertEx.Equal("C`1.E", SymbolDisplay.ToDisplayString(comp.GetTypeByMetadataName("C`1+E"), format))
+        End Sub
+
 #Region "Helpers"
 
         Private Shared Sub TestSymbolDescription(

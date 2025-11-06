@@ -396,7 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else
                     {
                         // Inconsistent accessibility: type '{1}' is less accessible than class '{0}'
-                        var lessVisibleTypeLocation = lessVisibleType.GetFirstLocation();
                         diagnostics.Add(ErrorCode.ERR_BadVisBaseType, baseTypeLocation, this, lessVisibleType);
                     }
                 }
@@ -734,10 +733,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeKind = this.TypeKind;
             var compilation = this.DeclaringCompilation;
             NamedTypeSymbol declaredBase;
+            bool reportAtFirstLocation = false;
+
             if (typeKind == TypeKind.Enum)
             {
                 Debug.Assert((object)GetDeclaredBaseType(basesBeingResolved: null) == null, "Computation skipped for enums");
                 declaredBase = compilation.GetSpecialType(SpecialType.System_Enum);
+                reportAtFirstLocation = true;
             }
             else if (typeKind == TypeKind.Extension)
             {
@@ -760,10 +762,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
 
                         declaredBase = compilation.GetSpecialType(SpecialType.System_Object);
+                        reportAtFirstLocation = true;
                         break;
 
                     case TypeKind.Struct:
                         declaredBase = compilation.GetSpecialType(SpecialType.System_ValueType);
+                        reportAtFirstLocation = true;
                         break;
 
                     case TypeKind.Interface:
@@ -771,6 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case TypeKind.Delegate:
                         declaredBase = compilation.GetSpecialType(SpecialType.System_MulticastDelegate);
+                        reportAtFirstLocation = true;
                         break;
 
                     default:
@@ -801,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             while ((object)current != null);
 
-            diagnostics.Add(useSiteInfo.Diagnostics.IsNullOrEmpty() ? Location.None : (FindBaseRefSyntax(declaredBase) ?? GetFirstLocation()), useSiteInfo);
+            diagnostics.Add(useSiteInfo.Diagnostics.IsNullOrEmpty() ? Location.None : ((reportAtFirstLocation ? null : FindBaseRefSyntax(declaredBase)) ?? GetFirstLocation()), useSiteInfo);
 
             return declaredBase;
         }

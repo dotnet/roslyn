@@ -37,7 +37,7 @@ internal sealed class PropertyOrIndexerAccessorWithExplicitBodyDeclarationBody(A
         => default;
 
     public override SyntaxNode? MatchRoot
-        => (SyntaxNode?)accessor.Body ?? accessor.ExpressionBody!;
+        => (SyntaxNode?)accessor.Body ?? accessor.ExpressionBody;
 
     public sealed override IEnumerable<SyntaxToken>? GetActiveTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
         => getDescendantTokens(Body);

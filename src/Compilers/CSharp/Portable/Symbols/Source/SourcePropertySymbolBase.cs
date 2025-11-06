@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     LoadAndValidateAttributes(
                         OneOrMany.Create(indexerNameAttributeLists), ref temp, earlyDecodingOnly: true,
                         binderOpt: rootBinder,
-                        attributeMatchesOpt: this.GetIsNewExtensionMember() ? isPossibleIndexerNameAttributeInExtension : isPossibleIndexerNameAttribute);
+                        attributeMatchesOpt: this.IsExtensionBlockMember() ? isPossibleIndexerNameAttributeInExtension : isPossibleIndexerNameAttribute);
                     if (temp != null)
                     {
                         Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
 
-            if (this.GetIsNewExtensionMember())
+            if (this.IsExtensionBlockMember())
             {
                 ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
 
@@ -1428,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
 
-            if (this.GetIsNewExtensionMember())
+            if (this.IsExtensionBlockMember())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerAttribute(this, ((SourceNamedTypeSymbol)this.ContainingType).ExtensionMarkerName));
             }
@@ -1483,7 +1483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return (null, null);
             }
-            else if ((IsIndexer || this.GetIsNewExtensionMember()) && CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
+            else if ((IsIndexer || this.IsExtensionBlockMember()) && CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
             {
                 (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out var hasAnyDiagnostics);
 
@@ -1736,7 +1736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_BadArgumentToAttribute, node.ArgumentList.Arguments[0].Location, node.GetErrorDisplayName());
                 }
-                else if (this.GetIsNewExtensionMember() && SourceName != indexerName)
+                else if (this.IsExtensionBlockMember() && SourceName != indexerName)
                 {
                     // Tracked by https://github.com/dotnet/roslyn/issues/78829 : extension indexers, Report more descriptive error
                     // error CS8078: An expression is too long or complex to compile
@@ -1747,7 +1747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override int TryGetOverloadResolutionPriority()
         {
-            Debug.Assert(this.IsIndexer || this.GetIsNewExtensionMember());
+            Debug.Assert(this.IsIndexer || this.IsExtensionBlockMember());
             return GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority ?? 0;
         }
 

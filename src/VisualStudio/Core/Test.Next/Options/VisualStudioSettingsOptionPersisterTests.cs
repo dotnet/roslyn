@@ -101,7 +101,7 @@ public sealed class VisualStudioSettingsOptionPersisterTests
            throw ExceptionUtilities.UnexpectedValue(optionType);
 
     private static bool IsDefaultImmutableArray(object array)
-        => (bool)array.GetType().GetMethod("get_IsDefault").Invoke(array, [])!;
+        => (bool)array.GetType().GetMethod("get_IsDefault").Invoke(array, []);
 
     [Fact]
     public void SettingsChangeEvent()

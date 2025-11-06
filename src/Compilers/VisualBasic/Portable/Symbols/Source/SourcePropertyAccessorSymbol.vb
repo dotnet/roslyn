@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             ' match Dev10 and report errors on the parameter type syntax instead.
                             param.Type.CheckAllConstraints(
                                 DeclaringCompilation.LanguageVersion,
-                                param.Locations(0), diagBag, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
+                                param.GetFirstLocation(), diagBag, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
                         End If
                     Next
 
@@ -434,7 +434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If Not propertyType.IsSameTypeIgnoringAll(valueParameterType) Then
                         If (Not propertyType.IsErrorType()) AndAlso (Not valueParameterType.IsErrorType()) Then
-                            diagnostics.Add(ERRID.ERR_SetValueNotPropertyType, valueParameter.Locations(0))
+                            diagnostics.Add(ERRID.ERR_SetValueNotPropertyType, valueParameter.GetFirstLocation())
                         End If
 
                     Else

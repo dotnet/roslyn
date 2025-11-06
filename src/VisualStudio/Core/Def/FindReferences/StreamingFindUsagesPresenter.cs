@@ -200,7 +200,7 @@ internal sealed partial class StreamingFindUsagesPresenter : IStreamingFindUsage
         // no longer being displayed, VS will dispose it and it will remove itself from
         // this set.
         _currentContexts.Add(context);
-        return (context, context.CancellationTokenSource!.Token);
+        return (context, context.CancellationTokenSource.Token);
     }
 
     private AbstractTableDataSourceFindUsagesContext StartSearchWithReferences(

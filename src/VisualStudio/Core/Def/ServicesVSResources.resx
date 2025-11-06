@@ -1892,4 +1892,10 @@ Additional information: {1}</value>
   <data name="Prefer_simple_property_accessors" xml:space="preserve">
     <value>Prefer simple property accessors</value>
   </data>
+  <data name="Search_members" xml:space="preserve">
+    <value>Search members</value>
+  </data>
+  <data name="Code_preview" xml:space="preserve">
+    <value>Code preview</value>
+  </data>
 </root>
