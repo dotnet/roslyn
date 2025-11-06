@@ -1288,6 +1288,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     // With a CollectionBuilder, the last argument will be a placeholder where the .Elements will go.
                     // We do *not* want to include that information in the Arguments we return.
                     var arguments = DeriveArguments(collectionCreation);
+
+                    Debug.Assert(arguments.Length > 0, "We should always have at least one argument (the placeholder elements).");
                     return arguments is [.. var normalArguments, _]
                         ? normalArguments
                         : arguments;
