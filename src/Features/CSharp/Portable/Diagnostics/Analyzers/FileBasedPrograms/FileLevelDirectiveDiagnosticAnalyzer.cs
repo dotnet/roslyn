@@ -17,20 +17,17 @@ internal sealed class FileLevelDirectiveDiagnosticAnalyzer()
 {
     public const string DiagnosticId = "FileBasedPrograms";
 
-#pragma warning disable RS0030 // Do not use banned APIs
-    // We would use 'AbstractCodeQualityDiagnosticAnalyzer.CreateDescriptor()', but, we want these diagnostics to have error severity.
-    private static readonly DiagnosticDescriptor Rule = new(
+    private static readonly DiagnosticDescriptor Rule = CreateDescriptor(
                 id: DiagnosticId,
+                enforceOnBuild: EnforceOnBuild.Never,
                 title: DiagnosticId,
                 messageFormat: "{0}",
-                category: "Usage",
-                defaultSeverity: DiagnosticSeverity.Error,
+                hasAnyCodeStyleOption: false,
+                isUnnecessary: false,
                 isEnabledByDefault: true,
-                helpLinkUri: "https://learn.microsoft.com/dotnet/csharp/language-reference/preprocessor-directives#file-based-apps",
-                // Note that this is an "editor-only" analyzer.
-                // When building or running file-based apps, the dotnet cli uses its own process to report errors on file-level directives.
-                customTags: DiagnosticCustomTags.Create(isUnnecessary: false, isConfigurable: false, isCustomConfigurable: false, enforceOnBuild: EnforceOnBuild.Never));
-#pragma warning restore RS0030 // Do not use banned APIs
+                isConfigurable: false,
+                defaultSeverity: DiagnosticSeverity.Error,
+                helpLinkUri: "https://learn.microsoft.com/dotnet/csharp/language-reference/preprocessor-directives#file-based-apps");
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
@@ -39,45 +36,36 @@ internal sealed class FileLevelDirectiveDiagnosticAnalyzer()
     {
         context.RegisterCompilationStartAction(context =>
         {
-            context.RegisterSyntaxTreeAction(visitSyntaxTree);
-        });
-
-        void visitSyntaxTree(SyntaxTreeAnalysisContext context)
-        {
-            var tree = context.Tree;
-            if (!tree.Options.Features.ContainsKey("FileBasedProgram"))
-                return;
-
-            var root = tree.GetRoot(context.CancellationToken);
-            if (!root.ContainsDirectives)
-                return;
-
-            // App directives are only valid when they appear before the first C# token
-            var rootLeadingTrivia = root.GetLeadingTrivia();
-            var diagnosticBag = DiagnosticBag.Collect(out var diagnosticsBuilder);
-            FileLevelDirectiveHelpers.FindLeadingDirectives(
-                new SourceFile(tree.FilePath, tree.GetText(context.CancellationToken)),
-                root.GetLeadingTrivia(),
-                diagnosticBag,
-                builder: null);
-
-            foreach (var diag in diagnosticsBuilder)
+            context.RegisterSyntaxTreeAction(context =>
             {
-                context.ReportDiagnostic(createDiagnostic(tree, diag));
-            }
+                var cancellationToken = context.CancellationToken;
+                var tree = context.Tree;
+                if (!tree.Options.Features.ContainsKey("FileBasedProgram"))
+                    return;
 
-            // The compiler already reports an error on all the directives past the first token in the file.
-            // Therefore, the analyzer only deals with the directives on the first token.
-            //     Console.WriteLine("Hello World!");
-            //     #:property foo=bar // error CS9297: '#:' directives cannot be after first token in file
-        }
+                var root = tree.GetRoot(cancellationToken);
+                if (!root.ContainsDirectives)
+                    return;
 
-        Diagnostic createDiagnostic(SyntaxTree syntaxTree, SimpleDiagnostic simpleDiagnostic)
-        {
-            return Diagnostic.Create(
-                Rule,
-                location: Location.Create(syntaxTree, simpleDiagnostic.Location.TextSpan),
-                simpleDiagnostic.Message);
-        }
+                // The compiler already reports an error on all the directives past the first token in the file.
+                // Therefore, the analyzer only deals with the directives on the first token.
+                //     Console.WriteLine("Hello World!");
+                //     #:property foo=bar // error CS9297: '#:' directives cannot be after first token in file
+                var diagnosticBag = DiagnosticBag.Collect(out var diagnosticsBuilder);
+                FileLevelDirectiveHelpers.FindLeadingDirectives(
+                    new SourceFile(tree.FilePath, tree.GetText(cancellationToken)),
+                    root.GetLeadingTrivia(),
+                    diagnosticBag,
+                    builder: null);
+
+                foreach (var simpleDiagnostic in diagnosticsBuilder)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        Rule,
+                        location: Location.Create(tree, simpleDiagnostic.Location.TextSpan),
+                        simpleDiagnostic.Message));
+                }
+            });
+        });
     }
 }
