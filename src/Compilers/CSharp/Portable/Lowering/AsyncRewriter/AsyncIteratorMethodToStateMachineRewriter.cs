@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Where should we jump to to continue the execution of disposal path.
         ///
         /// Initially, this is the method's return value label (<see cref="AsyncMethodToStateMachineRewriter._exprReturnLabel"/>).
-        /// Inside a `try` or `catch` with a `finally`, we'll use the label directly preceding the `finally`.
+        /// Inside a `try` or `catch` with a `finally`, we'll use the label directly following the `finally`.
         /// Inside a `try` or `catch` with an extracted `finally`, we will use the label preceding the extracted `finally`.
         /// Inside a `finally`, we'll have no/null label (disposal continues without a jump).
         /// </summary>
@@ -367,11 +367,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
             var savedDisposalLabel = _currentDisposalLabel;
-            LabelSymbol tryEnd = null;
+            LabelSymbol afterFinally = null;
             if (node.FinallyBlockOpt is object)
             {
-                tryEnd = F.GenerateLabel("tryEnd");
-                _currentDisposalLabel = tryEnd;
+                afterFinally = F.GenerateLabel("afterFinally");
+                _currentDisposalLabel = afterFinally;
             }
             else if (node.FinallyLabelOpt is object)
             {
@@ -380,11 +380,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = (BoundStatement)base.VisitTryStatement(node);
 
-            if (tryEnd != null)
+            if (afterFinally != null)
             {
-                // Append a label at the end of the `try`, which disposal within `try` can jump to to execute the `finally` (if any):
+                // Append a label immediately after the try-catch-finally statement,
+                // which disposal within `try`/`catch` blocks jumps to in order to pass control flow to the `finally` block implicitly:
                 //  tryEnd:
-                result = F.Block(result, F.Label(tryEnd));
+                result = F.Block(result, F.Label(afterFinally));
             }
 
             _currentDisposalLabel = savedDisposalLabel;
