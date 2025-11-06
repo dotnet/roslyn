@@ -3025,14 +3025,14 @@ public sealed class ExtractClassTests
         var expected2 = """
             partial class C
             {
-                public partial int P => 42;
+                public partial int {|CS9249:P|} => 42;
             }
             """;
 
         var expected3 = """
             internal class MyBase
             {
-                public partial int {|CS9248:{|CS0751:{|CS9249:P|}|}|} { get; }
+                public partial int {|CS9248:{|CS0751:P|}|} { get; }
             }
             """;
 
@@ -3086,14 +3086,14 @@ public sealed class ExtractClassTests
         var expected2 = """
             partial class C
             {
-                public partial void M() { }
+                public partial void {|CS0759:M|}() { }
             }
             """;
 
         var expected3 = """
             internal class MyBase
             {
-                public partial void {|CS8795:{|CS0751:{|CS0759:M|}|}|}();
+                public partial void {|CS8795:{|CS0751:M|}|}();
             }
             """;
 
