@@ -2962,7 +2962,7 @@ public sealed class ExtractClassTests
 
             partial class C
             {
-                public partial event EventHandler E { add { } remove { } }
+                public partial event EventHandler {|CS9276:E|} { add { } remove { } }
             }
             """;
 
@@ -2971,7 +2971,7 @@ public sealed class ExtractClassTests
 
             internal class MyBase
             {
-                public partial event EventHandler E;
+                public event EventHandler E;
             }
             """;
 
@@ -3032,7 +3032,7 @@ public sealed class ExtractClassTests
         var expected3 = """
             internal class MyBase
             {
-                public partial int P { get; }
+                public partial int {|CS9248:{|CS0751:{|CS9249:P|}|}|} { get; }
             }
             """;
 
@@ -3093,7 +3093,7 @@ public sealed class ExtractClassTests
         var expected3 = """
             internal class MyBase
             {
-                public partial void M();
+                public partial void {|CS8795:{|CS0751:{|CS0759:M|}|}|}();
             }
             """;
 
