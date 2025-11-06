@@ -793,7 +793,7 @@ internal static class BreakpointSpans
             // Include 'await' and 'using' keywords in the span if present
             return CreateSpan(
                 startOpt: default,
-                startFallbackOpt: declarationStatement.AwaitKeyword != default ? declarationStatement.AwaitKeyword : 
+                startFallbackOpt: declarationStatement.AwaitKeyword != default ? declarationStatement.AwaitKeyword :
                                   declarationStatement.UsingKeyword != default ? declarationStatement.UsingKeyword :
                                   declarationStatement.Modifiers.Count > 0 ? declarationStatement.Modifiers.First() :
                                   (SyntaxNodeOrToken)variableDeclaration,
