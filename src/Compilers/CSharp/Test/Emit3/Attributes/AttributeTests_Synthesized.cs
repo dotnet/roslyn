@@ -1987,6 +1987,75 @@ class Test
             verifier.VerifyDiagnostics();
         }
 
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_RuntimeAsync_ExtensionBlockMember_WithLambda(OptimizationLevel optimizationLevel)
+        {
+            string source = """
+                using System.Threading.Tasks;
+
+                public static class Ex
+                {
+                    extension(object o)
+                    {
+                        public async Task F()
+                        {
+                            var f = async () => { await Task.Delay(0); };
+                            await f();
+                        }
+                    }
+                }
+                """;
+
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            var compilation = CreateRuntimeAsyncCompilation(source, options);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: static module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Ex");
+                var typeMembers = type.GetTypeMembers();
+                AssertEx.Equal(["Ex.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$119AA281C143547563250CAF89B48A76", "Ex.<>c"], typeMembers.SelectAsArray(t => t.ToTestDisplayString()));
+                var asyncLambda = typeMembers[1].GetMember<MethodSymbol>("<F>b__1_0");
+                Assert.Empty(asyncLambda.GetAttributes());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_RuntimeAsync_ExtensionBlockMember_WithLocalFunction(OptimizationLevel optimizationLevel)
+        {
+            string source = """
+                using System.Threading.Tasks;
+
+                public static class Ex
+                {
+                    extension(object o)
+                    {
+                        public async Task F()
+                        {
+                            await LocalAsync();
+                            async Task LocalAsync() { await Task.Delay(0); }
+                        }
+                    }
+                }
+                """;
+
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            var compilation = CreateRuntimeAsyncCompilation(source, options);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: static module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Ex");
+                Assert.Single(type.GetTypeMembers());
+                var localFunction = type.GetMember<MethodSymbol>("<F>g__LocalAsync|1_0");
+                AssertEx.SequenceEqual(["System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor()"], localFunction.GetAttributes().SelectAsArray(a => a.AttributeConstructor.ToTestDisplayString()));
+            });
+            verifier.VerifyDiagnostics();
+        }
+
         #endregion
 
         #region IteratorStateMachineAttribute
