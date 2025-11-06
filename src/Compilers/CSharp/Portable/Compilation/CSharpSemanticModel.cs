@@ -4860,7 +4860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(node);
 
-            if (isPreprocessingSymbolIdentifierContainer(node.Parent))
+            if (isPossiblePreprocessingSymbolReference(node))
             {
                 bool isDefined = this.SyntaxTree.IsPreprocessorSymbolDefined(node.Identifier.ValueText, node.Identifier.SpanStart);
                 return new PreprocessingSymbolInfo(new Symbols.PublicModel.PreprocessingSymbol(node.Identifier.ValueText), isDefined);
@@ -4868,34 +4868,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return PreprocessingSymbolInfo.None;
 
-            bool isPreprocessingSymbolIdentifierContainer(SyntaxNode parentNode)
+            bool isPossiblePreprocessingSymbolReference(IdentifierNameSyntax node)
             {
-                if (parentNode is null)
+                var parentNode = node.Parent;
+                while (parentNode is not null)
                 {
-                    return false;
-                }
+                    var kind = parentNode.Kind();
+                    switch (kind)
+                    {
+                        case SyntaxKind.IfDirectiveTrivia:
+                            {
+                                var parentIf = (IfDirectiveTriviaSyntax)parentNode;
+                                return parentIf.Condition.FullSpan.Contains(node.FullSpan);
+                            }
+                        case SyntaxKind.ElifDirectiveTrivia:
+                            {
+                                var parentElif = (ElifDirectiveTriviaSyntax)parentNode;
+                                return parentElif.Condition.FullSpan.Contains(node.FullSpan);
+                            }
+                    }
 
-                var kind = parentNode.Kind();
-                switch (kind)
-                {
-                    case SyntaxKind.IfDirectiveTrivia:
-                        {
-                            var parentIf = (IfDirectiveTriviaSyntax)parentNode;
-                            return parentIf.Condition.FullSpan.Contains(node.FullSpan);
-                        }
-                    case SyntaxKind.ElifDirectiveTrivia:
-                        {
-                            var parentElif = (ElifDirectiveTriviaSyntax)parentNode;
-                            return parentElif.Condition.FullSpan.Contains(node.FullSpan);
-                        }
-                }
+                    if (SyntaxFacts.IsPreprocessorDirective(kind))
+                    {
+                        return false;
+                    }
 
-                if (SyntaxFacts.IsPreprocessorDirective(kind))
-                {
-                    return false;
+                    parentNode = parentNode.Parent;
                 }
-
-                return isPreprocessingSymbolIdentifierContainer(parentNode.Parent);
+                return false;
             }
         }
 
