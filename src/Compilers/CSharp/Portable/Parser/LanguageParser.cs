@@ -6379,11 +6379,7 @@ parse_member_name:;
             }
 
             // first type
-            // Allow for a comma immediately after '<', treating it as an omitted first type argument.
-            // This handles cases like `M<,T>` where the first type argument is missing.
-            types.Add(this.CurrentToken.Kind == SyntaxKind.CommaToken
-                ? _syntaxFactory.OmittedTypeArgument(SyntaxFactory.Token(SyntaxKind.OmittedTypeArgumentToken))
-                : this.ParseTypeArgument());
+            types.Add(this.ParseTypeArgument());
 
             // remaining types & commas
             while (true)
@@ -6422,11 +6418,7 @@ parse_member_name:;
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
                 {
                     types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                    // Allow for a comma or '>' immediately after a comma, treating it as an omitted type argument.
-                    // This handles cases like `M<T,>` or `M<,T,>` where type arguments are missing.
-                    types.Add(this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.GreaterThanToken
-                        ? _syntaxFactory.OmittedTypeArgument(SyntaxFactory.Token(SyntaxKind.OmittedTypeArgumentToken))
-                        : this.ParseTypeArgument());
+                    types.Add(this.ParseTypeArgument());
                 }
                 else if (this.SkipBadTypeArgumentListTokens(types, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                 {

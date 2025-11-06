@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(text, options: options);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
+        [Fact]
         public void TypeArguments()
         {
             UsingTree(@"
@@ -44,9 +43,21 @@ class C
                 // (7,9): error CS1003: Syntax error, ',' expected
                 //     A<T U> a4;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(7, 9),
+                // (9,9): error CS1031: Type expected
+                //     A<T,> a6;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(9, 9),
+                // (10,7): error CS1031: Type expected
+                //     A<,T> a7;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(10, 7),
                 // (11,9): error CS1003: Syntax error, ',' expected
                 //     A<T U,,> a8;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(11, 9));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(11, 9),
+                // (11,11): error CS1031: Type expected
+                //     A<T U,,> a8;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(11, 11),
+                // (11,12): error CS1031: Type expected
+                //     A<T U,,> a8;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(11, 12));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -209,9 +220,9 @@ class C
                                         N(SyntaxKind.IdentifierToken, "T");
                                     }
                                     N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.OmittedTypeArgument);
+                                    M(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.OmittedTypeArgumentToken);
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -233,9 +244,9 @@ class C
                                 N(SyntaxKind.TypeArgumentList);
                                 {
                                     N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.OmittedTypeArgument);
+                                    M(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.OmittedTypeArgumentToken);
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.CommaToken);
                                     N(SyntaxKind.IdentifierName);
@@ -272,14 +283,14 @@ class C
                                         N(SyntaxKind.IdentifierToken, "U");
                                     }
                                     N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.OmittedTypeArgument);
+                                    M(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.OmittedTypeArgumentToken);
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.OmittedTypeArgument);
+                                    M(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.OmittedTypeArgumentToken);
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -296,85 +307,6 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-            // Validate binding diagnostics for cases that now parse without syntax errors
-            var source = """
-                class C
-                {
-                    A<> a1;
-                    A<T> a2;
-                    A<,> a3;
-                    A<T U> a4;
-                    A<,,> a5;
-                    A<T,> a6;
-                    A<,T> a7;
-                    A<T U,,> a8;
-                }
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,9): error CS1003: Syntax error, ',' expected
-                //     A<T U> a4;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(6, 9),
-                // (6,9): error CS0246: The type or namespace name 'U' could not be found (are you missing a using directive or an assembly reference?)
-                //     A<T U> a4;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "U").WithArguments("U").WithLocation(6, 9),
-                // (10,9): error CS1003: Syntax error, ',' expected
-                //     A<T U,,> a8;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "U").WithArguments(",").WithLocation(10, 9),
-                // (7,5): error CS0246: The type or namespace name 'A<,,>' could not be found (are you missing a using directive or an assembly reference?)
-                //     A<,,> a5;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<,,>").WithArguments("A<,,>").WithLocation(7, 5),
-                // (8,5): error CS0246: The type or namespace name 'A<,>' could not be found (are you missing a using directive or an assembly reference?)
-                //     A<T,> a6;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<T,>").WithArguments("A<,>").WithLocation(8, 5),
-                // (9,5): error CS0246: The type or namespace name 'A<,>' could not be found (are you missing a using directive or an assembly reference?)
-                //     A<,T> a7;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<,T>").WithArguments("A<,>").WithLocation(9, 5),
-                // (10,5): error CS0246: The type or namespace name 'A<,,,>' could not be found (are you missing a using directive or an assembly reference?)
-                //     A<T U,,> a8;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<T U,,>").WithArguments("A<,,,>").WithLocation(10, 5),
-                // (3,5): error CS0246: The type or namespace name 'A<>' could not be found (are you missing a using directive or an assembly reference?)
-                //     A<> a1;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<>").WithArguments("A<>").WithLocation(3, 5),
-                // (4,5): error CS0246: The type or namespace name 'A<>' could not be found (are you missing a using directive or an assembly reference?)
-                //     A<T> a2;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<T>").WithArguments("A<>").WithLocation(4, 5),
-                // (4,7): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
-                //     A<T> a2;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(4, 7),
-                // (5,5): error CS0246: The type or namespace name 'A<,>' could not be found (are you missing a using directive or an assembly reference?)
-                //     A<,> a3;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<,>").WithArguments("A<,>").WithLocation(5, 5),
-                // (6,5): error CS0246: The type or namespace name 'A<,>' could not be found (are you missing a using directive or an assembly reference?)
-                //     A<T U> a4;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<T U>").WithArguments("A<,>").WithLocation(6, 5),
-                // (6,7): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
-                //     A<T U> a4;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(6, 7),
-                // (5,10): warning CS0169: The field 'C.a3' is never used
-                //     A<,> a3;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a3").WithArguments("C.a3").WithLocation(5, 10),
-                // (9,11): warning CS0169: The field 'C.a7' is never used
-                //     A<,T> a7;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a7").WithArguments("C.a7").WithLocation(9, 11),
-                // (10,14): warning CS0169: The field 'C.a8' is never used
-                //     A<T U,,> a8;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a8").WithArguments("C.a8").WithLocation(10, 14),
-                // (8,11): warning CS0169: The field 'C.a6' is never used
-                //     A<T,> a6;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a6").WithArguments("C.a6").WithLocation(8, 11),
-                // (3,9): warning CS0169: The field 'C.a1' is never used
-                //     A<> a1;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a1").WithArguments("C.a1").WithLocation(3, 9),
-                // (6,12): warning CS0169: The field 'C.a4' is never used
-                //     A<T U> a4;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a4").WithArguments("C.a4").WithLocation(6, 12),
-                // (7,11): warning CS0169: The field 'C.a5' is never used
-                //     A<,,> a5;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a5").WithArguments("C.a5").WithLocation(7, 11),
-                // (4,10): warning CS0169: The field 'C.a2' is never used
-                //     A<T> a2;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a2").WithArguments("C.a2").WithLocation(4, 10));
         }
 
         [Fact]

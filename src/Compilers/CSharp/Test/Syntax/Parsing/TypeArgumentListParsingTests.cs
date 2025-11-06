@@ -2825,7 +2825,7 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
+        [Fact]
         public void TestGenericWithExtraCommasAndMissingTypes1()
         {
             UsingTree("""
@@ -2836,7 +2836,13 @@ class C
                         var added = Goo<string,,>.Instance;
                     }
                 }
-                """);
+                """,
+                // (5,32): error CS1031: Type expected
+                //         var added = Goo<string,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 32),
+                // (5,33): error CS1031: Type expected
+                //         var added = Goo<string,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 33));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2887,14 +2893,14 @@ class C
                                                             N(SyntaxKind.StringKeyword);
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.GreaterThanToken);
                                                     }
@@ -2918,24 +2924,9 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-            // Validate binding diagnostics
-            var source = """
-                class C
-                {
-                    void M()
-                    {
-                        var added = Goo<string,,>.Instance;
-                    }
-                }
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
-                //         var added = Goo<string,,>.Instance;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<string,,>").WithArguments("Goo").WithLocation(5, 21));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
+        [Fact]
         public void TestGenericWithExtraCommasAndMissingTypes2()
         {
             UsingTree("""
@@ -2946,7 +2937,13 @@ class C
                         var added = Goo<Id,,>.Instance;
                     }
                 }
-                """);
+                """,
+                // (5,28): error CS1031: Type expected
+                //         var added = Goo<Id,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 28),
+                // (5,29): error CS1031: Type expected
+                //         var added = Goo<Id,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 29));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2997,14 +2994,14 @@ class C
                                                             N(SyntaxKind.IdentifierToken, "Id");
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.GreaterThanToken);
                                                     }
@@ -3028,27 +3025,9 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-            // Validate binding diagnostics
-            var source = """
-                class C
-                {
-                    void M()
-                    {
-                        var added = Goo<Id,,>.Instance;
-                    }
-                }
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
-                //         var added = Goo<Id,,>.Instance;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<Id,,>").WithArguments("Goo").WithLocation(5, 21),
-                // (5,25): error CS0246: The type or namespace name 'Id' could not be found (are you missing a using directive or an assembly reference?)
-                //         var added = Goo<Id,,>.Instance;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Id").WithArguments("Id").WithLocation(5, 25));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
+        [Fact]
         public void TestGenericWithExtraCommasAndMissingTypes3()
         {
             UsingTree("""
@@ -3059,7 +3038,13 @@ class C
                         var added = Goo<,Id,>.Instance;
                     }
                 }
-                """);
+                """,
+                // (5,25): error CS1031: Type expected
+                //         var added = Goo<,Id,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 25),
+                // (5,29): error CS1031: Type expected
+                //         var added = Goo<,Id,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 29));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3105,9 +3090,9 @@ class C
                                                     N(SyntaxKind.TypeArgumentList);
                                                     {
                                                         N(SyntaxKind.LessThanToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.CommaToken);
                                                         N(SyntaxKind.IdentifierName);
@@ -3115,9 +3100,9 @@ class C
                                                             N(SyntaxKind.IdentifierToken, "Id");
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.GreaterThanToken);
                                                     }
@@ -3141,27 +3126,9 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-            // Validate binding diagnostics
-            var source = """
-                class C
-                {
-                    void M()
-                    {
-                        var added = Goo<,Id,>.Instance;
-                    }
-                }
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
-                //         var added = Goo<,Id,>.Instance;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<,Id,>").WithArguments("Goo").WithLocation(5, 21),
-                // (5,26): error CS0246: The type or namespace name 'Id' could not be found (are you missing a using directive or an assembly reference?)
-                //         var added = Goo<,Id,>.Instance;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Id").WithArguments("Id").WithLocation(5, 26));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
+        [Fact]
         public void TestGenericWithExtraCommasAndMissingTypes4()
         {
             UsingTree("""
@@ -3172,7 +3139,13 @@ class C
                         var added = Goo<,,Id>.Instance;
                     }
                 }
-                """);
+                """,
+                // (5,25): error CS1031: Type expected
+                //         var added = Goo<,,Id>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 25),
+                // (5,26): error CS1031: Type expected
+                //         var added = Goo<,,Id>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 26));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3218,14 +3191,14 @@ class C
                                                     N(SyntaxKind.TypeArgumentList);
                                                     {
                                                         N(SyntaxKind.LessThanToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.CommaToken);
                                                         N(SyntaxKind.IdentifierName);
@@ -3254,27 +3227,9 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-            // Validate binding diagnostics
-            var source = """
-                class C
-                {
-                    void M()
-                    {
-                        var added = Goo<,,Id>.Instance;
-                    }
-                }
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
-                //         var added = Goo<,,Id>.Instance;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<,,Id>").WithArguments("Goo").WithLocation(5, 21),
-                // (5,27): error CS0246: The type or namespace name 'Id' could not be found (are you missing a using directive or an assembly reference?)
-                //         var added = Goo<,,Id>.Instance;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Id").WithArguments("Id").WithLocation(5, 27));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
+        [Fact]
         public void TestGenericWithExtraCommasAndMissingTypes5()
         {
             UsingTree("""
@@ -3285,7 +3240,13 @@ class C
                         var added = Goo<Id[],,>.Instance;
                     }
                 }
-                """);
+                """,
+                // (5,30): error CS1031: Type expected
+                //         var added = Goo<Id[],,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 30),
+                // (5,31): error CS1031: Type expected
+                //         var added = Goo<Id[],,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 31));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3348,14 +3309,14 @@ class C
                                                             }
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.GreaterThanToken);
                                                     }
@@ -3379,27 +3340,9 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-            // Validate binding diagnostics
-            var source = """
-                class C
-                {
-                    void M()
-                    {
-                        var added = Goo<Id[],,>.Instance;
-                    }
-                }
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
-                //         var added = Goo<Id[],,>.Instance;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<Id[],,>").WithArguments("Goo").WithLocation(5, 21),
-                // (5,25): error CS0246: The type or namespace name 'Id' could not be found (are you missing a using directive or an assembly reference?)
-                //         var added = Goo<Id[],,>.Instance;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Id").WithArguments("Id").WithLocation(5, 25));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
+        [Fact]
         public void TestGenericWithExtraCommasAndMissingTypes6()
         {
             UsingTree("""
@@ -3410,7 +3353,13 @@ class C
                         var added = Goo<(int i, int j),,>.Instance;
                     }
                 }
-                """);
+                """,
+                // (5,40): error CS1031: Type expected
+                //         var added = Goo<(int i, int j),,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 40),
+                // (5,41): error CS1031: Type expected
+                //         var added = Goo<(int i, int j),,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 41));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3479,14 +3428,14 @@ class C
                                                             N(SyntaxKind.CloseParenToken);
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.GreaterThanToken);
                                                     }
@@ -3510,24 +3459,9 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-            // Validate binding diagnostics
-            var source = """
-                class C
-                {
-                    void M()
-                    {
-                        var added = Goo<(int i, int j),,>.Instance;
-                    }
-                }
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,21): error CS0103: The name 'Goo<,,>' does not exist in the current context
-                //         var added = Goo<(int i, int j),,>.Instance;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<(int i, int j),,>").WithArguments("Goo").WithLocation(5, 21));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
+        [Fact]
         public void TestGenericWithExtraCommasAndMissingTypes7()
         {
             UsingTree("""
@@ -3538,7 +3472,13 @@ class C
                         var added = Goo<K<int>,,>.Instance;
                     }
                 }
-                """);
+                """,
+                // (5,32): error CS1031: Type expected
+                //         var added = Goo<K<int>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 32),
+                // (5,33): error CS1031: Type expected
+                //         var added = Goo<K<int>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 33));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3598,14 +3538,14 @@ class C
                                                             }
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.GreaterThanToken);
                                                     }
@@ -3629,27 +3569,9 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-            // Validate binding diagnostics
-            var source = """
-                class C
-                {
-                    void M()
-                    {
-                        var added = Goo<K<int>,,>.Instance;
-                    }
-                }
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
-                //         var added = Goo<K<int>,,>.Instance;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<K<int>,,>").WithArguments("Goo").WithLocation(5, 21),
-                // (5,25): error CS0246: The type or namespace name 'K<>' could not be found (are you missing a using directive or an assembly reference?)
-                //         var added = Goo<K<int>,,>.Instance;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "K<int>").WithArguments("K<>").WithLocation(5, 25));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71379")]
+        [Fact]
         public void TestGenericWithExtraCommasAndMissingTypes8()
         {
             UsingTree("""
@@ -3660,7 +3582,19 @@ class C
                         var added = Goo<K<int,,>,,>.Instance;
                     }
                 }
-                """);
+                """,
+                // (5,31): error CS1031: Type expected
+                //         var added = Goo<K<int,,>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 31),
+                // (5,32): error CS1031: Type expected
+                //         var added = Goo<K<int,,>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 32),
+                // (5,34): error CS1031: Type expected
+                //         var added = Goo<K<int,,>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(5, 34),
+                // (5,35): error CS1031: Type expected
+                //         var added = Goo<K<int,,>,,>.Instance;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(5, 35));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3717,27 +3651,27 @@ class C
                                                                     N(SyntaxKind.IntKeyword);
                                                                 }
                                                                 N(SyntaxKind.CommaToken);
-                                                                N(SyntaxKind.OmittedTypeArgument);
+                                                                M(SyntaxKind.IdentifierName);
                                                                 {
-                                                                    N(SyntaxKind.OmittedTypeArgumentToken);
+                                                                    M(SyntaxKind.IdentifierToken);
                                                                 }
                                                                 N(SyntaxKind.CommaToken);
-                                                                N(SyntaxKind.OmittedTypeArgument);
+                                                                M(SyntaxKind.IdentifierName);
                                                                 {
-                                                                    N(SyntaxKind.OmittedTypeArgumentToken);
+                                                                    M(SyntaxKind.IdentifierToken);
                                                                 }
                                                                 N(SyntaxKind.GreaterThanToken);
                                                             }
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.CommaToken);
-                                                        N(SyntaxKind.OmittedTypeArgument);
+                                                        M(SyntaxKind.IdentifierName);
                                                         {
-                                                            N(SyntaxKind.OmittedTypeArgumentToken);
+                                                            M(SyntaxKind.IdentifierToken);
                                                         }
                                                         N(SyntaxKind.GreaterThanToken);
                                                     }
@@ -3761,24 +3695,6 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
-
-            // Validate binding diagnostics
-            var source = """
-                class C
-                {
-                    void M()
-                    {
-                        var added = Goo<K<int,,>,,>.Instance;
-                    }
-                }
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,21): error CS0103: The name 'Goo' does not exist in the current context
-                //         var added = Goo<K<int,,>,,>.Instance;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo<K<int,,>,,>").WithArguments("Goo").WithLocation(5, 21),
-                // (5,25): error CS0246: The type or namespace name 'K<,,>' could not be found (are you missing a using directive or an assembly reference?)
-                //         var added = Goo<K<int,,>,,>.Instance;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "K<int,,>").WithArguments("K<,,>").WithLocation(5, 25));
         }
     }
 }
