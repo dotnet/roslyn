@@ -1741,7 +1741,7 @@ public sealed class BreakpointSpansTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78869")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
     public void UsingVariableDeclarator1()
         => TestSpan(
             """
@@ -1755,7 +1755,7 @@ public sealed class BreakpointSpansTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78869")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
     public void UsingVariableDeclarator2()
         => TestSpan(
             """
@@ -1769,7 +1769,7 @@ public sealed class BreakpointSpansTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78869")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
     public void UsingVariableDeclarator3()
         => TestSpan(
             """
@@ -1783,7 +1783,7 @@ public sealed class BreakpointSpansTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78869")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
     public void UsingVariableDeclarator4()
         => TestSpan(
             """
@@ -1797,7 +1797,7 @@ public sealed class BreakpointSpansTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78869")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
     public void UsingVariableDeclarator_MultipleVariables1()
         => TestSpan(
             """
@@ -1811,7 +1811,7 @@ public sealed class BreakpointSpansTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78869")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
     public void UsingVariableDeclarator_MultipleVariables2()
         => TestSpan(
             """
@@ -1825,7 +1825,7 @@ public sealed class BreakpointSpansTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78869")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74795")]
     public void AwaitUsingVariableDeclarator()
         => TestSpan(
             """
