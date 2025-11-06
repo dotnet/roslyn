@@ -23,9 +23,9 @@ internal static partial class ISymbolExtensions
 #if !ROSLYN_4_12_OR_LOWER
         return symbol is IEventSymbol @event &&
             (@event.PartialDefinitionPart != null || @event.PartialImplementationPart != null);
-#endif
-
+#else
         return false;
+#endif
     }
 
     public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
