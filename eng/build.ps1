@@ -573,7 +573,10 @@ function Deploy-VsixViaTool() {
 
   $hive = "RoslynDev"
   Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
-  $baseArgs = "/rootSuffix:$hive /quiet /shutdownprocesses"
+
+  # InstanceIds is required here to ensure it installs the vsixes only into the specified VS instance.
+  # The default installer behavior without it is to install into every installed VS instance.
+  $baseArgs = "/rootSuffix:$hive /quiet /shutdownprocesses /instanceIds:$vsId"
 
   Write-Host "Uninstalling old Roslyn VSIX"
 
@@ -605,6 +608,7 @@ function Deploy-VsixViaTool() {
     $vsixInstallerExe = Join-Path $vsDir "Common7\IDE\VSIXInstaller.exe"
     $fullArg = "$baseArgs $vsixFile"
     Write-Host "`tInstalling $vsixFileName"
+    Write-Host "`tBaseArgs: $baseArgs"
     Exec-Command $vsixInstallerExe $fullArg
   }
 
