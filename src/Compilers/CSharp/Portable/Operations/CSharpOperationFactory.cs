@@ -1245,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray((element, expr) => CreateBoundCollectionExpressionElement(expr, element), expr);
             return new CollectionExpressionOperation(
                 constructMethod,
-                getCreationArguments(),
+                getCreationArguments(this, expr),
                 elements,
                 _semanticModel,
                 syntax,
@@ -1271,7 +1271,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
 
-            ImmutableArray<IArgumentOperation> getCreationArguments()
+            static ImmutableArray<IArgumentOperation> getCreationArguments(
+                CSharpOperationFactory @this, BoundCollectionExpression expr)
             {
                 var collectionCreation = expr.CollectionCreation;
                 if (collectionCreation is { HasAnyErrors: true })
@@ -1281,13 +1282,13 @@ namespace Microsoft.CodeAnalysis.Operations
                     collectionCreation = conversion.Operand;
 
                 if (collectionCreation is BoundObjectCreationExpression)
-                    return DeriveArguments(collectionCreation);
+                    return @this.DeriveArguments(collectionCreation);
 
                 if (collectionCreation is BoundCall)
                 {
                     // With a CollectionBuilder, the last argument will be a placeholder where the .Elements will go.
                     // We do *not* want to include that information in the Arguments we return.
-                    var arguments = DeriveArguments(collectionCreation);
+                    var arguments = @this.DeriveArguments(collectionCreation);
 
                     Debug.Assert(arguments.Length > 0, "We should always have at least one argument (the placeholder elements).");
                     return arguments is [.. var normalArguments, _]
