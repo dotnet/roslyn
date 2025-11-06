@@ -280,15 +280,12 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         // case x when (y): -> case x when y:
         if (nodeParent.IsKind(SyntaxKind.WhenClause))
         {
-            // Subtle case, `when (x?[] ...):`.  Can't remove the parentheses here as it can the conditional access
-            // become a conditional expression.
-            for (var current = expression; current != null; current = current.ChildNodes().FirstOrDefault() as ExpressionSyntax)
-            {
-                if (current is ConditionalAccessExpressionSyntax)
-                    return false;
-            }
-
-            return true;
+            // Subtle case: `when (a || x?[0]):` cannot have parentheses removed because it would become
+            // `when a || x?[0]:` which the parser interprets as `when a || x ? [0] :` (a ternary expression)
+            // instead of the intended conditional access `x?[0]` followed by the `:` from when clause syntax.
+            // To avoid this, we check if removing parentheses would put a conditional access at the end of the
+            // expression (on the rightmost path), immediately before the `:`.
+            return !ContainsConditionalAccessOnRightmostPath(expression);
         }
 
         // #if (x)   ->   #if x
@@ -335,6 +332,22 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         // - If the parent is not an expression, do not remove parentheses
         // - Otherwise, parentheses may be removed if doing so does not change operator associations.
         return parentExpression != null && !RemovalChangesAssociation(node, parentExpression, semanticModel);
+
+        static bool ContainsConditionalAccessOnRightmostPath(ExpressionSyntax expr)
+        {
+            // Walk down the rightmost path of the expression tree
+            for (var current = expr; current != null;)
+            {
+                if (current is ConditionalAccessExpressionSyntax)
+                    return true;
+
+                current = current is BinaryExpressionSyntax binaryExpression
+                    ? binaryExpression.Right
+                    : current.ChildNodes().FirstOrDefault() as ExpressionSyntax;
+            }
+
+            return false;
+        }
     }
 
     private static bool RemovalWouldChangeConstantReferenceToTypeReference(
