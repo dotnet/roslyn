@@ -336,7 +336,7 @@ class C
                     {
                         async delegate () {
                             await 1;
-                            async delegate () {
+                            delegate () {
                                 int await;
                             };
                         };
