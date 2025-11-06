@@ -639,12 +639,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (baseTypeSyntax is PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
                 {
-                    var typeDecl = (TypeDeclarationSyntax)decl.SyntaxReference.GetSyntax();
-
                     // Check if this is a class inheriting from a class but missing a parameter list
                     if (TypeKind == TypeKind.Class &&
                         baseType.TypeKind != TypeKind.Interface &&
-                        typeDecl.ParameterList is null)
+                        decl.SyntaxReference.GetSyntax() is TypeDeclarationSyntax { ParameterList: null })
                     {
                         diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList,
                             primaryConstructorBaseType.ArgumentList.Location,
