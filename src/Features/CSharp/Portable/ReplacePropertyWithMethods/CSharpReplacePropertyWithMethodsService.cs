@@ -143,7 +143,8 @@ internal sealed partial class CSharpReplacePropertyWithMethodsService() :
             if (setAccessorDeclaration.Body != null)
             {
                 return methodDeclaration.WithBody(setAccessorDeclaration.Body)
-                                        .WithAdditionalAnnotations(Formatter.Annotation);
+                                        .WithAdditionalAnnotations(Formatter.Annotation)
+                                        .WithSemicolonToken(default);
             }
             else if (setAccessorDeclaration.ExpressionBody != null)
             {
