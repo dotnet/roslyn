@@ -1363,7 +1363,7 @@ public sealed class UseRangeOperatorTests
                 """,
         }.RunAsync();
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78069")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74960")]
     public Task TestStackAllocSlice()
         => new VerifyCS.Test
         {
@@ -1390,7 +1390,7 @@ public sealed class UseRangeOperatorTests
             """,
         }.RunAsync();
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78069")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74960")]
     public Task TestImplicitStackAllocSlice()
         => new VerifyCS.Test
         {
