@@ -32,7 +32,7 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
         ],
         () =>
         {
-            Assert.Equal(globalDotNetDir.Path, RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
+            AssertEx.Equal(globalDotNetDir.Path, RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
         });
     }
 
@@ -72,7 +72,7 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
         ],
         () =>
         {
-            Assert.Equal(globalDotNetDir.Path, RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
+            AssertEx.Equal(globalDotNetDir.Path, RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
         });
     }
 }
