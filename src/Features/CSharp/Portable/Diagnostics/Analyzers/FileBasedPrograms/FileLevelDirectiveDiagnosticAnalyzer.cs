@@ -34,38 +34,35 @@ internal sealed class FileLevelDirectiveDiagnosticAnalyzer()
 
     protected override void InitializeWorker(AnalysisContext context)
     {
-        context.RegisterCompilationStartAction(context =>
+        context.RegisterSyntaxTreeAction(context =>
         {
-            context.RegisterSyntaxTreeAction(context =>
+            var cancellationToken = context.CancellationToken;
+            var tree = context.Tree;
+            if (!tree.Options.Features.ContainsKey("FileBasedProgram"))
+                return;
+
+            var root = tree.GetRoot(cancellationToken);
+            if (!root.ContainsDirectives)
+                return;
+
+            // The compiler already reports an error on all the directives past the first token in the file.
+            // Therefore, the analyzer only deals with the directives on the first token.
+            //     Console.WriteLine("Hello World!");
+            //     #:property foo=bar // error CS9297: '#:' directives cannot be after first token in file
+            var diagnosticBag = DiagnosticBag.Collect(out var diagnosticsBuilder);
+            FileLevelDirectiveHelpers.FindLeadingDirectives(
+                new SourceFile(tree.FilePath, tree.GetText(cancellationToken)),
+                root.GetLeadingTrivia(),
+                diagnosticBag,
+                builder: null);
+
+            foreach (var simpleDiagnostic in diagnosticsBuilder)
             {
-                var cancellationToken = context.CancellationToken;
-                var tree = context.Tree;
-                if (!tree.Options.Features.ContainsKey("FileBasedProgram"))
-                    return;
-
-                var root = tree.GetRoot(cancellationToken);
-                if (!root.ContainsDirectives)
-                    return;
-
-                // The compiler already reports an error on all the directives past the first token in the file.
-                // Therefore, the analyzer only deals with the directives on the first token.
-                //     Console.WriteLine("Hello World!");
-                //     #:property foo=bar // error CS9297: '#:' directives cannot be after first token in file
-                var diagnosticBag = DiagnosticBag.Collect(out var diagnosticsBuilder);
-                FileLevelDirectiveHelpers.FindLeadingDirectives(
-                    new SourceFile(tree.FilePath, tree.GetText(cancellationToken)),
-                    root.GetLeadingTrivia(),
-                    diagnosticBag,
-                    builder: null);
-
-                foreach (var simpleDiagnostic in diagnosticsBuilder)
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        Rule,
-                        location: Location.Create(tree, simpleDiagnostic.Location.TextSpan),
-                        simpleDiagnostic.Message));
-                }
-            });
+                context.ReportDiagnostic(Diagnostic.Create(
+                    Rule,
+                    location: Location.Create(tree, simpleDiagnostic.Location.TextSpan),
+                    simpleDiagnostic.Message));
+            }
         });
     }
 }
