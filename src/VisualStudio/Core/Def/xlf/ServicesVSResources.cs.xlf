@@ -237,6 +237,11 @@
         <target state="translated">Analýza kódu pro {0} se ukončila dříve, než se dokončila.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_preview">
+        <source>Code preview</source>
+        <target state="new">Code preview</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">Sbalit místní funkce při sbalení do definic</target>
