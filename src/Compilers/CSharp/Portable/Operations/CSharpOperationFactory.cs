@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     // Note: the caller will end up stripping this off when producing the CreationArguments, so it will
                     // not actually leak to the user.  But this ends up keeping the logic simple between that callsite
                     // and this code which actually hits all the arguments passed along.
-                    Debug.Assert(boundNode.Syntax is CollectionExpressionSyntax);
+                    Debug.Assert(boundNode.Syntax is CollectionExpressionSyntax or WithElementSyntax);
                     return new PlaceholderOperation(
                         PlaceholderKind.CollectionExpressionElements, _semanticModel, boundNode.Syntax,
                         boundNode switch
