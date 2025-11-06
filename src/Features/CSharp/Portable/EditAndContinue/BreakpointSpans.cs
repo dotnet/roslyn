@@ -769,6 +769,26 @@ internal static class BreakpointSpans
     private static SyntaxToken LastNotMissing(SyntaxToken token1, SyntaxToken token2)
         => token2.IsKind(SyntaxKind.None) || token2.IsMissing ? token1 : token2;
 
+    private static SyntaxNodeOrToken GetStartTokenForLocalDeclaration(LocalDeclarationStatementSyntax declarationStatement)
+    {
+        if (declarationStatement.AwaitKeyword != default)
+        {
+            return declarationStatement.AwaitKeyword;
+        }
+        
+        if (declarationStatement.UsingKeyword != default)
+        {
+            return declarationStatement.UsingKeyword;
+        }
+        
+        if (declarationStatement.Modifiers.Count > 0)
+        {
+            return declarationStatement.Modifiers.First();
+        }
+        
+        return declarationStatement.Declaration;
+    }
+
     private static TextSpan? TryCreateSpanForLocalDeclarationStatement(LocalDeclarationStatementSyntax declarationStatement, int position)
     {
         var variableDeclaration = declarationStatement.Declaration;
@@ -793,10 +813,7 @@ internal static class BreakpointSpans
             // Include 'await' and 'using' keywords in the span if present
             return CreateSpan(
                 startOpt: default,
-                startFallbackOpt: declarationStatement.AwaitKeyword != default ? declarationStatement.AwaitKeyword :
-                                  declarationStatement.UsingKeyword != default ? declarationStatement.UsingKeyword :
-                                  declarationStatement.Modifiers.Count > 0 ? declarationStatement.Modifiers.First() :
-                                  (SyntaxNodeOrToken)variableDeclaration,
+                startFallbackOpt: GetStartTokenForLocalDeclaration(declarationStatement),
                 endOpt: declarationStatement.SemicolonToken != default ? declarationStatement.SemicolonToken : (SyntaxNodeOrToken)variableDeclaration);
         }
 
@@ -816,10 +833,7 @@ internal static class BreakpointSpans
             // Include 'await' and 'using' keywords in the span if present
             return CreateSpan(
                 startOpt: default,
-                startFallbackOpt: declarationStatement.AwaitKeyword != default ? declarationStatement.AwaitKeyword :
-                                  declarationStatement.UsingKeyword != default ? declarationStatement.UsingKeyword :
-                                  declarationStatement.Modifiers.Count > 0 ? declarationStatement.Modifiers.First() :
-                                  (SyntaxNodeOrToken)variableDeclaration,
+                startFallbackOpt: GetStartTokenForLocalDeclaration(declarationStatement),
                 endOpt: variableDeclarator);
         }
 
