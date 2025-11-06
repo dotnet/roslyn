@@ -1878,7 +1878,7 @@ class Test
                 var closureClass = type.GetTypeMembers().Single();
                 Assert.Equal("<>c", closureClass.Name);
                 var asyncMethod = closureClass.GetMember<MethodSymbol>("<F>b__0_0");
-                Assert.Empty(asyncMethod.GetAttributes().SelectAsArray(a => a.AttributeConstructor.ToTestDisplayString()));
+                Assert.Empty(asyncMethod.GetAttributes());
 
                 // No state machine types should be generated for the lambda when runtime async is enabled
                 Assert.Empty(closureClass.GetTypeMembers());
@@ -1944,6 +1944,45 @@ class Test
 
                 // Verify no state machine types were generated
                 Assert.Empty(type.GetTypeMembers());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_RuntimeAsync_ExtensionBlockMember(OptimizationLevel optimizationLevel)
+        {
+            string source = """
+                using System.Threading.Tasks;
+
+                public static class Ex
+                {
+                    extension(object o)
+                    {
+                        public async Task F()
+                        {
+                            await Task.Delay(0);
+                        }
+                    }
+                }
+                """;
+
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            var compilation = CreateRuntimeAsyncCompilation(source, options);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: static module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Ex");
+                var asyncImplMethod = type.GetMember<MethodSymbol>("F");
+
+                // When runtime async is enabled, no state machine is generated,
+                // so there should be no AsyncStateMachineAttribute and no DebuggerStepThroughAttribute
+                Assert.Empty(asyncImplMethod.GetAttributes());
+
+                var extension = type.GetTypeMembers().Single();
+                var asyncExtensionSignatureMethod = extension.GetMember<MethodSymbol>("F");
+                Assert.Empty(asyncExtensionSignatureMethod.GetAttributes());
             });
             verifier.VerifyDiagnostics();
         }
