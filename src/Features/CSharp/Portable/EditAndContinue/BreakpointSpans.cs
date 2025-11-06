@@ -592,8 +592,7 @@ internal static class BreakpointSpans
                 // variable declarator.  Otherwise, set the breakpoint over this entire
                 // statement.
                 var declarationStatement = (LocalDeclarationStatementSyntax)statement;
-                return TryCreateSpanForVariableDeclaration(declarationStatement.Declaration, declarationStatement.Modifiers,
-                    declarationStatement.SemicolonToken, position);
+                return TryCreateSpanForLocalDeclarationStatement(declarationStatement, position);
 
             case SyntaxKind.LabeledStatement:
                 // Create the breakpoint on the actual statement we are labeling:
@@ -769,6 +768,63 @@ internal static class BreakpointSpans
 
     private static SyntaxToken LastNotMissing(SyntaxToken token1, SyntaxToken token2)
         => token2.IsKind(SyntaxKind.None) || token2.IsMissing ? token1 : token2;
+
+    private static TextSpan? TryCreateSpanForLocalDeclarationStatement(LocalDeclarationStatementSyntax declarationStatement, int position)
+    {
+        var variableDeclaration = declarationStatement.Declaration;
+        if (variableDeclaration.Variables.Count == 0)
+        {
+            return null;
+        }
+
+        if (declarationStatement.Modifiers.Any(SyntaxKind.ConstKeyword))
+        {
+            // no sequence points are emitted for const locals
+            return default(TextSpan);
+        }
+
+        if (variableDeclaration.Variables.Count == 1)
+        {
+            if (variableDeclaration.Variables[0].Initializer == null)
+            {
+                return default(TextSpan);
+            }
+
+            // Include 'await' and 'using' keywords in the span if present
+            return CreateSpan(
+                startOpt: default,
+                startFallbackOpt: declarationStatement.AwaitKeyword != default ? declarationStatement.AwaitKeyword : 
+                                  declarationStatement.UsingKeyword != default ? declarationStatement.UsingKeyword :
+                                  declarationStatement.Modifiers.Count > 0 ? declarationStatement.Modifiers.First() :
+                                  (SyntaxNodeOrToken)variableDeclaration,
+                endOpt: declarationStatement.SemicolonToken != default ? declarationStatement.SemicolonToken : (SyntaxNodeOrToken)variableDeclaration);
+        }
+
+        if (declarationStatement.SemicolonToken != default && position > declarationStatement.SemicolonToken.SpanStart)
+        {
+            position = variableDeclaration.SpanStart;
+        }
+
+        var variableDeclarator = FindClosestDeclaratorWithInitializer(variableDeclaration.Variables, position);
+        if (variableDeclarator == null)
+        {
+            return default(TextSpan);
+        }
+
+        if (variableDeclarator == variableDeclaration.Variables[0])
+        {
+            // Include 'await' and 'using' keywords in the span if present
+            return CreateSpan(
+                startOpt: default,
+                startFallbackOpt: declarationStatement.AwaitKeyword != default ? declarationStatement.AwaitKeyword :
+                                  declarationStatement.UsingKeyword != default ? declarationStatement.UsingKeyword :
+                                  declarationStatement.Modifiers.Count > 0 ? declarationStatement.Modifiers.First() :
+                                  (SyntaxNodeOrToken)variableDeclaration,
+                endOpt: variableDeclarator);
+        }
+
+        return CreateSpan(variableDeclarator);
+    }
 
     private static TextSpan? TryCreateSpanForVariableDeclaration(VariableDeclarationSyntax declaration, int position)
         => declaration.Parent!.Kind() switch
