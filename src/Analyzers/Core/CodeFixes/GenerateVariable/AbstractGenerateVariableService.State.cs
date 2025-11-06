@@ -181,16 +181,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             // Don't offer to generate a parameter if we're inside an accessor (property/event/indexer get/set/add/remove).
             return ContainingMethod is { IsImplicitlyDeclared: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointMethodName }
                 && !IsInMemberContext && !IsConstant && !IsInSourceGeneratedDocument
-                && !IsInAccessor(ContainingMethod);
-        }
-
-        private static bool IsInAccessor(IMethodSymbol method)
-        {
-            return method.MethodKind is MethodKind.PropertyGet
-                or MethodKind.PropertySet
-                or MethodKind.EventAdd
-                or MethodKind.EventRemove
-                or MethodKind.EventRaise;
+                && !ContainingMethod.IsAccessor();
         }
 
         private bool TryInitializeExplicitInterface(

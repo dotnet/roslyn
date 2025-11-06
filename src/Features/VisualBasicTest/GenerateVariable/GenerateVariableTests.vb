@@ -3078,7 +3078,7 @@ Module Test
 End Module", index:=4)
         End Function
 
-        <Fact>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")>
         Public Async Function TestNotOfferedInEventAddAccessor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -3094,7 +3094,7 @@ End Module", index:=4)
 End Class")
         End Function
 
-        <Fact>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")>
         Public Async Function TestNotOfferedInEventRemoveAccessor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -3110,7 +3110,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")>
         Public Async Function TestNotOfferedInPropertyGetAccessor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -3124,7 +3124,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")>
         Public Async Function TestNotOfferedInPropertySetAccessor() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C

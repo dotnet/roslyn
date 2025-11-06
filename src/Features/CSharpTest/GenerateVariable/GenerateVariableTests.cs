@@ -10543,7 +10543,7 @@ class Class
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
     public Task TestNotOfferedInEventAddAccessor()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -10557,7 +10557,7 @@ class Class
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
     public Task TestNotOfferedInEventRemoveAccessor()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -10571,7 +10571,7 @@ class Class
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
     public Task TestNotOfferedInPropertyGetAccessor()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -10585,7 +10585,7 @@ class Class
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
     public Task TestNotOfferedInPropertySetAccessor()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -10599,7 +10599,7 @@ class Class
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
     public Task TestNotOfferedInIndexerGetAccessor()
         => TestMissingInRegularAndScriptAsync(
             """
@@ -10613,7 +10613,7 @@ class Class
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
     public Task TestNotOfferedInIndexerSetAccessor()
         => TestMissingInRegularAndScriptAsync(
             """
