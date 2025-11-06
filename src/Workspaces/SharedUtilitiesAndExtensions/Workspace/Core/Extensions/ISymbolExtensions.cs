@@ -10,13 +10,27 @@ internal static partial class ISymbolExtensions
 {
     public static bool IsPartial(this ISymbol symbol)
     {
-        return symbol switch
+        var isPartial = symbol switch
         {
-            IMethodSymbol method => method.IsPartialDefinition || method.PartialDefinitionPart != null || method.PartialImplementationPart != null,
-            IPropertySymbol property => property.IsPartialDefinition || property.PartialDefinitionPart != null || property.PartialImplementationPart != null,
+            IMethodSymbol method => method.PartialDefinitionPart != null || method.PartialImplementationPart != null,
+            IPropertySymbol property => property.PartialDefinitionPart != null || property.PartialImplementationPart != null,
+            _ => false
+        };
+
+        if (isPartial)
+            return true;
+
+#if !ROSLYN_4_12_OR_LOWER
+        isPartial = symbol switch
+        {
+            IMethodSymbol method => method.IsPartialDefinition,
+            IPropertySymbol property => property.IsPartialDefinition,
             IEventSymbol @event => @event.IsPartialDefinition || @event.PartialDefinitionPart != null || @event.PartialImplementationPart != null,
             _ => false
         };
+#endif
+
+        return isPartial;
     }
 
     public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
