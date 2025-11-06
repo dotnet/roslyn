@@ -2742,7 +2742,7 @@ public sealed class ConvertIfToSwitchTests
             """,
         }.RunAsync();
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76584")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81052")]
     public Task TestPatternWithWhenClause()
         => new VerifyCS.Test
         {
