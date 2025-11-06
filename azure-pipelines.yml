@@ -478,7 +478,7 @@ stages:
             /p:Configuration=Release
             /p:PublishToMSDL=false
 
-      - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
+      - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.slnx
         displayName: Validate Build Artifacts
 
       - powershell: eng/validate-rules-missing-documentation.ps1 -ci
@@ -602,7 +602,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 
-      - script: ./eng/build.sh --solution Roslyn.sln --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
+      - script: ./eng/build.sh --solution Roslyn.slnx --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
         displayName: Build with analyzers
 
       - template: eng/pipelines/publish-logs.yml
