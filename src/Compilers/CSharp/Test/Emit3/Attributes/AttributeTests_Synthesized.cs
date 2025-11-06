@@ -1875,7 +1875,8 @@ class Test
             var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: static module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-                var closureClass = type.GetTypeMembers().Single(t => t.Name == "<>c");
+                var closureClass = type.GetTypeMembers().Single();
+                Assert.Equal("<>c", closureClass.Name);
                 var asyncMethod = closureClass.GetMember<MethodSymbol>("<F>b__0_0");
                 Assert.Empty(asyncMethod.GetAttributes().SelectAsArray(a => a.AttributeConstructor.ToTestDisplayString()));
 
