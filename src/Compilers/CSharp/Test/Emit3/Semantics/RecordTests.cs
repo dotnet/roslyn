@@ -30303,8 +30303,7 @@ record R2 : I(0)
                     }
                 }
                 """;
-            var comp = CompileAndVerify(src, expectedOutput: "1");
-            comp.VerifyDiagnostics();
+            CompileAndVerify(src, expectedOutput: "1").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
