@@ -11,6 +11,5 @@ namespace Microsoft.CodeAnalysis.Operations
         ForToLoopBinaryOperatorLeftOperand = 2,
         ForToLoopBinaryOperatorRightOperand = 3,
         AggregationGroup = 4,
-        CollectionExpressionElements = 5,
     }
 }

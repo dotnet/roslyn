@@ -331,8 +331,11 @@ namespace Microsoft.CodeAnalysis.Operations
                     // not actually leak to the user.  But this ends up keeping the logic simple between that callsite
                     // and this code which actually hits all the arguments passed along.
                     Debug.Assert(boundNode.Syntax is CollectionExpressionSyntax or WithElementSyntax);
+
+                    // Because we never actually expose this placeholder in the IOp tree, it's fine to use .Unspecified
+                    // as its kind here.
                     return new PlaceholderOperation(
-                        PlaceholderKind.CollectionExpressionElements, _semanticModel, boundNode.Syntax,
+                        PlaceholderKind.Unspecified, _semanticModel, boundNode.Syntax,
                         boundNode switch
                         {
                             BoundExpression boundExpr => boundExpr.GetPublicTypeSymbol(),
