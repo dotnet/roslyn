@@ -4946,7 +4946,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
 
             Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
-            // TODO2: restore?
+
+            if (_localScopeDepth.IsConvertibleTo(escapeTo))
+            {
+                // '_localScopeDepth' is the narrowest scope that this expression could possibly have.
+                // (if it were any narrower, the expression would hold reference to non-live variables.)
+                // So, if '_localScopeDepth' is convertible to 'escapeTo', then any SafeContext this expression could possibly have, is convertible to 'escapeTo'.
+                return true;
+            }
 
             // cannot infer anything from errors
             if (expr.HasAnyErrors)
