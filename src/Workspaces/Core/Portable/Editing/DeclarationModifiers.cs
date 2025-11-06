@@ -85,11 +85,11 @@ public readonly record struct DeclarationModifiers
                 isRef: field?.RefKind is RefKind.Ref or RefKind.RefReadOnly || type?.IsRefLikeType == true,
                 isVolatile: field?.IsVolatile == true,
                 isExtern: symbol.IsExtern,
-                isPartial: symbol.IsPartial(),
                 isAsync: method?.IsAsync == true,
                 isRequired: symbol.IsRequired(),
                 isFile: type?.IsFileLocal == true,
-                isFixed: field?.IsFixedSizeBuffer == true);
+                isFixed: field?.IsFixedSizeBuffer == true,
+                isPartial: symbol.IsPartial());
         }
 
         // Only named types, members of named types, and local functions have modifiers.

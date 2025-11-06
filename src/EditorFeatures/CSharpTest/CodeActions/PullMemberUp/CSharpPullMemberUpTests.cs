@@ -5811,7 +5811,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
             {
                 public class BaseClass
                 {
-                    public partial event EventHandler Event1;
+                    public event EventHandler Event1;
                 }
 
                 public partial class TestClass : BaseClass
