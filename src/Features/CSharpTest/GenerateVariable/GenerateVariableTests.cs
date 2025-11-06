@@ -10545,7 +10545,7 @@ class Class
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
     public Task TestNotOfferedInEventAddAccessor()
-        => TestMissingInRegularAndScriptAsync(
+        => TestExactActionSetOfferedAsync(
             """
             class C
             {
@@ -10555,11 +10555,11 @@ class Class
                     remove { ev -= value; }
                 }
             }
-            """);
+            """, [string.Format(CodeFixesResources.Generate_field_0, "ev"), string.Format(CodeFixesResources.Generate_property_0, "ev"), string.Format(CodeFixesResources.Generate_local_0, "ev")]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
     public Task TestNotOfferedInEventRemoveAccessor()
-        => TestMissingInRegularAndScriptAsync(
+        => TestExactActionSetOfferedAsync(
             """
             class C
             {
@@ -10569,11 +10569,11 @@ class Class
                     remove { [|ev|] -= value; }
                 }
             }
-            """);
+            """, [string.Format(CodeFixesResources.Generate_field_0, "ev"), string.Format(CodeFixesResources.Generate_property_0, "ev"), string.Format(CodeFixesResources.Generate_local_0, "ev")]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
     public Task TestNotOfferedInPropertyGetAccessor()
-        => TestMissingInRegularAndScriptAsync(
+        => TestExactActionSetOfferedAsync(
             """
             class C
             {
@@ -10583,11 +10583,11 @@ class Class
                     set { }
                 }
             }
-            """);
+            """, [string.Format(CodeFixesResources.Generate_field_0, "x"), string.Format(CodeFixesResources.Generate_read_only_field_0, "x"), string.Format(CodeFixesResources.Generate_property_0, "x"), string.Format(CodeFixesResources.Generate_local_0, "x")]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
     public Task TestNotOfferedInPropertySetAccessor()
-        => TestMissingInRegularAndScriptAsync(
+        => TestExactActionSetOfferedAsync(
             """
             class C
             {
@@ -10597,11 +10597,11 @@ class Class
                     set { [|x|] = value; }
                 }
             }
-            """);
+            """, [string.Format(CodeFixesResources.Generate_field_0, "x"), string.Format(CodeFixesResources.Generate_property_0, "x"), string.Format(CodeFixesResources.Generate_local_0, "x")]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
     public Task TestNotOfferedInIndexerGetAccessor()
-        => TestMissingInRegularAndScriptAsync(
+        => TestExactActionSetOfferedAsync(
             """
             class C
             {
@@ -10611,11 +10611,11 @@ class Class
                     set { }
                 }
             }
-            """);
+            """, [string.Format(CodeFixesResources.Generate_field_0, "x"), string.Format(CodeFixesResources.Generate_read_only_field_0, "x"), string.Format(CodeFixesResources.Generate_property_0, "x"), string.Format(CodeFixesResources.Generate_local_0, "x")]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")]
     public Task TestNotOfferedInIndexerSetAccessor()
-        => TestMissingInRegularAndScriptAsync(
+        => TestExactActionSetOfferedAsync(
             """
             class C
             {
@@ -10625,5 +10625,5 @@ class Class
                     set { [|x|] = value; }
                 }
             }
-            """);
+            """, [string.Format(CodeFixesResources.Generate_field_0, "x"), string.Format(CodeFixesResources.Generate_property_0, "x"), string.Format(CodeFixesResources.Generate_local_0, "x")]);
 }
