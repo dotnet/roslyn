@@ -216,15 +216,28 @@ public abstract class IntegrationTestBase : TestBase
         if (disableSdkPath || noConfig)
         {
             Assert.NotEqual(0, result.ExitCode);
-            // Either error CS0006: Metadata file could not be found
-            // or error CS0518: Predefined type is not defined or imported
-            Assert.Contains("error CS", result.Output);
+            if (disableSdkPath && noConfig)
+            {
+                // error CS0246: The type or namespace name 'System' could not be found
+                Assert.Contains("error CS0246", result.Output);
+            }
+            else if (disableSdkPath)
+            {
+                // error CS0006: Metadata file could not be found
+                Assert.Contains("error CS0006", result.Output);
+            }
+            else
+            {
+                // error CS0234: The type or namespace name 'Linq' does not exist in the namespace 'System'
+                Assert.Contains("error CS0234", result.Output);
+            }
         }
         else
         {
             Assert.Equal(0, result.ExitCode);
-            Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
         }
+
+        Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
     }
 
     [Theory, PairwiseData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
@@ -274,7 +287,103 @@ public abstract class IntegrationTestBase : TestBase
         else
         {
             Assert.Equal(0, result.ExitCode);
-            Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
         }
+
+        Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+    }
+
+    /// <summary>
+    /// Verifies that both RSPs are included: the default <c>csc.rsp</c> (which has <c>/r:System.Data.OracleClient</c>),
+    /// and the custom RSP (which has <c>/warnaserror+</c> so we get an error for using an obsolete type).
+    /// </summary>
+    [Theory, PairwiseData]
+    public void CustomRsp_Csc(bool includeCustomRsp, bool useSharedCompilation, bool noConfig)
+    {
+        if (_msbuildExecutable == null) return;
+
+        var result = RunCommandLineCompiler(
+            _msbuildExecutable,
+            "/m /nr:false /t:CustomTarget Test.csproj",
+            _tempDirectory,
+            new Dictionary<string, string>
+            {
+                { "File.cs", """
+                    new System.Data.OracleClient.OracleConnection("");
+                    """ },
+                { "custom.rsp", """
+                    /warnaserror+
+                    """ },
+                { "Test.csproj", $"""
+                    <Project>
+                        <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="{_buildTaskDll}" />
+                        <Target Name="CustomTarget">
+                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" ResponseFiles="{(includeCustomRsp ? "custom.rsp" : "")}" NoConfig="{noConfig}" />
+                        </Target>
+                    </Project>
+                    """ },
+            });
+        _output.WriteLine(result.Output);
+
+        Assert.Equal(!includeCustomRsp && !noConfig, 0 == result.ExitCode);
+        if (noConfig)
+        {
+            // error CS0234: The type or namespace name 'Data' does not exist in the namespace 'System'
+            Assert.Contains("error CS0234", result.Output);
+        }
+        else
+        {
+            // warning CS0618: The type is obsolete
+            Assert.Contains($"{(includeCustomRsp ? "error" : "warning")} CS0618", result.Output);
+        }
+
+        Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+    }
+
+    /// <inheritdoc cref="CustomRsp_Csc"/>
+    [Theory, PairwiseData]
+    public void CustomRsp_Vbc(bool includeCustomRsp, bool useSharedCompilation, bool noConfig)
+    {
+        if (_msbuildExecutable == null) return;
+
+        var result = RunCommandLineCompiler(
+            _msbuildExecutable,
+            "/m /nr:false /t:CustomTarget Test.vbproj",
+            _tempDirectory,
+            new Dictionary<string, string>
+            {
+                { "File.vb", """
+                    Public Module Program
+                        Public Sub Main()
+                            Dim x As Object = New System.Data.OracleClient.OracleConnection("")
+                        End Sub
+                    End Module
+                    """ },
+                { "custom.rsp", """
+                    /warnaserror+
+                    """ },
+                { "Test.vbproj", $"""
+                    <Project>
+                        <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="{_buildTaskDll}" />
+                        <Target Name="CustomTarget">
+                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" ResponseFiles="{(includeCustomRsp ? "custom.rsp" : "")}" NoConfig="{noConfig}" />
+                        </Target>
+                    </Project>
+                    """ },
+            });
+        _output.WriteLine(result.Output);
+
+        Assert.Equal(!includeCustomRsp && !noConfig, 0 == result.ExitCode);
+        if (noConfig)
+        {
+            // error BC30002: Type 'System.Data.OracleClient.OracleConnection' is not defined.
+            Assert.Contains("error BC30002", result.Output);
+        }
+        else
+        {
+            // warning BC40000: The type is obsolete
+            Assert.Contains($"{(includeCustomRsp ? "error" : "warning")} BC40000", result.Output);
+        }
+
+        Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
     }
 }
