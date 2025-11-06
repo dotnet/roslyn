@@ -599,9 +599,8 @@ class Test
             End Using
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/10009531")>
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60728")>
         Public Sub NoConflictingLocalWithLocalFunctionParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -629,9 +628,8 @@ class C
             End Using
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/10009531")>
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60728")>
         Public Sub NoConflictingLocalWithStaticLocalFunctionParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -659,9 +657,8 @@ class C
             End Using
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/10009531")>
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60728")>
         Public Sub NoConflictingLocalWithLocalFunctionLocal(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
