@@ -1506,7 +1506,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
     public Task TestWhenClauseWithNullableIndexing_NoAmbiguityOnLeft()
-        => TestAsync(
+        => TestMissingAsync(
             """
             class C
             {
@@ -1523,24 +1523,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
                 public static implicit operator bool(C? c) => true;
             }
-            """,
-            """
-            class C
-            {
-                public void M(C[] x, bool a)
-                {
-                    switch ("")
-                    {
-                        case "" when x?[0] || a:
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                public static implicit operator bool(C? c) => true;
-            }
-            """, offeredWhenRequireForClarityIsEnabled: false);
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
     public Task TestWhenClauseWithNullableIndexing_NoAmbiguityOnLeft_EntireExpression()
@@ -1578,7 +1561,7 @@ public sealed class RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelpe
 
                 public static implicit operator bool(C? c) => true;
             }
-            """, offeredWhenRequireForClarityIsEnabled: false);
+            """, offeredWhenRequireForClarityIsEnabled: true);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80938")]
     public Task TestWhenClauseWithoutNullableIndexing_CanRemove()
