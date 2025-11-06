@@ -69,7 +69,7 @@
     <PackageReference Include="Humanizer.Core" PrivateAssets="compile" />
 
     <!-- TODO2: central package version. Use published version. -->
-    <PackageReference Include="Microsoft.DotNet.FileBasedPrograms" VersionOverride="10.0.200-dev" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.DotNet.FileBasedPrograms" GeneratePathProperty="true" />
     <EmbeddedResource
       Include="$(PkgMicrosoft_DotNet_FileBasedPrograms)\contentFiles\cs\any\FileBasedProgramsResources.resx"
       GenerateSource="true"

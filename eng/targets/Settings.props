@@ -20,9 +20,6 @@
     <!-- RestoreUseStaticGraphEvaluation will cause prebuilts when building source-only. -->
     <RestoreUseStaticGraphEvaluation Condition="'$(DotNetBuildSourceOnly)' != 'true'">true</RestoreUseStaticGraphEvaluation>
 
-    <!-- TODO2: use an officially published package and delete this. -->
-    <RestoreAdditionalProjectSources>F:\src\dotnet-sdk\artifacts\packages\Debug\NonShipping</RestoreAdditionalProjectSources>
-
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
