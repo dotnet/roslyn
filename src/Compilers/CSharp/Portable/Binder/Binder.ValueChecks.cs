@@ -4367,7 +4367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.CapturedReceiverPlaceholder:
                     // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
                     var placeholder = (BoundCapturedReceiverPlaceholder)expr;
-                    Debug.Assert(placeholder.LocalScopeDepth.IsConvertibleTo(_localScopeDepth));
+                    Debug.Assert(placeholder.LocalScopeDepth == _localScopeDepth);
                     return GetValEscape(placeholder.Receiver);
 
                 case BoundKind.StackAllocArrayCreation:
