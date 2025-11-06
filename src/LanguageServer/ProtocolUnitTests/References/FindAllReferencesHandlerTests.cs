@@ -385,19 +385,50 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
         Assert.True(service.DidMapSpans);
     }
 
-    private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)
+    [Theory, CombinatorialData]
+    public async Task TestFindAllReferencesAsync_IncludeDeclarationFalse(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            class A
+            {
+                public int {|definition:someInt|} = 1;
+                void M()
+                {
+                    var i = {|reference:someInt|} + 1;
+                }
+            }
+            class B
+            {
+                int someInt = A.{|reference:someInt|} + 1;
+                void M2()
+                {
+                    var j = someInt + A.{|caret:|}{|reference:someInt|};
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+
+        var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First(), includeDeclaration: false);
+
+        // Should only include references, not the definition
+        AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));
+        Assert.Equal(3, results.Length);
+    }
+
+    private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress, bool includeDeclaration)
         => new()
         {
             TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
-            Context = new LSP.ReferenceContext(),
+            Context = new LSP.ReferenceContext { IncludeDeclaration = includeDeclaration },
             PartialResultToken = progress
         };
 
-    internal static async Task<LSP.VSInternalReferenceItem[]> RunFindAllReferencesAsync(TestLspServer testLspServer, LSP.Location caret, BufferedProgress<object>? progress = null)
+    internal static async Task<LSP.VSInternalReferenceItem[]> RunFindAllReferencesAsync(TestLspServer testLspServer, LSP.Location caret, BufferedProgress<object>? progress = null, bool includeDeclaration = true)
     {
         var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
-            CreateReferenceParams(caret, progress), CancellationToken.None);
+            CreateReferenceParams(caret, progress, includeDeclaration), CancellationToken.None);
 
         // If we're using progress, return the results from that instead.
         if (progress != null)
@@ -411,10 +442,10 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
         return orderedResults;
     }
 
-    internal static async Task<LSP.Location[]> RunFindAllReferencesNonVSAsync(TestLspServer testLspServer, LSP.Location caret, BufferedProgress<object>? progress = null)
+    internal static async Task<LSP.Location[]> RunFindAllReferencesNonVSAsync(TestLspServer testLspServer, LSP.Location caret, BufferedProgress<object>? progress = null, bool includeDeclaration = true)
     {
         var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.Location[]>(LSP.Methods.TextDocumentReferencesName,
-            CreateReferenceParams(caret, progress), CancellationToken.None);
+            CreateReferenceParams(caret, progress, includeDeclaration), CancellationToken.None);
 
         // If we're using progress, return the results from that instead.
         if (progress != null)

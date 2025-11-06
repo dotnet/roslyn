@@ -67,6 +67,16 @@
         <target state="translated">运算符“{0}”不能应用于 "default" 和类型为“{1}”的操作数，因为它是一个类型参数，而且不是已知的引用类型</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigExtension">
+        <source>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AmbigOperator">
+        <source>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">Operator resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
         <target state="translated">在此上下文中，标识符“{0}”在类型“{1}”和参数“{2}”之间不明确。</target>
@@ -1085,6 +1095,11 @@
       <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
         <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedVariableUsedInForbiddenZone">
+        <source>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</source>
+        <target state="new">Reference to an implicitly-typed variable '{0}' is not permitted in this location.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -2375,6 +2390,16 @@
       <trans-unit id="ERR_SimpleProgramNotAnExecutable">
         <source>Program using top-level statements must be an executable.</source>
         <target state="translated">使用顶级语句的程序必须是可执行文件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableBinaryOperator">
+        <source>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</source>
+        <target state="new">Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableUnaryOperator">
+        <source>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</source>
+        <target state="new">Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
@@ -13000,11 +13025,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">化出变量声明</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList">
-        <source>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</source>
-        <target state="translated">对隐式类型化出变量“{0}”的引用不允许出现在同一个参数列表中。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable">
         <source>Cannot infer the type of implicitly-typed out variable '{0}'.</source>
         <target state="translated">无法推断出隐式类型化 out 变量“{0}”的类型。</target>
@@ -13221,8 +13241,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
-        <source>Compiler version: '{0}'. Language version: {1}.</source>
-        <target state="translated">编译器版本:“{0}”。语言版本: {1}。</target>
+        <source>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</source>
+        <target state="new">Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">

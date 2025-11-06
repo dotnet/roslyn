@@ -1650,7 +1650,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.OperatorKind = operatorKind;
             this.Data = data;
             this.ResultKind = resultKind;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BinaryOperatorKind OperatorKind { get; }
         public BoundBinaryOperator.UncommonData? Data { get; }
@@ -3572,7 +3576,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.RefKind = refKind;
             this.ExpressionOpt = expressionOpt;
             this.Checked = @checked;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public RefKind RefKind { get; }
         public BoundExpression? ExpressionOpt { get; }

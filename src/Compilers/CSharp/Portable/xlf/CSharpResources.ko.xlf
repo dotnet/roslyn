@@ -67,6 +67,16 @@
         <target state="translated">'{0}' 연산자는 참조 형식인 것으로 알려지지 않은 형식 매개 변수이므로 'default' 및 '{1}' 형식의 피연산자에 적용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigExtension">
+        <source>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AmbigOperator">
+        <source>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">Operator resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
         <target state="translated">'{0}' 식별자는 이 컨텍스트에서 '{1}' 형식과 '{2}' 매개 변수 사이에 모호합니다.</target>
@@ -1085,6 +1095,11 @@
       <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
         <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedVariableUsedInForbiddenZone">
+        <source>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</source>
+        <target state="new">Reference to an implicitly-typed variable '{0}' is not permitted in this location.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -2375,6 +2390,16 @@
       <trans-unit id="ERR_SimpleProgramNotAnExecutable">
         <source>Program using top-level statements must be an executable.</source>
         <target state="translated">최상위 문을 사용하는 프로그램은 실행 파일이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableBinaryOperator">
+        <source>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</source>
+        <target state="new">Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableUnaryOperator">
+        <source>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</source>
+        <target state="new">Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
@@ -13000,11 +13025,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">출력 변수 선언</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList">
-        <source>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</source>
-        <target state="translated">동일한 인수 목록에서 암시적으로 형식화된 출력 변수 '{0}'에 대한 참조는 허용되지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable">
         <source>Cannot infer the type of implicitly-typed out variable '{0}'.</source>
         <target state="translated">암시적으로 형식화된 출력 변수 '{0}'의 형식을 유추할 수 없습니다.</target>
@@ -13221,8 +13241,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
-        <source>Compiler version: '{0}'. Language version: {1}.</source>
-        <target state="translated">컴파일러 버전: '{0}'. 언어 버전: {1}.</target>
+        <source>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</source>
+        <target state="new">Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">
