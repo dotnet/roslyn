@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
 namespace Microsoft.CodeAnalysis.CSharp.Rename;
@@ -15,16 +16,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename;
 internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 {
     private readonly ConflictingIdentifierTracker _tracker;
+    private readonly HashSet<SyntaxNode> _containingAnonymousMethodsAndLocalFunctions = new();
 
     public LocalConflictVisitor(SyntaxToken tokenBeingRenamed)
-        => _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
+    {
+        _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
+
+        // We want to dive into the anonymous-functions/local-functions that surround the initial token being renamed
+        // (so that we can actually descend to the scope that it is defined at). However, we don't need to dive any
+        // deeper as more deeply nested functions can't be affected by this rename.  Specifically, inner functions 
+        // get their own name scope, which does not collide with the scope of this token.
+        _containingAnonymousMethodsAndLocalFunctions.AddRange(
+            tokenBeingRenamed.Parent.AncestorsAndSelf().Where(n => n is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax));
+    }
 
     public override void DefaultVisit(SyntaxNode node)
     {
         foreach (var child in node.ChildNodes())
-        {
             Visit(child);
-        }
     }
 
     public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
@@ -40,7 +49,7 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 
     private void VisitBlockStatements(SyntaxNode node, IEnumerable<SyntaxNode> statements)
     {
-        var tokens = new List<SyntaxToken>();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         // We want to collect any variable declarations that are in the block
         // before visiting nested statements
@@ -69,7 +78,7 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 
     public override void VisitForStatement(ForStatementSyntax node)
     {
-        var tokens = new List<SyntaxToken>();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         if (node.Declaration != null)
         {
@@ -83,7 +92,7 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 
     public override void VisitUsingStatement(UsingStatementSyntax node)
     {
-        var tokens = new List<SyntaxToken>();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         if (node.Declaration != null)
         {
@@ -97,7 +106,7 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 
     public override void VisitCatchClause(CatchClauseSyntax node)
     {
-        var tokens = new List<SyntaxToken>();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         if (node.Declaration != null)
         {
@@ -111,20 +120,29 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
 
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
     {
-        // Lambdas create a new scope. C# allows variables in the outer scope
-        // to have the same name as lambda parameters, so we don't track the
-        // parameter to prevent false cross-scope conflicts. However, we still
-        // visit the body to detect conflicts within the lambda.
-        Visit(node.Body);
+        if (_containingAnonymousMethodsAndLocalFunctions.Contains(node))
+            Visit(node.Body);
     }
 
     public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
     {
-        // Lambdas create a new scope. C# allows variables in the outer scope
-        // to have the same name as lambda parameters, so we don't track the
-        // parameters to prevent false cross-scope conflicts. However, we still
-        // visit the body to detect conflicts within the lambda.
-        Visit(node.Body);
+        if (_containingAnonymousMethodsAndLocalFunctions.Contains(node))
+            Visit(node.Body);
+    }
+
+    public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
+    {
+        if (_containingAnonymousMethodsAndLocalFunctions.Contains(node))
+            Visit(node.Body);
+    }
+
+    public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
+    {
+        if (_containingAnonymousMethodsAndLocalFunctions.Contains(node))
+        {
+            Visit(node.Body);
+            Visit(node.ExpressionBody);
+        }
     }
 
     public override void VisitQueryExpression(QueryExpressionSyntax node)
@@ -134,7 +152,7 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
     {
         // This is somewhat ornery: we need to collect all the locals being introduced
         // since they're all in scope through all parts of the query.
-        var tokens = new List<SyntaxToken>();
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
         if (fromClause != null)
         {
@@ -182,16 +200,6 @@ internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
         _tracker.AddIdentifier(node.Identifier);
         VisitQueryInternal(null, node.Body);
         _tracker.RemoveIdentifier(node.Identifier);
-    }
-
-    public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
-    {
-        // Local functions create a new scope. C# allows variables in the outer scope
-        // to have the same name as parameters or variables in the local function, so
-        // we don't track the parameters to prevent false cross-scope conflicts.
-        // However, we still visit the body to detect conflicts within the local function.
-        Visit(node.Body);
-        Visit(node.ExpressionBody);
     }
 
     public override void VisitSwitchStatement(SwitchStatementSyntax node)
