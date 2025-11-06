@@ -3080,7 +3080,7 @@ End Module", index:=4)
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")>
         Public Async Function TestNotOfferedInEventAddAccessor() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestExactActionSetOfferedAsync(
 "Class C
     Custom Event E As EventHandler
         AddHandler(value As EventHandler)
@@ -3091,12 +3091,12 @@ End Module", index:=4)
         RaiseEvent(sender As Object, e As EventArgs)
         End RaiseEvent
     End Event
-End Class")
+End Class", {String.Format(CodeFixesResources.Generate_field_0, "ev"), String.Format(CodeFixesResources.Generate_property_0, "ev"), String.Format(CodeFixesResources.Generate_local_0, "ev")})
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")>
         Public Async Function TestNotOfferedInEventRemoveAccessor() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestExactActionSetOfferedAsync(
 "Class C
     Custom Event E As EventHandler
         AddHandler(value As EventHandler)
@@ -3107,12 +3107,12 @@ End Class")
         RaiseEvent(sender As Object, e As EventArgs)
         End RaiseEvent
     End Event
-End Class")
+End Class", {String.Format(CodeFixesResources.Generate_field_0, "ev"), String.Format(CodeFixesResources.Generate_property_0, "ev"), String.Format(CodeFixesResources.Generate_local_0, "ev")})
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")>
         Public Async Function TestNotOfferedInPropertyGetAccessor() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestExactActionSetOfferedAsync(
 "Class C
     Property P As Integer
         Get
@@ -3121,12 +3121,12 @@ End Class")
         Set(value As Integer)
         End Set
     End Property
-End Class")
+End Class", {String.Format(CodeFixesResources.Generate_field_0, "x"), String.Format(CodeFixesResources.Generate_read_only_field_0, "x"), String.Format(CodeFixesResources.Generate_property_0, "x"), String.Format(CodeFixesResources.Generate_local_0, "x")})
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81071")>
         Public Async Function TestNotOfferedInPropertySetAccessor() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestExactActionSetOfferedAsync(
 "Class C
     Property P As Integer
         Get
@@ -3136,7 +3136,7 @@ End Class")
             [|x|] = value
         End Set
     End Property
-End Class")
+End Class", {String.Format(CodeFixesResources.Generate_field_0, "x"), String.Format(CodeFixesResources.Generate_property_0, "x"), String.Format(CodeFixesResources.Generate_local_0, "x")})
         End Function
     End Class
 End Namespace
