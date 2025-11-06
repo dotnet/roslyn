@@ -70,8 +70,14 @@ public readonly record struct DeclarationModifiers
             var field = symbol as IFieldSymbol;
             var property = symbol as IPropertySymbol;
             var method = symbol as IMethodSymbol;
+            var @event = symbol as IEventSymbol;
             var type = symbol as INamedTypeSymbol;
             var isConst = field?.IsConst == true;
+
+            // A method, property, or event is partial if it's a partial definition, has a partial definition part, or has a partial implementation part
+            var isPartial = (method?.IsPartialDefinition == true || method?.PartialDefinitionPart != null || method?.PartialImplementationPart != null) ||
+                           (property?.IsPartialDefinition == true || property?.PartialDefinitionPart != null || property?.PartialImplementationPart != null) ||
+                           (@event?.IsPartialDefinition == true || @event?.PartialDefinitionPart != null || @event?.PartialImplementationPart != null);
 
             return new DeclarationModifiers(
                 isStatic: symbol.IsStatic && !isConst,
@@ -85,6 +91,7 @@ public readonly record struct DeclarationModifiers
                 isRef: field?.RefKind is RefKind.Ref or RefKind.RefReadOnly || type?.IsRefLikeType == true,
                 isVolatile: field?.IsVolatile == true,
                 isExtern: symbol.IsExtern,
+                isPartial: isPartial,
                 isAsync: method?.IsAsync == true,
                 isRequired: symbol.IsRequired(),
                 isFile: type?.IsFileLocal == true,
