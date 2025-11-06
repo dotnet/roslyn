@@ -45,7 +45,7 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
   $stopWatch.Stop()
   Write-Host "Cleaning took $($stopWatch.Elapsed)"
 
-  $solution = Join-Path $rootDir "Roslyn.sln"
+  $solution = Join-Path $rootDir "Roslyn.slnx"
 
   $toolsetBuildProj = InitializeToolset
 

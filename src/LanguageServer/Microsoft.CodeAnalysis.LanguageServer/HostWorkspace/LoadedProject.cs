@@ -126,6 +126,8 @@ internal sealed class LoadedProject : IDisposable
         return _mostRecentFileInfo.TargetFramework;
     }
 
+    public ProjectId ProjectId => _projectSystemProject.Id;
+
     /// <summary>
     /// Unloads the project and removes it from the workspace.
     /// </summary>

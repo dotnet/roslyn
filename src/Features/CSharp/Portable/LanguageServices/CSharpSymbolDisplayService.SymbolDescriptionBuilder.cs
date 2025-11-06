@@ -249,13 +249,13 @@ internal sealed partial class CSharpSymbolDisplayService
             return [];
         }
 
-        protected override void AddCaptures(ISymbol symbol)
+        protected override void AddCaptures(SemanticModel semanticModel, ISymbol symbol, StructuralTypeDisplayInfo typeDisplayInfo)
         {
             if (symbol is IMethodSymbol { ContainingSymbol.Kind: SymbolKind.Method } method)
             {
-                var syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+                var syntax = method.DeclaringSyntaxReferences.FirstOrDefault(r => r.SyntaxTree == semanticModel.SyntaxTree)?.GetSyntax();
                 if (syntax is LocalFunctionStatementSyntax or AnonymousFunctionExpressionSyntax)
-                    AddCaptures(syntax);
+                    AddCaptures(semanticModel, syntax, typeDisplayInfo);
             }
         }
 

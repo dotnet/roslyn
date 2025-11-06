@@ -320,7 +320,6 @@
     <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsNugetPackageVersion)" />
     <PackageVersion Include="SourceBrowser" Version="1.0.21" />
-    <PackageVersion Include="RoslynTools.VSIXExpInstaller" Version="1.1.0-beta3.22474.1" />
     <PackageVersion Include="MicroBuildPluginsSwixBuild" Version="1.1.87" />
     <PackageVersion Include="vswhere" Version="$(vswhereVersion)" />
     <PackageVersion Include="CliWrap" Version="3.8.2" />

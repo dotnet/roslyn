@@ -237,6 +237,11 @@
         <target state="translated">Análise de código terminada antes da conclusão para '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_preview">
+        <source>Code preview</source>
+        <target state="new">Code preview</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">Recolher funções locais ao recolher para definições</target>
