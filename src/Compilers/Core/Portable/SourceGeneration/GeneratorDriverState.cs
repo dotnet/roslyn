@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis
         internal string? BaseDirectory => _driverOptions.BaseDirectory;
 
         /// <summary>
-        /// The name of the project this driver is associated with.
+        /// An optional tracking name that can be used to identify this driver.
         /// </summary>
-        internal string? ProjectName => _driverOptions.ProjectName;
+        internal string? TrackingName => _driverOptions.TrackingName;
 
         /// <summary>
         /// ParseOptions to use when parsing generator provided source.

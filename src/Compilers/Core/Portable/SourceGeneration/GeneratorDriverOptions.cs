@@ -23,12 +23,9 @@ namespace Microsoft.CodeAnalysis
         public string? BaseDirectory { get; }
 
         /// <summary>
-        /// The name of the project this generator driver is for.
+        /// A tracking name that can be used to identify the generator driver that these options belong to.
         /// </summary>
-        /// <remarks>
-        /// Only used for telemetry purposes.
-        /// </remarks>
-        public string? ProjectName { get; }
+        public string? TrackingName { get; }
 
         public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs)
             : this(disabledOutputs, false)
@@ -47,8 +44,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="disabledOutputs"></param>
         /// <param name="trackIncrementalGeneratorSteps"></param>
         /// <param name="baseDirectory">Absolute path to the base directory used for file paths of generated files.</param>
+        /// <param name="trackingName">An identifier that can be used to identify a generator driver.</param>
         /// <exception cref="ArgumentException"><paramref name="baseDirectory"/> is not an absolute path.</exception>
-        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs = IncrementalGeneratorOutputKind.None, bool trackIncrementalGeneratorSteps = false, string? baseDirectory = null, string? projectName = null)
+        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs = IncrementalGeneratorOutputKind.None, bool trackIncrementalGeneratorSteps = false, string? baseDirectory = null, string? trackingName = null)
         {
             if (baseDirectory != null && !PathUtilities.IsAbsolute(baseDirectory))
             {
@@ -58,12 +56,12 @@ namespace Microsoft.CodeAnalysis
             DisabledOutputs = disabledOutputs;
             TrackIncrementalGeneratorSteps = trackIncrementalGeneratorSteps;
             BaseDirectory = baseDirectory;
-            ProjectName = projectName;
+            TrackingName = trackingName;
         }
 
         // 5.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs, bool trackIncrementalGeneratorSteps, string? baseDirectory)
-            : this(disabledOutputs, trackIncrementalGeneratorSteps, baseDirectory, projectName: null)
+            : this(disabledOutputs, trackIncrementalGeneratorSteps, baseDirectory, trackingName: null)
         {
         }
     }
