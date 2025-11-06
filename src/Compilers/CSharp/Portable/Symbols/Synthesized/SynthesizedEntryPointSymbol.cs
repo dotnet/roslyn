@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // Try to use the new HandleAsyncEntryPoint API if it exists
                 var specialMember = userMain.ReturnType.IsGenericTaskType(compilation)
-                    ? SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_T
+                    ? SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32
                     : SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task;
 
                 if (Binder.TryGetSpecialTypeMember(compilation, specialMember, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded, out MethodSymbol handleAsyncEntryPointMethod, isOptional: true))

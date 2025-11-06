@@ -2293,7 +2293,7 @@ class Program
 
             var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
             var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
-            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_T);
+            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32);
 
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             // Verify it falls back to GetAwaiter().GetResult() pattern
