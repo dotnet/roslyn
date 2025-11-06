@@ -138,9 +138,8 @@ class Program : IDisposable
             End Using
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConflictingLocalWithSimpleLambdaParameter(host As RenameTestHost)
+        <Theory, CombinatorialData>
+        Public Sub NoConflictingLocalWithSimpleLambdaParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -163,9 +162,8 @@ class Program
             End Using
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConflictingLocalWithParenthesizedLambdaParameter(host As RenameTestHost)
+        <Theory, CombinatorialData>
+        Public Sub NoConflictingLocalWithParenthesizedLambdaParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
