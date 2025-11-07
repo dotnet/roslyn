@@ -2200,9 +2200,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Computes the scope to which the given invocation can escape
         /// NOTE: the escape scope for ref and val escapes is the same for invocations except for trivial cases (ordinary type returned by val) 
         ///       where escape is known otherwise. Therefore we do not have two ref/val variants of this.
-        ///       
-        /// NOTE: we need localScopeDepth as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
-        ///       local variables declared at the scope of the invocation.
         /// </summary>
         private SafeContext GetInvocationEscapeScope(
             in MethodInvocationInfo methodInvocationInfo,
@@ -2410,9 +2407,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Validates whether given invocation can allow its results to escape to <paramref name="escapeTo"/> level.
         /// The result indicates whether the escape is possible. 
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
-        /// 
-        /// NOTE: we need localScopeDepth as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
-        ///       local variables declared at the scope of the invocation.
         /// </summary>
         private bool CheckInvocationEscape(
             SyntaxNode syntax,
@@ -3651,7 +3645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Computes the widest scope depth to which the given expression can escape by reference.
         /// 
-        /// NOTE: in a case if expression cannot be passed by an alias (RValue and similar), the ref-escape is localScopeDepth
+        /// NOTE: in a case if expression cannot be passed by an alias (RValue and similar), the ref-escape is <see cref="_localScopeDepth"/>.
         ///       There are few cases where RValues are permitted to be passed by reference which implies that a temporary local proxy is passed instead.
         ///       We reflect such behavior by constraining the escape value to the narrowest scope possible. 
         /// </summary>
@@ -3714,7 +3708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.CapturedReceiverPlaceholder:
                     // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
-                    return ((BoundCapturedReceiverPlaceholder)expr).LocalScopeDepth;
+                    return _localScopeDepth;
 
                 case BoundKind.ThisReference:
                     var thisParam = ((MethodSymbol)_symbol).ThisParameter;
@@ -4006,7 +4000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.CapturedReceiverPlaceholder:
                     // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
-                    if (((BoundCapturedReceiverPlaceholder)expr).LocalScopeDepth.IsConvertibleTo(escapeTo))
+                    if (_localScopeDepth.IsConvertibleTo(escapeTo))
                     {
                         return true;
                     }
@@ -4368,7 +4362,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.CapturedReceiverPlaceholder:
                     // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
                     var placeholder = (BoundCapturedReceiverPlaceholder)expr;
-                    Debug.Assert(placeholder.LocalScopeDepth == _localScopeDepth);
                     return GetValEscape(placeholder.Receiver);
 
                 case BoundKind.StackAllocArrayCreation:
@@ -4721,7 +4714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     // in error situations some unexpected nodes could make here
-                    // returning "localScopeDepth" seems safer than throwing.
+                    // returning '_localScopeDepth' seems safer than throwing.
                     // we will still assert to make sure that all nodes are accounted for. 
                     RoslynDebug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
                     return _localScopeDepth;
