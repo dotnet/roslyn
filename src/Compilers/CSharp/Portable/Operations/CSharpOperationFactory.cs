@@ -1282,11 +1282,11 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (collectionCreation is BoundObjectCreationExpression)
                     return @this.DeriveArguments(collectionCreation);
 
-                if (collectionCreation is BoundCall)
+                // Match the logic in CreateBoundCallOperation which does not DeriveArguments in the case of an
+                // erroneous call node.
+                if (collectionCreation is BoundCall { IsErroneousNode: false })
                 {
-                    // Handle this call recursively.  
-                    if (@this.Create(collectionCreation) is not IInvocationOperation { Arguments: var arguments })
-                        return [];
+                    var arguments = @this.DeriveArguments(collectionCreation);
 
                     // With a CollectionBuilder, the last argument will be a placeholder where the .Elements will go.
                     // We do *not* want to include that information in the Arguments we return.

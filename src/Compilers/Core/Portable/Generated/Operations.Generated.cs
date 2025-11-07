@@ -3959,7 +3959,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// If the collection expression does not have a <c>with(...)</c> element, or does not allow
         /// any arguments, this can be an empty array.
         /// </summary>
-        ImmutableArray<IArgumentOperation> CreationArguments { get; }
+        ImmutableArray<IArgumentOperation> ConstructArguments { get; }
         /// <summary>
         /// Collection expression elements.
         /// <para>
@@ -10678,25 +10678,25 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class CollectionExpressionOperation : Operation, ICollectionExpressionOperation
     {
-        internal CollectionExpressionOperation(IMethodSymbol? constructMethod, ImmutableArray<IArgumentOperation> creationArguments, ImmutableArray<IOperation> elements, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal CollectionExpressionOperation(IMethodSymbol? constructMethod, ImmutableArray<IArgumentOperation> constructArguments, ImmutableArray<IOperation> elements, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             ConstructMethod = constructMethod;
-            CreationArguments = SetParentOperation(creationArguments, this);
+            ConstructArguments = SetParentOperation(constructArguments, this);
             Elements = SetParentOperation(elements, this);
             Type = type;
         }
         public IMethodSymbol? ConstructMethod { get; }
-        public ImmutableArray<IArgumentOperation> CreationArguments { get; }
+        public ImmutableArray<IArgumentOperation> ConstructArguments { get; }
         public ImmutableArray<IOperation> Elements { get; }
         internal override int ChildOperationsCount =>
-            CreationArguments.Length +
+            ConstructArguments.Length +
             Elements.Length;
         internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
-                0 when index < CreationArguments.Length
-                    => CreationArguments[index],
+                0 when index < ConstructArguments.Length
+                    => ConstructArguments[index],
                 1 when index < Elements.Length
                     => Elements[index],
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
@@ -10706,9 +10706,9 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case -1:
-                    if (!CreationArguments.IsEmpty) return (true, 0, 0);
+                    if (!ConstructArguments.IsEmpty) return (true, 0, 0);
                     else goto case 0;
-                case 0 when previousIndex + 1 < CreationArguments.Length:
+                case 0 when previousIndex + 1 < ConstructArguments.Length:
                     return (true, 0, previousIndex + 1);
                 case 0:
                     if (!Elements.IsEmpty) return (true, 1, 0);
@@ -10732,7 +10732,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case 1 when previousIndex > 0:
                     return (true, 1, previousIndex - 1);
                 case 1:
-                    if (!CreationArguments.IsEmpty) return (true, 0, CreationArguments.Length - 1);
+                    if (!ConstructArguments.IsEmpty) return (true, 0, ConstructArguments.Length - 1);
                     else goto case 0;
                 case 0 when previousIndex > 0:
                     return (true, 0, previousIndex - 1);
@@ -11421,7 +11421,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitCollectionExpression(ICollectionExpressionOperation operation, object? argument)
         {
             var internalOperation = (CollectionExpressionOperation)operation;
-            return new CollectionExpressionOperation(internalOperation.ConstructMethod, VisitArray(internalOperation.CreationArguments), VisitArray(internalOperation.Elements), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new CollectionExpressionOperation(internalOperation.ConstructMethod, VisitArray(internalOperation.ConstructArguments), VisitArray(internalOperation.Elements), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitSpread(ISpreadOperation operation, object? argument)
         {

@@ -3669,7 +3669,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ICollectionExpressionOperation" Base="IOperation"  HasType="true" ChildrenOrder="CreationArguments,Elements">
+  <Node Name="ICollectionExpressionOperation" Base="IOperation"  HasType="true" ChildrenOrder="ConstructArguments,Elements">
     <Comments>
       <summary>
         Represents a collection expression.
@@ -3697,7 +3697,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="CreationArguments" Type="ImmutableArray&lt;IArgumentOperation&gt;">
+    <Property Name="ConstructArguments" Type="ImmutableArray&lt;IArgumentOperation&gt;">
       <Comments>
         <summary>
           Arguments passed to a <c>with(...)</c> element on the collection expression, if any.
