@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -324,16 +323,15 @@ namespace Microsoft.CodeAnalysis.Operations
                     };
                     return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
                 case BoundKind.ValuePlaceholder:
-                    // The only supported use of BoundValuePlaceholder is within a collection expression as we use it
-                    // to represent the elements passed to the collection builder creation methods.  We can hit these
+                    // The only supported use of BoundValuePlaceholder is within a collection expression as we use it to
+                    // represent the elements passed to the collection builder creation methods.  We can hit these
                     // creation methods when producing the .CreationArguments for the ICollectionExpressionOperation.
                     // Note: the caller will end up stripping this off when producing the CreationArguments, so it will
                     // not actually leak to the user.  But this ends up keeping the logic simple between that callsite
-                    // and this code which actually hits all the arguments passed along.
-                    Debug.Assert(boundNode.Syntax is CollectionExpressionSyntax or WithElementSyntax);
-
-                    // Because we never actually expose this placeholder in the IOp tree, it's fine to use .Unspecified
-                    // as its kind here.
+                    // and this code which actually hits all the arguments passed along. Because we never actually
+                    // expose this placeholder in the IOp tree, it's fine to use .Unspecified as its kind here.
+                    //
+                    // See the logic in CreateBoundCollectionExpression.getCreationArguments for more info.
                     return new PlaceholderOperation(
                         PlaceholderKind.Unspecified, _semanticModel, boundNode.Syntax,
                         boundNode switch
@@ -1290,7 +1288,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     // We do *not* want to include that information in the Arguments we return.
                     var arguments = @this.DeriveArguments(collectionCreation);
 
-                    Debug.Assert(arguments.Length > 0, "We should always have at least one argument (the placeholder elements).");
+                    Debug.Assert(arguments is [.., IArgumentOperation { Value: IPlaceholderOperation { PlaceholderKind: PlaceholderKind.Unspecified } }], "We should always have at least one argument (the placeholder elements).");
                     return arguments is [.. var normalArguments, _]
                         ? normalArguments
                         : arguments;

@@ -4,7 +4,7 @@
 
 #nullable disable
 // Uncomment to enable the IOperation test hook on all test runs. Do not commit this uncommented.
-//#define ROSLYN_TEST_IOPERATION
+#define ROSLYN_TEST_IOPERATION
 
 // Uncomment to enable the Used Assemblies test hook on all test runs. Do not commit this uncommented.
 //#define ROSLYN_TEST_USEDASSEMBLIES
