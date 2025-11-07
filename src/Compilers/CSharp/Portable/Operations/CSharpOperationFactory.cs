@@ -1284,10 +1284,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (collectionCreation is BoundCall)
                 {
+                    // Handle this call recursively.  
+                    if (@this.Create(collectionCreation) is not IInvocationOperation { Arguments: var arguments })
+                        return [];
+
                     // With a CollectionBuilder, the last argument will be a placeholder where the .Elements will go.
                     // We do *not* want to include that information in the Arguments we return.
-                    var arguments = @this.DeriveArguments(collectionCreation);
-
                     Debug.Assert(arguments is [.., IArgumentOperation { Value: IPlaceholderOperation { PlaceholderKind: PlaceholderKind.Unspecified } }], "We should always have at least one argument (the placeholder elements).");
                     return arguments is [.. var normalArguments, _]
                         ? normalArguments

@@ -1365,7 +1365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: argsToParams,
                         defaultArguments: projectionCall.DefaultArguments,
-                        resultKind: LookupResultKind.Viable,
+                        resultKind: projectionCall.ResultKind,
                         type: collectionBuilderMethod.ReturnType,
                         hasErrors: projectionCall.HasErrors)
                     {
