@@ -6547,10 +6547,10 @@ oneMoreTime:
             // Ugly, but necessary.  If we bound successfully, we'll have an array of IArgumentOperation.  We want to
             // call through to VisitArguments to handle it properly.  So attempt to cast to that type first, but
             // fallback to just visiting the array of expressions if we didn't bind successfully.
-            var arguments = operation.ConstructArguments.As<IArgumentOperation>();
-            var creationArguments = arguments.IsDefault
-                ? VisitArray(operation.ConstructArguments)
-                : ImmutableArray<IOperation>.CastUp(VisitArguments(arguments, instancePushed: false));
+            var creationArguments = operation.ConstructArguments.As<IArgumentOperation>() is { IsDefault: false } arguments
+                ? ImmutableArray<IOperation>.CastUp(VisitArguments(arguments, instancePushed: false))
+                : VisitArray(operation.ConstructArguments);
+
             PopStackFrame(frame);
 
             frame = PushStackFrame();
