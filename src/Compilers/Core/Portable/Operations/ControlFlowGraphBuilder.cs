@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -6542,7 +6543,13 @@ oneMoreTime:
         public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
         {
             EvalStackFrame frame = PushStackFrame();
-            var creationArguments = VisitArguments(operation.ConstructArguments, instancePushed: false);
+
+            // Ugly, but necessary.  If we bound successfully, we'll have an array of IArgumentOperation.  We want to
+            // call through to VisitArguments to handle it properly.  So attempt to cast to that type first, but
+            // fallback to just visiting the array of expressions if we didn't bind successfully.
+            var creationArguments = ImmutableCollectionsMarshal.AsArray(operation.ConstructArguments) is IArgumentOperation[] argumentArray
+                ? ImmutableArray<IOperation>.CastUp(VisitArguments(ImmutableCollectionsMarshal.AsImmutableArray(argumentArray), instancePushed: false))
+                : VisitArray(operation.ConstructArguments);
             PopStackFrame(frame);
 
             frame = PushStackFrame();

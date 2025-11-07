@@ -1272,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
 
-            static ImmutableArray<IArgumentOperation> getCreationArguments(
+            static ImmutableArray<IOperation> getCreationArguments(
                 CSharpOperationFactory @this, BoundCollectionExpression expr)
             {
                 var collectionCreation = expr.CollectionCreation;
@@ -1280,20 +1280,25 @@ namespace Microsoft.CodeAnalysis.Operations
                     collectionCreation = conversion.Operand;
 
                 if (collectionCreation is BoundObjectCreationExpression)
-                    return @this.DeriveArguments(collectionCreation);
+                    return ImmutableArray<IOperation>.CastUp(@this.DeriveArguments(collectionCreation));
 
-                // Match the logic in CreateBoundCallOperation which does not DeriveArguments in the case of an
-                // erroneous call node.
-                if (collectionCreation is BoundCall { IsErroneousNode: false })
+                if (collectionCreation is BoundCall boundCall)
                 {
+                    // Match the logic in CreateBoundCallOperation which does not DeriveArguments in the case of an
+                    // erroneous call node.
+                    if (boundCall.IsErroneousNode)
+                        return @this.CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundCall).InvalidNodeChildren);
+
                     var arguments = @this.DeriveArguments(collectionCreation);
 
                     // With a CollectionBuilder, the last argument will be a placeholder where the .Elements will go.
                     // We do *not* want to include that information in the Arguments we return.
                     Debug.Assert(arguments is [.., IArgumentOperation { Value: IPlaceholderOperation { PlaceholderKind: PlaceholderKind.Unspecified } }], "We should always have at least one argument (the placeholder elements).");
-                    return arguments is [.. var normalArguments, _]
+                    var slicedArguments = arguments is [.. var normalArguments, _]
                         ? normalArguments
                         : arguments;
+
+                    return ImmutableArray<IOperation>.CastUp(slicedArguments);
                 }
 
                 return [];

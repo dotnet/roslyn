@@ -3957,9 +3957,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Arguments passed to a <c>with(...)</c> element on the collection expression, if any.
         /// If the collection expression does not have a <c>with(...)</c> element, or does not allow
-        /// any arguments, this can be an empty array.
+        /// any arguments, this can be an empty array. Will never be null.  If the <c>with(...)</c> element
+        /// successfully bound, these will all be <see cref="IArgumentOperation" />; otherwise, they can be
+        /// any operation.
         /// </summary>
-        ImmutableArray<IArgumentOperation> ConstructArguments { get; }
+        ImmutableArray<IOperation> ConstructArguments { get; }
         /// <summary>
         /// Collection expression elements.
         /// <para>
@@ -10678,7 +10680,7 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class CollectionExpressionOperation : Operation, ICollectionExpressionOperation
     {
-        internal CollectionExpressionOperation(IMethodSymbol? constructMethod, ImmutableArray<IArgumentOperation> constructArguments, ImmutableArray<IOperation> elements, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal CollectionExpressionOperation(IMethodSymbol? constructMethod, ImmutableArray<IOperation> constructArguments, ImmutableArray<IOperation> elements, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             ConstructMethod = constructMethod;
@@ -10687,7 +10689,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IMethodSymbol? ConstructMethod { get; }
-        public ImmutableArray<IArgumentOperation> ConstructArguments { get; }
+        public ImmutableArray<IOperation> ConstructArguments { get; }
         public ImmutableArray<IOperation> Elements { get; }
         internal override int ChildOperationsCount =>
             ConstructArguments.Length +
