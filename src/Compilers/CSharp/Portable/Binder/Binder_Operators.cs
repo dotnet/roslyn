@@ -1630,7 +1630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (type.Kind != SymbolKind.NamedType || type.IsNullableType())
+            if (type is not NamedTypeSymbol { IsInterface: false } namedType || namedType.IsNullableType())
             {
                 diagnostics.Add(left.Syntax, useSiteInfo);
                 return false;
@@ -1649,7 +1649,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Stack Trace:
             //     at CallSite.Target(Closure, CallSite, Object, Nullable`1)
             //     at System.Dynamic.UpdateDelegates.UpdateAndExecute2[T0,T1,TRet](CallSite site, T0 arg0, T1 arg1)
-            var namedType = type as NamedTypeSymbol;
             var operandPlaceholder = new BoundValuePlaceholder(left.Syntax, namedType).MakeCompilerGenerated();
             UnaryOperatorAnalysisResult result = operatorOverloadResolution(left.Syntax, operandPlaceholder, isNegative ? UnaryOperatorKind.False : UnaryOperatorKind.True, diagnostics);
 

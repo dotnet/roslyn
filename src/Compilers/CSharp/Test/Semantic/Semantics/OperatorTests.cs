@@ -9271,7 +9271,7 @@ class Program
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (27,37): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S1?' must define operator 'false'.
+                // (27,37): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S1?' must not be an interface and must define operator 'false'.
                 //     static dynamic Test1(S1? s1) => s1 && (dynamic)s1;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "s1").WithArguments("S1?", (op == "&&" ? "false" : "true")).WithLocation(27, 37)
                 );
@@ -9316,7 +9316,7 @@ class Program
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (27,37): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S1?' must define operator 'false'.
+                // (27,37): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S1?' must not be an interface and must define operator 'false'.
                 //     static dynamic Test1(S1? s1) => s1 && (dynamic)s1;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "s1").WithArguments("S1?", (op == "&&" ? "false" : "true")).WithLocation(27, 37)
                 );
