@@ -1278,9 +1278,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 CSharpOperationFactory @this, BoundCollectionExpression expr)
             {
                 var collectionCreation = expr.CollectionCreation;
-                if (collectionCreation is { HasAnyErrors: true })
-                    return [];
-
                 while (collectionCreation is BoundConversion conversion)
                     collectionCreation = conversion.Operand;
 
