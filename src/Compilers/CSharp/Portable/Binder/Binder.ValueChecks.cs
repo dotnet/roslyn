@@ -2200,6 +2200,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Computes the scope to which the given invocation can escape
         /// NOTE: the escape scope for ref and val escapes is the same for invocations except for trivial cases (ordinary type returned by val) 
         ///       where escape is known otherwise. Therefore we do not have two ref/val variants of this.
+        ///       
+        /// NOTE: we need <see cref="_localScopeDepth"/> as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
+        ///       local variables declared at the scope of the invocation.
         /// </summary>
         private SafeContext GetInvocationEscapeScope(
             in MethodInvocationInfo methodInvocationInfo,
@@ -2407,6 +2410,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Validates whether given invocation can allow its results to escape to <paramref name="escapeTo"/> level.
         /// The result indicates whether the escape is possible. 
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
+        /// 
+        /// NOTE: we need <see cref="_localScopeDepth"/> as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
+        ///       local variables declared at the scope of the invocation.
         /// </summary>
         private bool CheckInvocationEscape(
             SyntaxNode syntax,
