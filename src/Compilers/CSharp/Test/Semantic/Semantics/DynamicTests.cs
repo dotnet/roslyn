@@ -3721,7 +3721,6 @@ class Test
         [WorkItem("https://github.com/dotnet/roslyn/issues/80954")]
         public void DynamicBooleanExpression_ClassWithoutOperator()
         {
-            // Ensure the class case still works correctly (regression test)
             const string source = @"
 class C0 { }
 
