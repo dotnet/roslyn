@@ -2088,26 +2088,12 @@ class Program
                 {
                     public class Task
                     {
-                        public TaskAwaiter GetAwaiter() => default;
+                        public System.Runtime.CompilerServices.TaskAwaiter GetAwaiter() => default;
                     }
 
-                    public struct TaskAwaiter : Runtime.CompilerServices.INotifyCompletion
+                    public class Task<TResult>
                     {
-                        public bool IsCompleted => true;
-                        public void GetResult() { }
-                        public void OnCompleted(Action continuation) { }
-                    }
-
-                    public class Task<T>
-                    {
-                        public TaskAwaiter<T> GetAwaiter() => default;
-                    }
-
-                    public struct TaskAwaiter<T> : Runtime.CompilerServices.INotifyCompletion
-                    {
-                        public bool IsCompleted => true;
-                        public T GetResult() => default;
-                        public void OnCompleted(Action continuation) { }
+                        public System.Runtime.CompilerServices.TaskAwaiter<TResult> GetAwaiter() => default;
                     }
                 }
 
@@ -2116,6 +2102,11 @@ class Program
                     public interface INotifyCompletion
                     {
                         void OnCompleted(Action continuation);
+                    }
+
+                    public interface ICriticalNotifyCompletion : INotifyCompletion
+                    {
+                        void UnsafeOnCompleted(Action continuation);
                     }
 
                     public interface IAsyncStateMachine
@@ -2163,6 +2154,22 @@ class Program
                         {
                             return task.GetAwaiter().GetResult();
                         }
+                    }
+
+                    public struct TaskAwaiter<TResult> : ICriticalNotifyCompletion
+                    {
+                        public bool IsCompleted => true;
+                        public TResult GetResult() => default;
+                        public void OnCompleted(Action continuation) { }
+                        public void UnsafeOnCompleted(Action continuation) { }
+                    }
+
+                    public struct TaskAwaiter : ICriticalNotifyCompletion
+                    {
+                        public bool IsCompleted => true;
+                        public void GetResult() { }
+                        public void OnCompleted(Action continuation) { }
+                        public void UnsafeOnCompleted(Action continuation) { }
                     }
                 }
 
@@ -2269,12 +2276,12 @@ class Program
                 {
                   // Code size       19 (0x13)
                   .maxstack  1
-                  .locals init (System.Threading.Tasks.TaskAwaiter V_0)
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
                   IL_0000:  call       "System.Threading.Tasks.Task Program.Main()"
-                  IL_0005:  callvirt   "System.Threading.Tasks.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
                   IL_000a:  stloc.0
                   IL_000b:  ldloca.s   V_0
-                  IL_000d:  call       "void System.Threading.Tasks.TaskAwaiter.GetResult()"
+                  IL_000d:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
                   IL_0012:  ret
                 }
                 """);
@@ -2306,12 +2313,144 @@ class Program
                 {
                   // Code size       19 (0x13)
                   .maxstack  1
-                  .locals init (System.Threading.Tasks.TaskAwaiter<int> V_0)
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter<int> V_0)
                   IL_0000:  call       "System.Threading.Tasks.Task<int> Program.Main()"
-                  IL_0005:  callvirt   "System.Threading.Tasks.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
                   IL_000a:  stloc.0
                   IL_000b:  ldloca.s   V_0
-                  IL_000d:  call       "int System.Threading.Tasks.TaskAwaiter<int>.GetResult()"
+                  IL_000d:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+                  IL_0012:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void AsyncMainFallbackToOldPattern_RedefinedTask()
+        {
+            var source = """
+                #pragma warning disable CS0436
+
+                class Program
+                {
+                    static async System.Threading.Tasks.Task Main()
+                    {
+                        throw null;
+                    }
+                }
+
+                namespace System.Threading.Tasks
+                {
+                    public class Task
+                    {
+                        public System.Runtime.CompilerServices.TaskAwaiter GetAwaiter() => throw null;
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public struct AsyncTaskMethodBuilder
+                    {
+                        public System.Threading.Tasks.Task Task => null;
+                        public static AsyncTaskMethodBuilder Create() => throw null;
+                        public void SetException(Exception exception){}
+                        public void SetResult(){}
+                        public void AwaitOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.INotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void AwaitUnsafeOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine){}
+                    }
+
+                    public static class AsyncHelpers
+                    {
+                        public static void HandleAsyncEntryPoint(Threading.Tasks.Task task)
+                        {
+                            task.GetAwaiter().GetResult();
+                        }
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            // Verify it falls back to GetAwaiter().GetResult() pattern
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+                  IL_0000:  call       "System.Threading.Tasks.Task Program.Main()"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloca.s   V_0
+                  IL_000d:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+                  IL_0012:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void AsyncMainFallbackToOldPattern_RedefinedTaskT()
+        {
+            var source = """
+                #pragma warning disable CS0436
+
+                class Program
+                {
+                    static async System.Threading.Tasks.Task<int> Main()
+                    {
+                        throw null;
+                    }
+                }
+
+                namespace System.Threading.Tasks
+                {
+                    public class Task<TResult>
+                    {
+                        public System.Runtime.CompilerServices.TaskAwaiter<TResult> GetAwaiter() => throw null;
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public struct AsyncTaskMethodBuilder<TResult>
+                    {
+                        public System.Threading.Tasks.Task<TResult> Task => null;
+                        public static AsyncTaskMethodBuilder<TResult> Create() => throw null;
+                        public void SetException(Exception exception){}
+                        public void SetResult(TResult result){}
+                        public void AwaitOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.INotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void AwaitUnsafeOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine){}
+                    }
+
+                    public static class AsyncHelpers
+                    {
+                        public static int HandleAsyncEntryPoint(Threading.Tasks.Task<int> task)
+                        {
+                            return task.GetAwaiter().GetResult();
+                        }
+                    }
+                }
+                """;
+
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            // Verify it falls back to GetAwaiter().GetResult() pattern
+            verifier.VerifyIL("Program.<Main>()", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter<int> V_0)
+                  IL_0000:  call       "System.Threading.Tasks.Task<int> Program.Main()"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloca.s   V_0
+                  IL_000d:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
                   IL_0012:  ret
                 }
                 """);
