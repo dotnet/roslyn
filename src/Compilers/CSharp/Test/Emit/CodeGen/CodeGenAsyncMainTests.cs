@@ -2085,11 +2085,17 @@ class Program
                 public struct RuntimeTypeHandle { }
                 public struct RuntimeFieldHandle { }
 
+                public static class Console
+                {
+                    public static void Write(int value) { }
+                }
+
                 namespace Threading.Tasks
                 {
                     public class Task
                     {
                         public System.Runtime.CompilerServices.TaskAwaiter GetAwaiter() => default;
+                        public static Task Delay(int millisecondsDelay) => default;
                     }
 
                     public class Task<TResult>
@@ -2195,13 +2201,14 @@ class Program
         public void AsyncMainWithHandleAsyncEntryPoint_Task()
         {
             var source = """
+                using System;
                 using System.Threading.Tasks;
 
                 class Program
                 {
                     static async Task Main()
                     {
-                        await Task.Yield();
+                        await Task.Delay(1);
                         Console.Write(1);
                     }
                 }
@@ -2228,13 +2235,14 @@ class Program
         public void AsyncMainWithHandleAsyncEntryPoint_TaskOfInt()
         {
             var source = """
+                using System;
                 using System.Threading.Tasks;
 
                 class Program
                 {
                     static async Task<int> Main()
                     {
-                        await Task.Yield();
+                        await Task.Delay(1);
                         Console.Write(1);
                         return 42;
                     }
@@ -2262,13 +2270,14 @@ class Program
         public void AsyncMainFallbackToOldPattern_Task()
         {
             var source = """
+                using System;
                 using System.Threading.Tasks;
 
                 class Program
                 {
                     static async Task Main()
                     {
-                        await Task.Yield();
+                        await Task.Delay(1);
                         Console.Write(1);
                     }
                 }
@@ -2301,13 +2310,14 @@ class Program
         public void AsyncMainFallbackToOldPattern_TaskOfInt()
         {
             var source = """
+                using System;
                 using System.Threading.Tasks;
 
                 class Program
                 {
                     static async Task<int> Main()
                     {
-                        await Task.Yield();
+                        await Task.Delay(1);
                         Console.Write(1);
                         return 42;
                     }
@@ -2347,8 +2357,8 @@ class Program
                 {
                     static async System.Threading.Tasks.Task Main()
                     {
-                        await Task.Yield();
-                        Console.Write(1);
+                        await System.Threading.Tasks.Task.Delay(1);
+                        System.Console.Write(1);
                     }
                 }
 
@@ -2357,6 +2367,7 @@ class Program
                     public class Task
                     {
                         public System.Runtime.CompilerServices.TaskAwaiter GetAwaiter() => throw null;
+                        public static Task Delay(int millisecondsDelay) => throw null;
                     }
                 }
 
@@ -2416,8 +2427,8 @@ class Program
                 {
                     static async System.Threading.Tasks.Task<int> Main()
                     {
-                        await Task.Yield();
-                        Console.Write(1);
+                        await System.Threading.Tasks.Task.Delay(1);
+                        System.Console.Write(1);
                         return 42;
                     }
                 }
