@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly CSharpSyntaxNode _userMainReturnTypeSyntax;
 
             /// <summary>
-            /// Either a call to AsyncHelpers.HandleAsyncEntryPoint or a call to GetAwaiter/GetResult on the user-defined main method.
+            /// Either a call to AsyncHelpers.HandleAsyncEntryPoint or a call to GetAwaiter().GetResult() on the user-defined main method.
             /// </summary>
             private readonly BoundExpression _userEntryPointInvocation;
 
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             receiverOpt: null,
                             initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                             method: handleAsyncEntryPointMethod,
-                            arguments: ImmutableArray.Create<BoundExpression>(userMainInvocation),
+                            arguments: [userMainInvocation],
                             argumentNamesOpt: default(ImmutableArray<string>),
                             argumentRefKindsOpt: default(ImmutableArray<RefKind>),
                             isDelegateCall: false,
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    // Fall back to the old GetAwaiter/GetResult pattern
+                    // Fall back to the old GetAwaiter().GetResult() pattern
                     // The diagnostics that would be produced here will already have been captured and returned.
                     var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _userEntryPointInvocation!, runtimeAsyncAwaitCall: out _, _userMainReturnTypeSyntax, BindingDiagnosticBag.Discarded);
                 }

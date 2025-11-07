@@ -1338,7 +1338,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)InternalSpecialType.System_Threading_Tasks_Task,
 
-                // System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_T
+                // System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers,                                     // DeclaringTypeId
                 0,                                                                                                          // Arity
@@ -1512,7 +1512,7 @@ namespace Microsoft.CodeAnalysis
                 "AwaitAwaiter",                             // System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter
                 "UnsafeAwaitAwaiter",                       // System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
                 "HandleAsyncEntryPoint",                    // System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task
-                "HandleAsyncEntryPoint",                    // System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_T
+                "HandleAsyncEntryPoint",                    // System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

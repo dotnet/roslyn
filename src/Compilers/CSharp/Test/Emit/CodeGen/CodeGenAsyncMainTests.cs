@@ -2064,6 +2064,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(43, 25));
         }
 
+        // Removal is tracked by https://github.com/dotnet/roslyn/issues/81097.
         private const string MinimalAsyncCorelibWithAsyncHelpers = """
             namespace System
             {
@@ -2190,7 +2191,7 @@ class Program
             }
             """;
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
         public void AsyncMainWithHandleAsyncEntryPoint_Task()
         {
             var source = """
@@ -2200,15 +2201,18 @@ class Program
                 {
                     static async Task Main()
                     {
-                        await new Task();
+                        await Task.Yield();
+                        Console.Write(1);
                     }
                 }
                 """;
 
-            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
-            var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
 
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.<Main>()", """
                 {
                   // Code size       11 (0xb)
@@ -2220,7 +2224,7 @@ class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
         public void AsyncMainWithHandleAsyncEntryPoint_TaskOfInt()
         {
             var source = """
@@ -2230,16 +2234,19 @@ class Program
                 {
                     static async Task<int> Main()
                     {
-                        await new Task<int>();
+                        await Task.Yield();
+                        Console.Write(1);
                         return 42;
                     }
                 }
                 """;
 
-            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
-            var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
 
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output and return code
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.<Main>()", """
                 {
                   // Code size       11 (0xb)
@@ -2251,7 +2258,7 @@ class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
         public void AsyncMainFallbackToOldPattern_Task()
         {
             var source = """
@@ -2261,16 +2268,19 @@ class Program
                 {
                     static async Task Main()
                     {
-                        await new Task();
+                        await Task.Yield();
+                        Console.Write(1);
                     }
                 }
                 """;
 
             var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
-            var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task);
 
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
             // Verify it falls back to GetAwaiter().GetResult() pattern
             verifier.VerifyIL("Program.<Main>()", """
                 {
@@ -2287,7 +2297,7 @@ class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
         public void AsyncMainFallbackToOldPattern_TaskOfInt()
         {
             var source = """
@@ -2297,17 +2307,20 @@ class Program
                 {
                     static async Task<int> Main()
                     {
-                        await new Task<int>();
+                        await Task.Yield();
+                        Console.Write(1);
                         return 42;
                     }
                 }
                 """;
 
-            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
-            var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
             comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32);
 
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output and return code
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
             // Verify it falls back to GetAwaiter().GetResult() pattern
             verifier.VerifyIL("Program.<Main>()", """
                 {
@@ -2324,7 +2337,7 @@ class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
         public void AsyncMainFallbackToOldPattern_RedefinedTask()
         {
             var source = """
@@ -2334,7 +2347,8 @@ class Program
                 {
                     static async System.Threading.Tasks.Task Main()
                     {
-                        throw null;
+                        await Task.Yield();
+                        Console.Write(1);
                     }
                 }
 
@@ -2370,10 +2384,12 @@ class Program
                 }
                 """;
 
-            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
-            var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
 
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
             // Verify it falls back to GetAwaiter().GetResult() pattern
             verifier.VerifyIL("Program.<Main>()", """
                 {
@@ -2390,7 +2406,7 @@ class Program
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80873")]
         public void AsyncMainFallbackToOldPattern_RedefinedTaskT()
         {
             var source = """
@@ -2400,7 +2416,9 @@ class Program
                 {
                     static async System.Threading.Tasks.Task<int> Main()
                     {
-                        throw null;
+                        await Task.Yield();
+                        Console.Write(1);
+                        return 42;
                     }
                 }
 
@@ -2436,10 +2454,12 @@ class Program
                 }
                 """;
 
-            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").EmitToImageReference();
-            var comp = CreateEmptyCompilation(source, references: new[] { corlibRef }, options: TestOptions.DebugExe);
+            var corlibRef = CreateEmptyCompilation(MinimalAsyncCorelibWithAsyncHelpers, assemblyName: "mincorlib").VerifyDiagnostics().EmitToImageReference();
+            var comp = CreateEmptyCompilation(source, references: [corlibRef], options: TestOptions.DebugExe);
 
+            // https://github.com/dotnet/roslyn/issues/81097: Verify output and return code
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
             // Verify it falls back to GetAwaiter().GetResult() pattern
             verifier.VerifyIL("Program.<Main>()", """
                 {
