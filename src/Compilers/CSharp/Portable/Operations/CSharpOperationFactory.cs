@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
                 case BoundKind.ValuePlaceholder:
                     // The only supported use of BoundValuePlaceholder is within a collection expression as we use it
-                    // to represents the elements passed to the collection builder creation methods.  We can hit these
+                    // to represent the elements passed to the collection builder creation methods.  We can hit these
                     // creation methods when producing the .CreationArguments for the ICollectionExpressionOperation.
                     // Note: the caller will end up stripping this off when producing the CreationArguments, so it will
                     // not actually leak to the user.  But this ends up keeping the logic simple between that callsite
