@@ -1615,8 +1615,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            if (operation.CreationArguments.Length > 0)
-                VisitArray(operation.CreationArguments, nameof(operation.CreationArguments), logElementCount: true);
+            if (operation.ConstructArguments.Length > 0)
+                VisitArray(operation.ConstructArguments, nameof(operation.ConstructArguments), logElementCount: true);
 
             VisitArray(operation.Elements, nameof(operation.Elements), logElementCount: true);
         }

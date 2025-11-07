@@ -325,8 +325,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.ValuePlaceholder:
                     // The only supported use of BoundValuePlaceholder is within a collection expression as we use it to
                     // represent the elements passed to the collection builder creation methods.  We can hit these
-                    // creation methods when producing the .CreationArguments for the ICollectionExpressionOperation.
-                    // Note: the caller will end up stripping this off when producing the CreationArguments, so it will
+                    // creation methods when producing the .ConstructArguments for the ICollectionExpressionOperation.
+                    // Note: the caller will end up stripping this off when producing the ConstructArguments, so it will
                     // not actually leak to the user.  But this ends up keeping the logic simple between that callsite
                     // and this code which actually hits all the arguments passed along. Because we never actually
                     // expose this placeholder in the IOp tree, it's fine to use .Unspecified as its kind here.
