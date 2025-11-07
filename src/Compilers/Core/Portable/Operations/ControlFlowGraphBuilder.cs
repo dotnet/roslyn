@@ -6542,7 +6542,7 @@ oneMoreTime:
         public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
         {
             EvalStackFrame frame = PushStackFrame();
-            var creationArguments = VisitArguments(operation.CreationArguments, instancePushed: false);
+            var creationArguments = VisitArguments(operation.ConstructArguments, instancePushed: false);
             PopStackFrame(frame);
 
             frame = PushStackFrame();

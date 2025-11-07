@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitCollectionExpression(ICollectionExpressionOperation operation)
         {
             Assert.Equal(OperationKind.CollectionExpression, operation.Kind);
-            AssertEx.Equal([.. operation.CreationArguments, .. operation.Elements], operation.ChildOperations);
+            AssertEx.Equal([.. operation.ConstructArguments, .. operation.Elements], operation.ChildOperations);
         }
 
         public override void VisitSpread(ISpreadOperation operation)
