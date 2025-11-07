@@ -291,21 +291,21 @@ interface Base{}
                 // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1),
-                // (4,7): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(4, 7)
                 );
 
             comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (4,7): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(4, 7)
                 );
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (4,7): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(4, 7)
                 );
@@ -352,21 +352,21 @@ interface Base{}
                 // (3,1): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // ()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 1),
-                // (4,7): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(4, 7)
                 );
 
             comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (4,7): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(4, 7)
                 );
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (4,7): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // (4,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(4, 7)
                 );
