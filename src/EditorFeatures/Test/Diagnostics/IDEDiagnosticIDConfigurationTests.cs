@@ -81,7 +81,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             return;
         }
 
-        if (diagnosticId == "EnableGenerateDocumentationFile")
+        if (diagnosticId == FileBasedPrograms.FileLevelDirectiveDiagnosticAnalyzer.DiagnosticId)
         {
             Assert.Equal("https://github.com/dotnet/roslyn/issues/41640", helpLinkUri);
             return;

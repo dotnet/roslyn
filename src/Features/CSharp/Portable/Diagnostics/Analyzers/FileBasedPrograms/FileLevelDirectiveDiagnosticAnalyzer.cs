@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed class FileLevelDirectiveDiagnosticAnalyzer()
     : AbstractCodeQualityDiagnosticAnalyzer(
-        descriptors: [Rule],
+        descriptors: [s_descriptor],
         generatedCodeAnalysisFlags: GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics)
 {
     public const string DiagnosticId = "FileBasedPrograms";
 
-    private static readonly DiagnosticDescriptor Rule = CreateDescriptor(
+    private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptor(
                 id: DiagnosticId,
                 enforceOnBuild: EnforceOnBuild.Never,
                 title: DiagnosticId,
@@ -59,7 +59,7 @@ internal sealed class FileLevelDirectiveDiagnosticAnalyzer()
             foreach (var simpleDiagnostic in diagnosticsBuilder)
             {
                 context.ReportDiagnostic(Diagnostic.Create(
-                    Rule,
+                    s_descriptor,
                     location: Location.Create(tree, simpleDiagnostic.Location.TextSpan),
                     simpleDiagnostic.Message));
             }
