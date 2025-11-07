@@ -3702,7 +3702,7 @@
         <summary>
           Arguments passed to a <c>with(...)</c> element on the collection expression, if any.
           If the collection expression does not have a <c>with(...)</c> element, or does not allow
-          any arguments, this can be an empty array.
+          any arguments, this can be an empty array. Will never be null.
         </summary>
       </Comments>
     </Property>
