@@ -1756,6 +1756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundArrayAccess => null,
                 BoundDynamicIndexerAccess => null,
                 BoundBadExpression => null,
+                BoundPointerElementAccess => null,
                 _ => throw ExceptionUtilities.UnexpectedValue(e.Kind)
             };
         }
