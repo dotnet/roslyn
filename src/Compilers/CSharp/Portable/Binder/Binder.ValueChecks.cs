@@ -3895,7 +3895,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
-                    return GetRefEscape(assignment.Left, localScopeDepth);
+                    // The result of a ref assignment is its right-hand side.
+                    return GetRefEscape(assignment.Right, localScopeDepth);
 
                 case BoundKind.Conversion:
                     Debug.Assert(expr is BoundConversion conversion &&
@@ -4229,9 +4230,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                    // The result of a ref assignment is its right-hand side.
                     return CheckRefEscape(
                         node,
-                        assignment.Left,
+                        assignment.Right,
                         escapeFrom,
                         escapeTo,
                         checkingReceiver: false,
@@ -4616,14 +4618,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(conversion.Operand, localScopeDepth);
 
                 case BoundKind.AssignmentOperator:
-                    // https://github.com/dotnet/roslyn/issues/73549:
-                    // We do not have a test that demonstrates that the statement below makes a difference.
-                    // If 'localScopeDepth' is always returned, not a single test fails.
-                    // Same for the 'case BoundKind.NullCoalescingAssignmentOperator:' below.
+                    // The result of an assignment is its right-hand side.
                     return GetValEscape(((BoundAssignmentOperator)expr).Right, localScopeDepth);
 
                 case BoundKind.NullCoalescingAssignmentOperator:
-                    return GetValEscape(((BoundNullCoalescingAssignmentOperator)expr).RightOperand, localScopeDepth);
+                    var nullCoalescingAssignment = (BoundNullCoalescingAssignmentOperator)expr;
+                    return GetValEscape(nullCoalescingAssignment.LeftOperand, localScopeDepth)
+                        .Intersect(GetValEscape(nullCoalescingAssignment.RightOperand, localScopeDepth));
 
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;
@@ -5377,11 +5378,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expr;
-                    return CheckValEscape(node, assignment.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    // The result of an assignment is its right-hand side.
+                    return CheckValEscape(node, assignment.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.NullCoalescingAssignmentOperator:
                     var nullCoalescingAssignment = (BoundNullCoalescingAssignmentOperator)expr;
-                    return CheckValEscape(node, nullCoalescingAssignment.LeftOperand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    return CheckValEscape(node, nullCoalescingAssignment.LeftOperand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
+                        CheckValEscape(node, nullCoalescingAssignment.RightOperand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;

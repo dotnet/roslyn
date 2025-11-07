@@ -773,10 +773,26 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         {
             foreach (var attribute in symbol.GetAttributes())
             {
-                if (attribute.AttributeClass == _debuggerDisplayAttributeType &&
-                    attribute.ConstructorArguments is [{ Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string value }])
+                if (attribute.AttributeClass == _debuggerDisplayAttributeType)
                 {
-                    builder.Add(value);
+                    // Add the constructor argument (Value parameter)
+                    if (attribute.ConstructorArguments is [{ Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string value }])
+                    {
+                        builder.Add(value);
+                    }
+
+                    // Add the Name and Type named parameters
+                    foreach (var namedArgument in attribute.NamedArguments)
+                    {
+                        if (namedArgument is
+                            {
+                                Key: "Name" or "Type",
+                                Value: { Kind: TypedConstantKind.Primitive, Type.SpecialType: SpecialType.System_String, Value: string namedValue },
+                            })
+                        {
+                            builder.Add(namedValue);
+                        }
+                    }
                 }
             }
         }

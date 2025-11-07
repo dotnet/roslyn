@@ -237,6 +237,11 @@
         <target state="translated">コード分析が、'{0}' の完了前に終了しました。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_preview">
+        <source>Code preview</source>
+        <target state="new">Code preview</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">定義に折りたたむときにローカル関数を折りたたむ</target>
@@ -1295,6 +1300,11 @@
       <trans-unit id="Search_found_no_results_no_csharp_or_vb_projects_opened">
         <source>Search found no results: no C# or Visual Basic projects are opened</source>
         <target state="translated">検索結果が見つかりませんでした: C# または Visual Basic プロジェクトが開いていません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_members">
+        <source>Search members</source>
+        <target state="new">Search members</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">

@@ -21748,12 +21748,12 @@ file class C
                     {
                         g.VerifyTypeDefNames(
                             "<Module>",
+                            "<>y__InlineArray3`1",
                             "MyCollection`1",
                             "MyCollectionBuilder",
                             "C",
                             "CollectionBuilderAttribute",
-                            "<PrivateImplementationDetails>",
-                            "<>y__InlineArray3`1");
+                            "<PrivateImplementationDetails>");
 
                         g.VerifyMethodDefNames(
                             ".ctor",
@@ -21781,7 +21781,7 @@ file class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "<>y__InlineArray4#1`1");
+                        g.VerifyTypeDefNames("<>y__InlineArray4#1`1", "<PrivateImplementationDetails>#1");
                         g.VerifyMethodDefNames("F", "InlineArrayAsReadOnlySpan", "InlineArrayElementRef");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -21789,12 +21789,12 @@ file class C
                             Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(8, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(9, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                            Row(9, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(3, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(9, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(9, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(11, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                             Row(9, TableIndex.Param, EditAndContinueOperation.Default),
@@ -21852,7 +21852,7 @@ file class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#2", "<>y__InlineArray4#2`1");
+                        g.VerifyTypeDefNames("<>y__InlineArray4#2`1", "<PrivateImplementationDetails>#2");
                         g.VerifyMethodDefNames("F", "InlineArrayAsReadOnlySpan", "InlineArrayElementRef");
 
                         g.VerifyEncLogDefinitions(new[]
@@ -21860,12 +21860,12 @@ file class C
                             Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(10, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(11, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                            Row(11, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(10, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(4, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(10, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(11, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(10, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(11, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(13, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                             Row(13, TableIndex.Param, EditAndContinueOperation.Default),
@@ -21929,13 +21929,10 @@ file class C
                     {
                         g.VerifyTypeDefNames(
                             "<Module>",
-                            "C",
-                            "<PrivateImplementationDetails>",
-                            "<>z__ReadOnlyArray`1");
+                            "<>z__ReadOnlyArray`1",
+                            "C");
 
                         g.VerifyMethodDefNames(
-                            "F",
-                            ".ctor",
                             ".ctor",
                             "System.Collections.IEnumerable.GetEnumerator",
                             "System.Collections.ICollection.get_Count",
@@ -21967,7 +21964,10 @@ file class C
                             "System.Collections.Generic.IList<T>.set_Item",
                             "System.Collections.Generic.IList<T>.IndexOf",
                             "System.Collections.Generic.IList<T>.Insert",
-                            "System.Collections.Generic.IList<T>.RemoveAt");
+                            "System.Collections.Generic.IList<T>.RemoveAt",
+                            "F",
+                            ".ctor"
+                            );
                     })
 
                 .AddGeneration(
@@ -21984,7 +21984,7 @@ file class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "<>z__ReadOnlyArray#1`1");
+                        g.VerifyTypeDefNames("<>z__ReadOnlyArray#1`1");
                         g.VerifyMethodDefNames(
                             "F",
                             ".ctor",
@@ -22036,7 +22036,7 @@ file class C
                     },
                     validator: g =>
                     {
-                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#2", "<>z__ReadOnlyList#2`1");
+                        g.VerifyTypeDefNames("<>z__ReadOnlyList#2`1");
                         g.VerifyMethodDefNames(
                             "F",
                             ".ctor",

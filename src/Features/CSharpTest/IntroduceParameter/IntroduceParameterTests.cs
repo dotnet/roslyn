@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.IntroduceParameter;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceParameter;
@@ -1816,6 +1817,61 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 {
                     [||]Console.WriteLine();
                 }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81013")]
+    public Task TestNotOnAnonymousObjectMemberName()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                object M() => new
+                {
+                    [|a|] = new { },
+                };
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81013")]
+    public Task TestNotOnAnonymousObjectMemberNameWithValue()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                object M() => new
+                {
+                    [|x|] = 5,
+                };
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81013")]
+    public Task TestNotOnObjectInitializerMemberName()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Goo { public int X { get; set; } }
+            class C
+            {
+                Goo M() => new Goo
+                {
+                    [|X|] = 5,
+                };
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81013")]
+    public Task TestNotOnObjectInitializerMemberNameNested()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Goo { public int X { get; set; } public Goo Inner { get; set; } }
+            class C
+            {
+                Goo M() => new Goo
+                {
+                    [|X|] = 5,
+                    Inner = new Goo { X = 10 }
+                };
             }
             """);
 }
