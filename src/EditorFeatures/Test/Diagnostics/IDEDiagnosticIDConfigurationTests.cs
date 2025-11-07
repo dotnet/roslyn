@@ -81,13 +81,13 @@ public sealed class IDEDiagnosticIDConfigurationTests
             return;
         }
 
-        if (diagnosticId == FileBasedPrograms.FileLevelDirectiveDiagnosticAnalyzer.DiagnosticId)
+        if (diagnosticId == "EnableGenerateDocumentationFile")
         {
             Assert.Equal("https://github.com/dotnet/roslyn/issues/41640", helpLinkUri);
             return;
         }
 
-        if (diagnosticId == "FileBasedPrograms")
+        if (diagnosticId == FileBasedPrograms.FileLevelDirectiveDiagnosticAnalyzer.DiagnosticId)
         {
             Assert.Equal("https://learn.microsoft.com/dotnet/csharp/language-reference/preprocessor-directives#file-based-apps", helpLinkUri);
             return;
