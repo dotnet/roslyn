@@ -309,6 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol elementType;
             BoundExpression? indexerAccess;
             BoundExpression? lengthAccess;
+            TypeSymbol narrowedType = inputType.StrippedType();
             BoundListPatternReceiverPlaceholder? receiverPlaceholder;
             BoundListPatternIndexPlaceholder? argumentPlaceholder;
 
@@ -316,8 +317,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
             }
-
-            TypeSymbol narrowedType = inputType.StrippedType();
 
             if (inputType.IsErrorType() || inputType.IsDynamic())
             {
