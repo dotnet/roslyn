@@ -72,71 +72,111 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Theory]
-        [InlineData("class", "class")]
-        [InlineData("struct", "interface")]
-        public void LanguageVersion_02(string typeKeyword, string baseKeyword)
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.CSharp12)]
+        [InlineData(LanguageVersion.Preview)]
+        public void LanguageVersion_02_ClassClass(LanguageVersion languageVersion)
         {
             var src1 = @"
-" + typeKeyword + @" Point :
+class Point :
 Base()
 {}
 
-" + baseKeyword + @" Base{}
+class Base{}
 ";
-            // For class inheriting from class without parameter list, we get the new specific error
-            // For other combinations (struct from interface), we get the generic error
-            var isClassInheritingFromClass = typeKeyword == "class" && baseKeyword == "class";
-            var errorCode = isClassInheritingFromClass
-                ? ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList
-                : ErrorCode.ERR_UnexpectedArgumentList;
 
-            var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseDll);
-            if (isClassInheritingFromClass)
-            {
-                comp.VerifyDiagnostics(
-                    // (3,5): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration. Consider adding an empty parameter list to 'Point'.
+            CreateCompilation(src1, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll)
+                .VerifyDiagnostics(
+                    // (3,5): error CS9343: Cannot pass arguments to the base type without a parameter list on the type declaration.
                     // Base()
-                    Diagnostic(errorCode, "()").WithArguments("Point").WithLocation(3, 5));
-            }
-            else
-            {
-                comp.VerifyDiagnostics(
+                    Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "()").WithLocation(3, 5));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.CSharp12)]
+        [InlineData(LanguageVersion.Preview)]
+        public void LanguageVersion_02_ClassInterface(LanguageVersion languageVersion)
+        {
+            var src1 = """
+                class Point :
+                Base()
+                {}
+
+                interface Base{}
+                """;
+
+            CreateCompilation(src1, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll)
+                .VerifyDiagnostics(
+                    // (2,5): error CS8861: Unexpected argument list.
+                    // Base()
+                    Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(2, 5));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.CSharp12)]
+        [InlineData(LanguageVersion.Preview)]
+        public void LanguageVersion_02_StructInterface(LanguageVersion languageVersion)
+        {
+            var src1 = """
+                struct Point :
+                Base()
+                {}
+
+                interface Base{}
+                """;
+
+            CreateCompilation(src1, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll)
+                .VerifyDiagnostics(
                     // (3,5): error CS8861: Unexpected argument list.
                     // Base()
-                    Diagnostic(errorCode, "()").WithLocation(3, 5));
-            }
+                    Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(2, 5));
+        }
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll);
-            if (isClassInheritingFromClass)
-            {
-                comp.VerifyDiagnostics(
-                    // (3,5): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration. Consider adding an empty parameter list to 'Point'.
-                    // Base()
-                    Diagnostic(errorCode, "()").WithArguments("Point").WithLocation(3, 5));
-            }
-            else
-            {
-                comp.VerifyDiagnostics(
-                    // (3,5): error CS8861: Unexpected argument list.
-                    // Base()
-                    Diagnostic(errorCode, "()").WithLocation(3, 5));
-            }
+        [Theory]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.CSharp12)]
+        [InlineData(LanguageVersion.Preview)]
+        public void LanguageVersion_02_StructClass(LanguageVersion languageVersion)
+        {
+            var src1 = """
+                struct Point :
+                Base()
+                {}
 
-            comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
-            if (isClassInheritingFromClass)
-            {
-                comp.VerifyDiagnostics(
-                    // (3,5): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration. Consider adding an empty parameter list to 'Point'.
+                class Base{}
+                """;
+
+            CreateCompilation(src1, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll)
+                .VerifyDiagnostics(
+                    // (2,1): error CS0527: Type 'Base' in interface list is not an interface
                     // Base()
-                    Diagnostic(errorCode, "()").WithArguments("Point").WithLocation(3, 5));
-            }
-            else
-            {
-                comp.VerifyDiagnostics(
-                    // (3,5): error CS8861: Unexpected argument list.
+                    Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Base").WithArguments("Base").WithLocation(2, 1),
+                    // (2,5): error CS8861: Unexpected argument list.
                     // Base()
-                    Diagnostic(errorCode, "()").WithLocation(3, 5));
-            }
+                    Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(2, 5));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.CSharp12)]
+        [InlineData(LanguageVersion.Preview)]
+        public void LanguageVersion_02_ClassStruct(LanguageVersion languageVersion)
+        {
+            var src1 = """
+                class Point :
+                Base()
+                {}
+
+                struct Base{}
+                """;
+
+            CreateCompilation(src1, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll)
+                .VerifyDiagnostics(
+                    // (2,1): error CS0509: 'Point': cannot derive from sealed type 'Base'
+                    // Base()
+                    Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "Base").WithArguments("Point", "Base").WithLocation(2, 1));
         }
 
         [Theory]

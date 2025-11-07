@@ -644,9 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         baseType.TypeKind != TypeKind.Interface &&
                         decl.SyntaxReference.GetSyntax() is TypeDeclarationSyntax { ParameterList: null })
                     {
-                        diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList,
-                            primaryConstructorBaseType.ArgumentList.Location,
-                            this.Name);
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, primaryConstructorBaseType.ArgumentList.Location);
                     }
                     // Other cases where argument lists are not allowed
                     else if (TypeKind != TypeKind.Class || baseType.TypeKind == TypeKind.Interface)
