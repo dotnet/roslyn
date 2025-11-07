@@ -26,7 +26,11 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
     {
         try
         {
-            var resolvedPath = File.ResolveLinkTarget(path, returnFinalTarget: true);
+            // Our test infra uses `subst` which the .NET Core's implementation of `ResolveLinkTarget` wouldn't resolve,
+            // hence we always use our Win32 polyfill on Windows to ensure paths are fully normalized and can be compared in tests.
+            var resolvedPath = PlatformInformation.IsWindows
+                ? NativeMethods.ResolveLinkTargetWin32(path, returnFinalTarget: true)
+                : File.ResolveLinkTarget(path, returnFinalTarget: true);
             if (resolvedPath != null)
             {
                 return resolvedPath.FullName;
@@ -102,7 +106,7 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
 }
 
 #if !NET
-file static class NativeMethods
+file static class TestNativeMethods
 {
     extension(File)
     {

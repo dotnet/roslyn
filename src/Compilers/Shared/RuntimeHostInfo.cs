@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception ex)
             {
-                logger?.Invoke("Failed to resolve symbolic link for dotnet path '{0}': {1}", [dotNetPath, ex.Message]);
+                logger?.Invoke("Failed to resolve symbolic link for dotnet path '{0}': {1}", [dotNetPath, ex]);
                 return null;
             }
 
