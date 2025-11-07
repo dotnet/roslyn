@@ -2584,13 +2584,13 @@ struct R3(int X) : Error3
                 // (2,20): error CS0246: The type or namespace name 'Error1' could not be found (are you missing a using directive or an assembly reference?)
                 // struct R1(int X) : Error1(0, 1)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error1").WithArguments("Error1").WithLocation(2, 20),
-                // (2,26): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // (2,26): error CS8861: Unexpected argument list.
                 // struct R1(int X) : Error1(0, 1)
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0, 1)").WithLocation(2, 26),
                 // (5,20): error CS0246: The type or namespace name 'Error2' could not be found (are you missing a using directive or an assembly reference?)
                 // struct R2(int X) : Error2()
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error2").WithArguments("Error2").WithLocation(5, 20),
-                // (5,26): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // (5,26): error CS8861: Unexpected argument list.
                 // struct R2(int X) : Error2()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(5, 26),
                 // (8,20): error CS0246: The type or namespace name 'Error3' could not be found (are you missing a using directive or an assembly reference?)
@@ -2736,10 +2736,10 @@ class  R2 : I(0)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (6,13): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // (6,13): error CS8861: Unexpected argument list.
                 // class  R : I()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(6, 13),
-                // (10,14): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
+                // (10,14): error CS8861: Unexpected argument list.
                 // class  R2 : I(0)
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(10, 14)
                 );
