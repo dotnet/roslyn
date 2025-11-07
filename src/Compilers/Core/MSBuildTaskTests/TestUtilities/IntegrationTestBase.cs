@@ -187,7 +187,7 @@ public abstract class IntegrationTestBase : TestBase
         Assert.Contains(ExecutionConditionUtil.IsWindows ? "vbc.exe" : "vbc", result.Output);
     }
 
-    [Theory, PairwiseData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
     public void StdLib_Csc(bool useSharedCompilation, bool disableSdkPath, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
@@ -240,7 +240,7 @@ public abstract class IntegrationTestBase : TestBase
         Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
     }
 
-    [Theory, PairwiseData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
     public void StdLib_Vbc(bool useSharedCompilation, bool disableSdkPath, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
@@ -296,7 +296,7 @@ public abstract class IntegrationTestBase : TestBase
     /// Verifies that both RSPs are included: the default <c>csc.rsp</c> (which has <c>/r:System.Data.OracleClient</c>),
     /// and the custom RSP (which has <c>/warnaserror+</c> so we get an error for using an obsolete type).
     /// </summary>
-    [Theory, PairwiseData]
+    [Theory, CombinatorialData]
     public void CustomRsp_Csc(bool includeCustomRsp, bool useSharedCompilation, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
@@ -340,7 +340,7 @@ public abstract class IntegrationTestBase : TestBase
     }
 
     /// <inheritdoc cref="CustomRsp_Csc"/>
-    [Theory, PairwiseData]
+    [Theory, CombinatorialData]
     public void CustomRsp_Vbc(bool includeCustomRsp, bool useSharedCompilation, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
