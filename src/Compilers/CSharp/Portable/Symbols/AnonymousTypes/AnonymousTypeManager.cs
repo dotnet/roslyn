@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (diagnostics.AccumulatesDependencies)
             {
-                var depencies = BindingDiagnosticBag.GetInstance(withDependencies: true, withDiagnostics: false);
-                ReportMissingOrErroneousSymbols(depencies);
-                diagnostics.AddRange(depencies);
-                depencies.Free();
+                var dependencies = BindingDiagnosticBag.GetInstance(withDependencies: true, withDiagnostics: false);
+                ReportMissingOrErroneousSymbols(dependencies);
+                diagnostics.AddRange(dependencies);
+                dependencies.Free();
             }
 
             return new AnonymousTypePublicSymbol(this, typeDescr);
