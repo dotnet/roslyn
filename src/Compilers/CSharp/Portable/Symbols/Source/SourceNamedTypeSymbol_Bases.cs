@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentList, primaryConstructorBaseType.ArgumentList.Location);
                     }
-                    else if (decl.SyntaxReference.GetSyntax() is TypeDeclarationSyntax { ParameterList: null })
+                    else if (((TypeDeclarationSyntax)decl.SyntaxReference.GetSyntax()).ParameterList is null)
                     {
                         diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, primaryConstructorBaseType.ArgumentList.Location);
                     }
