@@ -639,17 +639,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (baseTypeSyntax is PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
                 {
-                    // Check if this is a class inheriting from a class but missing a parameter list
-                    if (TypeKind == TypeKind.Class &&
-                        baseType.TypeKind != TypeKind.Interface &&
-                        decl.SyntaxReference.GetSyntax() is TypeDeclarationSyntax { ParameterList: null })
-                    {
-                        diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, primaryConstructorBaseType.ArgumentList.Location);
-                    }
-                    // Other cases where argument lists are not allowed
-                    else if (TypeKind != TypeKind.Class || baseType.TypeKind == TypeKind.Interface)
+                    if (TypeKind != TypeKind.Class || baseType.TypeKind == TypeKind.Interface)
                     {
                         diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentList, primaryConstructorBaseType.ArgumentList.Location);
+                    }
+                    else if (decl.SyntaxReference.GetSyntax() is TypeDeclarationSyntax { ParameterList: null })
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, primaryConstructorBaseType.ArgumentList.Location);
                     }
                 }
             }
