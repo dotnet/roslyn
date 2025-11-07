@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.Extensions.Logging;
 using Roslyn.Test.Utilities;
@@ -231,11 +232,17 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
 
             var logger = new Microsoft.Build.Logging.BinaryLogger { Parameters = binlogPath };
             var project = await workspace.OpenProjectAsync(projectFilePath, msbuildLogger: logger, cancellationToken: CancellationToken.None);
+            var analyzerLoadDiagnostics = new List<AnalyzerLoadFailureEventArgs>();
+
+            foreach (var analyzerReference in project.AnalyzerReferences.OfType<AnalyzerFileReference>())
+                analyzerReference.AnalyzerLoadFailed += (sender, e) => analyzerLoadDiagnostics.Add(e);
 
             AssertEx.Empty(workspace.Diagnostics, $"The following workspace diagnostics are being reported for the template.");
 
             var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
             AssertEx.Empty(await project.GetSourceGeneratorDiagnosticsAsync(CancellationToken.None), $"The following source generator diagnostics are being reported for the template.");
+
+            AssertEx.Empty(analyzerLoadDiagnostics.Select(static d => $"{d.ErrorCode}: {d.Message}"));
 
             // Unnecessary using directives are reported with a severity of Hidden
             var nonHiddenDiagnostics = compilation.GetDiagnostics()
