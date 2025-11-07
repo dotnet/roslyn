@@ -21535,7 +21535,7 @@ record C : Base(X, Y)
             comp.VerifyEmitDiagnostics(
                 // (13,16): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithArguments("C").WithLocation(13, 16)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(13, 16)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21581,7 +21581,7 @@ partial record C : Base(X, Y)
             comp.VerifyEmitDiagnostics(
                 // (17,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithArguments("C").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21634,10 +21634,10 @@ partial record C : Base(X, Y)
             comp.VerifyEmitDiagnostics(
                 // (13,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithArguments("C").WithLocation(13, 24),
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(13, 24),
                 // (17,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithArguments("C").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21696,7 +21696,7 @@ partial record C : Base(X, Y)
             comp.VerifyEmitDiagnostics(
                 // (17,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithArguments("C").WithLocation(17, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(17, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21785,7 +21785,7 @@ partial record C(int X, int Y) : Base(X, Y)
             comp.VerifyEmitDiagnostics(
                 // (13,24): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // partial record C : Base(X, Y)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithArguments("C").WithLocation(13, 24)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X, Y)").WithLocation(13, 24)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -21984,7 +21984,7 @@ record C : Base(X)
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("Base", "0").WithLocation(11, 8),
                 // (11,16): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // record C : Base(X)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X)").WithArguments("C").WithLocation(11, 16)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(X)").WithLocation(11, 16)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -22501,7 +22501,7 @@ interface I {}
             comp.VerifyDiagnostics(
                 // (11,16): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // record C : Base(GetInt(X, out var xx) + xx, Y), I
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(GetInt(X, out var xx) + xx, Y)").WithArguments("C").WithLocation(11, 16),
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(GetInt(X, out var xx) + xx, Y)").WithLocation(11, 16),
                 // (13,30): error CS1729: 'Base' does not contain a constructor that takes 4 arguments
                 //     C(int X, int Y, int Z) : base(X, Y, Z, 1) { return; }
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("Base", "4").WithLocation(13, 30)
@@ -30267,7 +30267,7 @@ record R2 : I(0)
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "R2").WithArguments("R1", "0").WithLocation(2, 8),
                 // (2,15): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // record R2 : R1(1);
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(1)").WithArguments("R2").WithLocation(2, 15));
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(1)").WithLocation(2, 15));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]
@@ -30284,7 +30284,7 @@ record R2 : I(0)
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "R2").WithArguments("R1", "0").WithLocation(2, 14),
                 // (2,21): error CS9339: Cannot pass arguments to the base type without a parameter list on the type declaration.
                 // record class R2 : R1(42);
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(42)").WithArguments("R2").WithLocation(2, 21));
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "(42)").WithLocation(2, 21));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48243")]

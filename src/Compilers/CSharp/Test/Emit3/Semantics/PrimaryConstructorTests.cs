@@ -389,12 +389,12 @@ class Base{}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, ";").WithArguments("primary constructors", "12.0").WithLocation(3, 1));
 
             CreateCompilation(src1, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (3,7): error CS8861: Unexpected argument list.
+                // (2,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(2, 7));
 
             CreateCompilation(src1, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (3,7): error CS8861: Unexpected argument list.
+                // (2,7): error CS8861: Unexpected argument list.
                 // : Base()
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "()").WithLocation(2, 7));
         }
