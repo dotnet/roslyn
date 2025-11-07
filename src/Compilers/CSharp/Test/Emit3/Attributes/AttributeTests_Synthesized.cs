@@ -2015,7 +2015,7 @@ class Test
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Ex");
                 var typeMembers = type.GetTypeMembers();
-                AssertEx.Equal(["Ex.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$119AA281C143547563250CAF89B48A76", "Ex.<>c"], typeMembers.SelectAsArray(t => t.ToTestDisplayString()));
+                AssertEx.SequenceEqual(["Ex.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$119AA281C143547563250CAF89B48A76", "Ex.<>c"], typeMembers.ToTestDisplayStrings());
                 var asyncLambda = typeMembers[1].GetMember<MethodSymbol>("<F>b__1_0");
                 Assert.Empty(asyncLambda.GetAttributes());
             });
