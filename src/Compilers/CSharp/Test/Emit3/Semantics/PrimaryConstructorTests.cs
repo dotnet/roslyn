@@ -92,6 +92,39 @@ class Base{}
                     Diagnostic(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, "()").WithLocation(3, 5));
         }
 
+        [Fact]
+        public void TestEnumClass()
+        {
+            var src1 = """
+                enum Point :
+                Base()
+                {}
+
+                class Base{}
+                """;
+
+            CreateCompilation(src1).VerifyDiagnostics(
+                // (3,1): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                // Base()
+                Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "Base").WithLocation(2, 1),
+                // (3,5): error CS1514: { expected
+                // Base()
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 5),
+                // (3,5): error CS1513: } expected
+                // Base()
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 5),
+                // (3,5): error CS8803: Top-level statements must precede namespace and type declarations.
+                // Base()
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"()
+").WithLocation(2, 5),
+                // (3,6): error CS1525: Invalid expression term ')'
+                // Base()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 6),
+                // (3,7): error CS1002: ; expected
+                // Base()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 7));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp11)]
         [InlineData(LanguageVersion.CSharp12)]
