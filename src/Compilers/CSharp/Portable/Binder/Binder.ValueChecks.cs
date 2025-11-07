@@ -3942,8 +3942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_localScopeDepth.IsConvertibleTo(escapeTo))
             {
-                // 'expr' will never have a *ref-safe-context* narrower than '_localScopeDepth'.
-                // So, its *ref-safe-context* is definitely convertible to 'escapeTo'.
+                Debug.Assert(GetRefEscape(expr).IsConvertibleTo(escapeTo));
                 return true;
             }
 
@@ -4950,8 +4949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_localScopeDepth.IsConvertibleTo(escapeTo))
             {
-                // 'expr' will never have a *safe-context* narrower than '_localScopeDepth'.
-                // So, its *safe-context* is definitely convertible to 'escapeTo'.
+                Debug.Assert(GetValEscape(expr).IsConvertibleTo(escapeTo));
                 return true;
             }
 
