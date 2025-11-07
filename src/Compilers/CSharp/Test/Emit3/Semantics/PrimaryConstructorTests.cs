@@ -2514,7 +2514,8 @@ struct C(int X) : Base(X)
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Base").WithArguments("Base").WithLocation(10, 19),
                 // (10,23): error CS8861: Unexpected argument list.
                 // struct C(int X) : Base(X)
-                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(10, 23));
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(X)").WithLocation(10, 23)
+                );
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
