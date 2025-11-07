@@ -3942,7 +3942,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_localScopeDepth.IsConvertibleTo(escapeTo))
             {
-                // escaping to same or narrower scope is ok.
+                // 'expr' will never have a *ref-safe-context* narrower than '_localScopeDepth'.
+                // So, its *ref-safe-context* is definitely convertible to 'escapeTo'.
                 return true;
             }
 
@@ -4950,9 +4951,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_localScopeDepth.IsConvertibleTo(escapeTo))
             {
-                // '_localScopeDepth' is the narrowest scope that this expression could possibly have.
-                // (if it were any narrower, the expression would hold reference to non-live variables.)
-                // So, if '_localScopeDepth' is convertible to 'escapeTo', then any SafeContext this expression could possibly have, is convertible to 'escapeTo'.
+                // 'expr' will never have a *safe-context* narrower than '_localScopeDepth'.
+                // So, its *safe-context* is definitely convertible to 'escapeTo'.
                 return true;
             }
 
