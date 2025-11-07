@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -16,6 +18,29 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
 {
     private readonly ITestOutputHelper _output = output;
 
+    /// <summary>
+    /// Normalizes a path by resolving any symbolic links or subst drives (on Windows).
+    /// This ensures paths can be compared even when one is a subst drive (e.g., T:\ -> D:\a\_work\1\s\artifacts\tmp\Debug).
+    /// </summary>
+    private string NormalizePath(string path)
+    {
+        try
+        {
+            var resolvedPath = File.ResolveLinkTarget(path, returnFinalTarget: true);
+            if (resolvedPath != null)
+            {
+                return resolvedPath.FullName;
+            }
+        }
+        catch (Exception ex)
+        {
+            // If resolution fails, use the original path
+            _output.WriteLine($"Failed to resolve symbolic link for path '{path}': {ex}");
+        }
+
+        return path;
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
     public void DotNetInPath()
     {
@@ -24,31 +49,30 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
         var globalDotNetDir = testDir.CreateDirectory("global-dotnet");
         var globalDotNetExe = globalDotNetDir.CreateFile($"dotnet{PlatformInformation.ExeExtension}");
 
-        ApplyEnvironmentVariables(
+        var result = ApplyEnvironmentVariables(
         [
             new("PATH", globalDotNetDir.Path),
             new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
             new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
         ],
-        () =>
-        {
-            AssertEx.Equal(globalDotNetDir.Path, RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
-        });
+        () => RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
+
+        Assert.NotNull(result);
+        AssertEx.Equal(NormalizePath(globalDotNetDir.Path), result);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
     public void DotNetInPath_None()
     {
-        ApplyEnvironmentVariables(
+        var result = ApplyEnvironmentVariables(
         [
             new("PATH", ""),
             new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
             new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
         ],
-        () =>
-        {
-            Assert.Null(RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
-        });
+        () => RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
+
+        Assert.Null(result);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
@@ -64,16 +88,16 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
         // Create symlink from binDir to the actual dotnet executable
         File.CreateSymbolicLink(path: symlinkPath, pathToTarget: globalDotNetExe.Path);
 
-        ApplyEnvironmentVariables(
+        var result = ApplyEnvironmentVariables(
         [
             new("PATH", binDir.Path),
             new(RuntimeHostInfo.DotNetHostPathEnvironmentName, ""),
             new(RuntimeHostInfo.DotNetExperimentalHostPathEnvironmentName, ""),
         ],
-        () =>
-        {
-            AssertEx.Equal(globalDotNetDir.Path, RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
-        });
+        () => RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
+
+        Assert.NotNull(result);
+        AssertEx.Equal(NormalizePath(globalDotNetDir.Path), result);
     }
 }
 

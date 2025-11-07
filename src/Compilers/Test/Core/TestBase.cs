@@ -361,19 +361,6 @@ namespace Roslyn.Test.Utilities
 
         #endregion
 
-        public static void ApplyEnvironmentVariables(
-            IEnumerable<KeyValuePair<string, string?>> environmentVariables,
-            Action action)
-        {
-            ApplyEnvironmentVariables<object?>(
-                environmentVariables,
-                () =>
-                {
-                    action();
-                    return null;
-                });
-        }
-
         public static T ApplyEnvironmentVariables<T>(
             IEnumerable<KeyValuePair<string, string?>> environmentVariables,
             Func<T> func)
