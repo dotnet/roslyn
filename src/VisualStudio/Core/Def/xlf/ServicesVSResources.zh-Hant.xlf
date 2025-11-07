@@ -237,6 +237,11 @@
         <target state="translated">程式碼分析在 '{0}' 完成前終止。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_preview">
+        <source>Code preview</source>
+        <target state="new">Code preview</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">摺疊至定義時摺疊本地函數</target>

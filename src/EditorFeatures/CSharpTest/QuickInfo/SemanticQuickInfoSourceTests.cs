@@ -3798,11 +3798,49 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
 
             """,
             MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<'a> IEnumerable<int>.Select<int, 'a>(Func<int, 'a> selector)"),
-        AnonymousTypes($$"""
+            AnonymousTypes($$"""
 
             {{FeaturesResources.Types_colon}}
                 'a {{FeaturesResources.is_}} new { int i, bool j }
             """));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69830")]
+    public Task QueryMethodinfoLet2()
+        => TestWithOptionsAsync(
+            Options.Regular,
+            """
+            using System;
+            using System.Collections.Generic;
+
+            _ = from element in new List<int> { 1, 2, 3 }
+                let elementInterim = element + 42
+                $$let anotherElementInterim = elementInterim - 42 // Point to 'let' keyword
+                select element;
+
+            static class Extensions
+            {
+                /// <summary>
+                /// Gets a list of <typeparamref name="TResult"/> elements.
+                /// </summary>
+                public static List<TResult> Select<T, TResult>(
+                    this List<T> elements,
+                    Func<T, TResult> selector
+                )
+                {
+                    return null;
+                }
+            } 
+            """,
+            MainDescription($"({CSharpFeaturesResources.extension}) List<'b> List<'a>.Select<'a, 'b>(Func<'a, 'b> selector)"),
+            AnonymousTypes($$"""
+
+                {{FeaturesResources.Types_colon}}
+                    'a is new { int element, int elementInterim }
+                    'b is new { int anotherElementInterim }
+                """),
+            Documentation("""
+                Gets a list of 'b elements.
+                """));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoWhere()

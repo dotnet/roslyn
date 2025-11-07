@@ -15,7 +15,7 @@
     <UserControl.CommandBindings>
         <CommandBinding Command="{x:Static ApplicationCommands.Paste}" Executed="CommandBinding_Executed"/>
     </UserControl.CommandBindings>
-    <Grid>
+    <Grid Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}">
         <Grid.CommandBindings>
             <CommandBinding Command="{x:Static ApplicationCommands.Paste}" Executed="CommandBinding_Executed"/>
         </Grid.CommandBindings>
