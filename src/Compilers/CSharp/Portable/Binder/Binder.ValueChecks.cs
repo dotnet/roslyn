@@ -2621,7 +2621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AssertVisited(receiver);
 #endif
                     // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
-                    receiver = new BoundCapturedReceiverPlaceholder(receiver.Syntax, receiver, _localScopeDepth, receiver.Type).MakeCompilerGenerated();
+                    receiver = new BoundCapturedReceiverPlaceholder(receiver.Syntax, receiver, receiver.Type).MakeCompilerGenerated();
                 }
 
                 var tuple = getReceiver(methodInvocationInfo.MethodInfo, receiver);
