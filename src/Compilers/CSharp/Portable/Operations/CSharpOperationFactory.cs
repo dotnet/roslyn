@@ -714,6 +714,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return new AnonymousObjectCreationOperation(initializers, _semanticModel, syntax, type, isImplicit);
         }
 
+        private static bool CanDeriveObjectCreationExpressionArguments(BoundObjectCreationExpression boundObjectCreationExpression)
+            => boundObjectCreationExpression.ResultKind != LookupResultKind.OverloadResolutionFailure && boundObjectCreationExpression.Constructor.OriginalDefinition is not ErrorMethodSymbol;
+
         private IOperation CreateBoundObjectCreationExpressionOperation(BoundObjectCreationExpression boundObjectCreationExpression)
         {
             MethodSymbol constructor = boundObjectCreationExpression.Constructor;
@@ -724,7 +727,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             Debug.Assert(constructor is not null);
 
-            if (boundObjectCreationExpression.ResultKind == LookupResultKind.OverloadResolutionFailure || constructor.OriginalDefinition is ErrorMethodSymbol)
+            if (!CanDeriveObjectCreationExpressionArguments(boundObjectCreationExpression))
             {
                 var children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundObjectCreationExpression).InvalidNodeChildren);
                 return new InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -1279,8 +1282,16 @@ namespace Microsoft.CodeAnalysis.Operations
                 while (collectionCreation is BoundConversion conversion)
                     collectionCreation = conversion.Operand;
 
-                if (collectionCreation is BoundObjectCreationExpression)
+                if (collectionCreation is BoundObjectCreationExpression objectCreation)
+                {
+                    // Match the logic in CreateBoundObjectCreationOperation which does not DeriveArguments in the case of an
+                    // problems encountered in binding.
+                    Debug.Assert(!objectCreation.Type.IsAnonymousType);
+                    if (!CanDeriveObjectCreationExpressionArguments(objectCreation))
+                        return @this.CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)objectCreation).InvalidNodeChildren);
+
                     return ImmutableArray<IOperation>.CastUp(@this.DeriveArguments(collectionCreation));
+                }
 
                 if (collectionCreation is BoundCall boundCall)
                 {
