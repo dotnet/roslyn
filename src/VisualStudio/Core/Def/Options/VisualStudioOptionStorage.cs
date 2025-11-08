@@ -156,6 +156,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_new_line_before_members_in_anonymous_types", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLineForMembersInAnonymousTypes")},
         {"csharp_new_line_before_members_in_object_initializers", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLineForMembersInObjectInit")},
         {"csharp_new_line_between_query_expression_clauses", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLineForClausesInQuery")},
+
         {"csharp_prefer_braces", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferBraces")},
         {"csharp_prefer_simple_default_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSimpleDefaultExpression")},
         {"csharp_prefer_simple_using_statement", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSimpleUsingStatement")},

@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Options;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -229,6 +229,42 @@ internal static partial class CSharpFormattingOptions2
         CSharpSyntaxFormattingOptions.Default.WrappingKeepStatementsOnSingleLine)
         .WithPublicOption(PublicFeatureName, "WrappingKeepStatementsOnSingleLine");
 
+    public static Option2<bool> WrapCallChains { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Wrapping, "csharp_wrap_call_chains",
+        defaultValue: false);
+
+    public static Option2<bool> IndentWrappedCallChains { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Wrapping, "csharp_indent_wrapped_call_chains",
+        defaultValue: false);
+
+    public static Option2<ParameterWrappingOptionsInternal> ParameterWrapping { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Wrapping, "csharp_parameter_wrapping",
+        defaultValue: ParameterWrappingOptionsInternal.DoNotWrap,
+        new EditorConfigValueSerializer<ParameterWrappingOptionsInternal>(
+            s => ParseEditorConfigParameterWrapping(s),
+            GetParameterWrappingOptionEditorConfigString));
+
+    public static Option2<ParameterFirstPlacementOptionsInternal> ParameterFirstPlacement { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Wrapping, "csharp_parameter_first_placement",
+        defaultValue: ParameterFirstPlacementOptionsInternal.SameLine,
+        new EditorConfigValueSerializer<ParameterFirstPlacementOptionsInternal>(
+            s => ParseEditorConfigParameterFirstPlacement(s),
+            GetParameterFirstPlacementOptionEditorConfigString));
+
+    public static Option2<ParameterAlignmentOptionsInternal> ParameterAlignment { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Wrapping, "csharp_parameter_alignment",
+        defaultValue: ParameterAlignmentOptionsInternal.AlignWithFirst,
+        new EditorConfigValueSerializer<ParameterAlignmentOptionsInternal>(
+            s => ParseEditorConfigParameterAlignment(s),
+            GetParameterAlignmentOptionEditorConfigString));
+
+    public static Option2<BinaryExpressionWrappingOptionsInternal> BinaryExpressionWrapping { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Wrapping, "csharp_binary_expression_wrapping",
+        defaultValue: BinaryExpressionWrappingOptionsInternal.DoNotWrap,
+        new EditorConfigValueSerializer<BinaryExpressionWrappingOptionsInternal>(
+            s => ParseEditorConfigBinaryExpressionWrapping(s),
+            GetBinaryExpressionWrappingOptionEditorConfigString));
+
     public static Option2<NewLineBeforeOpenBracePlacement> NewLineBeforeOpenBrace { get; } = CreateOption(
         FormattingOptionGroups.NewLine,
         name: "csharp_new_line_before_open_brace",
@@ -285,6 +321,74 @@ internal static partial class CSharpFormattingOptions2
     /// Options that can be set via editorconfig but we do not provide tooling support.
     /// </summary>
     internal static readonly ImmutableArray<IOption2> UndocumentedOptions = [CollectionExpressionWrappingLength];
+
+    private static ParameterWrappingOptionsInternal ParseEditorConfigParameterWrapping(string str)
+        => str switch
+        {
+            "do_not_wrap" => ParameterWrappingOptionsInternal.DoNotWrap,
+            "wrap_long_parameters" => ParameterWrappingOptionsInternal.WrapLongParameters,
+            "wrap_every_parameter" => ParameterWrappingOptionsInternal.WrapEveryParameter,
+            _ => ParameterWrappingOptionsInternal.DoNotWrap
+        };
+
+    private static string GetParameterWrappingOptionEditorConfigString(ParameterWrappingOptionsInternal value)
+        => value switch
+        {
+            ParameterWrappingOptionsInternal.DoNotWrap => "do_not_wrap",
+            ParameterWrappingOptionsInternal.WrapLongParameters => "wrap_long_parameters",
+            ParameterWrappingOptionsInternal.WrapEveryParameter => "wrap_every_parameter",
+            _ => "do_not_wrap"
+        };
+
+    private static ParameterFirstPlacementOptionsInternal ParseEditorConfigParameterFirstPlacement(string str)
+        => str switch
+        {
+            "same_line" => ParameterFirstPlacementOptionsInternal.SameLine,
+            "new_line" => ParameterFirstPlacementOptionsInternal.NewLine,
+            _ => ParameterFirstPlacementOptionsInternal.SameLine
+        };
+
+    private static string GetParameterFirstPlacementOptionEditorConfigString(ParameterFirstPlacementOptionsInternal value)
+        => value switch
+        {
+            ParameterFirstPlacementOptionsInternal.SameLine => "same_line",
+            ParameterFirstPlacementOptionsInternal.NewLine => "new_line",
+            _ => "same_line"
+        };
+
+    private static ParameterAlignmentOptionsInternal ParseEditorConfigParameterAlignment(string str)
+        => str switch
+        {
+            "align_with_first" => ParameterAlignmentOptionsInternal.AlignWithFirst,
+            "indent" => ParameterAlignmentOptionsInternal.Indent,
+            _ => ParameterAlignmentOptionsInternal.AlignWithFirst
+        };
+
+    private static string GetParameterAlignmentOptionEditorConfigString(ParameterAlignmentOptionsInternal value)
+        => value switch
+        {
+            ParameterAlignmentOptionsInternal.AlignWithFirst => "align_with_first",
+            ParameterAlignmentOptionsInternal.Indent => "indent",
+            _ => "align_with_first"
+        };
+
+    private static BinaryExpressionWrappingOptionsInternal ParseEditorConfigBinaryExpressionWrapping(string str)
+        => str switch
+        {
+            "do_not_wrap" => BinaryExpressionWrappingOptionsInternal.DoNotWrap,
+            "wrap_long_expressions" => BinaryExpressionWrappingOptionsInternal.WrapLongExpressions,
+            "wrap_every_operator" => BinaryExpressionWrappingOptionsInternal.WrapEveryOperator,
+            _ => BinaryExpressionWrappingOptionsInternal.DoNotWrap
+        };
+
+    private static string GetBinaryExpressionWrappingOptionEditorConfigString(BinaryExpressionWrappingOptionsInternal value)
+        => value switch
+        {
+            BinaryExpressionWrappingOptionsInternal.DoNotWrap => "do_not_wrap",
+            BinaryExpressionWrappingOptionsInternal.WrapLongExpressions => "wrap_long_expressions",
+            BinaryExpressionWrappingOptionsInternal.WrapEveryOperator => "wrap_every_operator",
+            _ => "do_not_wrap"
+        };
 }
 
 internal enum LabelPositionOptionsInternal
@@ -309,6 +413,32 @@ internal enum BinaryOperatorSpacingOptionsInternal
 
     /// Remove Spacing
     Remove = 2
+}
+
+internal enum ParameterWrappingOptionsInternal
+{
+    DoNotWrap,
+    WrapLongParameters,
+    WrapEveryParameter
+}
+
+internal enum ParameterFirstPlacementOptionsInternal
+{
+    SameLine,
+    NewLine
+}
+
+internal enum ParameterAlignmentOptionsInternal
+{
+    AlignWithFirst,
+    Indent
+}
+
+internal enum BinaryExpressionWrappingOptionsInternal
+{
+    DoNotWrap,
+    WrapLongExpressions,
+    WrapEveryOperator
 }
 
 internal static class CSharpFormattingOptionGroups

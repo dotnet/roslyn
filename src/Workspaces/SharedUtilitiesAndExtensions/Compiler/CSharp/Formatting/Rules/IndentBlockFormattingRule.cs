@@ -35,7 +35,9 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
         if (_options.LabelPositioning == newOptions.LabelPositioning &&
-            _options.Indentation == newOptions.Indentation)
+            _options.Indentation == newOptions.Indentation &&
+            _options.WrapCallChains == newOptions.WrapCallChains &&
+            _options.IndentWrappedCallChains == newOptions.IndentWrappedCallChains)
         {
             return this;
         }
@@ -58,6 +60,8 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         AddSwitchIndentationOperation(list, node);
 
         AddEmbeddedStatementsIndentationOperation(list, node);
+
+        AddCallChainAlignmentOperation(list, node);
 
         AddTypeParameterConstraintClauseOperation(list, node);
     }
@@ -367,5 +371,78 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             // embedded statement is done
             AddIndentBlockOperation(list, firstToken, lastToken, TextSpan.FromBounds(firstToken.FullSpan.Start, lastToken.FullSpan.End));
         }
+    }
+
+    private void AddCallChainAlignmentOperation(List<IndentBlockOperation> list, SyntaxNode node)
+    {
+        // Only process member access expressions that are part of method call chains
+        if (node is not MemberAccessExpressionSyntax memberAccess)
+        {
+            return;
+        }
+
+        // Check if this member access is part of a method call chain
+        if (!IsPartOfCallChain(memberAccess))
+        {
+            return;
+        }
+
+        // Only add indentation operations if both wrapping and indentation are enabled
+        if (!_options.WrapCallChains || !_options.IndentWrappedCallChains)
+        {
+            return;
+        }
+
+        // Add indentation for the method call chain
+        AddIndentBlockOperationForCallChain(list, memberAccess);
+    }
+
+    private static bool IsPartOfCallChain(MemberAccessExpressionSyntax memberAccess)
+    {
+        // Check if the left side is an invocation or another member access
+        return memberAccess.Expression is InvocationExpressionSyntax or MemberAccessExpressionSyntax;
+    }
+
+    private static void AddIndentBlockOperationForCallChain(List<IndentBlockOperation> list, MemberAccessExpressionSyntax memberAccess)
+    {
+        // Get the dot token and the right side of the expression
+        var dotToken = memberAccess.OperatorToken;
+        var rightSide = memberAccess.Name;
+
+        // Find the base expression for the method call chain
+        var baseExpression = GetBaseExpressionForCallChain(memberAccess);
+        var baseToken = baseExpression.GetFirstToken(includeZeroWidth: true);
+
+        var startToken = dotToken;
+        var endToken = rightSide.GetLastToken(includeZeroWidth: true);
+
+        // Check if the base expression is a simple identifier
+        // If it's a simple identifier (like 'y'), use regular indentation
+        // If it's a complex expression (like 'log.Entries'), use alignment
+        if (baseExpression is IdentifierNameSyntax)
+        {
+            // Simple identifier case: indent by one level
+            AddIndentBlockOperation(list, baseToken, startToken, endToken,
+                IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+        }
+        else
+        {
+            // Complex expression case: align to the dot position
+            SetAlignmentBlockOperation(list, baseToken, startToken, endToken,
+                IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+        }
+    }
+
+    private static ExpressionSyntax GetBaseExpressionForCallChain(MemberAccessExpressionSyntax memberAccess)
+    {
+        // Find the topmost expression in the chain
+        var current = memberAccess;
+        while (current.Expression is MemberAccessExpressionSyntax parentMemberAccess)
+        {
+            current = parentMemberAccess;
+        }
+
+        // Return the base expression (left side of the topmost member access)
+        return current.Expression;
     }
 }
