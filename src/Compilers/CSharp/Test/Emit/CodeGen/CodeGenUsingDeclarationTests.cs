@@ -53,7 +53,7 @@ class C2
   }
   // sequence point: }
   IL_0012:  ret
-}", sequencePoints: "C2.Main", source: source);
+}", sequencePoints: "C2.Main", useEnhancedSequencePointDisplay: true);
         }
 
         [Fact]

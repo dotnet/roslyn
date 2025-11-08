@@ -5163,7 +5163,7 @@ public class C
   IL_010f:  nop
   IL_0110:  ret
 }
-", sequencePoints: "C+<Main>d__0.MoveNext", source: source + s_IAsyncEnumerable);
+", sequencePoints: "C+<Main>d__0.MoveNext", useEnhancedSequencePointDisplay: true);
         }
 
         [Fact]
@@ -8358,7 +8358,7 @@ class C
   IL_0114:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_0119:  nop
   IL_011a:  ret
-}", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
+}", sequencePoints: "C+<Main>d__0.MoveNext", useEnhancedSequencePointDisplay: true);
 
             var runtimeAsyncComp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
             verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with

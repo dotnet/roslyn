@@ -2194,7 +2194,7 @@ class C
   // sequence point: }
   IL_003b:  ret
 }
-", sequencePoints: "C.F", source: source);
+", sequencePoints: "C.F", useEnhancedSequencePointDisplay: true);
         }
     }
 }
