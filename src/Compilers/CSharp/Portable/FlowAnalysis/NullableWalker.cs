@@ -4576,11 +4576,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<VisitResult> argumentResults = default;
             MethodSymbol addMethod = addMethodAsMemberOfContainingType(node, containingType, ref argumentResults);
 
-            bool adjustForNewExtension = addMethod.IsExtensionBlockMember() && !node.InvokedAsExtensionMethod;
-            var arguments = getArguments(node.Arguments, adjustForNewExtension, node.ImplicitReceiverOpt, containingType);
-            var parameters = getParameters(addMethod.Parameters, adjustForNewExtension, addMethod);
-            var argsToParamsOpt = GetArgsToParamsOpt(node.ArgsToParamsOpt, adjustForNewExtension);
-            var invokedAsExtensionMethod = node.InvokedAsExtensionMethod || adjustForNewExtension;
+            bool isNewExtensionMethod = addMethod.IsExtensionBlockMember() && !node.InvokedAsExtensionMethod;
+            var arguments = getArguments(node.Arguments, isNewExtensionMethod, node.ImplicitReceiverOpt, containingType);
+            var parameters = getParameters(addMethod.Parameters, isNewExtensionMethod, addMethod);
+            var argsToParamsOpt = GetArgsToParamsOpt(node.ArgsToParamsOpt, isNewExtensionMethod);
 
             // Note: we analyze even omitted calls
             (MethodSymbol? reinferredMethod,
@@ -4595,7 +4594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt,
                     node.DefaultArguments,
                     node.Expanded,
-                    invokedAsExtensionMethod,
+                    node.InvokedAsExtensionMethod,
                     addMethod,
                     delayCompletionForTargetMember: delayCompletionForType);
 
@@ -4603,8 +4602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (isNewExtension)
                 {
-                    // For implicit extension member access methods, the receiver is not in the arguments array,
-                    // but we need to include it for nullable analysis
+                    // For implicit extension member access methods, synthesize the receiver as the first argument for analysis
                     var receiverExpression = receiver ?? new BoundObjectOrCollectionValuePlaceholder(receiver?.Syntax ?? arguments[0].Syntax, isNewInstance: false, containingType) { WasCompilerGenerated = true };
                     return [receiverExpression, .. arguments];
                 }
@@ -4626,7 +4624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
 #if DEBUG
-            if (node.InvokedAsExtensionMethod || adjustForNewExtension)
+            if (node.InvokedAsExtensionMethod || isNewExtensionMethod)
             {
                 VisitResult receiverResult = argumentResults[0];
                 Debug.Assert(TypeSymbol.Equals(containingType, receiverResult.RValueType.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
@@ -4672,8 +4670,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     MethodSymbol addMethod = addMethodAsMemberOfContainingType(node, containingType, ref argumentResults);
 
-                    bool adjustForNewExtension = addMethod.IsExtensionBlockMember() && !node.InvokedAsExtensionMethod;
-                    var parameters = getParameters(addMethod.Parameters, adjustForNewExtension, addMethod);
+                    bool isNewExtensionMethod = addMethod.IsExtensionBlockMember() && !node.InvokedAsExtensionMethod;
+                    var parameters = getParameters(addMethod.Parameters, isNewExtensionMethod, addMethod);
 
                     setUpdatedSymbol(
                         node, containingType, visitArgumentsCompletion.Invoke(argumentResults, parameters, addMethod).member,
