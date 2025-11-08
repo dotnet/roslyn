@@ -52044,4 +52044,49 @@ static class Ext
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
+    public void Nullability_CollectionInitializer_WithImplicitExtensionMemberAccess_Nullable()
+    {
+        var src = """
+#nullable enable
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        IEnumerable<string>? itemsNull = null;
+        _ = new C()
+        {
+            Items = { itemsNull } // should warn CS8604
+        };
+        
+        IEnumerable<string> itemsNotNull = new List<string>();
+        _ = new C()
+        {
+            Items = { itemsNotNull } // should not warn
+        };
+    }
+}
+
+class C
+{
+    public List<string> Items { get; set; } = new List<string>();
+}
+
+static class Ext
+{
+    extension<T>(List<T> list)
+    {
+        public void Add(IEnumerable<T> values) => list.AddRange(values);
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (11,23): warning CS8604: Possible null reference argument for parameter 'values' in 'void Ext.extension<string>(List<string>).Add(IEnumerable<string> values)'.
+            //             Items = { itemsNull } // should warn CS8604
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "itemsNull").WithArguments("values", "void Ext.extension<string>(List<string>).Add(IEnumerable<string> values)").WithLocation(11, 23));
+    }
 }
