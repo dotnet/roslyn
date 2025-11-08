@@ -3555,7 +3555,7 @@ record struct B(int X)
                 verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
-        [Fact, CompilerTrait(CompilerFeature.Patterns)]
+        [Fact]
         public void Deconstruct_Nested()
         {
             var source =

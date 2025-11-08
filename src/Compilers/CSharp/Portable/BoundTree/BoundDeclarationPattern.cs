@@ -10,8 +10,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private partial void Validate()
         {
-            Debug.Assert(DeclaredType is not null);
-            Debug.Assert(NarrowedType.Equals(DeclaredType.Type, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(DeclaredType is null ?
+                         NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions) :
+                         NarrowedType.Equals(DeclaredType.Type, TypeCompareKind.AllIgnoreOptions));
         }
     }
 }

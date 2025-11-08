@@ -25448,7 +25448,7 @@ class P
                 );
         }
 
-        [Fact, CompilerTrait(CompilerFeature.Patterns)]
+        [Fact]
         [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
         public void NullableTupleInIsOperator()
         {
@@ -28506,7 +28506,7 @@ namespace System
             }
         }
 
-        [Fact, CompilerTrait(CompilerFeature.Patterns)]
+        [Fact]
         public void SwitchWithNamedTuple()
         {
             var source = @"
@@ -28529,19 +28529,7 @@ class C
 " + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (10,40): hidden CS9335: The pattern is redundant.
-                //             (message: null, isColInit: false) => 43,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(10, 40),
-                // (11,23): hidden CS9335: The pattern is redundant.
-                //             (message: { }, isColInit: true) => 44,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(11, 23),
-                // (12,23): hidden CS9335: The pattern is redundant.
-                //             (message: { }, isColInit: false) => 45,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(12, 23),
-                // (12,39): hidden CS9335: The pattern is redundant.
-                //             (message: { }, isColInit: false) => 45,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(12, 39));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

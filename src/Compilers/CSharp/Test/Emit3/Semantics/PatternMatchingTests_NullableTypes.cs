@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-[CompilerTrait(CompilerFeature.Patterns)]
 public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
 {
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
