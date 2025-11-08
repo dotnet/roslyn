@@ -1032,7 +1032,7 @@ class Program
   }
   // sequence point: }
   IL_0018:  ret
-}", displaySequencePoints: true, useEnhancedSequencePointDisplay: true);
+}", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]

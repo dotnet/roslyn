@@ -75,7 +75,7 @@ End Class
  -IL_003d:  ldc.i4.0
   IL_003e:  ret
 }
-", displaySequencePoints:=true)
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
         End Sub
 
         <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>

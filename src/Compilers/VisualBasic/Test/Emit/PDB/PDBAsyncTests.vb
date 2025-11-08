@@ -125,7 +125,7 @@ End Class
   IL_00b1:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
   IL_00b6:  nop
   IL_00b7:  ret
-}", displaySequencePoints:=true)
+}", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
 
             ' NOTE: No <local> for the return variable "M".
             v.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
@@ -856,7 +856,7 @@ End Module
   IL_00fc:  nop
   IL_00fd:  ret
 }
-", displaySequencePoints:=true)
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
         End Sub
 
         <Fact>

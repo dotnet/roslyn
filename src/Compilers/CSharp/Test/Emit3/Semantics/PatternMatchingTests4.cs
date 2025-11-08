@@ -2164,14 +2164,14 @@ public class C
   // sequence point: }
   IL_0052:  ret
 }
-", displaySequencePoints: true, useEnhancedSequencePointDisplay: true).VerifyIL("<PrivateImplementationDetails>.ThrowInvalidOperationException", @"
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced).VerifyIL("<PrivateImplementationDetails>.ThrowInvalidOperationException", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  newobj     ""System.InvalidOperationException..ctor()""
   IL_0005:  throw
 }
-", displaySequencePoints: true, useEnhancedSequencePointDisplay: true);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -2326,14 +2326,14 @@ namespace System.Runtime.CompilerServices
   // sequence point: }
   IL_007a:  ret
 }
-", displaySequencePoints: true, useEnhancedSequencePointDisplay: true).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionExceptionParameterless", @"
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionExceptionParameterless", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor()""
   IL_0005:  throw
 }
-", displaySequencePoints: true, useEnhancedSequencePointDisplay: true);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]
@@ -2520,7 +2520,7 @@ namespace System.Runtime.CompilerServices
   // sequence point: }
   IL_0071:  ret
 }
-", displaySequencePoints: true, useEnhancedSequencePointDisplay: true).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionException", @"
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionException", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2528,7 +2528,7 @@ namespace System.Runtime.CompilerServices
   IL_0001:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor(object)""
   IL_0006:  throw
 }
-", displaySequencePoints: true, useEnhancedSequencePointDisplay: true);
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact]

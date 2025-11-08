@@ -198,7 +198,7 @@ class Driver
     IL_012d:  nop
     IL_012e:  ret
     }",
-    displaySequencePoints: true);
+    sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
                 v.VerifyPdb(@"
 <symbols>
@@ -642,7 +642,7 @@ class C
   IL_002b:  call       ""System.Threading.Tasks.Task<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Task.get""
   IL_0030:  ret
 }",
-displaySequencePoints: true);
+sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             v.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -727,7 +727,7 @@ displaySequencePoints: true);
   IL_0099:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_009e:  nop
   IL_009f:  ret
-}", displaySequencePoints: true);
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
@@ -1864,7 +1864,7 @@ class C
   IL_010b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_0110:  nop
   IL_0111:  ret
-}", displaySequencePoints: true);
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             v.VerifyPdb("C+<G>d__0.MoveNext", @"
 <symbols>

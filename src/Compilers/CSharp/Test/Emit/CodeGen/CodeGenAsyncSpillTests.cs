@@ -1254,7 +1254,7 @@ public class Test
   IL_010a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_010f:  nop
   IL_0110:  ret
-}", displaySequencePoints: true);
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
@@ -1469,7 +1469,7 @@ public class Test
   IL_00f4:  ldloc.1
   IL_00f5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_00fa:  ret
-}", displaySequencePoints: true);
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             var comp = CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with

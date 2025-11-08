@@ -93,7 +93,7 @@ End Class
   }
  -IL_0043:  nop
  -IL_0044:  ret
-}", displaySequencePoints:=true)
+}", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
 
             v.VerifyPdb("C1.Main",
 <symbols>

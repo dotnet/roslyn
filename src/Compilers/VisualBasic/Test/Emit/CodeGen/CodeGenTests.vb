@@ -7717,7 +7717,7 @@ End Module
  -IL_0017:  nop
  -IL_0018:  ret
 }
-", displaySequencePoints:=true)
+", sequencePointDisplay:=SequencePointDisplayMode.Minimal)
         End Sub
 
         <Fact>

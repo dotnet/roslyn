@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             // check what IL we emit exactly:
             if (expectedUnoptimizedIL != null)
             {
-                unoptimizedVerifier.VerifyIL(methodName, expectedUnoptimizedIL, realIL: true, displaySequencePoints: true, callerPath: callerPath, callerLine: callerLine);
+                unoptimizedVerifier.VerifyIL(methodName, expectedUnoptimizedIL, realIL: true, sequencePointDisplay: SequencePointDisplayMode.Minimal, callerPath: callerPath, callerLine: callerLine);
             }
 
             if (expectedOptimizedIL != null)
