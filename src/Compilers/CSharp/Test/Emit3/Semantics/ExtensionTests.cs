@@ -52008,4 +52008,40 @@ static class E
         var comp = CreateCompilation(source);
         CompileAndVerify(comp, expectedOutput: "True ran ran2").VerifyDiagnostics();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
+    public void Nullability_CollectionInitializer_WithImplicitExtensionMemberAccess()
+    {
+        var src = """
+#nullable enable
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        IEnumerable<string> items = new List<string>();
+        _ = new C()
+        {
+            Items = { items } // should not warn
+        };
+    }
+}
+
+class C
+{
+    public List<string> Items { get; set; } = new List<string>();
+}
+
+static class Ext
+{
+    extension<T>(List<T> list)
+    {
+        public void Add(IEnumerable<T> values) => list.AddRange(values);
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
 }

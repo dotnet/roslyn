@@ -4576,6 +4576,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<VisitResult> argumentResults = default;
             MethodSymbol addMethod = addMethodAsMemberOfContainingType(node, containingType, ref argumentResults);
 
+            bool adjustForNewExtension = addMethod.IsExtensionBlockMember() && !node.InvokedAsExtensionMethod;
+            var arguments = getArguments(node.Arguments, adjustForNewExtension, node.ImplicitReceiverOpt, containingType);
+            var parameters = getParameters(addMethod.Parameters, adjustForNewExtension, addMethod);
+            var argsToParamsOpt = GetArgsToParamsOpt(node.ArgsToParamsOpt, adjustForNewExtension);
+            var invokedAsExtensionMethod = node.InvokedAsExtensionMethod || adjustForNewExtension;
+
             // Note: we analyze even omitted calls
             (MethodSymbol? reinferredMethod,
              argumentResults,
@@ -4583,18 +4589,44 @@ namespace Microsoft.CodeAnalysis.CSharp
              ArgumentsCompletionDelegate<MethodSymbol>? visitArgumentsCompletion) =
                 VisitArguments(
                     node,
-                    node.Arguments,
+                    arguments,
                     refKindsOpt: default,
-                    addMethod.Parameters,
-                    node.ArgsToParamsOpt,
+                    parameters,
+                    argsToParamsOpt,
                     node.DefaultArguments,
                     node.Expanded,
-                    node.InvokedAsExtensionMethod,
+                    invokedAsExtensionMethod,
                     addMethod,
                     delayCompletionForTargetMember: delayCompletionForType);
 
+            static ImmutableArray<BoundExpression> getArguments(ImmutableArray<BoundExpression> arguments, bool isNewExtension, BoundExpression? receiver, TypeSymbol containingType)
+            {
+                if (isNewExtension)
+                {
+                    // For implicit extension member access methods, the receiver is not in the arguments array,
+                    // but we need to include it for nullable analysis
+                    var receiverExpression = receiver ?? new BoundObjectOrCollectionValuePlaceholder(receiver?.Syntax ?? arguments[0].Syntax, isNewInstance: false, containingType) { WasCompilerGenerated = true };
+                    return [receiverExpression, .. arguments];
+                }
+
+                return arguments;
+            }
+
+            static ImmutableArray<ParameterSymbol> getParameters(ImmutableArray<ParameterSymbol> parameters, bool isNewExtension, MethodSymbol method)
+            {
+                if (!isNewExtension)
+                {
+                    return parameters;
+                }
+
+                ParameterSymbol? extensionParameter = method.ContainingType.ExtensionParameter;
+                Debug.Assert(extensionParameter is not null);
+
+                return [extensionParameter, .. parameters];
+            }
+
 #if DEBUG
-            if (node.InvokedAsExtensionMethod)
+            if (node.InvokedAsExtensionMethod || adjustForNewExtension)
             {
                 VisitResult receiverResult = argumentResults[0];
                 Debug.Assert(TypeSymbol.Equals(containingType, receiverResult.RValueType.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
@@ -4640,8 +4672,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     MethodSymbol addMethod = addMethodAsMemberOfContainingType(node, containingType, ref argumentResults);
 
+                    bool adjustForNewExtension = addMethod.IsExtensionBlockMember() && !node.InvokedAsExtensionMethod;
+                    var parameters = getParameters(addMethod.Parameters, adjustForNewExtension, addMethod);
+
                     setUpdatedSymbol(
-                        node, containingType, visitArgumentsCompletion.Invoke(argumentResults, addMethod.Parameters, addMethod).member,
+                        node, containingType, visitArgumentsCompletion.Invoke(argumentResults, parameters, addMethod).member,
                         argumentResults, visitArgumentsCompletion: null, delayCompletionForType: false);
                 };
             }
@@ -4650,7 +4685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var method = node.AddMethod;
 
-                if (node.InvokedAsExtensionMethod)
+                if (node.InvokedAsExtensionMethod || (method.IsExtensionBlockMember() && !node.InvokedAsExtensionMethod))
                 {
                     if (!argumentResults.IsDefault)
                     {
@@ -4671,7 +4706,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (!method.IsExtensionBlockMember())
                 {
-                    // Tracked by https://github.com/dotnet/roslyn/issues/78828: Do we need to do anything special for new extensions here?
                     method = (MethodSymbol)AsMemberOfType(containingType, method);
                 }
 
