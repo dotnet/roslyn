@@ -4577,50 +4577,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol addMethod = addMethodAsMemberOfContainingType(node, containingType, ref argumentResults);
 
             bool isNewExtensionMethod = addMethod.IsExtensionBlockMember() && !node.InvokedAsExtensionMethod;
-            var arguments = getArguments(node.Arguments, isNewExtensionMethod, node.ImplicitReceiverOpt, containingType);
-            var parameters = getParameters(addMethod.Parameters, isNewExtensionMethod, addMethod);
-            var argsToParamsOpt = GetArgsToParamsOpt(node.ArgsToParamsOpt, isNewExtensionMethod);
-
+            
             // Note: we analyze even omitted calls
-            (MethodSymbol? reinferredMethod,
-             argumentResults,
-             _,
-             ArgumentsCompletionDelegate<MethodSymbol>? visitArgumentsCompletion) =
-                VisitArguments(
+            MethodSymbol? reinferredMethod;
+            ArgumentsCompletionDelegate<MethodSymbol>? visitArgumentsCompletion;
+            
+            if (!delayCompletionForType && isNewExtensionMethod)
+            {
+                // For new extension methods when not delaying, use ReInferMethodAndVisitArguments
+                bool returnNotNull;
+                (reinferredMethod, argumentResults, returnNotNull) = ReInferMethodAndVisitArguments(
                     node,
-                    arguments,
+                    node.ImplicitReceiverOpt,
+                    TypeWithState.Create(containingType, NullableFlowState.NotNull),
+                    addMethod,
+                    node.Arguments,
                     refKindsOpt: default,
-                    parameters,
-                    argsToParamsOpt,
+                    node.ArgsToParamsOpt,
                     node.DefaultArguments,
                     node.Expanded,
-                    node.InvokedAsExtensionMethod,
-                    addMethod,
-                    delayCompletionForTargetMember: delayCompletionForType);
-
-            static ImmutableArray<BoundExpression> getArguments(ImmutableArray<BoundExpression> arguments, bool isNewExtension, BoundExpression? receiver, TypeSymbol containingType)
-            {
-                if (isNewExtension)
-                {
-                    // For implicit extension member access methods, synthesize the receiver as the first argument for analysis
-                    var receiverExpression = receiver ?? new BoundObjectOrCollectionValuePlaceholder(receiver?.Syntax ?? arguments[0].Syntax, isNewInstance: false, containingType) { WasCompilerGenerated = true };
-                    return [receiverExpression, .. arguments];
-                }
-
-                return arguments;
+                    node.InvokedAsExtensionMethod);
+                visitArgumentsCompletion = null;
             }
-
-            static ImmutableArray<ParameterSymbol> getParameters(ImmutableArray<ParameterSymbol> parameters, bool isNewExtension, MethodSymbol method)
+            else
             {
-                if (!isNewExtension)
+                // For old extension methods or when delaying completion
+                (reinferredMethod,
+                 argumentResults,
+                 _,
+                 visitArgumentsCompletion) =
+                    VisitArguments(
+                        node,
+                        node.Arguments,
+                        refKindsOpt: default,
+                        addMethod.Parameters,
+                        node.ArgsToParamsOpt,
+                        node.DefaultArguments,
+                        node.Expanded,
+                        node.InvokedAsExtensionMethod,
+                        addMethod,
+                        delayCompletionForTargetMember: delayCompletionForType);
+                
+                // For new extensions when delaying, prepend a receiver result
+                if (delayCompletionForType && isNewExtensionMethod && !argumentResults.IsDefault)
                 {
-                    return parameters;
+                    var receiverResult = new VisitResult(
+                        TypeWithState.Create(containingType, NullableFlowState.NotNull),
+                        TypeWithAnnotations.Create(containingType, NullableAnnotation.NotAnnotated));
+                    
+                    var builder = ArrayBuilder<VisitResult>.GetInstance(argumentResults.Length + 1);
+                    builder.Add(receiverResult);
+                    builder.AddRange(argumentResults);
+                    argumentResults = builder.ToImmutableAndFree();
                 }
-
-                ParameterSymbol? extensionParameter = method.ContainingType.ExtensionParameter;
-                Debug.Assert(extensionParameter is not null);
-
-                return [extensionParameter, .. parameters];
             }
 
 #if DEBUG
@@ -4671,7 +4680,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol addMethod = addMethodAsMemberOfContainingType(node, containingType, ref argumentResults);
 
                     bool isNewExtensionMethod = addMethod.IsExtensionBlockMember() && !node.InvokedAsExtensionMethod;
-                    var parameters = getParameters(addMethod.Parameters, isNewExtensionMethod, addMethod);
+                    var parameters = isNewExtensionMethod 
+                        ? [addMethod.ContainingType.ExtensionParameter!, .. addMethod.Parameters]
+                        : addMethod.Parameters;
 
                     setUpdatedSymbol(
                         node, containingType, visitArgumentsCompletion.Invoke(argumentResults, parameters, addMethod).member,
