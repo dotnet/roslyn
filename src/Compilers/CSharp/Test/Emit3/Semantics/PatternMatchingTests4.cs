@@ -2164,14 +2164,14 @@ public class C
   // sequence point: }
   IL_0052:  ret
 }
-", sequencePoints: "C.Main", useEnhancedSequencePointDisplay: true).VerifyIL("<PrivateImplementationDetails>.ThrowInvalidOperationException", @"
+", displaySequencePoints: true, useEnhancedSequencePointDisplay: true).VerifyIL("<PrivateImplementationDetails>.ThrowInvalidOperationException", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  newobj     ""System.InvalidOperationException..ctor()""
   IL_0005:  throw
 }
-", sequencePoints: "<PrivateImplementationDetails>.ThrowInvalidOperationException", useEnhancedSequencePointDisplay: true);
+", displaySequencePoints: true, useEnhancedSequencePointDisplay: true);
         }
 
         [Fact]
@@ -2326,14 +2326,14 @@ namespace System.Runtime.CompilerServices
   // sequence point: }
   IL_007a:  ret
 }
-", sequencePoints: "C.Main", useEnhancedSequencePointDisplay: true).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionExceptionParameterless", @"
+", displaySequencePoints: true, useEnhancedSequencePointDisplay: true).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionExceptionParameterless", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor()""
   IL_0005:  throw
 }
-", sequencePoints: "<PrivateImplementationDetails>.ThrowSwitchExpressionExceptionParameterless", useEnhancedSequencePointDisplay: true);
+", displaySequencePoints: true, useEnhancedSequencePointDisplay: true);
         }
 
         [Fact]
@@ -2520,7 +2520,7 @@ namespace System.Runtime.CompilerServices
   // sequence point: }
   IL_0071:  ret
 }
-", sequencePoints: "C.Main", useEnhancedSequencePointDisplay: true).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionException", @"
+", displaySequencePoints: true, useEnhancedSequencePointDisplay: true).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionException", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2528,7 +2528,7 @@ namespace System.Runtime.CompilerServices
   IL_0001:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor(object)""
   IL_0006:  throw
 }
-", sequencePoints: "<PrivateImplementationDetails>.ThrowSwitchExpressionException", useEnhancedSequencePointDisplay: true);
+", displaySequencePoints: true, useEnhancedSequencePointDisplay: true);
         }
 
         [Fact]

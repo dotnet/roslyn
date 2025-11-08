@@ -2581,7 +2581,7 @@ public class Test : IDisposable
    ~IL_0015:  endfinally
   }
  -IL_0016:  ret
-}", sequencePoints: "Test.Main");
+}", displaySequencePoints: true);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]

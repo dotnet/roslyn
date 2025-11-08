@@ -3518,7 +3518,7 @@ True
  -IL_0032:  nop
  -IL_0033:  ret
 }
-", sequencePoints: "MyClass.Test1");
+", displaySequencePoints: true);
         }
 
         [WorkItem(543893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543893")]

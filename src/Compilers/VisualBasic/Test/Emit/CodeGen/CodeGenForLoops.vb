@@ -458,7 +458,7 @@ End Class
   IL_0039:  brtrue.s   IL_0024
  -IL_003b:  ret
 }
-]]>, sequencePoints:="MyClass1.Main")
+]]>, displaySequencePoints:=true)
 
         End Sub
 

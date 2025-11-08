@@ -2001,7 +2001,7 @@ End Module
   IL_01e4:  ret
 }
 ]]>,
-            sequencePoints:="Program+VB$StateMachine_0_Test2.MoveNext")
+            displaySequencePoints:=true)
         End Sub
 
         <Fact, WorkItem(1002672, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1002672")>

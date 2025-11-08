@@ -18313,7 +18313,7 @@ class Program
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("Program.Main",
                 useEnhancedSequencePointDisplay: true,
-                sequencePoints: "Program.Main",
+                displaySequencePoints: true,
                 expectedIL:
 @"{
   // Code size       30 (0x1e)

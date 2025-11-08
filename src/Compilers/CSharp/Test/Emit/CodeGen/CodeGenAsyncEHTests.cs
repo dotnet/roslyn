@@ -1342,7 +1342,7 @@ class Test
   IL_01c6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_01cb:  nop
   IL_01cc:  ret
-}", sequencePoints: "Test+<G>d__1.MoveNext");
+}", displaySequencePoints: true);
 
             var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected), verify: Verification.Fails with

@@ -7717,7 +7717,7 @@ End Module
  -IL_0017:  nop
  -IL_0018:  ret
 }
-", sequencePoints:="M1.Main")
+", displaySequencePoints:=true)
         End Sub
 
         <Fact>

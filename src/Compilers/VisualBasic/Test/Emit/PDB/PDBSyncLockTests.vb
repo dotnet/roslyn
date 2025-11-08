@@ -93,7 +93,7 @@ End Class
   }
  -IL_0043:  nop
  -IL_0044:  ret
-}", sequencePoints:="C1.Main")
+}", displaySequencePoints:=true)
 
             v.VerifyPdb("C1.Main",
 <symbols>

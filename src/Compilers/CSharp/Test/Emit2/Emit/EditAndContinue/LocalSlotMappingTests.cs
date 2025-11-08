@@ -73,7 +73,7 @@ class C
  ~IL_0012:  ldloc.1
   IL_0013:  brtrue.s   IL_0003
  -IL_0015:  ret
-}", sequencePoints: "C.Main");
+}", displaySequencePoints: true);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1738,7 +1738,7 @@ class C
   IL_006b:  ldloc.1
   IL_006c:  ble.s      IL_0027
  -IL_006e:  ret
-}", sequencePoints: "C.M");
+}", displaySequencePoints: true);
 
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
@@ -2913,7 +2913,7 @@ class C
   IL_0034:  nop
  -IL_0035:  br.s       IL_0037
  -IL_0037:  ret
-}", sequencePoints: "C.M");
+}", displaySequencePoints: true);
 
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
@@ -3686,7 +3686,7 @@ class C
  ~IL_001c:  ldloc.1
   IL_001d:  brtrue.s   IL_0005
  -IL_001f:  ret
-}", sequencePoints: "C.M");
+}", displaySequencePoints: true);
 
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
@@ -4202,7 +4202,7 @@ class C
   IL_00ef:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_00f4:  nop
   IL_00f5:  ret
-}", sequencePoints: "C+<F>d__0.MoveNext");
+}", displaySequencePoints: true);
 
 #if TODO
             var methodData0 = v0.TestData.GetMethodData("?");

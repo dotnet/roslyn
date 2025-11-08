@@ -645,7 +645,7 @@ End Class
   }
  -IL_0078:  ret
 }
-]]>, sequencePoints:="Test.TestProc1")
+]]>, displaySequencePoints:=true)
 
             verifier.VerifyIL("Test.TestProc2",
             <![CDATA[

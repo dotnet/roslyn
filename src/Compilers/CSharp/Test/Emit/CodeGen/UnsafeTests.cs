@@ -2117,7 +2117,7 @@ unsafe class C
   IL_0020:  stloc.1
  -IL_0021:  ret
 }
-", sequencePoints: "C.Main");
+", displaySequencePoints: true);
         }
 
         [Fact]
@@ -2202,7 +2202,7 @@ unsafe class C
   IL_0045:  stloc.s    V_4
  -IL_0047:  ret
 }
-", sequencePoints: "C.Main");
+", displaySequencePoints: true);
         }
 
         [Fact]
@@ -6810,8 +6810,8 @@ unsafe class C
 }
 ";
             var expectedOutput = @"970104";
-            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL, sequencePoints: "C.Main");
-            CompileAndVerify(string.Format(template, "checked  "), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL, sequencePoints: "C.Main");
+            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL, displaySequencePoints: true);
+            CompileAndVerify(string.Format(template, "checked  "), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL, displaySequencePoints: true);
         }
 
         [Fact]
@@ -12011,7 +12011,7 @@ public unsafe class C
  -IL_003e:  ldloc.1
   IL_003f:  ret
 }
-", sequencePoints: "C.ToManagedByteArray");
+", displaySequencePoints: true);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
