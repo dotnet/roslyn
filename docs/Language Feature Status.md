@@ -11,8 +11,8 @@ The "State" column contains a link to the test plan issue for the feature. The t
 
 # Working Set C#
 
-Merged features should be in the bottom portion of the table, while in-progress features should be in the top portion of the table.  
-When a feature is merged to the `main` branch, its entry should be moved accordingly and its "State" value should be updated to record the relevant version number.  
+Merged features should be in the bottom portion of the table (in descending order from earliest to latest merged), while in-progress features should be in the top portion of the table.  
+When a feature is merged to the `main` branch, its entry should be moved to the bottom of the table and its "State" value should be updated to record the relevant version number.  
 
 | Feature | Branch | State | Developer | Reviewer | IDE Buddy | LDM Champ |
 | ------- | ------ | ----- | --------- | -------- | --------- | --------- |
