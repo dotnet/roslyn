@@ -7029,5 +7029,37 @@ record CacheContext(string String)" + terminator;
             var symbol = model.GetSymbolInfo(crefSyntaxes.Single()).Symbol;
             Assert.Equal(SymbolKind.Property, symbol.Kind);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81090")]
+        public void Cref_FunctionPointer()
+        {
+            var source = """
+                using unsafe FnPtr = delegate*<void>;
+                /// <summary>
+                /// <see cref="FnPtr"/>
+                /// </summary>
+                unsafe class C;
+                """;
+            var comp = CreateCompilation(source,
+                parseOptions: TestOptions.RegularWithDocumentationComments,
+                options: TestOptions.UnsafeDebugDll,
+                targetFramework: TargetFramework.NetCoreApp).VerifyEmitDiagnostics();
+
+            var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var crefSyntaxes = GetCrefSyntaxes(comp);
+            var symbol = model.GetSymbolInfo(crefSyntaxes.Single()).Symbol;
+            Assert.Equal(SymbolKind.FunctionPointerType, symbol.Kind);
+
+            // Function pointers don't have doc ID: https://github.com/dotnet/roslyn/issues/48363
+            // Function pointers are ignored without any diagnostics: https://github.com/dotnet/roslyn/issues/46674
+            AssertEx.Equal("""
+                <member name="T:C">
+                    <summary>
+                    <see cref=""/>
+                    </summary>
+                </member>
+
+                """, comp.GetMember<NamedTypeSymbol>("C").GetDocumentationCommentXml());
+        }
     }
 }
