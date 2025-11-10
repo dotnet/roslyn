@@ -4159,7 +4159,7 @@ class Test
   IL_00c6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_00cb:  nop
   IL_00cc:  ret
-}", sequencePoints: "Test+<F>d__0.MoveNext");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             c.VerifyIL("Test.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine", @"
 {
@@ -5960,7 +5960,7 @@ class Test
   IL_00ef:  nop
   IL_00f0:  ret
 }",
-            sequencePoints: "Test+<F>d__2.MoveNext");
+            sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
