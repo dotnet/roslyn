@@ -1680,7 +1680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Debug.Assert(symbol.GetIsNewExtensionMember());
+                            Debug.Assert(symbol.IsExtensionBlockMember());
                             if (SourceNamedTypeSymbol.ReduceExtensionMember(binder.Compilation, symbol, receiverType, wasExtensionFullyInferred: out _) is { } compatibleSubstitutedMember)
                             {
                                 results.Add(compatibleSubstitutedMember.GetPublicSymbol());
@@ -3745,7 +3745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Method:
                 case SymbolKind.Field:
                 case SymbolKind.Property:
-                    if (containingMember.GetIsNewExtensionMember())
+                    if (containingMember.IsExtensionBlockMember())
                     {
                         resultKind = LookupResultKind.NotReferencable;
                         thisParam = new ThisParameterSymbol(null, containingType);
@@ -3854,12 +3854,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!isDynamic)
                 {
-                    GetSymbolsAndResultKind(binaryOperator, binaryOperator.Method, binaryOperator.OriginalUserDefinedOperatorsOpt, out symbols, out resultKind);
+                    GetSymbolsAndResultKind(binaryOperator, binaryOperator.BinaryOperatorMethod, binaryOperator.OriginalUserDefinedOperatorsOpt, out symbols, out resultKind);
                 }
             }
             else
             {
-                Debug.Assert((object)binaryOperator.Method == null && binaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
+                Debug.Assert((object)binaryOperator.BinaryOperatorMethod == null && binaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
 
                 if (!isDynamic &&
                     (op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual) &&
