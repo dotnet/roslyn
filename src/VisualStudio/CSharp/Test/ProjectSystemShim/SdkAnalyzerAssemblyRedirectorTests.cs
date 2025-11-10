@@ -28,7 +28,7 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
         var vsAnalyzerPath = FakeDll(vsDir, @$"AspNetCoreAnalyzers\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
         var sdkAnalyzerPath = FakeDll(testDir.Path, @$"sdk\packs\Microsoft.AspNetCore.App.Ref\{b}\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
 
-        var resolver = new SdkAnalyzerAssemblyRedirector(vsDir);
+        var resolver = new SdkAnalyzerAssemblyRedirectorCore(vsDir);
         var redirected = resolver.RedirectPath(sdkAnalyzerPath);
         AssertEx.Equal(vsAnalyzerPath, redirected);
     }
@@ -43,7 +43,7 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
         FakeDll(vsDir, @"AspNetCoreAnalyzers\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
         var sdkAnalyzerPath = FakeDll(testDir.Path, @"sdk\packs\Microsoft.AspNetCore.App.Ref\9.0.0-preview.7.24406.2\analyzers\dotnet\vb", "Microsoft.AspNetCore.App.Analyzers");
 
-        var resolver = new SdkAnalyzerAssemblyRedirector(vsDir);
+        var resolver = new SdkAnalyzerAssemblyRedirectorCore(vsDir);
         var redirected = resolver.RedirectPath(sdkAnalyzerPath);
         Assert.Null(redirected);
     }
@@ -64,7 +64,7 @@ public sealed class SdkAnalyzerAssemblyRedirectorTests : TestBase
         FakeDll(vsDir, @$"AspNetCoreAnalyzers\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
         var sdkAnalyzerPath = FakeDll(testDir.Path, @$"sdk\packs\Microsoft.AspNetCore.App.Ref\{b}\analyzers\dotnet\cs", "Microsoft.AspNetCore.App.Analyzers");
 
-        var resolver = new SdkAnalyzerAssemblyRedirector(vsDir);
+        var resolver = new SdkAnalyzerAssemblyRedirectorCore(vsDir);
         var redirected = resolver.RedirectPath(sdkAnalyzerPath);
         Assert.Null(redirected);
     }

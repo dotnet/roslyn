@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -26,7 +25,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 /// See <see href="https://github.com/dotnet/sdk/blob/main/documentation/general/analyzer-redirecting.md"/>.
 /// </summary>
 [Export(typeof(IAnalyzerAssemblyRedirector))]
-internal sealed class SdkAnalyzerAssemblyRedirector : IAnalyzerAssemblyRedirector
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SdkAnalyzerAssemblyRedirector(SVsServiceProvider serviceProvider) : SdkAnalyzerAssemblyRedirectorCore(
+    Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"CommonExtensions\Microsoft\DotNet")),
+    serviceProvider.GetServiceOnMainThread<SVsActivityLog, IVsActivityLog>());
+
+/// <summary>
+/// Core functionality of <see cref="SdkAnalyzerAssemblyRedirector"/> extracted for testing.
+/// </summary>
+internal class SdkAnalyzerAssemblyRedirectorCore : IAnalyzerAssemblyRedirector
 {
     private readonly IVsActivityLog? _log;
 
@@ -39,18 +47,7 @@ internal sealed class SdkAnalyzerAssemblyRedirector : IAnalyzerAssemblyRedirecto
     /// </summary>
     private readonly ImmutableDictionary<string, List<AnalyzerInfo>> _analyzerMap;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SdkAnalyzerAssemblyRedirector(SVsServiceProvider serviceProvider) : this(
-        Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"CommonExtensions\Microsoft\DotNet")),
-        serviceProvider.GetServiceOnMainThread<SVsActivityLog, IVsActivityLog>())
-    {
-    }
-
-    // Internal for testing.
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0034: Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'",
-        Justification = "This is an internal constructor exposed for testing and delegated to by the public importing constructor")]
-    internal SdkAnalyzerAssemblyRedirector(string? insertedAnalyzersDirectory, IVsActivityLog? log = null)
+    public SdkAnalyzerAssemblyRedirectorCore(string? insertedAnalyzersDirectory, IVsActivityLog? log = null)
     {
         _log = log;
         var enable = Environment.GetEnvironmentVariable("DOTNET_ANALYZER_REDIRECTING");
