@@ -3073,10 +3073,10 @@ parse_member_name:;
                 // extension { }  (likely an extension block being written)
                 // get { } (likely an accessor, not a property called 'get').  Same for set/add/remove/init.
                 //
-                // Properties are virtually always going to have a pascal cased identifier name.  So if we see one with
-                // an actual lowercase identifier, then it's unlikely to be a property.
-                if (propertyType is IdentifierNameSyntax { Identifier.ValueText: var identifierText } &&
-                    identifierText.All(char.IsLower))
+                // Properties are virtually always going to have a pascal cased identifier name.  So if we see one that
+                // is actually a contextual keyword, then it's unlikely to be a property.
+                if (propertyType is IdentifierNameSyntax { Identifier.ContextualKind: var contextualKind } &&
+                    SyntaxFacts.IsKeywordKind(contextualKind))
                 {
                     return false;
                 }
