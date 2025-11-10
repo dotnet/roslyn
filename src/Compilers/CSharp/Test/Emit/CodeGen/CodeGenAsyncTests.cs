@@ -10550,7 +10550,7 @@ static class Test1
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(code);
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("<top-level-statements-entry-point>", """
@@ -10611,7 +10611,7 @@ static class Test1
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(code);
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("<top-level-statements-entry-point>", """
