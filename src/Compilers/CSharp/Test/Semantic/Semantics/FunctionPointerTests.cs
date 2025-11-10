@@ -4202,7 +4202,7 @@ public class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75933")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81113")]
         public void TestGetSymbolInfo()
         {
             var source = """
@@ -4226,12 +4226,12 @@ public class C
             var memberAccess = root.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
             var symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
 
-            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal("", symbolInfo.Symbol!.ToDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
 
             symbolInfo = semanticModel.GetSymbolInfo(memberAccess.Name);
 
-            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal("", symbolInfo.Symbol!.ToDisplayString());
             Assert.Empty(symbolInfo.CandidateSymbols);
         }
     }
