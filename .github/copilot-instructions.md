@@ -28,11 +28,6 @@
 - Apply formatting preferences to any modified .cs or .vb file
 - **Important**: Blank lines must not contain any whitespace characters (spaces or tabs). This will cause linting errors that must be fixed.
 
-## Pull Request Management
-
-**Labels**:
-- When opening a PR that touches code in `src/Compilers/`, add the `area-compilers` label to the PR
-
 ## Code Patterns
 
 **Service Architecture** (use MEF consistently):
