@@ -5,13 +5,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
@@ -261,10 +259,20 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         // However, we have to be careful to not allow this if the parent is a cast, as that can change parsing.  For example:
         //
         // (x)(-y)   is a cast, while (x)-y is subtraction.
-        if (expression is PrefixUnaryExpressionSyntax prefixUnary &&
-            parentExpression is not CastExpressionSyntax)
+        //
+        // Similarly if we're parented by a primary expression we definitely can't change this as that will change
+        // parsing precedence.  For example: (-x).ToString()  is not the same as -x.ToString().
+        if (expression is PrefixUnaryExpressionSyntax prefixUnary)
         {
-            return true;
+            if (parentExpression
+                    is not CastExpressionSyntax
+                    and not MemberAccessExpressionSyntax
+                    and not ElementAccessExpressionSyntax
+                    and not MemberBindingExpressionSyntax
+                    and not PostfixUnaryExpressionSyntax)
+            {
+                return true;
+            }
         }
 
         // (this)   -> this
