@@ -62,7 +62,7 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
         () => RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
 
         Assert.NotNull(result);
-        AssertEx.Equal(NormalizePath(globalDotNetDir.Path), result);
+        AssertEx.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
@@ -101,7 +101,7 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
         () => RuntimeHostInfo.GetToolDotNetRoot(_output.WriteLine));
 
         Assert.NotNull(result);
-        AssertEx.Equal(NormalizePath(globalDotNetDir.Path), result);
+        AssertEx.Equal(NormalizePath(globalDotNetDir.Path), NormalizePath(result));
     }
 }
 
