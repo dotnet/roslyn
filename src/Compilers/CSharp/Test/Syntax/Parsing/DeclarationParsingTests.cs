@@ -2972,11 +2972,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
 
-            Assert.Equal(3, file.Errors().Length);
-            Assert.Equal(ErrorCode.ERR_SemicolonExpected, (ErrorCode)file.Errors()[0].Code);
-            Assert.Equal(ErrorCode.ERR_TypeExpected, (ErrorCode)file.Errors()[1].Code);
-            Assert.Equal(ErrorCode.ERR_IdentifierExpected, (ErrorCode)file.Errors()[2].Code);
-
             UsingTree(text,
                 // (3,18): error CS1002: ; expected
                 //     public int P readonly => 0;
