@@ -3125,8 +3125,6 @@ parse_member_name:;
                 return true;
             }
 
-            // `{` or `=>` definitely start a property.  Also allow
-            // `; {` and `; =>` as error recovery for a misplaced semicolon.
             if (IsStartOfPropertyBody(index: 0))
             {
                 // Error recovery: if we see a property body but no identifier, synthesize a missing identifier
