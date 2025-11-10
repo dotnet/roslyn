@@ -4201,5 +4201,38 @@ public class C
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(delegate* managed<object?, long>)false").WithArguments("bool", "delegate*<object?, long>").WithLocation(9, 58)
                 );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75933")]
+        public void TestGetSymbolInfo()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M2()
+                    {
+                        var d = (delegate*<void>)(&C.M2);
+                        d();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(source);
+            comp.VerifyEmitDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var root = syntaxTree.GetRoot();
+
+            var memberAccess = root.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            var symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            symbolInfo = semanticModel.GetSymbolInfo(memberAccess.Name);
+
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
     }
 }
