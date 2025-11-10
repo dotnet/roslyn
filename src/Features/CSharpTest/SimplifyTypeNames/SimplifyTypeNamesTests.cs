@@ -6958,6 +6958,31 @@ new TestParameters(Options.Script));
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81113")]
+    public Task TestAddressOfFunctionPointer()
+        => TestInRegularAndScriptAsync(
+            """
+            unsafe class C
+            {
+                static void M2()
+                {
+                    var d = (delegate*<void>)(&[|C|].M2);
+                    d();
+                }
+            }
+            """,
+            """
+            
+            unsafe class C
+            {
+                static void M2()
+                {
+                    var d = (delegate*<void>)(&M2);
+                    d();
+                }
+            }
+            """);
+
     private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         => await TestInRegularAndScriptAsync(code, expected, index, new TestParameters(options: PreferIntrinsicTypeEverywhere));
 
