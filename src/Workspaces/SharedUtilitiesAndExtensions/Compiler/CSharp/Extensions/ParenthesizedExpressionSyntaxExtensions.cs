@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
@@ -257,6 +256,16 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         // (this)   -> this
         if (expression.IsKind(SyntaxKind.ThisExpression))
             return true;
+
+        // x is > (-1)  ->  x is > -1
+        //
+        // Note: the general case of removing parens from a prefix unary expression in a normal expression is handled as
+        // the last step of this algorithm below.  This is only the pattern case.
+        if (expression is PrefixUnaryExpressionSyntax prefixUnary &&
+            parentExpression is null)
+        {
+            return true;
+        }
 
         // x ?? (throw ...) -> x ?? throw ...
         if (expression.IsKind(SyntaxKind.ThrowExpression) &&

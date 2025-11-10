@@ -1601,7 +1601,7 @@ public sealed class DefinitionItemFactoryTests
         VerifyDefinitionItem(item, project, symbols: [(c, nameof(c)), (r, nameof(r)), (i, nameof(i))],
             displayParts:
             [
-                (tag: "ErrorType", text: "?", TaggedTextStyle.None, target: null, hint: null),
+                (tag: "Keyword", text: "int", TaggedTextStyle.None, target: SymbolKey.CreateString(i), hint: "int"),
                 (tag: "Space", text: " ", TaggedTextStyle.None, target: null, hint: null),
                 (tag: "RangeVariable", text: "x", TaggedTextStyle.None, target: SymbolKey.CreateString(r), hint: "? x")
             ],
