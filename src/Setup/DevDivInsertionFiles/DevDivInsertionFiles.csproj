@@ -121,11 +121,13 @@
       <_Dependency Remove="Microsoft.MSXML"/>
       <_Dependency Remove="Microsoft.NET.StringTools"/>
       <_Dependency Remove="Microsoft.Win32.Registry"/>
+      <_Dependency Remove="Nerdbank.MessagePack"/
       <_Dependency Remove="Nerdbank.NetStandardBridge" />
       <_Dependency Remove="Nerdbank.Streams"/>
       <_Dependency Remove="Newtonsoft.Json"/>
       <_Dependency Remove="NuGet.VisualStudio"/>
       <_Dependency Remove="NuGet.VisualStudio.Contracts"/>
+      <_Dependency Remove="PolyType"/>
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="System.Buffers" />
