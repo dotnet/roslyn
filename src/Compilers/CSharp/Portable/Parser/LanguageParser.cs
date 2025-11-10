@@ -2813,6 +2813,7 @@ parse_member_name:;
 
                     // identifierOrThisOpt may be null if we're doing error recovery for a property with missing identifier
                     Debug.Assert(identifierOrThisOpt != null || IsStartOfPropertyBody(index: 0));
+
                     if (TryParseIndexerOrPropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
                         return result;
@@ -3304,6 +3305,7 @@ parse_member_name:;
 
                     // identifierOrThisOpt may be null if we're doing error recovery for a property with missing identifier
                     Debug.Assert(identifierOrThisOpt != null || IsStartOfPropertyBody(index: 0));
+
                     if (TryParseIndexerOrPropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
                         return result;
