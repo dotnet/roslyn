@@ -9101,7 +9101,7 @@ static class Test1
                     {
                         var result = (await new C()) switch
                         {
-                            42 => "1",
+                            42 => await new C(),
                             _ => throw new Exception()
                         };
 
@@ -9131,17 +9131,19 @@ static class Test1
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(code, options: TestOptions.DebugExe, includeSuppression: true);
-            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("1"), verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0x4e") });
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0x71") });
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       79 (0x4f)
+                  // Code size      114 (0x72)
                   .maxstack  2
-                  .locals init (string V_0, //result
-                                string V_1,
+                  .locals init (int V_0, //result
+                                int V_1,
                                 int V_2,
                                 int V_3,
-                                C.Awaiter V_4)
+                                C.Awaiter V_4,
+                                int V_5,
+                                C.Awaiter V_6)
                   // sequence point: {
                   IL_0000:  nop
                   // sequence point: var result = ...         };
@@ -9167,29 +9169,42 @@ static class Test1
                   IL_002c:  ldloc.2
                   IL_002d:  ldc.i4.s   42
                   IL_002f:  beq.s      IL_0033
-                  IL_0031:  br.s       IL_003b
-                  // sequence point: "1"
-                  IL_0033:  ldstr      "1"
-                  IL_0038:  stloc.1
-                  IL_0039:  br.s       IL_0041
+                  IL_0031:  br.s       IL_005e
+                  // sequence point: <hidden>
+                  IL_0033:  newobj     "C..ctor()"
+                  IL_0038:  call       "C.Awaiter C.GetAwaiter()"
+                  IL_003d:  stloc.s    V_6
+                  IL_003f:  ldloc.s    V_6
+                  IL_0041:  callvirt   "bool C.Awaiter.IsCompleted.get"
+                  IL_0046:  brtrue.s   IL_0050
+                  IL_0048:  ldloc.s    V_6
+                  IL_004a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<C.Awaiter>(C.Awaiter)"
+                  IL_004f:  nop
+                  IL_0050:  ldloc.s    V_6
+                  IL_0052:  callvirt   "int C.Awaiter.GetResult()"
+                  IL_0057:  stloc.s    V_5
+                  // sequence point: await new C()
+                  IL_0059:  ldloc.s    V_5
+                  IL_005b:  stloc.1
+                  IL_005c:  br.s       IL_0064
                   // sequence point: throw new Exception()
-                  IL_003b:  newobj     "System.Exception..ctor()"
-                  IL_0040:  throw
+                  IL_005e:  newobj     "System.Exception..ctor()"
+                  IL_0063:  throw
                   // sequence point: <hidden>
-                  IL_0041:  ldc.i4.1
-                  IL_0042:  brtrue.s   IL_0045
+                  IL_0064:  ldc.i4.1
+                  IL_0065:  brtrue.s   IL_0068
                   // sequence point: var result = ...         };
-                  IL_0044:  nop
+                  IL_0067:  nop
                   // sequence point: <hidden>
-                  IL_0045:  ldloc.1
-                  IL_0046:  stloc.0
+                  IL_0068:  ldloc.1
+                  IL_0069:  stloc.0
                   // sequence point: Console.Write(result);
-                  IL_0047:  ldloc.0
-                  IL_0048:  call       "void System.Console.Write(string)"
-                  IL_004d:  nop
-                  IL_004e:  ret
+                  IL_006a:  ldloc.0
+                  IL_006b:  call       "void System.Console.Write(int)"
+                  IL_0070:  nop
+                  IL_0071:  ret
                 }
-                """, sequencePoints: "C.Main", source: code);
+                """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77897")]
