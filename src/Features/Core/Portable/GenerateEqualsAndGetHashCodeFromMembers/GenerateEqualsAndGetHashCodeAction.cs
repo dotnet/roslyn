@@ -212,7 +212,7 @@ internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefacto
             => generateEquals
                 ? generateGetHashCode
                     ? FeaturesResources.Generate_Equals_and_GetHashCode
-                    : FeaturesResources.Generate_Equals_object
+                    : FeaturesResources.Generate_Equals
                 : FeaturesResources.Generate_GetHashCode;
     }
 }

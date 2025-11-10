@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -31,28 +28,46 @@ internal static partial class SyntaxGeneratorExtensions
         ParseOptions parseOptions,
         INamedTypeSymbol containingType,
         ImmutableArray<ISymbol> symbols,
-        string localNameOpt,
+        string? localNameOpt,
         SyntaxAnnotation statementAnnotation)
     {
+        var isRecord = containingType.IsRecord;
+        var localName = localNameOpt ?? (isRecord ? GetLocalName(containingType) : null);
         var statements = CreateEqualsMethodStatements(
-            factory, generatorInternal, compilation, parseOptions, containingType, symbols, localNameOpt);
-        statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
+            factory, generatorInternal, compilation, parseOptions, containingType, symbols, localName);
 
-        return CreateEqualsMethod(compilation, statements);
+        return CreateEqualsMethod(
+            compilation,
+            modifiers: isRecord ? containingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual : null,
+            parameterType: isRecord ? containingType : null,
+            parameterName: localName,
+            statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation)));
     }
 
     public static IMethodSymbol CreateEqualsMethod(this Compilation compilation, ImmutableArray<SyntaxNode> statements)
+        => CreateEqualsMethod(compilation, modifiers: null, parameterType: null, parameterName: null, statements);
+
+    private static IMethodSymbol CreateEqualsMethod(
+        this Compilation compilation,
+        DeclarationModifiers? modifiers,
+        ITypeSymbol? parameterType,
+        string? parameterName,
+        ImmutableArray<SyntaxNode> statements)
     {
+        parameterType ??= compilation.GetSpecialType(SpecialType.System_Object);
+        parameterName ??= ObjName;
+        modifiers ??= DeclarationModifiers.Override;
+
         return CodeGenerationSymbolFactory.CreateMethodSymbol(
             attributes: default,
             accessibility: Accessibility.Public,
-            modifiers: DeclarationModifiers.Override,
+            modifiers: modifiers.Value,
             returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
             refKind: RefKind.None,
             explicitInterfaceImplementations: default,
             name: EqualsName,
             typeParameters: default,
-            parameters: [CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object).WithNullableAnnotation(NullableAnnotation.Annotated), ObjName)],
+            parameters: [CodeGenerationSymbolFactory.CreateParameterSymbol(parameterType.WithNullableAnnotation(NullableAnnotation.Annotated), parameterName)],
             statements: statements);
     }
 
@@ -108,16 +123,13 @@ internal static partial class SyntaxGeneratorExtensions
         ParseOptions parseOptions,
         INamedTypeSymbol containingType,
         ImmutableArray<ISymbol> members,
-        string localNameOpt)
+        string? localNameOpt)
     {
-
         // A ref like type can not be boxed. Because of this an overloaded Equals taking object in the general case
         // can never be true, because an equivalent object can never be boxed into the object itself. Therefore only
         // need to return false.
         if (containingType.IsRefLikeType)
-        {
             return [factory.ReturnStatement(factory.FalseLiteralExpression())];
-        }
 
         using var statements = TemporaryArray<SyntaxNode>.Empty;
 
@@ -135,53 +147,65 @@ internal static partial class SyntaxGeneratorExtensions
         // return statement of 'Equals'.
         using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var expressions);
 
-        if (generatorInternal.SupportsPatterns(parseOptions))
+        if (containingType.IsRecord)
         {
-            // If we support patterns then we can do "return obj is MyType myType && ..."
-            expressions.Add(
-                generatorInternal.IsPatternExpression(objNameExpression,
-                    generatorInternal.DeclarationPattern(containingType, localName)));
-        }
-        else if (containingType.IsValueType)
-        {
-            // If we're a value type, then we need an is-check first to make sure
-            // the object is our type:
-            //
-            //      if (!(obj is MyType))
-            //      {
-            //          return false;
-            //      }
-            var ifStatement = factory.IfStatement(
-                factory.LogicalNotExpression(
-                    factory.IsTypeExpression(
-                        objNameExpression,
-                        containingType)),
-                [factory.ReturnStatement(factory.FalseLiteralExpression())]);
-
-            // Next, we cast the argument to our type:
-            //
-            //      var myType = (MyType)obj;
-
-            var localDeclaration = factory.SimpleLocalDeclarationStatement(generatorInternal,
-                containingType, localName, factory.CastExpression(containingType, objNameExpression));
-
-            statements.Add(ifStatement);
-            statements.Add(localDeclaration);
+            if (!containingType.IsValueType)
+            {
+                // Ensure that the parameter we got was not null.
+                AddReferenceNotNullCheck(
+                    factory, generatorInternal, compilation, parseOptions, localNameExpression, expressions);
+            }
         }
         else
         {
-            // It's not a value type, we can just use "as" to test the parameter is the right type:
-            //
-            //      var myType = obj as MyType;
+            if (generatorInternal.SupportsPatterns(parseOptions))
+            {
+                // If we support patterns then we can do "return obj is MyType myType && ..."
+                expressions.Add(
+                    generatorInternal.IsPatternExpression(objNameExpression,
+                        generatorInternal.DeclarationPattern(containingType, localName)));
+            }
+            else if (containingType.IsValueType)
+            {
+                // If we're a value type, then we need an is-check first to make sure
+                // the object is our type:
+                //
+                //      if (!(obj is MyType))
+                //      {
+                //          return false;
+                //      }
+                var ifStatement = factory.IfStatement(
+                    factory.LogicalNotExpression(
+                        factory.IsTypeExpression(
+                            objNameExpression,
+                            containingType)),
+                    [factory.ReturnStatement(factory.FalseLiteralExpression())]);
 
-            var localDeclaration = factory.SimpleLocalDeclarationStatement(generatorInternal,
-                containingType, localName, factory.TryCastExpression(objNameExpression, containingType));
+                // Next, we cast the argument to our type:
+                //
+                //      var myType = (MyType)obj;
 
-            statements.Add(localDeclaration);
+                var localDeclaration = factory.SimpleLocalDeclarationStatement(generatorInternal,
+                    containingType, localName, factory.CastExpression(containingType, objNameExpression));
 
-            // Ensure that the parameter we got was not null (which also ensures the 'as' test succeeded):
-            AddReferenceNotNullCheck(
-                factory, generatorInternal, compilation, parseOptions, localNameExpression, expressions);
+                statements.Add(ifStatement);
+                statements.Add(localDeclaration);
+            }
+            else
+            {
+                // It's not a value type, we can just use "as" to test the parameter is the right type:
+                //
+                //      var myType = obj as MyType;
+
+                var localDeclaration = factory.SimpleLocalDeclarationStatement(generatorInternal,
+                    containingType, localName, factory.TryCastExpression(objNameExpression, containingType));
+
+                statements.Add(localDeclaration);
+
+                // Ensure that the parameter we got was not null (which also ensures the 'as' test succeeded):
+                AddReferenceNotNullCheck(
+                    factory, generatorInternal, compilation, parseOptions, localNameExpression, expressions);
+            }
         }
 
         if (!containingType.IsValueType && HasExistingBaseEqualsMethod(containingType))
@@ -194,7 +218,7 @@ internal static partial class SyntaxGeneratorExtensions
                 factory.MemberAccessExpression(
                     factory.BaseExpression(),
                     factory.IdentifierName(EqualsName)),
-                objNameExpression));
+                containingType.IsRecord ? localNameExpression : objNameExpression));
         }
 
         AddMemberChecks(factory, generatorInternal, compilation, members, localNameExpression, expressions);
@@ -379,7 +403,7 @@ internal static partial class SyntaxGeneratorExtensions
         return fallback;
     }
 
-    private static bool ImplementsIEquatable(ITypeSymbol memberType, INamedTypeSymbol iequatableType)
+    private static bool ImplementsIEquatable(ITypeSymbol memberType, INamedTypeSymbol? iequatableType)
     {
         if (iequatableType != null)
         {
@@ -392,7 +416,7 @@ internal static partial class SyntaxGeneratorExtensions
         return false;
     }
 
-    private static bool ShouldUseEqualityOperator(ITypeSymbol typeSymbol)
+    private static bool ShouldUseEqualityOperator(ITypeSymbol? typeSymbol)
     {
         if (typeSymbol != null)
         {
