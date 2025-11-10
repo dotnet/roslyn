@@ -14317,6 +14317,50 @@ class PointerImpl : IPointerTest
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38378")]
+        public void PointerToInaccessibleType()
+        {
+            var source = """
+                class X { class Y { } }
+
+                class Program
+                {
+                    static unsafe void Method(X.Y* y)
+                    {
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,33): error CS0122: 'X.Y' is inaccessible due to its protection level
+                //     static unsafe void Method(X.Y* y)
+                Diagnostic(ErrorCode.ERR_BadAccess, "Y").WithArguments("X.Y").WithLocation(5, 33),
+                // (5,36): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('X.Y')
+                //     static unsafe void Method(X.Y* y)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "y").WithArguments("X.Y").WithLocation(5, 36));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38378")]
+        public void PointerToWrongArity()
+        {
+            var source = """
+                class X { }
+
+                class Program
+                {
+                    static unsafe void Method(X<int>* y)
+                    {
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,31): error CS0308: The non-generic type 'X' cannot be used with type arguments
+                //     static unsafe void Method(X<int>* y)
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "X<int>").WithArguments("X", "type").WithLocation(5, 31),
+                // (5,39): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('X<int>')
+                //     static unsafe void Method(X<int>* y)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "y").WithArguments("X<int>").WithLocation(5, 39));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38378")]
         public void PointerToNonExistentType_MultiplePointers()
         {
             var source = """
