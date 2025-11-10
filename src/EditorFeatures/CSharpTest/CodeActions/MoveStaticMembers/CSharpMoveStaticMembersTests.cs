@@ -3397,9 +3397,8 @@ public sealed class CSharpMoveStaticMembersTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81116")]
-    public async Task TestSelectEnumMember_NoAction()
-    {
-        await TestNoRefactoringAsync("""
+    public Task TestSelectEnumMember_NoAction()
+        => TestNoRefactoringAsync("""
             namespace TestNs1
             {
                 enum E
@@ -3408,8 +3407,7 @@ public sealed class CSharpMoveStaticMembersTests
                     Some = 1
                 }
             }
-            """).ConfigureAwait(false);
-    }
+            """);
     #endregion
 
     private sealed class Test : VerifyCS.Test
