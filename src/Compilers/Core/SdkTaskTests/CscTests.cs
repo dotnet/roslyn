@@ -36,4 +36,41 @@ public sealed class CscTests
 
         AssertEx.Equal($"/sdkpath:{RuntimeEnvironment.GetRuntimeDirectory()} @{RspFilePath} /nosdkpath /out:test.exe test.cs", csc.GenerateResponseFileContents());
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+    public void StdLib_NoConfig()
+    {
+        var csc = new Csc
+        {
+            Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            NoConfig = true,
+        };
+
+        AssertEx.Equal($"/sdkpath:{RuntimeEnvironment.GetRuntimeDirectory()} /out:test.exe test.cs", csc.GenerateResponseFileContents());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+    public void StdLib_CustomRsp()
+    {
+        var csc = new Csc
+        {
+            Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            ResponseFiles = MSBuildUtil.CreateTaskItems("custom.rsp"),
+        };
+
+        AssertEx.Equal($"/sdkpath:{RuntimeEnvironment.GetRuntimeDirectory()} @{RspFilePath} test.cs @custom.rsp", csc.GenerateResponseFileContents());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
+    public void StdLib_NoConfigAndCustomRsp()
+    {
+        var csc = new Csc
+        {
+            Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            NoConfig = true,
+            ResponseFiles = MSBuildUtil.CreateTaskItems("custom.rsp"),
+        };
+
+        AssertEx.Equal($"/sdkpath:{RuntimeEnvironment.GetRuntimeDirectory()} test.cs @custom.rsp", csc.GenerateResponseFileContents());
+    }
 }
