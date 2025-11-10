@@ -25,23 +25,23 @@
   </PropertyGroup>
 
   <!--
-    MSBuild - need to use older packages when targeting net7.0 since the newer versions only support net472 and net8.0.
+    MSBuild - need to use older packages when targeting net8.0 since the newer versions only support net472 and net9.0.
     When tareting the latest .NET the version must also be lower or equal to one specified in
     https://github.com/dotnet/sdk/blob/main/src/Layout/redist/minimumMSBuildVersion#L1
   -->
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
-    <PackageVersion Include="Microsoft.Build" Version="17.3.4" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.3.4" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.3.4" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.3.4" />
+    <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' != 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'">
@@ -52,7 +52,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageVersion Include="Microsoft.Build.Locator" Version="1.8.1" />
+    <!--
+      BuildHost
+    -->
+    <PackageVersion Include="Microsoft.Build.Locator" Version="1.10.2" />
 
     <!--
       Visual Studio
