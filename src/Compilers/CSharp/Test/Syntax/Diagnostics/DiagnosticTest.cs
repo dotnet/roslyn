@@ -2993,6 +2993,7 @@ class Program
                     case ErrorCode.ERR_RefLocalAcrossAwait:
                     case ErrorCode.ERR_DataSectionStringLiteralHashCollision:
                     case ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync:
+                    case ErrorCode.ERR_NonTaskMainCantBeAsync:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

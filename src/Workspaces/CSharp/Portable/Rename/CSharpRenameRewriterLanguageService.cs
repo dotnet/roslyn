@@ -175,13 +175,13 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
             if (shouldComplexifyNode)
             {
                 _skipRenameForComplexification++;
-                result = base.Visit(node)!;
+                result = base.Visit(node);
                 _skipRenameForComplexification--;
                 result = Complexify(node, result);
             }
             else
             {
-                result = base.Visit(node)!;
+                result = base.Visit(node);
             }
 
             return result;
@@ -305,7 +305,7 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
 
             _speculativeModel = GetSemanticModelForNode(newNode, _semanticModel);
 
-            newNode = base.Visit(newNode)!;
+            newNode = base.Visit(newNode);
             var newSpan = newNode.Span;
 
             newNode = newNode.WithoutAnnotations(annotation);
@@ -804,9 +804,7 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
                 AddSymbolSourceSpans(conflicts, [containingNamedType], reverseMappedLocations);
             }
 
-            if (renamedSymbol.Kind is SymbolKind.Parameter or
-                SymbolKind.Local or
-                SymbolKind.RangeVariable)
+            if (renamedSymbol.Kind is SymbolKind.Parameter or SymbolKind.Local or SymbolKind.RangeVariable)
             {
                 var token = renamedSymbol.Locations.Single().FindToken(cancellationToken);
                 var memberDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
@@ -841,7 +839,7 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
             }
             else if (renamedSymbol.Kind == SymbolKind.Method)
             {
-                conflicts.AddRange(DeclarationConflictHelpers.GetMembersWithConflictingSignatures((IMethodSymbol)renamedSymbol, trimOptionalParameters: false).Select(t => reverseMappedLocations[t]));
+                conflicts.AddRange(DeclarationConflictHelpers.GetMembersWithConflictingSignatures((IMethodSymbol)renamedSymbol, trimOptionalParameters: false, distinguishRefKind: true).Select(t => reverseMappedLocations[t]));
 
                 // we allow renaming overrides of VB property accessors with parameters in C#.
                 // VB has a special rule that properties are not allowed to have the same name as any of the parameters. 

@@ -3112,4 +3112,158 @@ Punctuation.CloseCurly);
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
+
+    [Theory, CombinatorialData]
+    public Task DocCommentCodeBlockWithCSharpLang(TestHost testHost)
+        => TestAsync(
+            """
+            /// <summary>
+            /// Test method
+            /// </summary>
+            [|/// <code lang="C#">
+            /// using System;
+            /// class C { int x = 5; }
+            /// </code>|]
+            class Program
+            {
+                void Test() { }
+            }
+            """,
+            testHost,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("code"),
+            XmlDoc.AttributeName("lang"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeValue("C#"),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            Keyword("using"),
+            Namespace("System"),
+            Punctuation.Semicolon,
+            XmlDoc.Delimiter("///"),
+            Keyword("class"),
+            Class("C"),
+            Punctuation.OpenCurly,
+            Keyword("int"),
+            Field("x"),
+            Operators.Equals,
+            Number("5"),
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("code"),
+            XmlDoc.Delimiter(">"));
+
+    [Theory, CombinatorialData]
+    public Task DocCommentCodeBlockWithCSharpLangCData(TestHost testHost)
+        => TestAsync(
+            """
+            /// <summary>
+            /// Test method
+            /// </summary>
+            [|/// <code lang="C#"><![CDATA[
+            /// using System.Collections.Generic;
+            /// class C { IList<int> x = 5; }
+            /// ]]></code>|]
+            class Program
+            {
+                void Test() { }
+            }
+            """,
+            testHost,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("code"),
+            XmlDoc.AttributeName("lang"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeValue("C#"),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("<![CDATA["),
+            XmlDoc.Delimiter("///"),
+            Keyword("using"),
+            Namespace("System"),
+            Operators.Dot,
+            Namespace("Collections"),
+            Operators.Dot,
+            Namespace("Generic"),
+            Punctuation.Semicolon,
+            XmlDoc.Delimiter("///"),
+            Keyword("class"),
+            Class("C"),
+            Punctuation.OpenCurly,
+            Interface("IList"),
+            Punctuation.OpenAngle,
+            Keyword("int"),
+            Punctuation.CloseAngle,
+            Field("x"),
+            Operators.Equals,
+            Number("5"),
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Delimiter("]]>"),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("code"),
+            XmlDoc.Delimiter(">"));
+
+    [Theory, CombinatorialData]
+    public Task DocCommentCodeBlockWithCSharpLangGenerics(TestHost testHost)
+        => TestAsync(
+            """
+            /// <summary>
+            /// Test method
+            /// </summary>
+            [|/// <code lang="C#">
+            /// using System.Collections.Generic;
+            /// class C { IList&lt;int&gt; x = 5; }
+            /// </code>|]
+            class Program
+            {
+                void Test() { }
+            }
+            """,
+            testHost,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("code"),
+            XmlDoc.AttributeName("lang"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeValue("C#"),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            Keyword("using"),
+            Namespace("System"),
+            Operators.Dot,
+            Namespace("Collections"),
+            Operators.Dot,
+            Namespace("Generic"),
+            Punctuation.Semicolon,
+            XmlDoc.Delimiter("///"),
+            Keyword("class"),
+            Class("C"),
+            Punctuation.OpenCurly,
+            Interface("IList"),
+            Punctuation.XmlOpenAngle,
+            Keyword("int"),
+            Punctuation.XmlCloseAngle,
+            Field("x"),
+            Operators.Equals,
+            Number("5"),
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("code"),
+            XmlDoc.Delimiter(">"));
 }

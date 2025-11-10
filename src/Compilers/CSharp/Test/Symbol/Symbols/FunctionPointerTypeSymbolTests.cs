@@ -1341,9 +1341,12 @@ unsafe static class C
 }");
 
             comp.VerifyDiagnostics(
-                // (4,25): error CS1103: The first parameter of an extension method cannot be of type 'delegate*<void>'
+                // (4,25): error CS1103: The receiver parameter of an extension cannot be of type 'delegate*<void>'
                 //     static void M1(this delegate*<void> ptr) {}
-                Diagnostic(ErrorCode.ERR_BadTypeforThis, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(4, 25),
+                // (7,13): error CS1061: 'delegate*<void>' does not contain a definition for 'M1' and no accessible extension method 'M1' accepting a first argument of type 'delegate*<void>' could be found (are you missing a using directive or an assembly reference?)
+                //         ptr.M1();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M1").WithArguments("delegate*<void>", "M1").WithLocation(7, 13)
             );
         }
 
@@ -1387,21 +1390,10 @@ static class C
     }
 }";
             var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Skipped);
-            verifier.VerifyIL("C.Main", expectedIL: @"
-{
-  // Code size       10 (0xa)
-  .maxstack  1
-  .locals init (delegate*<void> V_0) //ptr
-  IL_0000:  ldc.i4.0
-  IL_0001:  conv.u
-  IL_0002:  stloc.0
-  IL_0003:  ldloc.0
-  IL_0004:  call       ""void CHelper.M(delegate*<void>)""
-  IL_0009:  ret
-}
-");
+            comp.VerifyDiagnostics(
+                // (7,13): error CS1061: 'delegate*<void>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'delegate*<void>' could be found (are you missing a using directive or an assembly reference?)
+                //         ptr.M();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("delegate*<void>", "M").WithLocation(7, 13));
         }
 
         [Fact]

@@ -1751,4 +1751,34 @@ public sealed partial class UseCollectionInitializerTests
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80862")]
+    public Task TestDoNotOfferForUsingDeclaration()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            public class DisposableCollection : IEnumerable, IDisposable
+            {
+                private readonly List<object> _items = new List<object>();
+                
+                public void Add(object item) => _items.Add(item);
+                
+                public IEnumerator GetEnumerator() => _items.GetEnumerator();
+                
+                public void Dispose() { }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    using var collection = new DisposableCollection();
+                    collection.Add(1);
+                    collection.Add(2);
+                }
+            }
+            """);
 }

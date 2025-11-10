@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Unused 8193-8195
 
         #region diagnostics for out var
-        ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
+        ERR_ImplicitlyTypedVariableUsedInForbiddenZone = 8196,
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
         ERR_ExpressionTreeContainsOutVariable = 8198,
         #endregion diagnostics for out var
@@ -2429,6 +2429,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadSpreadInCatchFilter = 9332,
         ERR_ExplicitInterfaceMemberTypeMismatch = 9333,
         ERR_ExplicitInterfaceMemberReturnTypeMismatch = 9334,
+
+        HDN_RedundantPattern = 9335,
+        WRN_RedundantPattern = 9336,
+        HDN_RedundantPatternStackGuard = 9337,
+
+        ERR_BadVisBaseType = 9338,
+        ERR_AmbigExtension = 9339,
+        ERR_SingleInapplicableBinaryOperator = 9340,
+        ERR_SingleInapplicableUnaryOperator = 9341,
+        ERR_AmbigOperator = 9342,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

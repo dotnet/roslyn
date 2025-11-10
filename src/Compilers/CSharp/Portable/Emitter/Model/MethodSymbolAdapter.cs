@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
             }
-            else if (AdaptedMethodSymbol.GetIsNewExtensionMember())
+            else if (AdaptedMethodSymbol.IsExtensionBlockMember())
             {
                 return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);
             }
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return ((SourceMemberContainerTypeSymbol)AdaptedMethodSymbol.ContainingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingMarkerType(marker);
                 }
-                else if (AdaptedMethodSymbol.GetIsNewExtensionMember())
+                else if (AdaptedMethodSymbol.IsExtensionBlockMember())
                 {
                     var containingType = AdaptedMethodSymbol.ContainingType;
                     return ((SourceMemberContainerTypeSymbol)containingType.ContainingType).GetExtensionGroupingInfo().GetCorrespondingGroupingType((SourceNamedTypeSymbol)containingType);

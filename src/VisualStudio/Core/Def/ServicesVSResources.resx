@@ -1311,6 +1311,12 @@ Additional information: {1}</value>
   <data name="Comments" xml:space="preserve">
     <value>Comments</value>
   </data>
+  <data name="Generate_summary_on_single_line" xml:space="preserve">
+    <value>Generate &lt;summary&gt; on single line</value>
+  </data>
+  <data name="Generate_only_summary_tag" xml:space="preserve">
+    <value>Generate only &lt;summary&gt; tag</value>
+  </data>
   <data name="Show_hints_for_everything_else" xml:space="preserve">
     <value>Show hints for everything else</value>
   </data>
@@ -1885,5 +1891,11 @@ Additional information: {1}</value>
   </data>
   <data name="Prefer_simple_property_accessors" xml:space="preserve">
     <value>Prefer simple property accessors</value>
+  </data>
+  <data name="Search_members" xml:space="preserve">
+    <value>Search members</value>
+  </data>
+  <data name="Code_preview" xml:space="preserve">
+    <value>Code preview</value>
   </data>
 </root>

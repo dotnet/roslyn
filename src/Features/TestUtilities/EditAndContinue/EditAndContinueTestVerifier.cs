@@ -438,7 +438,7 @@ internal abstract class EditAndContinueTestVerifier
 
     public static SyntaxNode FindNode(SyntaxNode root, TextSpan span)
     {
-        var result = root.FindToken(span.Start).Parent!;
+        var result = root.FindToken(span.Start).Parent;
         while (result != null)
         {
             if (result.Span == span)
@@ -446,7 +446,7 @@ internal abstract class EditAndContinueTestVerifier
                 return result;
             }
 
-            result = result.Parent!;
+            result = result.Parent;
         }
 
         throw new Exception($"Unable to find node with span {span} `{root.GetText().GetSubText(span)}` in:{Environment.NewLine}{root}");

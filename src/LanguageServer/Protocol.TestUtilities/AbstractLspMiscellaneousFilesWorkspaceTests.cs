@@ -348,6 +348,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         AssertEx.NotNull(miscDocument);
         var miscText = await miscDocument.GetTextAsync(CancellationToken.None);
         Assert.Equal("More LSP textLSP text", miscText.ToString());
+        Assert.True(await testLspServer.GetManagerAccessor().IsMiscellaneousFilesDocumentAsync(miscDocument));
 
         // Update the registered workspace with the new document.
         var newDocumentId = (await AddDocumentAsync(testLspServer, newDocumentFilePath, "New Doc")).Id;
@@ -361,18 +362,22 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         // Verify we still are using the tracked LSP text for the document.
         var documentText = await document.GetTextAsync(CancellationToken.None);
         Assert.Equal("More LSP textLSP text", documentText.ToString());
+
+        // There should not be any other misc document in the solution anymore.
+        var matchingDocuments = await document.Project.Solution.GetTextDocumentsAsync(newDocumentUri, CancellationToken.None);
+        Assert.Single(matchingDocuments);
     }
 
     private protected abstract ValueTask<Document> AddDocumentAsync(TestLspServer testLspServer, string filePath, string content);
     private protected abstract Workspace GetHostWorkspace(TestLspServer testLspServer);
 
-    private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
+    private protected static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
     {
         var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(uri), CancellationToken.None).ConfigureAwait(false);
         return (workspace, document as Document);
     }
 
-    private static async ValueTask<Document?> GetMiscellaneousDocumentAsync(TestLspServer testLspServer)
+    private protected static async ValueTask<Document?> GetMiscellaneousDocumentAsync(TestLspServer testLspServer)
     {
         var documents = await testLspServer.GetManagerAccessor().GetMiscellaneousDocumentsAsync(static p => p.Documents).ToImmutableArrayAsync(CancellationToken.None);
         return documents.SingleOrDefault();
@@ -384,7 +389,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         return documents.SingleOrDefault();
     }
 
-    private static async Task AssertFileInMiscWorkspaceAsync(TestLspServer testLspServer, DocumentUri fileUri)
+    private protected static async Task AssertFileInMiscWorkspaceAsync(TestLspServer testLspServer, DocumentUri fileUri)
     {
         var (_, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileUri }, CancellationToken.None);
         Assert.NotNull(document);

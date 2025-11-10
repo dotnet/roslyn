@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -156,9 +157,7 @@ public partial class MSBuildProjectLoader
     public async Task<SolutionInfo> LoadSolutionInfoAsync(
         string solutionFilePath,
         IProgress<ProjectLoadProgress>? progress = null,
-#pragma warning disable IDE0060 // TODO: decide what to do with this unusued ILogger, since we can't reliabily use it if we're sending builds out of proc
         ILogger? msbuildLogger = null,
-#pragma warning restore IDE0060
         CancellationToken cancellationToken = default)
     {
         if (solutionFilePath == null)
@@ -180,7 +179,11 @@ public partial class MSBuildProjectLoader
             SetSolutionProperties(absoluteSolutionPath);
         }
 
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
+        var binLogPathProvider = IsBinaryLogger(msbuildLogger, out var fileName)
+            ? new BinLogPathProvider(fileName)
+            : null;
+
+        var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
         var worker = new Worker(
@@ -223,9 +226,7 @@ public partial class MSBuildProjectLoader
         string projectFilePath,
         ProjectMap? projectMap = null,
         IProgress<ProjectLoadProgress>? progress = null,
-#pragma warning disable IDE0060 // TODO: decide what to do with this unusued ILogger, since we can't reliabily use it if we're sending builds out of proc
         ILogger? msbuildLogger = null,
-#pragma warning restore IDE0060
         CancellationToken cancellationToken = default)
     {
         if (projectFilePath == null)
@@ -241,7 +242,11 @@ public partial class MSBuildProjectLoader
             onPathFailure: reportingMode,
             onLoaderFailure: reportingMode);
 
-        var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
+        var binLogPathProvider = IsBinaryLogger(msbuildLogger, out var fileName)
+            ? new BinLogPathProvider(fileName)
+            : null;
+
+        var buildHostProcessManager = new BuildHostProcessManager(Properties, binLogPathProvider, _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
         var worker = new Worker(
@@ -259,5 +264,57 @@ public partial class MSBuildProjectLoader
             this.LoadMetadataForReferencedProjects);
 
         return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private static bool IsBinaryLogger([NotNullWhen(returnValue: true)] ILogger? logger, out string? fileName)
+    {
+        // We validate the type name to avoid taking a dependency on the Microsoft.Build package
+        // because it brings along additional dependencies and servicing requirements.
+        if (logger?.GetType().FullName != "Microsoft.Build.Logging.BinaryLogger")
+        {
+            fileName = null;
+            return false;
+        }
+
+        // The logger.Parameters could contain more than just the filename, such as "ProjectImports" or "OmitInitialInfo".
+        // Attempt to get the parsed filname directly from the logger if possible.
+        var fileNameProperty = logger.GetType().GetProperty("FileName");
+        fileName = fileNameProperty?.GetValue(logger) as string ?? logger.Parameters;
+        return true;
+    }
+
+    internal sealed class BinLogPathProvider : IBinLogPathProvider
+    {
+        private const string DefaultFileName = "msbuild";
+        private const string DefaultExtension = ".binlog";
+
+        private readonly string _directory;
+        private readonly string _filename;
+        private readonly string _extension;
+        private int _suffix = -1;
+
+        public BinLogPathProvider(string? logFilePath)
+        {
+            logFilePath ??= DefaultFileName + DefaultExtension;
+
+            _directory = Path.GetDirectoryName(logFilePath) ?? ".";
+            _filename = Path.GetFileNameWithoutExtension(logFilePath) is { Length: > 0 } fileName
+                ? fileName
+                : DefaultFileName;
+            _extension = Path.GetExtension(logFilePath) is { Length: > 0 } extension
+                ? extension
+                : DefaultExtension;
+        }
+
+        public string? GetNewLogPath()
+        {
+            var suffix = Interlocked.Increment(ref _suffix);
+
+            var newPath = suffix == 0
+                ? Path.Combine(_directory, _filename + _extension)
+                : Path.Combine(_directory, $"{_filename}-{suffix}{_extension}");
+
+            return Path.GetFullPath(newPath);
+        }
     }
 }

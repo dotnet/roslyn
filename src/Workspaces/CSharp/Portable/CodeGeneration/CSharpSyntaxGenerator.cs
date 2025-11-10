@@ -809,11 +809,8 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
     {
         return Isolate(m, member =>
         {
-            Accessibility acc;
-            DeclarationModifiers modifiers;
-
             // return any nested member "as is" without any additional changes
-            if (member is BaseTypeDeclarationSyntax)
+            if (member is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax)
                 return member;
 
             switch (member.Kind())
@@ -866,13 +863,10 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
                 // convert field into property
                 case SyntaxKind.FieldDeclaration:
                     var f = (FieldDeclarationSyntax)member;
-                    GetAccessibilityAndModifiers(f.Modifiers, out acc, out modifiers, out _);
-
-                    var type = GetType(f);
-                    Contract.ThrowIfNull(type);
+                    GetAccessibilityAndModifiers(f.Modifiers, out var acc, out var modifiers, out _);
 
                     return AsInterfaceMember(
-                        PropertyDeclaration(GetName(f), ClearTrivia(type), acc, modifiers, getAccessorStatements: null, setAccessorStatements: null));
+                        PropertyDeclaration(GetName(f), ClearTrivia(f.Declaration.Type), acc, modifiers, getAccessorStatements: null, setAccessorStatements: null));
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind());
@@ -1468,6 +1462,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 
     private static readonly DeclarationModifiers s_constructorModifiers =
         DeclarationModifiers.Extern |
+        DeclarationModifiers.Partial |
         DeclarationModifiers.Static |
         DeclarationModifiers.Unsafe;
 
@@ -1477,6 +1472,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         DeclarationModifiers.Extern |
         DeclarationModifiers.New |
         DeclarationModifiers.Override |
+        DeclarationModifiers.Partial |
         DeclarationModifiers.ReadOnly |
         DeclarationModifiers.Required |
         DeclarationModifiers.Sealed |
@@ -1489,6 +1485,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         DeclarationModifiers.Extern |
         DeclarationModifiers.New |
         DeclarationModifiers.Override |
+        DeclarationModifiers.Partial |
         DeclarationModifiers.ReadOnly |
         DeclarationModifiers.Sealed |
         DeclarationModifiers.Static |

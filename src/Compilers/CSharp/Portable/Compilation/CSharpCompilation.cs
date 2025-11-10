@@ -160,6 +160,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Lazily caches SyntaxTrees by their xxHash128 checksum. Used to look up the syntax tree referenced by an interceptor.</summary>
         private ImmutableSegmentedDictionary<ReadOnlyMemory<byte>, OneOrMany<SyntaxTree>> _contentHashToSyntaxTree;
 
+        internal ExtendedErrorTypeSymbol ImplicitlyTypedVariableUsedInForbiddenZoneType
+        {
+            get
+            {
+                if (field is null)
+                {
+                    Interlocked.CompareExchange(ref field, new ExtendedErrorTypeSymbol(this, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true), null);
+                }
+
+                return field;
+            }
+        }
+
+        internal ExtendedErrorTypeSymbol ImplicitlyTypedVariableInferenceFailedType
+        {
+            get
+            {
+                if (field is null)
+                {
+                    Interlocked.CompareExchange(ref field, new ExtendedErrorTypeSymbol(this, name: "var", arity: 0, errorInfo: null, unreported: false), null);
+                }
+
+                return field;
+            }
+        }
+
         public override string Language
         {
             get
@@ -2192,7 +2218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var member in members)
             {
-                if (member.GetIsNewExtensionMember())
+                if (member.IsExtensionBlockMember())
                 {
                     // When candidates are collected by GetSymbolsWithName, skeleton members are found but not implementation methods.
                     // We want to include the implementation for skeleton methods.
@@ -4309,7 +4335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
 
-            return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor).GetPublicSymbol();
+            return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor, BindingDiagnosticBag.Discarded).GetPublicSymbol();
         }
 
         protected override IMethodSymbol CommonCreateBuiltinOperator(

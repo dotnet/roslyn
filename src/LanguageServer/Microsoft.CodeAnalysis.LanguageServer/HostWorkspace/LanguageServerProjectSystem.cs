@@ -105,4 +105,13 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         // Nothing else to unload for ordinary projects.
         return ValueTask.CompletedTask;
     }
+
+    protected override async ValueTask TransitionPrimordialProjectToLoadedAsync(
+        string projectPath,
+        ProjectSystemProjectFactory primordialProjectFactory,
+        ProjectId primordialProjectId,
+        CancellationToken cancellationToken)
+    {
+        throw ExceptionUtilities.Unreachable();
+    }
 }

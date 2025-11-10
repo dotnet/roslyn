@@ -386,10 +386,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_StaticBaseClass, baseTypeLocation, baseType, this);
                 }
 
-                if (!this.IsNoMoreVisibleThan(baseType, ref useSiteInfo))
+                if (baseType.FindTypeLessVisibleThan(this, ref useSiteInfo) is { } lessVisibleType)
                 {
-                    // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
-                    diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, baseType);
+                    if (ReferenceEquals(baseType, lessVisibleType))
+                    {
+                        // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
+                        diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, lessVisibleType);
+                    }
+                    else
+                    {
+                        // Inconsistent accessibility: type '{1}' is less accessible than class '{0}'
+                        diagnostics.Add(ErrorCode.ERR_BadVisBaseType, baseTypeLocation, this, lessVisibleType);
+                    }
                 }
 
                 if (baseType.HasFileLocalTypes() && !this.HasFileLocalTypes())
@@ -711,10 +719,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeKind = this.TypeKind;
             var compilation = this.DeclaringCompilation;
             NamedTypeSymbol declaredBase;
+            bool reportAtFirstLocation = false;
+
             if (typeKind == TypeKind.Enum)
             {
                 Debug.Assert((object)GetDeclaredBaseType(basesBeingResolved: null) == null, "Computation skipped for enums");
                 declaredBase = compilation.GetSpecialType(SpecialType.System_Enum);
+                reportAtFirstLocation = true;
             }
             else if (typeKind == TypeKind.Extension)
             {
@@ -737,10 +748,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
 
                         declaredBase = compilation.GetSpecialType(SpecialType.System_Object);
+                        reportAtFirstLocation = true;
                         break;
 
                     case TypeKind.Struct:
                         declaredBase = compilation.GetSpecialType(SpecialType.System_ValueType);
+                        reportAtFirstLocation = true;
                         break;
 
                     case TypeKind.Interface:
@@ -748,6 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case TypeKind.Delegate:
                         declaredBase = compilation.GetSpecialType(SpecialType.System_MulticastDelegate);
+                        reportAtFirstLocation = true;
                         break;
 
                     default:
@@ -778,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             while ((object)current != null);
 
-            diagnostics.Add(useSiteInfo.Diagnostics.IsNullOrEmpty() ? Location.None : (FindBaseRefSyntax(declaredBase) ?? GetFirstLocation()), useSiteInfo);
+            diagnostics.Add(useSiteInfo.Diagnostics.IsNullOrEmpty() ? Location.None : ((reportAtFirstLocation ? null : FindBaseRefSyntax(declaredBase)) ?? GetFirstLocation()), useSiteInfo);
 
             return declaredBase;
         }

@@ -123,4 +123,33 @@ internal static partial class IMethodSymbolExtensions
         return method.ReturnType.Equals(compilation.TaskType()) ||
                method.ReturnType.HasAttribute(compilation.AsyncMethodBuilderAttribute());
     }
+
+    /// <summary>
+    /// Returns true if the method is a primary constructor.
+    /// Primary constructors are not implicitly declared and have their declaring syntax reference
+    /// on the type declaration itself (not a separate constructor declaration).
+    /// </summary>
+    public static bool IsPrimaryConstructor(this IMethodSymbol constructor)
+    {
+        if (constructor.IsImplicitlyDeclared)
+            return false;
+
+        if (constructor.DeclaringSyntaxReferences is not [{ SyntaxTree: var constructorSyntaxTree, Span: var constructorSpan }])
+            return false;
+
+        // Primary constructors have their declaring syntax on the containing type's declaration
+        var containingType = constructor.ContainingType;
+        if (containingType.DeclaringSyntaxReferences.Length == 0)
+            return false;
+
+        // Check if any of the containing type's syntax references match the constructor's syntax tree
+        // and are at the same location (same syntax node)
+        foreach (var typeRef in containingType.DeclaringSyntaxReferences)
+        {
+            if (typeRef.SyntaxTree == constructorSyntaxTree && typeRef.Span == constructorSpan)
+                return true;
+        }
+
+        return false;
+    }
 }

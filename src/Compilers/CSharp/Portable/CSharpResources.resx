@@ -4251,7 +4251,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>The CallerFilePathAttribute will have no effect; it is overridden by the CallerLineNumberAttribute</value>
   </data>
   <data name="ERR_InvalidDynamicCondition" xml:space="preserve">
-    <value>Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</value>
+    <value>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</value>
   </data>
   <data name="ERR_MixingWinRTEventWithRegular" xml:space="preserve">
     <value>'{0}' cannot implement '{1}' because '{2}' is a Windows Runtime event and '{3}' is a regular .NET event.</value>
@@ -5297,8 +5297,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureOutVar" xml:space="preserve">
     <value>out variable declaration</value>
   </data>
-  <data name="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList" xml:space="preserve">
-    <value>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</value>
+  <data name="ERR_ImplicitlyTypedVariableUsedInForbiddenZone" xml:space="preserve">
+    <value>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</value>
   </data>
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable" xml:space="preserve">
     <value>Cannot infer the type of implicitly-typed out variable '{0}'.</value>
@@ -5460,7 +5460,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</value>
   </data>
   <data name="ERR_CompilerAndLanguageVersion" xml:space="preserve">
-    <value>Compiler version: '{0}'. Language version: {1}.</value>
+    <value>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</value>
   </data>
   <data name="IDS_FeatureAsyncMain" xml:space="preserve">
     <value>async main</value>
@@ -8146,5 +8146,38 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="NodeIsNotAwaitUsingStatement" xml:space="preserve">
     <value>'node' is not an 'await using' statement</value>
     <comment>node and await using are not localizable</comment>
+  </data>
+  <data name="HDN_RedundantPattern" xml:space="preserve">
+    <value>The pattern is redundant.</value>
+  </data>
+  <data name="HDN_RedundantPattern_Title" xml:space="preserve">
+    <value>The pattern is redundant.</value>
+  </data>
+  <data name="WRN_RedundantPattern" xml:space="preserve">
+    <value>The pattern is redundant.</value>
+  </data>
+  <data name="WRN_RedundantPattern_Title" xml:space="preserve">
+    <value>The pattern is redundant.</value>
+  </data>
+  <data name="HDN_RedundantPatternStackGuard" xml:space="preserve">
+    <value>The pattern is too complex to analyze for redundancy.</value>
+  </data>
+  <data name="HDN_RedundantPatternStackGuard_Title" xml:space="preserve">
+    <value>The pattern is too complex to analyze for redundancy.</value>
+  </data>
+  <data name="ERR_BadVisBaseType" xml:space="preserve">
+    <value>Inconsistent accessibility: type '{1}' is less accessible than class '{0}' </value>
+  </data>
+  <data name="ERR_AmbigExtension" xml:space="preserve">
+    <value>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</value>
+  </data>
+  <data name="ERR_SingleInapplicableBinaryOperator" xml:space="preserve">
+    <value>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</value>
+  </data>
+  <data name="ERR_SingleInapplicableUnaryOperator" xml:space="preserve">
+    <value>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</value>
+  </data>
+  <data name="ERR_AmbigOperator" xml:space="preserve">
+    <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>
   </data>
 </root>

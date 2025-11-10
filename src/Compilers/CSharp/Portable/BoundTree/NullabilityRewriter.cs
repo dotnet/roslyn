@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundBinaryOperator binary => binary.Update(
                         binary.OperatorKind,
-                        binary.Data?.WithUpdatedMethod(GetUpdatedSymbol(binary, binary.Method)),
+                        binary.BinaryOperatorMethod is { } binaryOperatorMethod ? binary.Data?.WithUpdatedMethod(GetUpdatedSymbol(binary, binaryOperatorMethod)) : binary.Data,
                         binary.ResultKind,
                         leftChild,
                         right,
@@ -132,6 +132,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(currentBinary != null);
             return currentBinary!;
+        }
+
+        public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
+        {
+            // Use an explicit stack to avoid blowing the managed stack when visiting deeply-recursive
+            // binary nodes
+            var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+            BoundBinaryPattern? currentBinary = node;
+
+            do
+            {
+                stack.Push(currentBinary);
+                currentBinary = currentBinary.Left as BoundBinaryPattern;
+            }
+            while (currentBinary is not null);
+
+            Debug.Assert(stack.Count > 0);
+            var leftChild = (BoundPattern)Visit(stack.Peek().Left);
+
+            do
+            {
+                currentBinary = stack.Pop();
+
+                TypeSymbol inputType = GetUpdatedSymbol(currentBinary, currentBinary.InputType);
+                TypeSymbol narrowedType = GetUpdatedSymbol(currentBinary, currentBinary.NarrowedType);
+
+                var right = (BoundPattern)Visit(currentBinary.Right);
+
+                currentBinary = currentBinary.Update(currentBinary.Disjunction, leftChild, right, inputType, narrowedType);
+
+                leftChild = currentBinary;
+            }
+            while (stack.Count > 0);
+
+            return currentBinary;
         }
 
         public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
@@ -206,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (updatedDelegateType is null)
                 {
                     Debug.Assert(updatedContaining is object);
-                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedContaining, lambda.ReturnTypeWithAnnotations, lambda.ParameterTypesWithAnnotations, lambda.ParameterRefKinds, lambda.RefKind);
+                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedContaining, lambda.ReturnTypeWithAnnotations, lambda.ParameterTypesWithAnnotations, lambda.ParameterRefKinds, lambda.RefKind, lambda.RefCustomModifiers);
                 }
                 else
                 {

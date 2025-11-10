@@ -1061,7 +1061,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
 
                 static int GetValue(int input)
                 {
-                    [|switch|] (input)
+                    switch (input)
                     {
                         case 1:
                             return 42;
@@ -1098,7 +1098,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                         1 => 42,
                         _ => 80,
                     };
-                    [|switch|] (input)
+                    switch (input)
                     {
                         case 1:
                             return 42;
@@ -1134,7 +1134,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                             return 80;
                     }
 
-                    [|switch|] (input)
+                    switch (input)
                     {
                         case 1:
                             return 42;

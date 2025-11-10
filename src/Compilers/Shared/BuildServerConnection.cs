@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// 
         /// As such this timeout should be significantly longer than the average gen2 pause
         /// time for the server. When changing this value consider profiling building 
-        /// Roslyn.sln and consulting the GC stats to see what a typical pause time is.
+        /// Roslyn.slnx and consulting the GC stats to see what a typical pause time is.
         /// </remarks>
         internal const int TimeOutMsExistingProcess = 5_000;
 
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>Dictionary of environment variables to set, or null if no custom environment is needed</returns>
         internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment, ICompilerServerLogger? logger = null)
         {
-            if (RuntimeHostInfo.GetToolDotNetRoot() is not { } dotNetRoot)
+            if (RuntimeHostInfo.GetToolDotNetRoot(logger is null ? null : logger.Log) is not { } dotNetRoot)
             {
                 return null;
             }

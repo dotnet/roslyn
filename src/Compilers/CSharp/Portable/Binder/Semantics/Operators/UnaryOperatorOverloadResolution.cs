@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Takes a list of candidates and mutates the list to throw out the ones that are worse than
         // another applicable candidate.
-        private void UnaryOperatorOverloadResolution(
+        internal void UnaryOperatorOverloadResolution(
             BoundExpression operand,
             UnaryOperatorOverloadResolutionResult result,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -640,11 +640,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - If we find an applicable candidate in an interface, that candidate shadows all applicable operators in base interfaces:
             // we stop looking.
 
-            TypeSymbol type0 = operand.Type.StrippedType();
-            TypeSymbol constrainedToTypeOpt = type0 as TypeParameterSymbol;
+            return GetUserDefinedOperators(operand.Type.StrippedType(), kind, isChecked, name1, name2Opt, operand, results, ref useSiteInfo);
+        }
+
+        /// <summary>
+        /// Returns true if there were any applicable candidates.
+        /// </summary>
+        internal bool GetUserDefinedOperators(
+            TypeSymbol declaringTypeOrTypeParameter,
+            UnaryOperatorKind kind,
+            bool isChecked,
+            string name1,
+            string name2Opt,
+            BoundExpression operand,
+            ArrayBuilder<UnaryOperatorAnalysisResult> results,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            TypeSymbol constrainedToTypeOpt = declaringTypeOrTypeParameter as TypeParameterSymbol;
 
             // Searching for user-defined operators is expensive; let's take an early out if we can.
-            if (OperatorFacts.DefinitelyHasNoUserDefinedOperators(type0))
+            if (OperatorFacts.DefinitelyHasNoUserDefinedOperators(declaringTypeOrTypeParameter))
             {
                 return false;
             }
@@ -652,15 +667,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operators = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
             bool hadApplicableCandidates = false;
 
-            NamedTypeSymbol current = type0 as NamedTypeSymbol;
+            NamedTypeSymbol current = declaringTypeOrTypeParameter as NamedTypeSymbol;
             if ((object)current == null)
             {
-                current = type0.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+                current = declaringTypeOrTypeParameter.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
             }
 
-            if ((object)current == null && type0.IsTypeParameter())
+            if ((object)current == null && declaringTypeOrTypeParameter.IsTypeParameter())
             {
-                current = ((TypeParameterSymbol)type0).EffectiveBaseClass(ref useSiteInfo);
+                current = ((TypeParameterSymbol)declaringTypeOrTypeParameter).EffectiveBaseClass(ref useSiteInfo);
             }
 
             for (; (object)current != null; current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
@@ -681,13 +696,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!hadApplicableCandidates)
             {
                 ImmutableArray<NamedTypeSymbol> interfaces = default;
-                if (type0.IsInterfaceType())
+                if (declaringTypeOrTypeParameter.IsInterfaceType())
                 {
-                    interfaces = type0.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+                    interfaces = declaringTypeOrTypeParameter.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
                 }
-                else if (type0.IsTypeParameter())
+                else if (declaringTypeOrTypeParameter.IsTypeParameter())
                 {
-                    interfaces = ((TypeParameterSymbol)type0).AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+                    interfaces = ((TypeParameterSymbol)declaringTypeOrTypeParameter).AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
                 }
 
                 if (!interfaces.IsDefaultOrEmpty)

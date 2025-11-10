@@ -13708,14 +13708,14 @@ End Class
             Dim i As Integer
 
             For i = 0 To count - 1
-                builder.Append(i + 1)
+                builder.Append((i + 1).ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(" * ")
                 builder.Append("f(")
-                builder.Append(i)
+                builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(") + ")
             Next
 
-            builder.Append(i + 1)
+            builder.Append((i + 1).ToString(Globalization.CultureInfo.InvariantCulture))
 
             Return builder.ToString()
         End Function
@@ -13787,16 +13787,16 @@ End Class
 
             For i = 0 To count - 1
                 builder.Append("a(")
-                builder.Append(i)
+                builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(")")
                 builder.Append(" AndAlso ")
                 builder.Append("f(")
-                builder.Append(i)
+                builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
                 builder.Append(") OrElse ")
             Next
 
             builder.Append("a(")
-            builder.Append(i)
+            builder.Append(i.ToString(Globalization.CultureInfo.InvariantCulture))
             builder.Append(")")
 
             Return builder.ToString()

@@ -102,8 +102,9 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
         {
             // We don't have this file in the workspace.  We need to create a project to put it in.
             var (temporaryProjectInfo, temporaryDocumentId) = GenerateProjectAndDocumentInfo(fileInfo, metadataWorkspace.CurrentSolution.Services, sourceProject, topLevelNamedType);
-            metadataWorkspace.OnProjectAdded(temporaryProjectInfo);
-            var temporaryDocument = metadataWorkspace.CurrentSolution
+            var temporarySolution = metadataWorkspace.CurrentSolution.AddProject(temporaryProjectInfo);
+
+            var temporaryDocument = temporarySolution
                 .GetRequiredDocument(temporaryDocumentId);
 
             // Generate the file if it doesn't exist (we may still have it if there was a previous request for it that was then closed).
@@ -198,10 +199,10 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
             // Retrieve the navigable location for the symbol using the generated syntax.  
             navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryDocument, cancellationToken).ConfigureAwait(false);
 
-            // Update the workspace to pull the text from the document.
-            var newLoader = new WorkspaceFileTextLoader(temporaryDocument.Project.Solution.Services, fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding);
-            metadataWorkspace.OnDocumentTextLoaderChanged(temporaryDocumentId, newLoader);
-            _generatedFilenameToInformation.Add(fileInfo.TemporaryFilePath, (fileInfo, temporaryDocument.Id));
+            // Now that we've finished the work to produce the file, add the project and document to the workspace.
+            // This should not be cancelled, or we'll leave the workspace in a bad state.
+            cancellationToken = default;
+            MutateWorkspace(temporaryDocument.Id, fileInfo, temporaryProjectInfo, metadataWorkspace);
             generatedDocumentId = temporaryDocument.Id;
         }
         else
@@ -221,6 +222,17 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
         var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
         return new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip);
+    }
+
+    private void MutateWorkspace(DocumentId temporaryDocumentId, MetadataAsSourceGeneratedFileInfo fileInfo, ProjectInfo temporaryProjectInfo, Workspace metadataWorkspace)
+    {
+        // This method should run to completion and not be cancelled to prevent invalid workspace state.
+        var newLoader = new WorkspaceFileTextLoader(metadataWorkspace.CurrentSolution.Services, fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding);
+        var updatedDocuments = temporaryProjectInfo.Documents.Select(d => d.Id == temporaryDocumentId ? d.WithTextLoader(newLoader) : d);
+        temporaryProjectInfo = temporaryProjectInfo.WithDocuments(updatedDocuments);
+        metadataWorkspace.OnProjectAdded(temporaryProjectInfo);
+
+        _generatedFilenameToInformation.Add(fileInfo.TemporaryFilePath, (fileInfo, temporaryDocumentId));
     }
 
     private (MetadataReference? metadataReference, string? assemblyLocation, bool isReferenceAssembly) GetReferenceInfo(Compilation compilation, IAssemblySymbol containingAssembly)

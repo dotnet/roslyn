@@ -108,7 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         out UnaryOperatorSignature boolOperator);
                     CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, boolOperator.Method, isUnsignedRightShift: false, boolOperator.ConstrainedToTypeOpt, diagnostics);
 
-                    return new TupleBinaryOperatorInfo.Single(binary.Left.Type, binary.Right.Type, binary.OperatorKind, binary.Method, binary.ConstrainedToType,
+                    Debug.Assert(!binary.OperatorKind.IsDynamic());
+                    return new TupleBinaryOperatorInfo.Single(binary.Left.Type, binary.Right.Type, binary.OperatorKind, binary.BinaryOperatorMethod, binary.ConstrainedToType,
                         conversionIntoBoolOperatorPlaceholder, conversionIntoBoolOperator, boolOperator);
 
                 default:
@@ -158,7 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
             BoundExpression comparisonResult = new BoundTupleOperandPlaceholder(node, type);
-            UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            OperatorResolutionForReporting discardedOperatorResolutionForReporting = default;
+            UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, ref discardedOperatorResolutionForReporting, out resultKind, out originalUserDefinedOperators);
+            discardedOperatorResolutionForReporting.Free();
+
             if (best.HasValue)
             {
                 conversionForBoolPlaceholder = new BoundValuePlaceholder(node, type).MakeCompilerGenerated();
@@ -208,7 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left.IsLiteralDefaultOrImplicitObjectCreation() ||
                 right.IsLiteralDefaultOrImplicitObjectCreation())
             {
-                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, LookupResultKind.Ambiguous);
+                OperatorResolutionForReporting discardedOperatorResolutionForReporting = default;
+                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, LookupResultKind.Ambiguous, ref discardedOperatorResolutionForReporting);
+                discardedOperatorResolutionForReporting.Free();
+
                 return TupleBinaryOperatorInfo.Multiple.ErrorInstance;
             }
 

@@ -14,15 +14,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.JsonDetection), Shared]
-internal sealed class CSharpJsonDetectionCodeFixProvider : AbstractJsonDetectionCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpJsonDetectionCodeFixProvider()
+    : AbstractJsonDetectionCodeFixProvider(CSharpEmbeddedLanguagesProvider.Info)
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpJsonDetectionCodeFixProvider()
-        : base(CSharpEmbeddedLanguagesProvider.Info)
-    {
-    }
-
     protected override void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents)
         => EmbeddedLanguageUtilities.AddComment(editor, stringLiteral, commentContents);
 }

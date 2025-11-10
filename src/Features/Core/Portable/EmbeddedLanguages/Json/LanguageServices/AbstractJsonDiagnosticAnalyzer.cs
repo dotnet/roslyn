@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
@@ -13,21 +13,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 /// <summary>
 /// Analyzer that reports diagnostics in strings that we know are JSON text.
 /// </summary>
-internal abstract class AbstractJsonDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal abstract class AbstractJsonDiagnosticAnalyzer(EmbeddedLanguageInfo info)
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        DiagnosticId,
+        EnforceOnBuildValues.Json,
+        option: null,
+        new LocalizableResourceString(nameof(FeaturesResources.Invalid_JSON_pattern), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+        new LocalizableResourceString(nameof(FeaturesResources.JSON_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
 {
     public const string DiagnosticId = "JSON001";
 
-    private readonly EmbeddedLanguageInfo _info;
-
-    protected AbstractJsonDiagnosticAnalyzer(EmbeddedLanguageInfo info)
-        : base(DiagnosticId,
-               EnforceOnBuildValues.Json,
-               option: null,
-               new LocalizableResourceString(nameof(FeaturesResources.Invalid_JSON_pattern), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-               new LocalizableResourceString(nameof(FeaturesResources.JSON_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
-    {
-        _info = info;
-    }
+    private readonly EmbeddedLanguageInfo _info = info;
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -37,6 +33,8 @@ internal abstract class AbstractJsonDiagnosticAnalyzer : AbstractBuiltInCodeStyl
 
     public void Analyze(SemanticModelAnalysisContext context)
     {
+        var cancellationToken = context.CancellationToken;
+
         if (!context.GetAnalyzerOptions().GetOption(JsonDetectionOptionsStorage.ReportInvalidJsonPatterns) ||
             ShouldSkipAnalysis(context, notification: null))
         {
@@ -44,47 +42,49 @@ internal abstract class AbstractJsonDiagnosticAnalyzer : AbstractBuiltInCodeStyl
         }
 
         var detector = JsonLanguageDetector.GetOrCreate(context.SemanticModel.Compilation, _info);
-        Analyze(context, detector, context.GetAnalysisRoot(findInTrivia: true), context.CancellationToken);
-    }
 
-    private void Analyze(
-        SemanticModelAnalysisContext context,
-        JsonLanguageDetector detector,
-        SyntaxNode node,
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+        stack.Push(context.GetAnalysisRoot(findInTrivia: true));
 
-        foreach (var child in node.ChildNodesAndTokens())
+        while (stack.TryPop(out var currentNode))
         {
-            if (!context.ShouldAnalyzeSpan(child.FullSpan))
-                continue;
+            cancellationToken.ThrowIfCancellationRequested();
 
-            if (child.AsNode(out var childNode))
+            foreach (var child in currentNode.ChildNodesAndTokens().Reverse())
             {
-                Analyze(context, detector, childNode, cancellationToken);
-            }
-            else
-            {
-                var token = child.AsToken();
-                if (_info.IsAnyStringLiteral(token.RawKind))
+                if (!context.ShouldAnalyzeSpan(child.FullSpan))
+                    continue;
+
+                if (child.AsNode(out var childNode))
                 {
-                    var tree = detector.TryParseString(token, context.SemanticModel, includeProbableStrings: false, cancellationToken);
-                    if (tree != null)
-                    {
-                        foreach (var diag in tree.Diagnostics)
-                        {
-                            context.ReportDiagnostic(DiagnosticHelper.Create(
-                                this.Descriptor,
-                                Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
-                                NotificationOption2.Warning,
-                                context.Options,
-                                additionalLocations: null,
-                                properties: null,
-                                diag.Message));
-                        }
-                    }
+                    stack.Push(childNode);
                 }
+                else
+                {
+                    AnalyzeToken(child.AsToken());
+                }
+            }
+        }
+
+        void AnalyzeToken(SyntaxToken token)
+        {
+            if (!_info.IsAnyStringLiteral(token.RawKind))
+                return;
+
+            var tree = detector.TryParseString(token, context.SemanticModel, includeProbableStrings: false, cancellationToken);
+            if (tree is null)
+                return;
+
+            foreach (var diag in tree.Diagnostics)
+            {
+                context.ReportDiagnostic(DiagnosticHelper.Create(
+                    this.Descriptor,
+                    Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
+                    NotificationOption2.Warning,
+                    context.Options,
+                    additionalLocations: null,
+                    properties: null,
+                    diag.Message));
             }
         }
     }

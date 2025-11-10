@@ -22,7 +22,6 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-
     <!--
       We specifically reference Microsoft.Build 17.11.48, since it's the oldest version still compatible $(NetRoslynBuildHostNetCoreVersion).
       The version targeted is only used for build time, since we use MSBuildLocator to discover the proper version at runtime.

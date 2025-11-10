@@ -638,6 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_RefLocalAcrossAwait
                 or ErrorCode.ERR_DataSectionStringLiteralHashCollision
                 or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
+                or ErrorCode.ERR_NonTaskMainCantBeAsync
                     // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.
@@ -1547,7 +1548,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnsafeAsyncArgType
                 or ErrorCode.ERR_VarargsAsync
                 or ErrorCode.ERR_BadAwaitArgVoidCall
-                or ErrorCode.ERR_NonTaskMainCantBeAsync
                 or ErrorCode.ERR_CantConvAsyncAnonFuncReturns
                 or ErrorCode.ERR_BadAwaiterPattern
                 or ErrorCode.ERR_BadSpecialByRefParameter
@@ -1807,7 +1807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadSourceCodeKind
                 or ErrorCode.ERR_BadDocumentationMode
                 or ErrorCode.ERR_BadLanguageVersion
-                or ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList
+                or ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone
                 or ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable
                 or ErrorCode.ERR_ExpressionTreeContainsOutVariable
                 or ErrorCode.ERR_VarInvocationLvalueReserved
@@ -2538,6 +2538,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadSpreadInCatchFilter
                 or ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch
                 or ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch
+                or ErrorCode.HDN_RedundantPattern
+                or ErrorCode.WRN_RedundantPattern
+                or ErrorCode.HDN_RedundantPatternStackGuard
+                or ErrorCode.ERR_BadVisBaseType
+                or ErrorCode.ERR_AmbigExtension
+                or ErrorCode.ERR_SingleInapplicableBinaryOperator
+                or ErrorCode.ERR_SingleInapplicableUnaryOperator
+                or ErrorCode.ERR_AmbigOperator
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

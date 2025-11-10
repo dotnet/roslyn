@@ -221,48 +221,94 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var result = scanAndSimplify(tests);
-            usedValues.Free();
-            return result;
+            var testsToSimplify = ArrayBuilder<Tests?>.GetInstance();
+            var testsToAssemble = ArrayBuilder<Tests>.GetInstance();
+            var testsSimplified = ArrayBuilder<Tests>.GetInstance();
 
-            Tests scanAndSimplify(Tests tests)
+            testsToSimplify.Push(tests);
+
+            do
             {
-                switch (tests)
+                var current = testsToSimplify.Pop();
+
+                switch (current)
                 {
                     case Tests.SequenceTests seq:
-                        var testSequence = seq.RemainingTests;
-                        var length = testSequence.Length;
-                        var newSequence = ArrayBuilder<Tests>.GetInstance(length);
-                        newSequence.AddRange(testSequence);
-                        for (int i = length - 1; i >= 0; i--)
-                        {
-                            newSequence[i] = scanAndSimplify(newSequence[i]);
-                        }
-                        return seq.Update(newSequence);
+                        testsToAssemble.Push(seq);
+                        testsToSimplify.Push(null); // marker to indicate we need to reassemble after handling children
+                        testsToSimplify.AddRange(seq.RemainingTests!);
+                        break;
                     case Tests.True _:
                     case Tests.False _:
-                        return tests;
+                        testsSimplified.Push(current);
+                        break;
                     case Tests.One(BoundDagEvaluation e):
                         if (usedValues.Contains(e))
                         {
                             if (e.Input.Source is { })
                                 usedValues.Add(e.Input.Source);
-                            return tests;
+
+                            testsSimplified.Push(current);
                         }
                         else
                         {
-                            return Tests.True.Instance;
+                            testsSimplified.Push(Tests.True.Instance);
                         }
+                        break;
                     case Tests.One(BoundDagTest d):
                         if (d.Input.Source is { })
                             usedValues.Add(d.Input.Source);
-                        return tests;
+
+                        testsSimplified.Push(current);
+                        break;
                     case Tests.Not n:
-                        return Tests.Not.Create(scanAndSimplify(n.Negated));
+                        testsToAssemble.Push(n);
+                        testsToSimplify.Push(null); // marker to indicate we need to reassemble after handling children
+                        testsToSimplify.Push(n.Negated);
+                        break;
+
+                    case null:
+                        var toAssemble = testsToAssemble.Pop();
+                        switch (toAssemble)
+                        {
+                            case Tests.SequenceTests seq:
+                                var length = seq.RemainingTests.Length;
+                                var newSequence = ArrayBuilder<Tests>.GetInstance(length);
+                                for (int i = 0; i < length; i++)
+                                {
+                                    newSequence.Add(testsSimplified.Pop());
+                                }
+
+                                testsSimplified.Push(seq.Update(newSequence));
+                                break;
+
+                            case Tests.Not:
+                                testsSimplified.Push(Tests.Not.Create(testsSimplified.Pop()));
+                                break;
+
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(toAssemble);
+                        }
+                        break;
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(tests);
+                        throw ExceptionUtilities.UnexpectedValue(current);
                 }
             }
+            while (testsToSimplify.Count != 0);
+
+            var result = testsSimplified.Pop();
+
+            if (!testsSimplified.IsEmpty || !testsToAssemble.IsEmpty)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            testsToSimplify.Free();
+            testsToAssemble.Free();
+            testsSimplified.Free();
+            usedValues.Free();
+
+            return result;
         }
 
         private Tests MakeTestsAndBindings(
@@ -2339,43 +2385,334 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out Tests whenFalse,
                     ref bool foundExplicitNullTest)
                 {
-                    var trueBuilder = ArrayBuilder<Tests>.GetInstance(RemainingTests.Length);
-                    var falseBuilder = ArrayBuilder<Tests>.GetInstance(RemainingTests.Length);
-                    foreach (var other in RemainingTests)
+                    var testsToFilter = ArrayBuilder<Tests?>.GetInstance();
+                    var testsToAssemble = ArrayBuilder<SequenceTests>.GetInstance();
+                    var trueTests = ArrayBuilder<Tests>.GetInstance();
+                    var falseTests = ArrayBuilder<Tests>.GetInstance();
+
+                    testsToFilter.Push(this);
+
+                    do
                     {
-                        other.Filter(builder, test, state, whenTrueValues, whenFalseValues, out Tests oneTrue, out Tests oneFalse, ref foundExplicitNullTest);
-                        trueBuilder.Add(oneTrue);
-                        falseBuilder.Add(oneFalse);
+                        var current = testsToFilter.Pop();
+
+                        switch (current)
+                        {
+                            case SequenceTests seq:
+                                testsToAssemble.Push(seq);
+                                testsToFilter.Push(null); // marker to indicate we need to reassemble after handling children
+
+                                for (int i = seq.RemainingTests.Length - 1; i >= 0; i--)
+                                {
+                                    testsToFilter.Push(seq.RemainingTests[i]);
+                                }
+                                break;
+
+                            case null:
+                                var toAssemble = testsToAssemble.Pop();
+                                assemble(toAssemble, trueTests);
+                                assemble(toAssemble, falseTests);
+                                break;
+
+                            default:
+                                {
+                                    current.Filter(builder, test, state, whenTrueValues, whenFalseValues, out Tests oneTrue, out Tests oneFalse, ref foundExplicitNullTest);
+                                    trueTests.Push(oneTrue);
+                                    falseTests.Push(oneFalse);
+                                }
+                                break;
+                        }
+                    }
+                    while (testsToFilter.Count != 0);
+
+                    whenTrue = trueTests.Pop();
+                    whenFalse = falseTests.Pop();
+
+                    if (!trueTests.IsEmpty || !falseTests.IsEmpty || !testsToAssemble.IsEmpty)
+                    {
+                        throw ExceptionUtilities.Unreachable();
                     }
 
-                    whenTrue = Update(trueBuilder);
-                    whenFalse = Update(falseBuilder);
+                    testsToFilter.Free();
+                    testsToAssemble.Free();
+                    trueTests.Free();
+                    falseTests.Free();
+
+                    static void assemble(SequenceTests toAssemble, ArrayBuilder<Tests> tests)
+                    {
+                        var length = toAssemble.RemainingTests.Length;
+                        var newSequence = ArrayBuilder<Tests>.GetInstance(length, null!);
+                        for (int i = length - 1; i >= 0; i--)
+                        {
+                            newSequence[i] = tests.Pop();
+                        }
+
+                        tests.Push(toAssemble.Update(newSequence));
+                    }
                 }
+
                 public sealed override Tests RemoveEvaluation(BoundDagEvaluation e)
                 {
-                    var builder = ArrayBuilder<Tests>.GetInstance(RemainingTests.Length);
-                    foreach (var test in RemainingTests)
-                        builder.Add(test.RemoveEvaluation(e));
+                    var testsToRewrite = ArrayBuilder<Tests?>.GetInstance();
+                    var testsToAssemble = ArrayBuilder<SequenceTests>.GetInstance();
+                    var testsRewritten = ArrayBuilder<Tests>.GetInstance();
 
-                    return Update(builder);
+                    testsToRewrite.Push(this);
+
+                    do
+                    {
+                        var current = testsToRewrite.Pop();
+
+                        switch (current)
+                        {
+                            case SequenceTests seq:
+                                testsToAssemble.Push(seq);
+                                testsToRewrite.Push(null); // marker to indicate we need to reassemble after handling children
+                                testsToRewrite.AddRange(seq.RemainingTests!);
+                                break;
+
+                            case null:
+                                var toAssemble = testsToAssemble.Pop();
+                                var length = toAssemble.RemainingTests.Length;
+                                var newSequence = ArrayBuilder<Tests>.GetInstance(length);
+                                for (int i = 0; i < length; i++)
+                                {
+                                    newSequence.Add(testsRewritten.Pop());
+                                }
+
+                                testsRewritten.Push(toAssemble.Update(newSequence));
+                                break;
+
+                            default:
+                                testsRewritten.Push(current.RemoveEvaluation(e));
+                                break;
+                        }
+                    }
+                    while (testsToRewrite.Count != 0);
+
+                    var result = testsRewritten.Pop();
+
+                    if (!testsRewritten.IsEmpty || !testsToAssemble.IsEmpty)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
+                    testsToRewrite.Free();
+                    testsToAssemble.Free();
+                    testsRewritten.Free();
+
+                    return result;
                 }
+
                 public sealed override Tests RewriteNestedLengthTests()
                 {
-                    var builder = ArrayBuilder<Tests>.GetInstance(RemainingTests.Length);
-                    foreach (var test in RemainingTests)
-                        builder.Add(test.RewriteNestedLengthTests());
+                    var testsToRewrite = ArrayBuilder<Tests?>.GetInstance();
+                    var testsToAssemble = ArrayBuilder<SequenceTests>.GetInstance();
+                    var testsRewritten = ArrayBuilder<Tests>.GetInstance();
 
-                    return Update(builder);
+                    testsToRewrite.Push(this);
+
+                    do
+                    {
+                        var current = testsToRewrite.Pop();
+
+                        switch (current)
+                        {
+                            case SequenceTests seq:
+                                testsToAssemble.Push(seq);
+                                testsToRewrite.Push(null); // marker to indicate we need to reassemble after handling children
+                                testsToRewrite.AddRange(seq.RemainingTests!);
+                                break;
+
+                            case null:
+                                var toAssemble = testsToAssemble.Pop();
+                                var length = toAssemble.RemainingTests.Length;
+                                var newSequence = ArrayBuilder<Tests>.GetInstance(length);
+                                for (int i = 0; i < length; i++)
+                                {
+                                    newSequence.Add(testsRewritten.Pop());
+                                }
+
+                                testsRewritten.Push(toAssemble.Update(newSequence));
+                                break;
+
+                            default:
+                                testsRewritten.Push(current.RewriteNestedLengthTests());
+                                break;
+                        }
+                    }
+                    while (testsToRewrite.Count != 0);
+
+                    var result = testsRewritten.Pop();
+
+                    if (!testsRewritten.IsEmpty || !testsToAssemble.IsEmpty)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
+                    testsToRewrite.Free();
+                    testsToAssemble.Free();
+                    testsRewritten.Free();
+
+                    return result;
                 }
-                public sealed override bool Equals(object? obj) =>
-                    this == obj || obj is SequenceTests other && this.GetType() == other.GetType() && RemainingTests.SequenceEqual(other.RemainingTests);
+
+                public sealed override bool Equals(object? obj)
+                {
+                    bool? easyOut = equalsEasyOut(this, obj);
+                    if (easyOut.HasValue)
+                    {
+                        return easyOut.GetValueOrDefault();
+                    }
+
+                    Debug.Assert(obj is SequenceTests);
+
+                    var tests1 = ArrayBuilder<Tests>.GetInstance();
+                    var tests2 = ArrayBuilder<Tests>.GetInstance();
+
+                    tests1.AddRange(this.RemainingTests);
+                    tests2.AddRange(((SequenceTests)obj).RemainingTests);
+
+                    do
+                    {
+                        var t1 = tests1.Pop();
+                        var t2 = tests2.Pop();
+
+                        if (t1 is SequenceTests sequence)
+                        {
+                            easyOut = equalsEasyOut(sequence, t2);
+                            if (easyOut.HasValue)
+                            {
+                                if (easyOut.GetValueOrDefault())
+                                {
+                                    continue;
+                                }
+
+                                return false;
+                            }
+
+                            Debug.Assert(t2 is SequenceTests seq && seq.RemainingTests.Length == sequence.RemainingTests.Length);
+                            tests1.AddRange(sequence.RemainingTests);
+                            tests2.AddRange(((SequenceTests)t2).RemainingTests);
+                        }
+                        else if (!t1.Equals(t2))
+                        {
+                            return false;
+                        }
+                    }
+                    while (tests1.Count != 0);
+
+                    if (!tests2.IsEmpty)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
+                    tests1.Free();
+                    tests2.Free();
+
+                    return true;
+
+                    static bool? equalsEasyOut(SequenceTests sequence, object? obj)
+                    {
+                        if (sequence == obj)
+                        {
+                            return true;
+                        }
+
+                        if (obj is not SequenceTests other || sequence.GetType() != other.GetType() || sequence.RemainingTests.Length != other.RemainingTests.Length)
+                        {
+                            return false;
+                        }
+
+                        if (!sequence.RemainingTests.Any(t => t is SequenceTests))
+                        {
+                            return sequence.RemainingTests.SequenceEqual(other.RemainingTests);
+                        }
+
+                        return null;
+                    }
+                }
+
                 public sealed override int GetHashCode()
                 {
-                    int length = this.RemainingTests.Length;
-                    int value = Hash.Combine(length, this.GetType().GetHashCode());
-                    value = Hash.Combine(Hash.CombineValues(this.RemainingTests), value);
+                    int? easyOut = getHashCodeEasyOut(this);
+
+                    if (easyOut.HasValue)
+                    {
+                        return easyOut.GetValueOrDefault();
+                    }
+
+                    int value = Hash.Combine(this.RemainingTests.Length, this.GetType().GetHashCode());
+                    var tests = ArrayBuilder<Tests>.GetInstance();
+                    tests.AddRange(this.RemainingTests);
+
+                    do
+                    {
+                        var t = tests.Pop();
+
+                        if (t is SequenceTests sequence)
+                        {
+                            easyOut = getHashCodeEasyOut(sequence);
+                            if (easyOut.HasValue)
+                            {
+                                value = Hash.Combine(easyOut.GetValueOrDefault(), value);
+                            }
+                            else
+                            {
+                                value = Hash.Combine(Hash.Combine(sequence.RemainingTests.Length, sequence.GetType().GetHashCode()), value);
+                                tests.AddRange(sequence.RemainingTests);
+                            }
+                        }
+                        else
+                        {
+                            value = Hash.Combine(t.GetHashCode(), value);
+                        }
+                    }
+                    while (tests.Count != 0);
+
+                    tests.Free();
                     return value;
+
+                    static int? getHashCodeEasyOut(SequenceTests sequence)
+                    {
+                        if (sequence.RemainingTests.Any(t => t is SequenceTests))
+                        {
+                            return null;
+                        }
+
+                        int length = sequence.RemainingTests.Length;
+                        int value = Hash.Combine(length, sequence.GetType().GetHashCode());
+                        value = Hash.Combine(Hash.CombineValues(sequence.RemainingTests), value);
+                        return value;
+                    }
                 }
+
+                public sealed override BoundDagTest ComputeSelectedTest()
+                {
+                    Tests firstTest;
+                    var current = this;
+
+                    while (true)
+                    {
+                        if (current.ComputeSelectedTestEasyOut() is { } easy)
+                        {
+                            return easy;
+                        }
+
+                        firstTest = current.RemainingTests[0];
+
+                        if (firstTest is not SequenceTests sequence)
+                        {
+                            break;
+                        }
+
+                        current = sequence;
+                    }
+
+                    return firstTest.ComputeSelectedTest();
+                }
+
+                protected virtual BoundDagTest? ComputeSelectedTestEasyOut() => null;
             }
 
             /// <summary>
@@ -2425,7 +2762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     remainingTests.Free();
                     return result;
                 }
-                public override BoundDagTest ComputeSelectedTest()
+                protected override BoundDagTest? ComputeSelectedTestEasyOut()
                 {
                     // Our simple heuristic is to perform the first test of the
                     // first possible matched case, with two exceptions.
@@ -2449,7 +2786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    return RemainingTests[0].ComputeSelectedTest();
+                    return null;
                 }
                 public override string Dump(Func<BoundDagTest, string> dump)
                 {
@@ -2464,7 +2801,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public sealed class OrSequence : SequenceTests
             {
                 private OrSequence(ImmutableArray<Tests> remainingTests) : base(remainingTests) { }
-                public override BoundDagTest ComputeSelectedTest() => this.RemainingTests[0].ComputeSelectedTest();
                 public override Tests Update(ArrayBuilder<Tests> remainingTests) => Create(remainingTests);
                 public static Tests Create(Tests t1, Tests t2)
                 {

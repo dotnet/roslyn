@@ -56,7 +56,7 @@ public sealed class EditorConfigCodeStyleParserTests
     {
         Assert.True(CodeStyleOptions2.AccessibilityModifiersRequired.Definition.Serializer.TryParseValue(configurationString, out var parsedCodeStyleOption));
 
-        Assert.Equal(value, parsedCodeStyleOption!.Value);
+        Assert.Equal(value, parsedCodeStyleOption.Value);
         Assert.Equal(severity, parsedCodeStyleOption.Notification.Severity);
     }
 

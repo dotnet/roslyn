@@ -178,6 +178,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_GenerateXmlDocCommentsForTripleApostrophes As String =
             BasicVSResources.Generate_XML_documentation_comments_for
 
+        Public ReadOnly Property Option_GenerateXmlDocCommentsOnSingleLine As String =
+            ServicesVSResources.Generate_summary_on_single_line
+
+        Public ReadOnly Property Option_GenerateOnlySummaryTag As String =
+            ServicesVSResources.Generate_only_summary_tag
+
         Public ReadOnly Property Option_InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments As String =
             BasicVSResources.Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments
 

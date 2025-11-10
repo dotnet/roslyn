@@ -1143,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression ConvertReceiverForExtensionMemberIfNeeded(Symbol member, BoundExpression receiver, bool markAsChecked)
         {
-            if (member.GetIsNewExtensionMember())
+            if (member.IsExtensionBlockMember())
             {
                 Debug.Assert(!member.IsStatic);
                 ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
@@ -1200,6 +1200,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode? VisitUsingStatement(BoundUsingStatement node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
             {
                 Fail(node);
                 return null;

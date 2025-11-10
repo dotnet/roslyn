@@ -73,10 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasAutoPropertyGet = allowAutoPropertyAccessors && getSyntax != null && !hasGetAccessorImplementation;
             bool hasAutoPropertySet = allowAutoPropertyAccessors && setSyntax != null && !hasSetAccessorImplementation;
 
-            binder = binder.SetOrClearUnsafeRegionIfNecessary(modifiersTokenList);
             TypeSymbol? explicitInterfaceType;
             string? aliasQualifierOpt;
-            string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifier, name, diagnostics, out explicitInterfaceType, out aliasQualifierOpt);
+            string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, modifiersTokenList, explicitInterfaceSpecifier, name, diagnostics, out explicitInterfaceType, out aliasQualifierOpt);
 
             return new SourcePropertySymbol(
                 containingType,
@@ -692,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (SetMethod is { } setter && this.GetIsNewExtensionMember())
+            if (SetMethod is { } setter && this.IsExtensionBlockMember())
             {
                 if (ContainingType.TypeParameters.Any(static tp => tp.Name == ParameterSymbol.ValueParameterName))
                 {
@@ -705,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (this.GetIsNewExtensionMember() && ContainingType.ExtensionParameter is { } extensionParameter &&
+            if (this.IsExtensionBlockMember() && ContainingType.ExtensionParameter is { } extensionParameter &&
                 !this.IsNoMoreVisibleThan(extensionParameter.Type, ref useSiteInfo))
             {
                 diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, extensionParameter.Type);

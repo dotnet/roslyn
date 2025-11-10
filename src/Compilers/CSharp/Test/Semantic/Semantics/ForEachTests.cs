@@ -84,24 +84,540 @@ class C
                 );
         }
 
-        [WorkItem(540957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540957")]
-        [Fact]
-        public void TestErrorDefaultOfArrayType()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnDefaultArray()
         {
-            var text = @"
-class C
-{
-    static void Main()
-    {
-        foreach (int x in default(int[]))
-        {
-        }
-    }
-}";
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        try
+                        {
+                            foreach (int x in default(int[]))
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
+                        }
+                    }
+                }
+                """;
 
-            CreateCompilation(text).VerifyDiagnostics(
-            // (7,27): error CS0186: Use of null is not valid in this context
-                Diagnostic(ErrorCode.ERR_NullNotValid, "default(int[])"));
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnDefaultString()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        try
+                        {
+                            foreach (char c in default(string))
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
+                        }
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnDefaultIEnumerable()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main()
+                    {
+                        try
+                        {
+                            foreach (var x in default(IEnumerable<int>))
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
+                        }
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToIEnumerable()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main()
+                    {
+                        try
+                        {
+                            foreach (var x in (IEnumerable<int>)null)
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
+                        }
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToArray()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        try
+                        {
+                            foreach (int x in (int[])null)
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
+                        }
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToString()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        try
+                        {
+                            foreach (char c in (string)null)
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
+                        }
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnPlainNull()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (int x in null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,27): error CS0186: Use of null is not valid in this context
+                //         foreach (int x in null)
+                Diagnostic(ErrorCode.ERR_NullNotValid, "null").WithLocation(5, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnDefaultArrayWithNullableEnabled()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (int x in default(int[]))
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (6,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (int x in default(int[]))
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(int[])").WithLocation(6, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnDefaultStringWithNullableEnabled()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (char c in default(string))
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (6,28): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (char c in default(string))
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(string)").WithLocation(6, 28));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnDefaultIEnumerableWithNullableEnabled()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (var x in default(IEnumerable<int>))
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (7,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var x in default(IEnumerable<int>))
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(IEnumerable<int>)").WithLocation(7, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToIEnumerableWithNullableEnabled()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (var x in (IEnumerable<int>)null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (7,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (var x in (IEnumerable<int>)null)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(IEnumerable<int>)null").WithLocation(7, 27),
+                // (7,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var x in (IEnumerable<int>)null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable<int>)null").WithLocation(7, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToArrayWithNullableEnabled()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (int x in (int[])null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (6,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (int x in (int[])null)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(int[])null").WithLocation(6, 27),
+                // (6,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (int x in (int[])null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(int[])null").WithLocation(6, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToStringWithNullableEnabled()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (char c in (string)null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (6,28): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (char c in (string)null)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(6, 28),
+                // (6,28): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (char c in (string)null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(string)null").WithLocation(6, 28));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToDynamic()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        try
+                        {
+                            foreach (var x in (dynamic)null)
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
+                        }
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "NullReferenceException").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToMultidimensionalArray()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        try
+                        {
+                            foreach (int x in (int[,])null)
+                            {
+                            }
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
+                        }
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToDynamicWithNullableEnabled()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (var x in (dynamic)null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp).VerifyEmitDiagnostics(
+                // (6,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (var x in (dynamic)null)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(dynamic)null").WithLocation(6, 27),
+                // (6,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var x in (dynamic)null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(dynamic)null").WithLocation(6, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToMultidimensionalArrayWithNullableEnabled()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (int x in (int[,])null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (6,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (int x in (int[,])null)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(int[,])null").WithLocation(6, 27),
+                // (6,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (int x in (int[,])null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(int[,])null").WithLocation(6, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToConstrainedTypeParameter()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    static void Main()
+                    {
+                        try
+                        {
+                            M<List<int>>();
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                            System.Console.Write("NullReferenceException");
+                        }
+                    }
+
+                    static void M<T>() where T : class, IEnumerable<int>
+                    {
+                        foreach (var x in (T)null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "NullReferenceException").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnNullCastToConstrainedTypeParameterWithNullableEnabled()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class C
+                {
+                    static void M<T>() where T : class, IEnumerable<int>
+                    {
+                        foreach (var x in (T)null)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (7,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (var x in (T)null)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)null").WithLocation(7, 27),
+                // (7,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var x in (T)null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(T)null").WithLocation(7, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnDefault()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (var x in default)
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,27): error CS8716: There is no target type for the default literal.
+                //         foreach (var x in default)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(5, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnImplicitObjectCreation()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (var x in new())
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,27): error CS9176: There is no target type for 'new()'
+                //         foreach (var x in new())
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(5, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45616")]
+        public void ForeachOnCollectionExpression()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        foreach (var x in [])
+                        {
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,27): error CS9176: There is no target type for the collection expression.
+                //         foreach (var x in [])
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(5, 27));
         }
 
         [Fact]

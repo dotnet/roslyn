@@ -187,6 +187,10 @@
                 <StackPanel>
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleSlash"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleSlash}" />
+                    <CheckBox x:Name="GenerateXmlDocCommentsOnSingleLine"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsOnSingleLine}" />
+                    <CheckBox x:Name="GenerateOnlySummaryTag"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateOnlySummaryTag}" />
                     <CheckBox x:Name="InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments}"/>
                     <CheckBox x:Name="InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments"
