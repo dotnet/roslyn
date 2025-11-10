@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
@@ -221,11 +222,11 @@ internal static partial class SyntaxTokenExtensions
         => token
             .WithPrependedLeadingTrivia(leadingTrivia)
             .WithTrailingTrivia((
-                token.TrailingTrivia.Concat(SyntaxNodeOrTokenExtensions.GetTrivia(trailingNodesOrTokens).Concat(trailingTrivia))).FilterComments(isLeading: false, addElasticMarker: false));
+                token.TrailingTrivia.Concat(SyntaxNodeOrTokenExtensions.GetTrivia(trailingNodesOrTokens).Concat(trailingTrivia))).FilterComments(addElasticMarker: false));
 
     public static SyntaxToken KeepCommentsAndAddElasticMarkers(this SyntaxToken token)
-        => token.WithTrailingTrivia(token.TrailingTrivia.FilterComments(isLeading: false, addElasticMarker: true))
-                .WithLeadingTrivia(token.LeadingTrivia.FilterComments(isLeading: true, addElasticMarker: true));
+        => token.WithTrailingTrivia(token.TrailingTrivia.FilterComments(addElasticMarker: true))
+                .WithLeadingTrivia(token.LeadingTrivia.FilterComments(addElasticMarker: true));
 
     public static bool TryParseGenericName(this SyntaxToken genericIdentifier, CancellationToken cancellationToken, [NotNullWhen(true)] out GenericNameSyntax? genericName)
     {

@@ -880,14 +880,14 @@ internal static partial class SyntaxNodeExtensions
         params SyntaxNodeOrToken[] trailingNodesOrTokens)
         where T : SyntaxNode
         => node
-            .WithLeadingTrivia(leadingTrivia.Concat(node.GetLeadingTrivia()).FilterComments(isLeading: true, addElasticMarker: false))
+            .WithLeadingTrivia(leadingTrivia.Concat(node.GetLeadingTrivia()).FilterComments(addElasticMarker: false))
             .WithTrailingTrivia(
-                node.GetTrailingTrivia().Concat(SyntaxNodeOrTokenExtensions.GetTrivia(trailingNodesOrTokens).Concat(trailingTrivia)).FilterComments(isLeading: false, addElasticMarker: false));
+                node.GetTrailingTrivia().Concat(SyntaxNodeOrTokenExtensions.GetTrivia(trailingNodesOrTokens).Concat(trailingTrivia)).FilterComments(addElasticMarker: false));
 
     public static T KeepCommentsAndAddElasticMarkers<T>(this T node) where T : SyntaxNode
         => node
-        .WithTrailingTrivia(node.GetTrailingTrivia().FilterComments(isLeading: true, addElasticMarker: true))
-        .WithLeadingTrivia(node.GetLeadingTrivia().FilterComments(isLeading: false, addElasticMarker: true));
+        .WithTrailingTrivia(node.GetTrailingTrivia().FilterComments(addElasticMarker: true))
+        .WithLeadingTrivia(node.GetLeadingTrivia().FilterComments(addElasticMarker: true));
 
     public static SyntaxNode WithPrependedNonIndentationTriviaFrom(
         this SyntaxNode to, SyntaxNode from)
