@@ -1246,22 +1246,16 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private ICollectionExpressionOperation CreateBoundCollectionExpression(BoundCollectionExpression expr)
         {
-            var compilation = (CSharpCompilation)_semanticModel.Compilation;
-            SyntaxNode syntax = expr.Syntax;
-            ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
-            bool isImplicit = expr.WasCompilerGenerated;
-            IMethodSymbol? constructMethod = getConstructMethod(compilation, expr).GetPublicSymbol();
-            ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray((element, expr) => CreateBoundCollectionExpressionElement(expr, element), expr);
             return new CollectionExpressionOperation(
-                constructMethod,
-                getCreationArguments(this, expr),
-                elements,
+                getConstructMethod(expr).GetPublicSymbol(),
+                getConstructArguments(this, expr),
+                expr.Elements.SelectAsArray((element, expr) => CreateBoundCollectionExpressionElement(expr, element), expr),
                 _semanticModel,
-                syntax,
-                collectionType,
-                isImplicit);
+                expr.Syntax,
+                expr.GetPublicTypeSymbol(),
+                expr.WasCompilerGenerated);
 
-            static MethodSymbol? getConstructMethod(CSharpCompilation compilation, BoundCollectionExpression expr)
+            static MethodSymbol? getConstructMethod(BoundCollectionExpression expr)
             {
                 switch (expr.CollectionTypeKind)
                 {
@@ -1280,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
 
-            static ImmutableArray<IOperation> getCreationArguments(
+            static ImmutableArray<IOperation> getConstructArguments(
                 CSharpOperationFactory @this, BoundCollectionExpression expr)
             {
                 var collectionCreation = expr.CollectionCreation;
