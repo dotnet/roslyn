@@ -8,6 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2040")>
         Public Async Function TestCRefTypeParameter1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -36,6 +37,7 @@ class Program
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2040")>
         Public Async Function TestCRefTypeParameter2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
