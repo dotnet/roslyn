@@ -7029,5 +7029,48 @@ record CacheContext(string String)" + terminator;
             var symbol = model.GetSymbolInfo(crefSyntaxes.Single()).Symbol;
             Assert.Equal(SymbolKind.Property, symbol.Kind);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12345")]
+        public void AmbiguousReferenceInDifferentNamespaces()
+        {
+            var source = """
+                namespace System
+                {
+                    public class TypeA
+                    {
+                    }
+                }
+
+                namespace System.Foo
+                {
+                    public class TypeA
+                    {
+                    }
+                }
+
+                namespace A
+                {
+                    using System;
+                    using System.Foo;
+
+                    /// <summary>
+                    ///     <see cref="TypeA"/>
+                    /// </summary>
+                    public class Bar
+                    {
+                    }
+                }
+                """;
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (3,18): warning CS1591: Missing XML comment for publicly visible type or member 'TypeA'
+                //     public class TypeA
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "TypeA").WithArguments("System.TypeA").WithLocation(3, 18),
+                // (10,18): warning CS1591: Missing XML comment for publicly visible type or member 'TypeA'
+                //     public class TypeA
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "TypeA").WithArguments("System.Foo.TypeA").WithLocation(10, 18),
+                // (21,24): warning CS0419: Ambiguous reference in cref attribute: 'TypeA'. Assuming 'System.Foo.TypeA', but could have also matched other overloads including 'System.TypeA'.
+                //         <see cref="TypeA"/>
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "TypeA").WithArguments("TypeA", "System.Foo.TypeA", "System.TypeA").WithLocation(21, 24));
+        }
     }
 }
