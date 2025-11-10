@@ -253,31 +253,19 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         if (expression is TypeOfExpressionSyntax or DefaultExpressionSyntax or CheckedExpressionSyntax or SizeOfExpressionSyntax)
             return true;
 
-        // (++x)      -> ++x
-        // (-1)       -> -1
-        //
-        // However, we have to be careful to not allow this if the parent is a cast, as that can change parsing.  For example:
-        //
-        // (x)(-y)   is a cast, while (x)-y is subtraction.
-        //
-        // Similarly if we're parented by a primary expression we definitely can't change this as that will change
-        // parsing precedence.  For example: (-x).ToString()  is not the same as -x.ToString().
-        if (expression is PrefixUnaryExpressionSyntax prefixUnary)
-        {
-            if (parentExpression
-                    is not CastExpressionSyntax
-                    and not MemberAccessExpressionSyntax
-                    and not ElementAccessExpressionSyntax
-                    and not MemberBindingExpressionSyntax
-                    and not PostfixUnaryExpressionSyntax)
-            {
-                return true;
-            }
-        }
-
         // (this)   -> this
         if (expression.IsKind(SyntaxKind.ThisExpression))
             return true;
+
+        // x is > (-1)  ->  x is > -1
+        //
+        // Note: the general case of removing parens from a prefix unary expression in a normal expression is handled as
+        // the last step of this algorithm below.  This is only the pattern case.
+        if (expression is PrefixUnaryExpressionSyntax prefixUnary &&
+            parentExpression is null)
+        {
+            return true;
+        }
 
         // x ?? (throw ...) -> x ?? throw ...
         if (expression.IsKind(SyntaxKind.ThrowExpression) &&
