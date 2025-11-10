@@ -49,7 +49,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var testLspServer = new TestLspServer(exportProvider, loggerFactory, assemblyLoader);
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);
-            testLspServer.ServerCapabilities = initializeResponse!.Capabilities;
+            testLspServer.ServerCapabilities = initializeResponse.Capabilities;
 
             await testLspServer.ExecuteRequestAsync<InitializedParams, object>(Methods.InitializedName, new InitializedParams(), CancellationToken.None);
 

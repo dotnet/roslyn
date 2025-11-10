@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
                 return ((InternalSpecialType)_value).ToString();
             }
 
-            return _value.ToString();
+            return _value.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
     }
 }

@@ -30,6 +30,7 @@
             <ListBox.Resources>
                 <Style TargetType="{x:Type ListBoxItem}">
                     <Setter Property="IsSelected" Value="{Binding IsChecked, Mode=TwoWay}" />
+                    <Setter Property="AutomationProperties.Name" Value="{Binding SymbolAutomationText}" />
                 </Style>
             </ListBox.Resources>
             <ListBox.ItemTemplate>

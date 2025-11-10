@@ -157,4 +157,32 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
                 }
                 """,
         }.RunAsync();
+
+    [Fact]
+    public Task KeepWhenNeeded_FieldInitializer()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    string s = null!;
+                }
+                """,
+        }.RunAsync();
+
+    [Fact]
+    public Task KeepWhenNeeded_PropertyInitializer()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public string S { get; } = null!;
+                }
+                """,
+        }.RunAsync();
 }

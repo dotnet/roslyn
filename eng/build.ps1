@@ -47,7 +47,7 @@ param (
   [switch]$fromVMR = $false,
   [switch]$oop64bit = $true,
   [switch]$lspEditor = $false,
-  [string]$solution = "Roslyn.sln",
+  [string]$solution = "Roslyn.slnx",
 
   # official build settings
   [string]$officialBuildId = "",
@@ -65,6 +65,7 @@ param (
   [switch]$testCompilerOnly = $false,
   [switch]$testIOperation,
   [switch]$testUsedAssemblies,
+  [switch]$testRuntimeAsync,
   [switch]$sequential,
   [switch]$helix,
   [string]$helixQueueName = "",
@@ -101,6 +102,7 @@ function Print-Usage() {
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
   Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature (see ROSLYN_TEST_USEDASSEMBLIES in codebase)"
+  Write-Host "  -testRuntimeAsync         Run tests with runtime async validation enabled (see DOTNET_RuntimeAsync in codebase)"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -115,7 +117,7 @@ function Print-Usage() {
   Write-Host "  -warnAsError              Treat all warnings as errors"
   Write-Host "  -productBuild             Build the repository in product-build mode"
   Write-Host "  -fromVMR                  Set when building from within the VMR"
-  Write-Host "  -solution                 Solution to build (default is Roslyn.sln)"
+  Write-Host "  -solution                 Solution to build (default is Roslyn.slnx)"
   Write-Host ""
   Write-Host "Official build settings:"
   Write-Host "  -officialBuildId                                  An official build id, e.g. 20190102.3"
@@ -394,6 +396,10 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
 
+  if ($testRuntimeAsync) {
+    $env:DOTNET_RuntimeAsync = 1
+  }
+
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net9.0"
 
   if (!(Test-Path $runTests)) {
@@ -418,6 +424,11 @@ function TestUsingRunTests() {
   elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
     $args += " --runtime framework"
     $args += " --timeout 90"
+
+    if ($testRuntimeAsync) {
+      Write-Host "Cannot run desktop tests with runtime async validation enabled."
+      ExitWithExitCode 1
+    }
 
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
@@ -488,6 +499,10 @@ function TestUsingRunTests() {
       Remove-Item env:\ROSLYN_TEST_USEDASSEMBLIES
     }
 
+    if ($testRuntimeAsync) {
+      Remove-Item env:\DOTNET_RuntimeAsync
+    }
+
     if ($testVsi) {
       $serviceHubLogs = Join-Path $TempDir "servicehub\logs"
       if (Test-Path $serviceHubLogs) {
@@ -546,13 +561,6 @@ function EnablePreviewSdks() {
 # deploying at build time.
 function Deploy-VsixViaTool() {
 
-  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net9.0\VSIXExpInstaller\VSIXExpInstaller.exe"
-  Write-Host "VSIX EXE path: " $vsixExe
-  if (-not (Test-Path $vsixExe)) {
-    Write-Host "VSIX EXE not found: '$vsixExe'." -ForegroundColor Red
-    ExitWithExitCode 1
-  }
-
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {
     throw "Unable to locate required Visual Studio installation"
@@ -565,7 +573,7 @@ function Deploy-VsixViaTool() {
 
   $hive = "RoslynDev"
   Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
-  $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
+  $baseArgs = "/rootSuffix:$hive /quiet /shutdownprocesses"
 
   Write-Host "Uninstalling old Roslyn VSIX"
 
@@ -594,9 +602,10 @@ function Deploy-VsixViaTool() {
 
   foreach ($vsixFileName in $orderedVsixFileNames) {
     $vsixFile = Join-Path $VSSetupDir $vsixFileName
+    $vsixInstallerExe = Join-Path $vsDir "Common7\IDE\VSIXInstaller.exe"
     $fullArg = "$baseArgs $vsixFile"
     Write-Host "`tInstalling $vsixFileName"
-    Exec-Command $vsixExe $fullArg
+    Exec-Command $vsixInstallerExe $fullArg
   }
 
   # Set up registry
@@ -734,15 +743,6 @@ try {
 
   Push-Location $RepoRoot
 
-  # Workaround for DOTNET_HOST_PATH not being set by older MSBuild
-  # Removal is tracked by https://github.com/dotnet/roslyn/issues/80742
-  if (-not $env:DOTNET_HOST_PATH) {
-    $env:DOTNET_HOST_PATH = Join-Path (Join-Path $RepoRoot '.dotnet') 'dotnet'
-    if (-not (Test-Path $env:DOTNET_HOST_PATH)) {
-      $env:DOTNET_HOST_PATH = "$($env:DOTNET_HOST_PATH).exe"
-    }
-  }
-
   Subst-TempDir
 
   if ($ci) {
@@ -759,6 +759,19 @@ try {
     &(Ensure-DotNetSdk) tool restore
   }
 
+  # Above InitializeDotNetCli or Ensure-DotNetSdk may have installed a local .NET SDK.
+  # $global:_DotNetInstallDir will point to the correct global or local SDK location.
+  # We need to make sure DOTNET_HOST_PATH points to that SDK as a workaround for older MSBuild
+  # which will not set it correctly.  Removal is tracked by https://github.com/dotnet/roslyn/issues/80742
+  if (-not $env:DOTNET_HOST_PATH -and (Test-Path variable:global:_DotNetInstallDir)) {
+    $env:DOTNET_HOST_PATH = Join-Path $global:_DotNetInstallDir 'dotnet'
+    if (-not (Test-Path $env:DOTNET_HOST_PATH)) {
+      $env:DOTNET_HOST_PATH = "$($env:DOTNET_HOST_PATH).exe"
+    }
+
+    Write-Host "Setting DOTNET_HOST_PATH to $env:DOTNET_HOST_PATH"
+  }
+
   if ($bootstrap -and $bootstrapDir -eq "") {
     Write-Host "Building bootstrap Compiler"
     $bootstrapDir = Join-Path (Join-Path $ArtifactsDir "bootstrap") "build"
@@ -772,7 +785,7 @@ try {
 
   try
   {
-    if ($testDesktop -or $testVsi -or $testIOperation -or $testCoreClr) {
+    if ($testDesktop -or $testVsi -or $testIOperation -or $testCoreClr -or $testRuntimeAsync) {
       TestUsingRunTests
     }
   }

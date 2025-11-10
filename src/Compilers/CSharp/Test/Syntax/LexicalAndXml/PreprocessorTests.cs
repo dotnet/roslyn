@@ -3242,9 +3242,9 @@ class A { }
                 // (1,8): error CS1029: #error: 'version'
                 // #error version
                 Diagnostic(ErrorCode.ERR_ErrorDirective, "version").WithArguments("version").WithLocation(1, 8),
-                // (1,8): error CS8304: Compiler version: '42.42.42.42424 (<developer build>)'. Language version: <expectedLanguageVersion>.
+                // (1,8): error CS8304: Compiler version: '42.42.42.42424 (<developer build>)'. Language version: <expectedLanguageVersion>. Compiler path: '<path>'.
                 // #error version
-                Diagnostic(ErrorCode.ERR_CompilerAndLanguageVersion, "version").WithArguments(GetExpectedVersion(), expectedLanguageVersion).WithLocation(1, 8)
+                Diagnostic(ErrorCode.ERR_CompilerAndLanguageVersion, "version").WithArguments(GetExpectedVersion(), expectedLanguageVersion, GetExpectedAssemblyPath()).WithLocation(1, 8)
                 );
         }
 
@@ -4658,6 +4658,11 @@ class enable
         private static string GetExpectedVersion()
         {
             return CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
+        }
+
+        private static string GetExpectedAssemblyPath()
+        {
+            return CommonCompiler.GetAssemblyLocation(typeof(CSharpCompiler));
         }
     }
 }

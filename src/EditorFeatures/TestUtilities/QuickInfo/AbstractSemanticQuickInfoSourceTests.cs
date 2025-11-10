@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
@@ -60,7 +61,7 @@ public abstract class AbstractSemanticQuickInfoSourceTests
 #pragma warning restore IDE0060 // Remove unused parameter
     {
         var actualText = string.Concat(taggedText.Select(tt => tt.Text));
-        Assert.Equal(expectedText, actualText);
+        AssertEx.Equal(expectedText, actualText);
     }
 
     protected static Action<QuickInfoItem> MainDescription(

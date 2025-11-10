@@ -433,9 +433,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (_startPosition != null)
             {
                 sb.Append(".WithLocation(");
-                sb.Append(_startPosition.Value.Line + 1);
+                sb.Append((_startPosition.Value.Line + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
                 sb.Append(", ");
-                sb.Append(_startPosition.Value.Character + 1);
+                sb.Append((_startPosition.Value.Character + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
                 sb.Append(')');
             }
 

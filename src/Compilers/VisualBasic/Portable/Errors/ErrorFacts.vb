@@ -19,7 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case ERRID.ERR_TypeRefResolutionError3,
                      ERRID.ERR_MissingRuntimeHelper,
                      ERRID.ERR_CannotGotoNonScopeBlocksWithClosure,
-                     ERRID.ERR_SymbolDefinedInAssembly
+                     ERRID.ERR_SymbolDefinedInAssembly,
+                     ERRID.ERR_AsyncSubMain
                     ' Update src\Features\VisualBasic\Portable\Diagnostics\LanguageServer\VisualBasicLspBuildOnlyDiagnostics.vb
                     ' and TestIsBuildOnlyDiagnostic in src\Compilers\VisualBasic\Test\Semantic\Diagnostics\DiagnosticTests.vb
                     ' whenever new values are added here.
@@ -1192,7 +1193,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_BadGetAwaiterMethod1,
                      ERRID.ERR_RestrictedResumableType1,
                      ERRID.ERR_BadAwaitNothing,
-                     ERRID.ERR_AsyncSubMain,
                      ERRID.ERR_PartialMethodsMustNotBeAsync1,
                      ERRID.ERR_InvalidAsyncIteratorModifiers,
                      ERRID.ERR_BadAwaitNotInAsyncMethodOrLambda,

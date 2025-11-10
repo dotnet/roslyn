@@ -60,6 +60,7 @@ dotnet run --file eng/generate-compiler-code.cs
 - **Unit tests**: Test individual compiler phases (lexing, parsing)
 - **Compilation tests**: Create `Compilation` objects and verify symbols/diagnostics
 - **Cross-language patterns**: Many test patterns work for both C# and VB with minor syntax changes
+- **Keep tests focused**: Avoid unnecessary assertions. Tests should do the minimal work necessary to get to the core assertions that validate the issue being addressed. For example, use `Single()` instead of checking counts and then accessing the first element.
 
 ## Debugger Integration
 

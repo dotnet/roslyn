@@ -426,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_VariancePreventsSynthesizedEvents2,
                                                                       CustomSymbolDisplayFormatter.QualifiedName(outermostVariantInterface),
                                                                       AssociatedSymbol.Name),
-                                                Locations(0)))
+                                                GetFirstLocation()))
             End If
 
             DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreIntegerAndDiagnostics(_reportedAllDeclarationErrors, 1, 0, diagnostics)

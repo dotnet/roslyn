@@ -2002,6 +2002,55 @@ BC30311: Value of type 'String()' cannot be converted to 'Integer'.
 
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/runtime/issues/44678")>
+        Public Sub AlignmentWithNegativeValue()
+            ' This test verifies that negative alignment values are formatted using invariant culture.
+            ' The issue occurs when compiling under non-US cultures (e.g., Swedish sv-SE) where the
+            ' minus sign is formatted as '−' (U+2212) instead of '-' (U+002D), causing runtime errors.
+
+            ' Test under Swedish culture (sv-SE) where minus sign is represented differently
+            Using New CultureContext(New System.Globalization.CultureInfo("sv-SE", useUserOverride:=False))
+                Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim st = "1"
+        WriteLine($"{st,100}")    ' Positive alignment
+        WriteLine($"{st,-100}")   ' Negative alignment - this is the problematic case
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:=
+"                                                                                                   1
+1                                                                                                   ")
+
+                verifier.VerifyDiagnostics()
+
+                ' Verify that the emitted IL contains the correct format string with a proper minus sign
+                verifier.VerifyIL("Program.Main", "
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (String V_0) //st
+  IL_0000:  ldstr      ""1""
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""{0,100}""
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""Function String.Format(String, Object) As String""
+  IL_0011:  call       ""Sub System.Console.WriteLine(String)""
+  IL_0016:  ldstr      ""{0,-100}""
+  IL_001b:  ldloc.0
+  IL_001c:  call       ""Function String.Format(String, Object) As String""
+  IL_0021:  call       ""Sub System.Console.WriteLine(String)""
+  IL_0026:  ret
+}
+")
+            End Using
+        End Sub
+
     End Class
 
 End Namespace

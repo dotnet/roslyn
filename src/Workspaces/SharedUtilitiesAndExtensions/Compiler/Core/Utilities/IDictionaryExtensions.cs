@@ -45,7 +45,7 @@ internal static class IDictionaryExtensions
             return value;
         }
 
-        return default!;
+        return default;
     }
 
     [return: NotNullIfNotNull(nameof(defaultValue))]

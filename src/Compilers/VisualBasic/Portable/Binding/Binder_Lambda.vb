@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                unboundType,
                                                                unboundParam.IsByRef,
                                                                unboundParam.Syntax,
-                                                               unboundParam.Locations(0))
+                                                               unboundParam.GetFirstLocation())
             Next
 
             If parameters.Length <> targetSignature.ParameterTypes.Length Then
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    unboundType,
                                                                    unboundParam.IsByRef,
                                                                    unboundParam.Syntax,
-                                                                   unboundParam.Locations(0))
+                                                                   unboundParam.GetFirstLocation())
                 Next
             End If
 

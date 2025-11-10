@@ -812,7 +812,7 @@ outerDefault:
                     nullabilityDiagnosticsBuilderOpt: null,
                     ref useSiteDiagnosticsBuilder);
             }
-            else if (member.GetIsNewExtensionMember() && member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
+            else if (member.IsExtensionBlockMember() && member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
             {
                 constraintsSatisfied = ConstraintsHelper.CheckConstraints(extension, in constraintsArgs,
                     extension.TypeSubstitution, extension.TypeParameters, extension.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics,
@@ -1476,7 +1476,7 @@ outerDefault:
                 if (result.Result.IsValid)
                 {
                     if (!typeArgumentsAccessible(result.Member.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo)
-                        || (result.Member.GetIsNewExtensionMember() && !typeArgumentsAccessible(result.Member.ContainingType.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo)))
+                        || (result.Member.IsExtensionBlockMember() && !typeArgumentsAccessible(result.Member.ContainingType.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo)))
                     {
                         results[f] = result.WithResult(MemberAnalysisResult.InaccessibleTypeArgument());
                     }
@@ -1890,7 +1890,7 @@ outerDefault:
                     continue;
                 }
 
-                NamedTypeSymbol containingType = memberWithPriority.GetIsNewExtensionMember()
+                NamedTypeSymbol containingType = memberWithPriority.IsExtensionBlockMember()
                     ? memberWithPriority.ContainingType.ContainingType
                     : memberWithPriority.ContainingType;
 
@@ -2589,7 +2589,7 @@ outerDefault:
             static ParameterSymbol getParameterOrExtensionParameter(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, TMember member)
             {
                 int paramIndex = result.ParameterFromArgument(argIndex);
-                if (member.GetIsNewExtensionMember())
+                if (member.IsExtensionBlockMember())
                 {
                     if (paramIndex == 0)
                     {
@@ -2710,7 +2710,7 @@ outerDefault:
         // Note: includes the extension parameter
         private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, out int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
         {
-            declaredParameterCount = m.Member.GetParameterCount() + (m.Member.GetIsNewExtensionMember() ? 1 : 0);
+            declaredParameterCount = m.Member.GetParameterCount() + (m.Member.IsExtensionBlockMember() ? 1 : 0);
 
             if (m.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
             {
@@ -3900,7 +3900,7 @@ outerDefault:
             if (argumentCount == parameterCount && argToParamMap.IsDefaultOrEmpty)
             {
                 bool hasSomeRefKinds = !member.GetParameterRefKinds().IsDefaultOrEmpty;
-                bool isNewExtensionMember = member.GetIsNewExtensionMember();
+                bool isNewExtensionMember = member.IsExtensionBlockMember();
                 if (isNewExtensionMember)
                 {
                     Debug.Assert(member.ContainingType.ExtensionParameter is not null);
@@ -4265,7 +4265,7 @@ outerDefault:
                 member.GetMemberArityIncludingExtension() > 0)
             {
                 ImmutableArray<TypeWithAnnotations> typeArguments;
-                bool isNewExtensionMember = member.GetIsNewExtensionMember();
+                bool isNewExtensionMember = member.IsExtensionBlockMember();
 
                 if (typeArgumentsBuilder.Count == 0 && arguments.HasDynamicArgument && !inferWithDynamic)
                 {
@@ -4443,7 +4443,7 @@ outerDefault:
             if (arguments.IncludesReceiverAsArgument)
             {
                 bool canInfer;
-                if (member.GetIsNewExtensionMember())
+                if (member.IsExtensionBlockMember())
                 {
                     if (member.ContainingType.Arity > 0)
                     {
@@ -4768,7 +4768,7 @@ outerDefault:
                 return true;
             }
 
-            return container.GetIsNewExtensionMember() && parameterType.ContainsTypeParameter(typeParameterContainer: container.ContainingType);
+            return container.IsExtensionBlockMember() && parameterType.ContainsTypeParameter(typeParameterContainer: container.ContainingType);
         }
 
         private static TMember GetConstructedFrom<TMember>(TMember member) where TMember : Symbol

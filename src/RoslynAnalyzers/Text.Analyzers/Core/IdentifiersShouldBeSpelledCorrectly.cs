@@ -282,7 +282,7 @@ namespace Text.Analyzers
                     context.RegisterCompilationEndAction(x => x.ReportDiagnostic(diagnostic));
                 }
 
-                return dictionary!;
+                return dictionary;
             }
 
             void AnalyzeVariable(OperationAnalysisContext operationContext)

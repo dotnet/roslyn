@@ -67,6 +67,16 @@
         <target state="translated">'{0}' işleci, başvuru türü olduğu bilinmeyen bir tür parametresi olduğundan 'default' öğesine ve '{1}' türünde işlenene uygulanamıyor</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigExtension">
+        <source>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AmbigOperator">
+        <source>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">Operator resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
         <target state="translated">Bu bağlamda '{0}' tanımlayıcısı, '{1}' tipi ve '{2}' parametresi arasında belirsizdir.</target>
@@ -1085,6 +1095,11 @@
       <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
         <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedVariableUsedInForbiddenZone">
+        <source>Reference to an implicitly-typed variable '{0}' is not permitted in this location.</source>
+        <target state="new">Reference to an implicitly-typed variable '{0}' is not permitted in this location.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -2375,6 +2390,16 @@
       <trans-unit id="ERR_SimpleProgramNotAnExecutable">
         <source>Program using top-level statements must be an executable.</source>
         <target state="translated">Üst düzey deyimleri kullanan program yürütülebilir olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableBinaryOperator">
+        <source>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</source>
+        <target state="new">Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableUnaryOperator">
+        <source>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</source>
+        <target state="new">Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
@@ -11793,8 +11818,8 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
-        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</source>
-        <target state="translated">İfade açıkça Boolean öğesine dönüştürülebilir olmalı ya da '{0}' türü '{1}' işlecini tanımlamalıdır.</target>
+        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
+        <target state="needs-review-translation">İfade açıkça Boolean öğesine dönüştürülebilir olmalı ya da '{0}' türü '{1}' işlecini tanımlamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
@@ -13000,11 +13025,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">out değişkeni bildirimi</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList">
-        <source>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</source>
-        <target state="translated">Türü örtük olarak belirlenen '{0}' out değişkenine başvuruya aynı bağımsız değişken listesinde izin verilmez.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable">
         <source>Cannot infer the type of implicitly-typed out variable '{0}'.</source>
         <target state="translated">Türü örtük olarak belirlenen '{0}' out değişkeninin türü çıkarsanamıyor.</target>
@@ -13221,8 +13241,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
-        <source>Compiler version: '{0}'. Language version: {1}.</source>
-        <target state="translated">Derleyici sürümü: '{0}'. Dil sürümü: {1}.</target>
+        <source>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</source>
+        <target state="new">Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">

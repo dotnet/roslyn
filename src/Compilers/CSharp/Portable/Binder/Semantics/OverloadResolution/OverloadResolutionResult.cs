@@ -128,6 +128,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal TMember PickRepresentativeMember()
+        {
+            Debug.Assert(HasAnyApplicableMember);
+
+            if (Succeeded)
+            {
+                return BestResult.Member;
+            }
+
+            if (ResultsBuilder.FirstOrDefault(r => r.Result.Kind == MemberResolutionKind.Worse).Member is { } worse)
+            {
+                return worse;
+            }
+
+            return GetAllApplicableMembers()[0];
+        }
+
         /// <summary>
         /// Returns all methods in the group that are applicable, <see cref="HasAnyApplicableMember"/>.
         /// </summary>
@@ -201,7 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isMethodGroupConversion = false,
             RefKind? returnRefKind = null,
             TypeSymbol delegateOrFunctionPointerType = null,
-            bool isParamsModifierValidation = false) where T : Symbol
+            bool isParamsModifierValidation = false,
+            bool isExtension = false) where T : Symbol
         {
             Debug.Assert(!this.Succeeded, "Don't ask for diagnostic info on a successful overload resolution result.");
 
@@ -220,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // however, be more than one.  We'll check for that first, since applicable candidates are
             // always better than inapplicable candidates.
 
-            if (HadAmbiguousBestMethods(binder.Compilation, diagnostics, symbols, location))
+            if (HadAmbiguousBestMethods(binder.Compilation, diagnostics, symbols, location, isExtension))
             {
                 return;
             }
@@ -243,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (Obviously, there can't be a LessDerived cycle, since we break type hierarchy cycles during
             // symbol table construction.)
 
-            if (HadAmbiguousWorseMethods(binder.Compilation, diagnostics, symbols, location, queryClause != null, receiver, name))
+            if (HadAmbiguousWorseMethods(binder.Compilation, diagnostics, symbols, location, queryClause != null, receiver, name, isExtension))
             {
                 return;
             }
@@ -774,10 +792,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    diagnostics.Add(new DiagnosticInfoWithSymbols(
-                        ErrorCode.ERR_NoSuchMemberOrExtension,
-                        new object[] { instanceArgument.Type, inferenceFailed.Member.Name },
-                        symbols), location);
+                    if (inferenceFailed.Member.Kind == SymbolKind.Method)
+                    {
+                        // error CS0411: The type arguments for method 'M<T>(T)' cannot be inferred
+                        // from the usage. Try specifying the type arguments explicitly.
+                        diagnostics.Add(new DiagnosticInfoWithSymbols(
+                            ErrorCode.ERR_CantInferMethTypeArgs,
+                            new object[] { inferenceFailed.Member },
+                            symbols), location);
+                    }
+                    else
+                    {
+                        diagnostics.Add(new DiagnosticInfoWithSymbols(
+                            ErrorCode.ERR_NoSuchMemberOrExtension,
+                            new object[] { instanceArgument.Type, inferenceFailed.Member.Name },
+                            symbols), location);
+                    }
                 }
 
                 return true;
@@ -1388,7 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool HadAmbiguousWorseMethods(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location, bool isQuery, BoundExpression receiver, string name)
+        private bool HadAmbiguousWorseMethods(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location, bool isQuery, BoundExpression receiver, string name, bool isExtension)
         {
             MemberResolutionResult<TMember> worseResult1;
             MemberResolutionResult<TMember> worseResult2;
@@ -1417,7 +1447,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         compilation,
                         worseResult1.LeastOverriddenMember.ConstructedFrom(),
                         worseResult2.LeastOverriddenMember.ConstructedFrom(),
-                        symbols),
+                        symbols,
+                        isExtension),
                     location);
             }
 
@@ -1453,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return count;
         }
 
-        private bool HadAmbiguousBestMethods(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location)
+        private bool HadAmbiguousBestMethods(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location, bool isExtension)
         {
             MemberResolutionResult<TMember> validResult1;
             MemberResolutionResult<TMember> validResult2;
@@ -1473,7 +1504,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     compilation,
                     validResult1.LeastOverriddenMember.ConstructedFrom(),
                     validResult2.LeastOverriddenMember.ConstructedFrom(),
-                    symbols),
+                    symbols,
+                    isExtension),
                 location);
 
             return true;
@@ -1508,10 +1540,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return count;
         }
 
-        private static DiagnosticInfoWithSymbols CreateAmbiguousCallDiagnosticInfo(CSharpCompilation compilation, Symbol first, Symbol second, ImmutableArray<Symbol> symbols)
+        internal static DiagnosticInfoWithSymbols CreateAmbiguousCallDiagnosticInfo(CSharpCompilation compilation, Symbol first, Symbol second, ImmutableArray<Symbol> symbols, bool isExtension)
         {
+            // error: The extension resolution is ambiguous between the following members: 'first' and 'second'
+            // OR
+            // error: The call is ambiguous between the following methods or properties: 'first' and 'second'
             var distinguisher = new SymbolDistinguisher(compilation, first, second);
-            return new DiagnosticInfoWithSymbols(ErrorCode.ERR_AmbigCall, [distinguisher.First, distinguisher.Second], symbols);
+            return new DiagnosticInfoWithSymbols(isExtension ? ErrorCode.ERR_AmbigExtension : ErrorCode.ERR_AmbigCall, [distinguisher.First, distinguisher.Second], symbols);
         }
 
         [Conditional("DEBUG")]
