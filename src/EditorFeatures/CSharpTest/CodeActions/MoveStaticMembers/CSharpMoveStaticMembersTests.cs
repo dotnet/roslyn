@@ -3396,7 +3396,7 @@ public sealed class CSharpMoveStaticMembersTests
         }.RunAsync().ConfigureAwait(false);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81116")]
     public async Task TestSelectEnumMember_NoAction()
     {
         await TestNoRefactoringAsync("""
