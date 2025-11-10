@@ -928,7 +928,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             If _modifiedIdentifierOpt IsNot Nothing Then
                                 Return ImmutableArray.Create(Of SyntaxReference)(_modifiedIdentifierOpt.GetReference())
                             Else
-                                Return ImmutableArray(Of SyntaxReference).Empty
+                                ' For catch variables (and potentially other cases), there is no ModifiedIdentifierSyntax.
+                                ' Fall back to using the identifier token's parent (e.g., IdentifierNameSyntax for catch).
+                                Return ImmutableArray.Create(_identifierToken.Parent.GetReference())
                             End If
                     End Select
                 End Get

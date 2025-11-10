@@ -641,6 +641,49 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub CatchVariableDeclaringSyntax()
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
+    <compilation name="CatchVariableDeclaringSyntax">
+        <file name="a.vb">
+Imports System
+
+Class C1
+    Sub m()
+        Try
+            Console.WriteLine()
+        Catch exc As Exception
+            Console.WriteLine(exc.ToString())
+        End Try
+    End Sub
+End Class
+    </file>
+    </compilation>)
+
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim code As String = tree.GetText().ToString()
+            Dim position As Integer = code.IndexOf("exc", StringComparison.Ordinal)
+            Dim token = tree.GetCompilationUnitRoot().FindToken(position)
+            Dim identifierName = token.Parent
+
+            ' Get the symbol for the catch variable
+            Dim localSymbol As ISymbol = model.GetSymbolInfo(identifierName).Symbol
+            Assert.NotNull(localSymbol)
+            Assert.Equal(SymbolKind.Local, localSymbol.Kind)
+            Assert.Equal("exc", localSymbol.Name)
+
+            ' Check that DeclaringSyntaxReferences returns a non-empty list
+            Dim declaringRefs = localSymbol.DeclaringSyntaxReferences
+            Assert.Equal(1, declaringRefs.Length)
+
+            ' Verify the reference points to the IdentifierNameSyntax
+            Dim declaredSyntax = declaringRefs(0).GetSyntax()
+            Assert.NotNull(declaredSyntax)
+            Assert.IsType(Of IdentifierNameSyntax)(declaredSyntax)
+            Assert.Equal("exc", DirectCast(declaredSyntax, IdentifierNameSyntax).Identifier.ValueText)
+        End Sub
+
+        <Fact>
         Public Sub LabelDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="LabelDeclaringSyntax">
