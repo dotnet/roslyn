@@ -11327,7 +11327,7 @@ enum D : sbyte {3}",
             for (int i = 0; i < count; i++)
             {
                 builder.Append(prefix);
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 if ((i == 0) && (initialValue != null))
                 {
                     builder.AppendFormat(" = {0}", initialValue.Value);

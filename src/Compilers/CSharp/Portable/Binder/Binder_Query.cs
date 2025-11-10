@@ -822,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      );
 
             AnonymousTypeManager manager = this.Compilation.AnonymousTypeManager;
-            NamedTypeSymbol anonymousType = manager.ConstructAnonymousTypeSymbol(typeDescriptor);
+            NamedTypeSymbol anonymousType = manager.ConstructAnonymousTypeSymbol(typeDescriptor, diagnostics);
             return MakeConstruction(node, anonymousType, ImmutableArray.Create(field1Value, field2Value), diagnostics);
 
             AnonymousTypeField createField(string fieldName, BoundExpression fieldValue) =>

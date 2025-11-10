@@ -119,7 +119,7 @@ public abstract class IntegrationTestBase : TestBase
             additionalEnvironmentVars);
     }
 
-    [Theory, CombinatorialData]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/80991"), CombinatorialData]
     public void SdkBuild_Csc(bool useSharedCompilation)
     {
         var result = RunMsbuild(
@@ -151,7 +151,7 @@ public abstract class IntegrationTestBase : TestBase
         Assert.Contains(ExecutionConditionUtil.IsWindows ? "csc.exe" : "csc", result.Output);
     }
 
-    [Theory, CombinatorialData]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/80991"), CombinatorialData]
     public void SdkBuild_Vbc(bool useSharedCompilation)
     {
         var result = RunMsbuild(

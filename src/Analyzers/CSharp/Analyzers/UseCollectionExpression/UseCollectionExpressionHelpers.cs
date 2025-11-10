@@ -184,6 +184,9 @@ internal static class UseCollectionExpressionHelpers
             return false;
         }
 
+        if (IsImplementationOfCollectionBuilderPattern())
+            return false;
+
         return true;
 
         bool IsSafeConversionWhenTypesDoNotMatch(out bool changesSemantics)
@@ -292,6 +295,57 @@ internal static class UseCollectionExpressionHelpers
             }
 
             // Add more cases to support here.
+            return false;
+        }
+
+        bool IsImplementationOfCollectionBuilderPattern()
+        {
+            // Check if the type being created has a CollectionBuilder attribute that points to the method we're currently in.
+            // If so, suppress the diagnostic to avoid suggesting a change that would cause infinite recursion.
+            // For example, if we're inside the Create method of a CollectionBuilder, and we have:
+            //   MyCustomCollection<T> collection = new();
+            //   foreach (T item in items) { collection.Add(item); }
+            // We should NOT suggest changing it to:
+            //   MyCustomCollection<T> collection = [.. items];
+            // Because that would recursively call the same Create method.
+
+            if (targetType is not INamedTypeSymbol namedType)
+                return false;
+
+            // For generic types, get the type definition to check for the attribute
+            var typeToCheck = namedType.OriginalDefinition;
+
+            // Look for CollectionBuilder attribute on the type
+            var collectionBuilderAttribute = typeToCheck.GetAttributes().FirstOrDefault(attr =>
+                attr.AttributeClass?.IsCollectionBuilderAttribute() == true);
+
+            if (collectionBuilderAttribute == null)
+                return false;
+
+            // Get the builder type and method name from the attribute.
+            // CollectionBuilderAttribute has exactly 2 constructor parameters: builderType and methodName
+            if (collectionBuilderAttribute.ConstructorArguments is not
+                [
+                { Kind: TypedConstantKind.Type, Value: INamedTypeSymbol builderType },
+                { Kind: TypedConstantKind.Primitive, Value: string methodName }
+                ])
+            {
+                return false;
+            }
+
+            // Get the containing method we're currently analyzing
+            var containingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(expression.SpanStart, cancellationToken);
+            if (containingMethod == null)
+                return false;
+
+            // Check if the containing method matches the CollectionBuilder method
+            // We need to compare the original definitions in case the method is generic
+            if (containingMethod.Name == methodName &&
+                SymbolEqualityComparer.Default.Equals(containingMethod.ContainingType.OriginalDefinition, builderType.OriginalDefinition))
+            {
+                return true;
+            }
+
             return false;
         }
     }

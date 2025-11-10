@@ -237,6 +237,11 @@
         <target state="translated">Kod analizi, '{0}' için tamamlanmadan önce sonlandırıldı.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_preview">
+        <source>Code preview</source>
+        <target state="new">Code preview</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">Tanımlara daraltılırken yerel işlevleri daralt</target>
@@ -1295,6 +1300,11 @@
       <trans-unit id="Search_found_no_results_no_csharp_or_vb_projects_opened">
         <source>Search found no results: no C# or Visual Basic projects are opened</source>
         <target state="translated">Arama sonucu bulunamadı: C# veya Visual Basic projesi açılmadı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_members">
+        <source>Search members</source>
+        <target state="new">Search members</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">

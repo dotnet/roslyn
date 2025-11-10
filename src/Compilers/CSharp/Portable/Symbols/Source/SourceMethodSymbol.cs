@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isAsync = target.IsAsync;
             bool isIterator = target.IsIterator;
 
-            if ((isAsync || isIterator) && !target.GetIsNewExtensionMember())
+            if ((isAsync || isIterator) && !target.IsExtensionBlockMember())
             {
                 // The async state machine type is not synthesized until the async method body is rewritten. If we are
                 // only emitting metadata the method body will not have been rewritten, and the async state machine
@@ -168,7 +168,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Regular async (not async-iterator) kick-off method calls MoveNext, which contains user code.
                     // This means we need to emit DebuggerStepThroughAttribute in order
                     // to have correct stepping behavior during debugging.
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
+                    // However, when runtime async is enabled, no state machine is generated and the kickoff method
+                    // directly contains the async logic, so the attribute should not be added.
+                    if (!compilation.IsRuntimeAsyncEnabledIn(target))
+                    {
+                        AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
+                    }
                 }
             }
 
@@ -232,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ));
             }
 
-            if (target.GetIsNewExtensionMember())
+            if (target.IsExtensionBlockMember())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeExtensionMarkerAttribute(target, ((SourceNamedTypeSymbol)target.ContainingType).ExtensionMarkerName));
             }

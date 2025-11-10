@@ -2713,7 +2713,7 @@ public class QueryExpressionTest
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
-            var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Where(x => x.ToFullString() == "from i in expr1 let ").Single();
+            var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Where(x => x.ToFullString() == "from i in expr1 let namespace = expr1 select i").Single();
             var symbolInfo = semanticModel.GetSemanticInfoSummary(queryExpr);
 
             Assert.Null(symbolInfo.Symbol);
