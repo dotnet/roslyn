@@ -61,7 +61,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         /// <summary>
         /// Holds the type of the <see cref="_switchTargetExpression"/>
         /// </summary>
-        private ITypeSymbol? _switchTargetType = null!;
+        private ITypeSymbol? _switchTargetType = null;
         private readonly ISyntaxFacts _syntaxFacts = syntaxFacts;
 
         public Feature Features { get; } = features;

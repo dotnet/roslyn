@@ -1290,4 +1290,32 @@ public partial class SemanticClassifierTests
             }
             """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
             testHost);
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80179")]
+    public Task TestRegexOnApiWithStringSyntaxAttribute_ParamsReadOnlyCollectionArgument(TestHost testHost)
+        => TestAsync(
+            """
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Text.RegularExpressions;
+
+            class Program
+            {
+                private void M([StringSyntax(StringSyntaxAttribute.Regex)] params IReadOnlyCollection<string> p)
+                {
+                }
+
+                void Goo()
+                {
+                    [|M([@"$\a(?#comment)"]);|]
+                }
+            }
+            """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+            testHost,
+            Method("M"),
+            Regex.Anchor("$"),
+            Regex.OtherEscape("\\"),
+            Regex.OtherEscape("a"),
+            Regex.Comment("(?#comment)"));
 }

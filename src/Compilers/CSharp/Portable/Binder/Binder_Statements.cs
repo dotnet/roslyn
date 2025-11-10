@@ -706,6 +706,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
+            // Check for duplicate modifiers in local declarations.
+            // The actual modifier (const) is determined by node.IsConst below.
+            if (diagnostics.DiagnosticBag is not null)
+                ModifierUtils.CheckForDuplicateModifiers(node.Modifiers, diagnostics.DiagnosticBag);
+
             var typeSyntax = node.Declaration.Type;
             bool isConst = node.IsConst;
 
@@ -766,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     out var disposeMethod,
                                                     out isExpanded);
 
-            if (disposeMethod is not null && (disposeMethod.IsExtensionMethod || disposeMethod.GetIsNewExtensionMember()))
+            if (disposeMethod is not null && (disposeMethod.IsExtensionMethod || disposeMethod.IsExtensionBlockMember()))
             {
                 // Extension methods should just be ignored, rather than rejected after-the-fact
                 // Tracked by https://github.com/dotnet/roslyn/issues/32767
@@ -1603,6 +1608,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+                else
+                {
+                    switch (op1)
+                    {
+                        case BoundPropertyAccess { PropertySymbol.SetMethod: { } propSet, ReceiverOpt: var receiver } when propSet.IsExtensionBlockMember():
+                            var methodInvocationInfo = MethodInvocationInfo.FromCallParts(propSet, receiver, args: [op2], receiverIsSubjectToCloning: ThreeState.Unknown);
+                            handleExtensionSetter(in methodInvocationInfo);
+                            return;
+                        case BoundIndexerAccess { Indexer.SetMethod: { } indexerSet } indexer when indexerSet.IsExtensionBlockMember():
+                            methodInvocationInfo = MethodInvocationInfo.FromIndexerAccess(indexer);
+                            Debug.Assert(ReferenceEquals(methodInvocationInfo.MethodInfo.Method, indexerSet));
+                            handleExtensionSetter(in methodInvocationInfo);
+                            return;
+                    }
+                }
 
                 if (!hasErrors && op1.Type.IsRefLikeOrAllowsRefLikeType())
                 {
@@ -1628,6 +1648,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(false);
                 return "";
+            }
+
+            void handleExtensionSetter(ref readonly MethodInvocationInfo methodInvocationInfo)
+            {
+                // Analyze as if this is a call to the setter directly, not an assignment.
+                var localMethodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
+                Debug.Assert(methodInvocationInfo.MethodInfo.Method is not null);
+                CheckInvocationArgMixing(node, in localMethodInvocationInfo, _localScopeDepth, methodInvocationInfo.MethodInfo.Method, diagnostics);
             }
         }
     }
@@ -2719,7 +2747,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // It was not. Does it implement operator true?
             expr = BindToNaturalType(expr, diagnostics);
-            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, node, diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);
+            OperatorResolutionForReporting discardedOperatorResolutionForReporting = default;
+            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, node, diagnostics, ref discardedOperatorResolutionForReporting, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);
+            discardedOperatorResolutionForReporting.Free();
+
             if (!best.HasValue)
             {
                 // No. Give a "not convertible to bool" error.
@@ -3513,7 +3544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_ReturnInIterator, syntax);
                     expression = BindToTypeForErrorRecovery(expression);
-                    statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
+                    statement = new BoundReturnStatement(syntax, refKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
                 else
                 {
@@ -3525,7 +3556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
                     }
-                    statement = new BoundReturnStatement(syntax, returnRefKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
+                    statement = new BoundReturnStatement(syntax, refKind, expression, @checked: CheckOverflowAtRuntime) { WasCompilerGenerated = true };
                 }
             }
             else if (expression.Type?.SpecialType == SpecialType.System_Void)

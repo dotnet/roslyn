@@ -325,6 +325,11 @@ namespace Microsoft.Cci
     /// </summary>
     internal interface INestedTypeReference : INamedTypeReference, ITypeMemberReference
     {
+        /// <summary>
+        /// When true, the type inherits type parameters from the enclosing type.
+        /// Note, <see cref="INamedTypeReference.GenericParameterCount"/> does not include count of the inherited type parameters.
+        /// </summary>
+        bool InheritsEnclosingTypeTypeParameters { get; }
     }
 
     /// <summary>

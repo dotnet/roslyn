@@ -217,6 +217,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ThreeState _lazyContainsExtensionMethods;
         private ThreeState _lazyAnyMemberHasAttributes;
 
+        // Tracked by https://github.com/dotnet/roslyn/issues/78827 : Optimize by moving some fields into "uncommon" class field?
+        private ExtensionGroupingInfo? _lazyExtensionGroupingInfo;
+
         #region Construction
 
         internal SourceMemberContainerTypeSymbol(
@@ -608,6 +611,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.Members:
                         this.GetMembersByName();
+
+                        if (this.IsExtension)
+                        {
+                            ((SourceNamedTypeSymbol)this).TryGetOrCreateExtensionMarker();
+                        }
                         break;
 
                     case CompletionPart.TypeMembers:
@@ -637,6 +645,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.MembersCompletedChecksStarted:
                     case CompletionPart.MembersCompleted:
                         {
+                            if (this.IsExtension)
+                            {
+                                ((SourceNamedTypeSymbol)this).TryGetOrCreateExtensionMarker()?.ForceComplete(locationOpt, filter: null, cancellationToken);
+                            }
+
                             ImmutableArray<Symbol> members = this.GetMembersUnordered();
 
                             bool allCompleted = true;
@@ -1830,6 +1843,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected void AfterMembersChecks(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
+            var location = GetFirstLocation();
+
             if (IsInterface)
             {
                 CheckInterfaceMembers(this.GetMembersAndInitializers().NonTypeMembers, diagnostics);
@@ -1837,6 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (IsExtension)
             {
                 CheckExtensionMembers(this.GetMembers(), diagnostics);
+                MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, compilation, location);
             }
 
             CheckMemberNamesDistinctFromType(diagnostics);
@@ -1855,8 +1871,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ReportRequiredMembers(diagnostics);
             }
-
-            var location = GetFirstLocation();
 
             if (this.IsRefLikeType)
             {
@@ -2050,8 +2064,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (symbol.Kind == SymbolKind.NamedType ||
                         symbol.IsAccessor() ||
-                        symbol.IsIndexer() ||
-                        symbol.OriginalDefinition is SynthesizedExtensionMarker)
+                        symbol.IsIndexer())
                     {
                         continue;
                     }
@@ -2205,7 +2218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 method2 is SourceExtensionImplementationMethodSymbol { UnderlyingMethod: var underlying2 } &&
                 underlying1.IsStatic == underlying2.IsStatic &&
                 ((object)underlying1.ContainingType == underlying2.ContainingType ||
-                 new ExtensionGroupingKey(underlying1.ContainingType).Equals(new ExtensionGroupingKey(underlying2.ContainingType))) &&
+                ((SourceNamedTypeSymbol)underlying1.ContainingType).ExtensionGroupingName == ((SourceNamedTypeSymbol)underlying2.ContainingType).ExtensionGroupingName) &&
                 diagnostics.DiagnosticBag?.AsEnumerableWithoutResolution().Any(
                     static (d, arg) =>
                         (d.Code is (int)ErrorCode.ERR_OverloadRefKind or (int)ErrorCode.ERR_MemberAlreadyExists or
@@ -2283,7 +2296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (checkCollisionWithTypeParameters && typeParameterNames == null)
                         {
-                            if (!indexer.GetIsNewExtensionMember() && indexer.ContainingType.Arity > 0)
+                            if (!indexer.IsExtensionBlockMember() && indexer.ContainingType.Arity > 0)
                             {
                                 typeParameterNames = PooledHashSet<string>.GetInstance();
                                 foreach (TypeParameterSymbol typeParameter in indexer.ContainingType.TypeParameters)
@@ -2377,6 +2390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.declaration.ContainsExtensionDeclarations)
             {
                 checkMemberNameConflictsInExtensions(diagnostics);
+                this.GetExtensionGroupingInfo().CheckSignatureCollisions(diagnostics);
             }
 
             checkMemberNameConflicts(GetMembersByName(), GetTypeMembersDictionary(), GetMembersUnordered(), diagnostics);
@@ -2402,7 +2416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void checkMemberNameConflictsInExtensions(BindingDiagnosticBag diagnostics)
             {
-                IEnumerable<IGrouping<ExtensionGroupingKey, NamedTypeSymbol>> extensionsByReceiverType = GetTypeMembers("").Where(static t => t.IsExtension).GroupBy(static t => new ExtensionGroupingKey(t));
+                IEnumerable<IGrouping<string, NamedTypeSymbol>> extensionsByReceiverType = GetTypeMembers("").Where(static t => t.IsExtension).GroupBy(static t => ((SourceNamedTypeSymbol)t).ExtensionGroupingName!);
 
                 foreach (var grouping in extensionsByReceiverType)
                 {
@@ -2418,7 +2432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static (Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>? membersByName, ImmutableArray<Symbol> membersUnordered) mergeMembersInGroup(IGrouping<ExtensionGroupingKey, NamedTypeSymbol> grouping)
+            static (Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>? membersByName, ImmutableArray<Symbol> membersUnordered) mergeMembersInGroup(IGrouping<string, NamedTypeSymbol> grouping)
             {
                 Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>? membersByName = null;
                 ImmutableArray<Symbol> membersUnordered = [];
@@ -2430,8 +2444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var extension = item;
                     Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByNameToMerge = ((SourceMemberContainerTypeSymbol)extension).GetMembersByName();
 
-                    if (membersByNameToMerge.Count == 0 ||
-                        (membersByNameToMerge.Count == 1 && membersByNameToMerge.Values.Single() is [SynthesizedExtensionMarker]))
+                    if (membersByNameToMerge.Count == 0)
                     {
                         continue; // This is an optimization
                     }
@@ -2507,64 +2520,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal readonly struct ExtensionGroupingKey : IEquatable<ExtensionGroupingKey>
-        {
-            public readonly NamedTypeSymbol NormalizedExtension;
-
-            public ExtensionGroupingKey(NamedTypeSymbol extension)
-            {
-                if (extension.Arity != 0)
-                {
-                    extension = extension.Construct(IndexedTypeParameterSymbol.Take(extension.Arity));
-                }
-
-                NormalizedExtension = extension;
-            }
-
-            private readonly int ExtensionArity
-            {
-                get
-                {
-                    return NormalizedExtension.Arity;
-                }
-            }
-
-            private readonly TypeSymbol ReceiverType
-            {
-                get
-                {
-                    if (NormalizedExtension.ExtensionParameter is { } receiverParameter)
-                    {
-                        return receiverParameter.Type;
-                    }
-                    else
-                    {
-                        return ErrorTypeSymbol.UnknownResultType;
-                    }
-                }
-            }
-
-            public bool Equals(ExtensionGroupingKey other)
-            {
-                return ExtensionArity == other.ExtensionArity &&
-                       ReceiverType.Equals(other.ReceiverType, TypeCompareKind.AllIgnoreOptions);
-            }
-
-            public override bool Equals([NotNullWhen(true)] object? obj)
-            {
-                Debug.Assert(false); // Usage of this method is unexpected
-                return Equals((ExtensionGroupingKey)obj!);
-            }
-
-            public override int GetHashCode()
-            {
-                return ReceiverType.GetHashCode();
-            }
-        }
-
         private void CheckSpecialMemberErrors(BindingDiagnosticBag diagnostics)
         {
             var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
+
+            if (this.IsExtension)
+            {
+                ((SourceNamedTypeSymbol)this).TryGetOrCreateExtensionMarker()?.AfterAddingTypeMembersChecks(conversions, diagnostics);
+            }
+
             foreach (var member in this.GetMembersUnordered())
             {
                 member.AfterAddingTypeMembersChecks(conversions, diagnostics);
@@ -3876,10 +3840,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     break;
 
-                case TypeKind.Extension:
-                    AddSynthesizedExtensionMarker(builder, declaredMembersAndInitializers);
-                    break;
-
                 default:
                     break;
             }
@@ -3903,20 +3863,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
-        }
-
-        private void AddSynthesizedExtensionMarker(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers)
-        {
-            var marker = CreateSynthesizedExtensionMarker();
-            if (marker is not null)
-            {
-                builder.AddNonTypeMember(this, marker, declaredMembersAndInitializers);
-            }
-        }
-
-        protected virtual MethodSymbol? CreateSynthesizedExtensionMarker()
-        {
-            throw ExceptionUtilities.Unreachable();
         }
 
         private void AddDeclaredNontypeMembers(DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
@@ -5920,6 +5866,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private byte? ComputeNullableContextValue()
         {
+            if (IsExtension)
+            {
+                // Tracked by https://github.com/dotnet/roslyn/issues/78828 : nullability, figure out how to calculate and emit this for extensions. 
+                //            We probably should do that per grouping type. Leaving as is should be fine too, I think.
+                //            Otherwise, marker method should be processed explicitly because it is not among members.
+                return null;
+            }
+
             var compilation = DeclaringCompilation;
             if (!compilation.ShouldEmitNullableAttributes(this))
             {
@@ -6067,6 +6021,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override NamedTypeSymbol ConstructedFrom
         {
             get { return this; }
+        }
+
+        internal ExtensionGroupingInfo GetExtensionGroupingInfo()
+        {
+            Debug.Assert(this.declaration.ContainsExtensionDeclarations);
+
+            if (_lazyExtensionGroupingInfo is null)
+            {
+                Interlocked.CompareExchange(ref _lazyExtensionGroupingInfo, new ExtensionGroupingInfo(this), null);
+            }
+
+            return _lazyExtensionGroupingInfo;
         }
 
         internal class SynthesizedExplicitImplementations

@@ -32,10 +32,11 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             rootProvider, hierarchyItem, hasItemsDefault: GetHasItemsDefaultValue(hierarchyItem));
 
         /// <summary>
-        /// Whether or not this root solution explorer node has been expanded or not.  Until it is first expanded,
-        /// we do no work so as to avoid CPU time and rooting things like syntax nodes.
+        /// Whether or not this root item has ever been asked to have its <see cref="IAttachedCollectionSource.Items"/>
+        /// property computed.  This happens when an item is first explicitly expanded by a user, or if the user opens
+        /// the file in the editor (as we eagerly pre-compute the item in that case).
         /// </summary>
-        private volatile int _hasEverBeenExpanded;
+        private volatile int _hasEverBeenAskedToCompute;
 
         private static bool? GetHasItemsDefaultValue(IVsHierarchyItem hierarchyItem)
             // If this is not a c#/vb file initially, then mark this file as having no symbolic children.
@@ -55,12 +56,12 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             // it will never leave that state from that point on, and we'll be stuck in an invalid state.
         }
 
-        public async Task UpdateIfEverExpandedAsync(CancellationToken cancellationToken)
+        public async Task UpdateIfEverBeenAskedToComputeAsync(CancellationToken cancellationToken)
         {
-            // If we haven't been initialized yet, then we don't have to do anything.  We will get called again
-            // in the future as documents are mutated, and we'll ignore until the point that the user has at
-            // least expanded this node once.
-            if (_hasEverBeenExpanded == 0)
+            // If we haven't ever been asked to compute items, then we don't have to do anything.  We will get called
+            // again in the future as documents are mutated, and we'll ignore until the point that the user has at least
+            // expanded this node once.
+            if (_hasEverBeenAskedToCompute == 0)
                 return;
 
             // Try to find a roslyn document for this file path.  Note: it is intentional that we continue onwards,
@@ -132,17 +133,18 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
 
         bool IAttachedCollectionSource.HasItems => _childCollection.HasItems;
 
+        public void EnsureItemsComputed()
+        {
+            // If this was the first time this node was asked to compute, then kick off the initial work to do so.
+            if (Interlocked.CompareExchange(ref _hasEverBeenAskedToCompute, 1, 0) == 0)
+                _rootProvider._updateSourcesQueue.AddWork(_hierarchyItem.CanonicalName);
+        }
+
         IEnumerable IAttachedCollectionSource.Items
         {
             get
             {
-                if (Interlocked.CompareExchange(ref _hasEverBeenExpanded, 1, 0) == 0)
-                {
-                    // This was the first time this node was expanded.  Kick off the initial work to 
-                    // compute the items for it.
-                    _rootProvider._updateSourcesQueue.AddWork(_hierarchyItem.CanonicalName);
-                }
-
+                EnsureItemsComputed();
                 return _childCollection.Items;
             }
         }

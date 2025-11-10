@@ -55,6 +55,8 @@ configuration:
             branch: main
         - targetsBranch:
             branch: main-vs-deps
+        - targetsBranch:
+            branch: community
       - and:
         - isAction:
             action: Closed

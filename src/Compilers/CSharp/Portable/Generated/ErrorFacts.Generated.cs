@@ -116,7 +116,6 @@
                 case ErrorCode.WRN_MultipleRuntimeOverrideMatches:
                 case ErrorCode.WRN_DynamicDispatchToConditionalMethod:
                 case ErrorCode.WRN_IsDynamicIsConfusing:
-                case ErrorCode.WRN_AsyncLacksAwaits:
                 case ErrorCode.WRN_FileAlreadyIncluded:
                 case ErrorCode.WRN_NoSources:
                 case ErrorCode.WRN_NoConfigNotOnCommandLine:
@@ -346,6 +345,7 @@
                 case ErrorCode.WRN_ExperimentalWithMessage:
                 case ErrorCode.WRN_UnscopedRefAttributeOldRules:
                 case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
+                case ErrorCode.WRN_RedundantPattern:
                     return true;
                 default:
                     return false;
@@ -388,6 +388,8 @@
                 case ErrorCode.HDN_UnusedUsingDirective:
                 case ErrorCode.HDN_UnusedExternAlias:
                 case ErrorCode.HDN_DuplicateWithGlobalUsing:
+                case ErrorCode.HDN_RedundantPattern:
+                case ErrorCode.HDN_RedundantPatternStackGuard:
                     return true;
                 default:
                     return false;

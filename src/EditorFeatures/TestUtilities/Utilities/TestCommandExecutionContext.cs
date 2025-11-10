@@ -11,5 +11,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 internal static class TestCommandExecutionContext
 {
     public static CommandExecutionContext Create()
-        => new CommandExecutionContext(new TestUIThreadOperationContext());
+        => new(new TestUIThreadOperationContext());
 }

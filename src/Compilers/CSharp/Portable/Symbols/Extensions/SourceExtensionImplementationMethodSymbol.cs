@@ -21,11 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceExtensionImplementationMethodSymbol(MethodSymbol sourceMethod)
             : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
         {
-            Debug.Assert(sourceMethod.GetIsNewExtensionMember());
+            Debug.Assert(sourceMethod.IsExtensionBlockMember());
             Debug.Assert(sourceMethod.IsStatic || sourceMethod.ContainingType.ExtensionParameter is not null);
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Are we creating type parameters with the right emit behavior? Attributes, etc.
-            //            Also, they should be IsImplicitlyDeclared
         }
 
         public override int Arity => TypeParameters.Length;

@@ -15,12 +15,9 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Highlights;
 
-public sealed class DocumentHighlightTests : AbstractLanguageServerProtocolTests
+public sealed class DocumentHighlightTests(ITestOutputHelper testOutputHelper)
+    : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
-    public DocumentHighlightTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-    {
-    }
-
     [Theory, CombinatorialData]
     public async Task TestGetDocumentHighlightAsync(bool lspMutatingWorkspace)
     {
@@ -98,6 +95,59 @@ public sealed class DocumentHighlightTests : AbstractLanguageServerProtocolTests
         Assert.Empty(results);
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/76089")]
+    public async Task TestGetDocumentHighlightAsync_PartialConstructor(bool lspMutatingWorkspace)
+    {
+        var markup =
+            """
+            partial class C
+            {
+                partial {|caret:|}{|text:C|}();
+                partial {|text:C|}()
+                {
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
+
+        var expectedLocations = testLspServer.GetLocations("text");
+
+        var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        Assert.Equal(2, results.Length);
+        Assert.All(results, r => Assert.Equal(LSP.DocumentHighlightKind.Text, r.Kind));
+        Assert.Equal(expectedLocations[0].Range, results[0].Range);
+        Assert.Equal(expectedLocations[1].Range, results[1].Range);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetDocumentHighlightAsync_ConstructorOverloads(bool lspMutatingWorkspace)
+    {
+        var markup =
+            """
+            class C
+            {
+                {|caret:|}{|text:C|}()
+                {
+                }
+
+                C(int x)
+                {
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
+
+        var expectedLocations = testLspServer.GetLocations("text");
+
+        var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        // Should only highlight the parameterless constructor
+        Assert.Single(results);
+        Assert.Equal(LSP.DocumentHighlightKind.Text, results[0].Kind);
+        Assert.Equal(expectedLocations[0].Range, results[0].Range);
+    }
+
     private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(TestLspServer testLspServer, LSP.Location caret)
     {
         var results = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName,
@@ -113,7 +163,7 @@ public sealed class DocumentHighlightTests : AbstractLanguageServerProtocolTests
     }
 
     private static LSP.DocumentHighlight CreateDocumentHighlight(LSP.DocumentHighlightKind kind, LSP.Location location)
-        => new LSP.DocumentHighlight()
+        => new()
         {
             Kind = kind,
             Range = location.Range

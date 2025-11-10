@@ -100,7 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // have already reported a non-void partial method error.
                 else if (method.Locations.Length == 1)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ReturnExpected, method.GetFirstLocation(), method);
+                    var location = method is SynthesizedSimpleProgramEntryPointSymbol entryPoint
+                        ? entryPoint.ReturnTypeSyntax.GetLocation()
+                        : method.GetFirstLocation();
+                    diagnostics.Add(ErrorCode.ERR_ReturnExpected, location, method);
                 }
             }
 

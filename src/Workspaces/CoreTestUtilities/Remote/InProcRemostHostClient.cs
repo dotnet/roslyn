@@ -183,6 +183,7 @@ internal sealed partial class InProcRemoteHostClient : RemoteHostClient
             RegisterRemoteBrokeredService(new RemoteCodeLensReferencesService.Factory());
             RegisterRemoteBrokeredService(new RemoteConvertTupleToStructCodeRefactoringService.Factory());
             RegisterRemoteBrokeredService(new RemoteCopilotChangeAnalysisService.Factory());
+            RegisterRemoteBrokeredService(new RemoteCopilotProposalAdjusterService.Factory());
             RegisterRemoteBrokeredService(new RemoteDependentTypeFinderService.Factory());
             RegisterRemoteBrokeredService(new RemoteDesignerAttributeDiscoveryService.Factory());
             RegisterRemoteBrokeredService(new RemoteDiagnosticAnalyzerService.Factory());

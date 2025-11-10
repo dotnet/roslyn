@@ -4,8 +4,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
-    <UseAppHost>false</UseAppHost>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
+    <TieredCompilation>false</TieredCompilation>
   </PropertyGroup>
   
   <!-- Can't put this in shared project due to https://github.com/dotnet/project-system/issues/8157 -->

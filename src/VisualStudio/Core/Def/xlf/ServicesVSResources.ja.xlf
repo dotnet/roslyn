@@ -237,6 +237,11 @@
         <target state="translated">コード分析が、'{0}' の完了前に終了しました。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_preview">
+        <source>Code preview</source>
+        <target state="new">Code preview</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">定義に折りたたむときにローカル関数を折りたたむ</target>
@@ -345,11 +350,6 @@
       <trans-unit id="Edit">
         <source>_Edit</source>
         <target state="translated">編集(_E)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Editor_Color_Scheme">
-        <source>Editor Color Scheme</source>
-        <target state="translated">エディターの配色</target>
         <note />
       </trans-unit>
       <trans-unit id="Editor_Help">
@@ -485,6 +485,16 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">設定から .editorconfig ファイルを生成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_only_summary_tag">
+        <source>Generate only &lt;summary&gt; tag</source>
+        <target state="new">Generate only &lt;summary&gt; tag</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_summary_on_single_line">
+        <source>Generate &lt;summary&gt; on single line</source>
+        <target state="new">Generate &lt;summary&gt; on single line</target>
         <note />
       </trans-unit>
       <trans-unit id="Generator_running">
@@ -1122,6 +1132,11 @@
         <target state="translated">readonly フィールドを優先する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simple_property_accessors">
+        <source>Prefer simple property accessors</source>
+        <target state="new">Prefer simple property accessors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
         <target state="translated">単純な 'using' ステートメントを優先する</target>
@@ -1285,6 +1300,11 @@
       <trans-unit id="Search_found_no_results_no_csharp_or_vb_projects_opened">
         <source>Search found no results: no C# or Visual Basic projects are opened</source>
         <target state="translated">検索結果が見つかりませんでした: C# または Visual Basic プロジェクトが開いていません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_members">
+        <source>Search members</source>
+        <target state="new">Search members</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
@@ -1670,16 +1690,6 @@
       <trans-unit id="Value_to_inject_at_call_sites">
         <source>Value to inject at call sites</source>
         <target state="translated">呼び出しサイトで挿入する値</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Studio_2017">
-        <source>Visual Studio 2017</source>
-        <target state="translated">Visual Studio 2017</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Studio_2019">
-        <source>Visual Studio 2019</source>
-        <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_Settings">

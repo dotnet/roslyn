@@ -165,7 +165,7 @@ public abstract partial class AbstractUserDiagnosticTest_NoEditor<
                 document,
                 diagnostic.Location.SourceSpan,
                 [diagnostic],
-                (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
+                (a, d) => fixes.Add(new CodeFix(a, d)),
                 CancellationToken.None);
 
             await fixer.RegisterCodeFixesAsync(context);

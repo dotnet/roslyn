@@ -11,7 +11,7 @@ internal sealed class RenameConflictTag : TextMarkerTag
     // Only used for theming, does not need localized
     internal const string TagId = "RoslynRenameConflictTag";
 
-    public static readonly RenameConflictTag Instance = new RenameConflictTag();
+    public static readonly RenameConflictTag Instance = new();
 
     private RenameConflictTag()
         : base(TagId)

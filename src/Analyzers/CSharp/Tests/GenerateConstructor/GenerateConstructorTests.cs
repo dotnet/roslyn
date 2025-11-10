@@ -25,7 +25,7 @@ public sealed class GenerateConstructorTests(ITestOutputHelper logger)
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new GenerateConstructorCodeFixProvider());
 
-    private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+    private readonly NamingStylesTestOptionSets options = new(LanguageNames.CSharp);
 
     [Fact]
     public Task TestWithSimpleArgument()

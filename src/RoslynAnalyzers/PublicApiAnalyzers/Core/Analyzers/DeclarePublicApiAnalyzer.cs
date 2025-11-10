@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -273,34 +272,17 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             optionValue = "";
             try
             {
-                var provider = analyzerOptions.GetType().GetRuntimeProperty("AnalyzerConfigOptionsProvider")?.GetValue(analyzerOptions);
+                var provider = analyzerOptions.AnalyzerConfigOptionsProvider;
                 if (provider == null)
                 {
                     return false;
                 }
 
-                var getOptionsMethod = provider.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == "GetOptions");
-                if (getOptionsMethod == null)
-                {
-                    return false;
-                }
-
-                var options = getOptionsMethod.Invoke(provider, [tree]);
-                var tryGetValueMethod = options.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == "TryGetValue");
-                if (tryGetValueMethod == null)
-                {
-                    return false;
-                }
+                var options = provider.GetOptions(tree);
 
                 // bool TryGetValue(string key, out string value);
                 var parameters = new object?[] { optionName, null };
-                if (tryGetValueMethod.Invoke(options, parameters) is not bool hasOption ||
-                    !hasOption)
-                {
-                    return false;
-                }
-
-                if (parameters[1] is not string value)
+                if (!options.TryGetValue(optionName, out var value))
                 {
                     return false;
                 }

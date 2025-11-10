@@ -249,7 +249,7 @@ static class Extensions
 }
 ";
             string expectedOperationTree = @"
-IIncrementOrDecrementOperation (Prefix) (OperatorMethod: CustomType Extensions.<>E__0.op_Decrement(CustomType x)) (OperationKind.Decrement, Type: CustomType) (Syntax: '--x')
+IIncrementOrDecrementOperation (Prefix) (OperatorMethod: CustomType Extensions.<G>$9F7826FAF592F1266BEA2CA4AC24ECDD.op_Decrement(CustomType x)) (OperationKind.Decrement, Type: CustomType) (Syntax: '--x')
   Target:
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: CustomType) (Syntax: 'x')
 ";
@@ -286,7 +286,7 @@ static class Extensions
 " + CompilerFeatureRequiredAttribute;
 
             string expectedOperationTree = @"
-IIncrementOrDecrementOperation (Prefix) (OperatorMethod: void Extensions.<>E__0.op_DecrementAssignment()) (OperationKind.Decrement, Type: CustomType) (Syntax: '--x')
+IIncrementOrDecrementOperation (Prefix) (OperatorMethod: void Extensions.<G>$9F7826FAF592F1266BEA2CA4AC24ECDD.op_DecrementAssignment()) (OperationKind.Decrement, Type: CustomType) (Syntax: '--x')
   Target:
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: CustomType) (Syntax: 'x')
 ";
@@ -323,7 +323,7 @@ static class Extensions
 " + CompilerFeatureRequiredAttribute;
 
             string expectedOperationTree = @"
-IIncrementOrDecrementOperation (Prefix) (OperatorMethod: void Extensions.<>E__0.op_DecrementAssignment()) (OperationKind.Decrement, Type: CustomType) (Syntax: '--x')
+IIncrementOrDecrementOperation (Prefix) (OperatorMethod: void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.op_DecrementAssignment()) (OperationKind.Decrement, Type: CustomType) (Syntax: '--x')
   Target:
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: CustomType) (Syntax: 'x')
 ";
@@ -406,7 +406,7 @@ Block[B0] - Entry
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(x ?? y).i++;')
               Expression:
-                IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S1 Extensions.<>E__0.op_Increment(S1 x)) (OperationKind.Increment, Type: S1) (Syntax: '(x ?? y).i++')
+                IIncrementOrDecrementOperation (Postfix) (OperatorMethod: S1 Extensions.<G>$78CFE6F93D970DBBE44B05C24FFEB91E.op_Increment(S1 x)) (OperationKind.Increment, Type: S1) (Syntax: '(x ?? y).i++')
                   Target:
                     IFieldReferenceOperation: S1 C.D.i (OperationKind.FieldReference, Type: S1) (Syntax: '(x ?? y).i')
                       Instance Receiver:
@@ -494,7 +494,7 @@ Block[B0] - Entry
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(x ?? y).i++;')
               Expression:
-                IIncrementOrDecrementOperation (Postfix) (OperatorMethod: void Extensions.<>E__0.op_IncrementAssignment()) (OperationKind.Increment, Type: System.Void) (Syntax: '(x ?? y).i++')
+                IIncrementOrDecrementOperation (Postfix) (OperatorMethod: void Extensions.<G>$78CFE6F93D970DBBE44B05C24FFEB91E.op_IncrementAssignment()) (OperationKind.Increment, Type: System.Void) (Syntax: '(x ?? y).i++')
                   Target:
                     IFieldReferenceOperation: S1 C.D.i (OperationKind.FieldReference, Type: S1) (Syntax: '(x ?? y).i')
                       Instance Receiver:

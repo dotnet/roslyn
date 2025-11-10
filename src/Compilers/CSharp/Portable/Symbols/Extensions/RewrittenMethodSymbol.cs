@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -21,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(originalMethod.ExplicitInterfaceImplementations.IsEmpty);
 
             _originalMethod = originalMethod;
-            // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Are we creating type parameters with the right emit behavior? Attributes, etc.
-            _typeMap = typeMap.WithAlphaRename(typeParametersToAlphaRename, this, out _typeParameters);
+            _typeMap = typeMap.WithAlphaRename(typeParametersToAlphaRename, this, propagateAttributes: true, out _typeParameters);
         }
 
         public TypeMap TypeMap => _typeMap;
@@ -86,6 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             return _originalMethod.GetAttributes();
+        }
+
+        public sealed override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+        {
+            return _originalMethod.GetReturnTypeAttributes();
         }
 
         internal sealed override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()

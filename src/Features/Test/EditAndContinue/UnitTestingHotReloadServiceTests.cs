@@ -50,10 +50,7 @@ public sealed class UnitTestingHotReloadServiceTests : EditAndContinueWorkspaceT
         var sessionId = hotReload.GetTestAccessor().SessionId;
         var session = encService.GetTestAccessor().GetDebuggingSession(sessionId);
         var matchingDocuments = session.LastCommittedSolution.Test_GetDocumentStates();
-        AssertEx.Equal(
-        [
-            "(A, MatchesBuildOutput)"
-        ], matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
+        Assert.Empty(matchingDocuments);
 
         // Valid change
         solution = solution.WithDocumentText(documentIdA, CreateText("class C { void M() { System.Console.WriteLine(2); } }"));

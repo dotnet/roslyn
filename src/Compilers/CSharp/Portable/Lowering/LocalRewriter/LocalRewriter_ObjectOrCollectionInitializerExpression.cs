@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Debug.Assert(!elementInitializer.InvokedAsExtensionMethod);
                     Debug.Assert(!elementInitializer.AddMethod.IsExtensionMethod);
-                    Debug.Assert(!elementInitializer.AddMethod.GetIsNewExtensionMember());
+                    Debug.Assert(!elementInitializer.AddMethod.IsExtensionBlockMember());
                     Debug.Assert(elementInitializer.Arguments.Length == elementInitializer.AddMethod.ParameterCount);
                     Debug.Assert(elementInitializer.ImplicitReceiverOpt is BoundObjectOrCollectionValuePlaceholder);
 
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // Rewrite simple assignment to field/property.
                                 var rewrittenRight = VisitExpression(right);
                                 Debug.Assert(assignment.Type.IsDynamic() || TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: assignment.IsRef, used: false));
+                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: assignment.IsRef, used: false, AssignmentKind.SimpleAssignment));
                                 return;
                             }
                         }
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Rewrite simple assignment to field/property.
                             var rewrittenRight = VisitExpression(right);
                             Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false));
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false, AssignmentKind.SimpleAssignment));
                             return;
                         }
 
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Rewrite as simple assignment.
                             var rewrittenRight = VisitExpression(right);
                             Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false));
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, used: false, AssignmentKind.SimpleAssignment));
                             return;
                         }
 
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var rewrittenRight = VisitExpression(right);
                         Debug.Assert(TypeSymbol.Equals(rewrittenAccess.Type, assignment.Type, TypeCompareKind.AllIgnoreOptions));
-                        result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: false, used: false));
+                        result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, isRef: false, used: false, AssignmentKind.SimpleAssignment));
                         return;
                     }
 
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             Debug.Assert(_compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType, isChecked: false, ref discardedUseSiteInfo).IsImplicit ||
-                         (memberSymbol.GetIsNewExtensionMember() && !memberSymbol.IsStatic && ConversionsBase.IsValidExtensionMethodThisArgConversion(_compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType.ExtensionParameter!.Type, isChecked: false, ref discardedUseSiteInfo))) ||
+                         (memberSymbol.IsExtensionBlockMember() && !memberSymbol.IsStatic && ConversionsBase.IsValidExtensionMethodThisArgConversion(_compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType.ExtensionParameter!.Type, isChecked: false, ref discardedUseSiteInfo))) ||
                          _compilation.Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(rewrittenReceiver.Type, memberSymbol.ContainingType, ref discardedUseSiteInfo, out _));
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
 #endif

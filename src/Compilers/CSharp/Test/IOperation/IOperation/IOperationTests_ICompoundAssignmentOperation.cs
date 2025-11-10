@@ -1829,7 +1829,7 @@ static class Extensions
 }
 ";
             string expectedOperationTree = @"
-ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: CustomType Extensions.<>E__0.op_Addition(CustomType x, System.Int32 y)) (OperationKind.CompoundAssignment, Type: CustomType) (Syntax: 'x += 1')
+ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: CustomType Extensions.<G>$9F7826FAF592F1266BEA2CA4AC24ECDD.op_Addition(CustomType x, System.Int32 y)) (OperationKind.CompoundAssignment, Type: CustomType) (Syntax: 'x += 1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Left:
@@ -1870,7 +1870,7 @@ static class Extensions
 " + CompilerFeatureRequiredAttribute;
 
             string expectedOperationTree = @"
-ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: void Extensions.<>E__0.op_AdditionAssignment(System.Int32 y)) (OperationKind.CompoundAssignment, Type: CustomType) (Syntax: 'x += 1')
+ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: void Extensions.<G>$9F7826FAF592F1266BEA2CA4AC24ECDD.op_AdditionAssignment(System.Int32 y)) (OperationKind.CompoundAssignment, Type: CustomType) (Syntax: 'x += 1')
   InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Left:
@@ -1911,7 +1911,7 @@ static class Extensions
 " + CompilerFeatureRequiredAttribute;
 
             string expectedOperationTree = @"
-ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: void Extensions.<>E__0.op_AdditionAssignment(System.Int32 y)) (OperationKind.CompoundAssignment, Type: CustomType) (Syntax: 'x += 1')
+ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: void Extensions.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.op_AdditionAssignment(System.Int32 y)) (OperationKind.CompoundAssignment, Type: CustomType) (Syntax: 'x += 1')
   InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Left:
@@ -2057,7 +2057,7 @@ Block[B0] - Entry
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a[x ?? y] += b ?? c;')
               Expression:
-                ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: S1 Extensions.<>E__0.op_Addition(S1 x, System.Int32 i)) (OperationKind.CompoundAssignment, Type: S1) (Syntax: 'a[x ?? y] += b ?? c')
+                ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: S1 Extensions.<G>$78CFE6F93D970DBBE44B05C24FFEB91E.op_Addition(S1 x, System.Int32 i)) (OperationKind.CompoundAssignment, Type: S1) (Syntax: 'a[x ?? y] += b ?? c')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Left:
@@ -2209,7 +2209,7 @@ Block[B0] - Entry
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a[x ?? y] += b ?? c;')
               Expression:
-                ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: void Extensions.<>E__0.op_AdditionAssignment(System.Int32 i)) (OperationKind.CompoundAssignment, Type: System.Void) (Syntax: 'a[x ?? y] += b ?? c')
+                ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: void Extensions.<G>$78CFE6F93D970DBBE44B05C24FFEB91E.op_AdditionAssignment(System.Int32 i)) (OperationKind.CompoundAssignment, Type: System.Void) (Syntax: 'a[x ?? y] += b ?? c')
                   InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Left:

@@ -15,7 +15,7 @@ public static partial class FormattedClassifications
     {
         [DebuggerStepThrough]
         private static FormattedClassification New(string text)
-            => new FormattedClassification(text, ClassificationTypeNames.OperatorOverloaded);
+            => new(text, ClassificationTypeNames.OperatorOverloaded);
 
         public static FormattedClassification Ampersand { get; } = New("&");
         public static FormattedClassification AmpersandEquals { get; } = New("&=");

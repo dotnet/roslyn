@@ -1806,44 +1806,26 @@ class c
                 // (5,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async void F1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
-                // (5,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         static async void F1() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F1").WithLocation(5, 27),
                 // (5,27): warning CS8321: The local function 'F1' is declared but never used
                 //         static async void F1() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 27),
                 // (6,15): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         async static void F2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 15),
-                // (6,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async static void F2() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 27),
                 // (6,27): warning CS8321: The local function 'F2' is declared but never used
                 //         async static void F2() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 27));
             CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                // (5,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         static async void F1() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F1").WithLocation(5, 27),
                 // (5,27): warning CS8321: The local function 'F1' is declared but never used
                 //         static async void F1() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 27),
-                // (6,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async static void F2() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 27),
                 // (6,27): warning CS8321: The local function 'F2' is declared but never used
                 //         async static void F2() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 27));
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (5,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         static async void F1() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F1").WithLocation(5, 27),
                 // (5,27): warning CS8321: The local function 'F1' is declared but never used
                 //         static async void F1() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 27),
-                // (6,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async static void F2() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 27),
                 // (6,27): warning CS8321: The local function 'F2' is declared but never used
                 //         async static void F2() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 27));
@@ -1940,9 +1922,6 @@ class c
                 // (5,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(5, 9),
-                // (5,16): error CS1031: Type expected
-                //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
                 // (5,16): error CS1004: Duplicate 'static' modifier
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(5, 16),
@@ -1955,91 +1934,49 @@ class c
                 // (6,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 9),
-                // (6,22): error CS1031: Type expected
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22),
                 // (6,22): error CS1004: Duplicate 'static' modifier
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(6, 22),
                 // (6,22): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(6, 22),
-                // (6,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 34),
                 // (6,34): warning CS8321: The local function 'F2' is declared but never used
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 34));
             CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                // (5,16): error CS1031: Type expected
-                //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
                 // (5,16): error CS1004: Duplicate 'static' modifier
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(5, 16),
                 // (5,28): warning CS8321: The local function 'F1' is declared but never used
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 28),
-                // (6,22): error CS1031: Type expected
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22),
                 // (6,22): error CS1004: Duplicate 'static' modifier
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(6, 22),
-                // (6,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 34),
                 // (6,34): warning CS8321: The local function 'F2' is declared but never used
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 34));
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (5,16): error CS1031: Type expected
-                //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
                 // (5,16): error CS1004: Duplicate 'static' modifier
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(5, 16),
                 // (5,28): warning CS8321: The local function 'F1' is declared but never used
                 //         static static void F1() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F1").WithArguments("F1").WithLocation(5, 28),
-                // (6,22): error CS1031: Type expected
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22),
                 // (6,22): error CS1004: Duplicate 'static' modifier
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(6, 22),
-                // (6,34): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F2").WithLocation(6, 34),
                 // (6,34): warning CS8321: The local function 'F2' is declared but never used
                 //         static async static void F2() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F2").WithArguments("F2").WithLocation(6, 34));
 
-            UsingDeclaration(text, options: TestOptions.Regular7_3,
-                // (5,16): error CS1031: Type expected
-                //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
-                // (6,22): error CS1031: Type expected
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22));
+            UsingDeclaration(text, options: TestOptions.Regular7_3);
             checkNodes();
 
-            UsingDeclaration(text, options: TestOptions.Regular8,
-                // (5,16): error CS1031: Type expected
-                //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
-                // (6,22): error CS1031: Type expected
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22));
+            UsingDeclaration(text, options: TestOptions.Regular8);
             checkNodes();
 
-            UsingDeclaration(text, options: TestOptions.Regular9,
-                // (5,16): error CS1031: Type expected
-                //         static static void F1() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 16),
-                // (6,22): error CS1031: Type expected
-                //         static async static void F2() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(6, 22));
+            UsingDeclaration(text, options: TestOptions.Regular9);
             checkNodes();
 
             void checkNodes()
@@ -2118,24 +2055,18 @@ class c
                 {
                     void M()
                     {
-                        #pragma warning disable 1998, 8321
+                        #pragma warning disable 8321
                         async async void F() { }
                     }
                 }
                 """;
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,15): error CS1031: Type expected
-                //         async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
                 // (6,15): error CS1004: Duplicate 'async' modifier
                 //         async async void F() { }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15));
 
-            UsingDeclaration(text, options: TestOptions.Regular9,
-                // (6,15): error CS1031: Type expected
-                //         async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15));
+            UsingDeclaration(text, options: TestOptions.Regular9);
             checkNodes();
 
             void checkNodes()
@@ -2195,30 +2126,18 @@ class c
                 {
                     void M()
                     {
-                        #pragma warning disable 1998, 8321
+                        #pragma warning disable 8321
                         async async async void F() { }
                     }
                 }
                 """;
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,15): error CS1031: Type expected
-                //         async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
                 // (6,15): error CS1004: Duplicate 'async' modifier
                 //         async async async void F() { }
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21));
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15));
 
-            UsingDeclaration(text, options: TestOptions.Regular9,
-                // (6,15): error CS1031: Type expected
-                //         async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21));
+            UsingDeclaration(text, options: TestOptions.Regular9);
             checkNodes();
 
             void checkNodes()
@@ -2279,36 +2198,18 @@ class c
                 {
                     void M()
                     {
-                        #pragma warning disable 1998, 8321
+                        #pragma warning disable 8321
                         async async async async void F() { }
                     }
                 }
                 """;
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,15): error CS1031: Type expected
-                //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
                 // (6,15): error CS1004: Duplicate 'async' modifier
                 //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
-                // (6,27): error CS1031: Type expected
-                //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27));
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15));
 
-            UsingDeclaration(text, options: TestOptions.Regular9,
-                // (6,15): error CS1031: Type expected
-                //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
-                // (6,27): error CS1031: Type expected
-                //         async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27));
+            UsingDeclaration(text, options: TestOptions.Regular9);
             checkNodes();
 
             void checkNodes()
@@ -2370,42 +2271,18 @@ class c
                 {
                     void M()
                     {
-                        #pragma warning disable 1998, 8321
+                        #pragma warning disable 8321
                         async async async async async void F() { }
                     }
                 }
                 """;
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,15): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
                 // (6,15): error CS1004: Duplicate 'async' modifier
                 //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
-                // (6,27): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27),
-                // (6,33): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 33));
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(6, 15));
 
-            UsingDeclaration(text, options: TestOptions.Regular9,
-                // (6,15): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 15),
-                // (6,21): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 21),
-                // (6,27): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 27),
-                // (6,33): error CS1031: Type expected
-                //         async async async async async void F() { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "async").WithLocation(6, 33));
+            UsingDeclaration(text, options: TestOptions.Regular9);
             checkNodes();
 
             void checkNodes()

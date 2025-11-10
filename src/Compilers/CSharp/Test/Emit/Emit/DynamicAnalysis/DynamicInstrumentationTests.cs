@@ -3645,8 +3645,8 @@ static class C
 ";
             var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
-            AssertNotInstrumented(verifier, "C.<>E__0.M1");
-            AssertNotInstrumented(verifier, "C.<>E__0.M2");
+            AssertNotInstrumented(verifier, "C.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M1");
+            AssertNotInstrumented(verifier, "C.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.M2");
 
             AssertNotInstrumented(verifier, "C.M1");
             AssertInstrumented(verifier, "C.M2");
@@ -3673,13 +3673,13 @@ static class C
 ";
             var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
-            AssertNotInstrumented(verifier, "C.<>E__0.P1.get");
-            AssertNotInstrumented(verifier, "C.<>E__0.P1.set");
+            AssertNotInstrumented(verifier, "C.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P1.get");
+            AssertNotInstrumented(verifier, "C.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P1.set");
             AssertNotInstrumented(verifier, "C.get_P1");
             AssertNotInstrumented(verifier, "C.set_P1");
 
-            AssertNotInstrumented(verifier, "C.<>E__0.P2.get");
-            AssertNotInstrumented(verifier, "C.<>E__0.P2.set");
+            AssertNotInstrumented(verifier, "C.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P2.get");
+            AssertNotInstrumented(verifier, "C.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.P2.set");
             AssertInstrumented(verifier, "C.get_P2");
             AssertInstrumented(verifier, "C.set_P2");
         }
@@ -3705,12 +3705,12 @@ public static class E
 """ + InstrumentationHelperSource;
 
             var checker = new CSharpInstrumentationChecker();
-            checker.Method(3, 1, snippet: "", expectBodySpan: false)
+            checker.Method(5, 1, snippet: "", expectBodySpan: false)
                 .True("42.M();")
                 .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
-            checker.Method(5, 1, snippet: "public void M()")
+            checker.Method(7, 1, snippet: "public void M()")
                 .True("""System.Console.WriteLine("Test");""");
-            checker.Method(7, 1)
+            checker.Method(9, 1)
                 .True()
                 .False()
                 .True()
@@ -3801,13 +3801,13 @@ public static class E
 """ + InstrumentationHelperSource;
 
             var checker = new CSharpInstrumentationChecker();
-            checker.Method(3, 1, snippet: "", expectBodySpan: false)
+            checker.Method(5, 1, snippet: "", expectBodySpan: false)
                 .True("_ = 42.P;")
                 .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
-            checker.Method(5, 1, snippet: "get")
+            checker.Method(7, 1, snippet: "get")
                 .True("""System.Console.WriteLine("Test");""")
                 .True("return 0;");
-            checker.Method(7, 1)
+            checker.Method(9, 1)
                 .True()
                 .False()
                 .True()
@@ -3862,14 +3862,14 @@ public static class E
 """ + InstrumentationHelperSource;
 
             var checker = new CSharpInstrumentationChecker();
-            checker.Method(3, 1, snippet: "", expectBodySpan: false)
+            checker.Method(5, 1, snippet: "", expectBodySpan: false)
                 .True("42.M();")
                 .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
-            checker.Method(5, 1, snippet: "public void M()")
+            checker.Method(7, 1, snippet: "public void M()")
                 .True("""System.Console.WriteLine("Test");""")
                 .True("var f = () =>")
                 .True("f();");
-            checker.Method(7, 1)
+            checker.Method(9, 1)
                 .True()
                 .False()
                 .True()
@@ -3924,13 +3924,13 @@ public static class E
 """ + InstrumentationHelperSource;
 
             var checker = new CSharpInstrumentationChecker();
-            checker.Method(3, 1, snippet: "", expectBodySpan: false)
+            checker.Method(5, 1, snippet: "", expectBodySpan: false)
                 .True("42.M();")
                 .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
-            checker.Method(5, 1, snippet: "public void M()")
+            checker.Method(7, 1, snippet: "public void M()")
                 .True("local();")
                 .True("""System.Console.WriteLine("Test");""");
-            checker.Method(8, 1)
+            checker.Method(10, 1)
                 .True()
                 .False()
                 .True()
@@ -4005,13 +4005,13 @@ public static class E
             var source = classic ? classicSource : newSource;
 
             var checker = new CSharpInstrumentationChecker();
-            checker.Method(3, 1, snippet: "", expectBodySpan: false)
+            checker.Method(classic ? 3 : 5, 1, snippet: "", expectBodySpan: false)
                 .True("42.M();")
                 .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
-            checker.Method(5, 1, snippet: classic ? "public static void M(this int i)" : "public void M()")
+            checker.Method(classic ? 5 : 7, 1, snippet: classic ? "public static void M(this int i)" : "public void M()")
                 .True("local();")
                 .True("""System.Console.WriteLine(i);""");
-            checker.Method(8, 1)
+            checker.Method(classic ? 8 : 10, 1)
                 .True()
                 .False()
                 .True()

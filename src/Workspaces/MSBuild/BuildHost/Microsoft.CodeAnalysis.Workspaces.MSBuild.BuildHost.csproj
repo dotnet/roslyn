@@ -23,12 +23,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!--
-      We specifically reference Microsoft.Build 17.3.4, since it's the oldest version still compatible $(NetRoslynBuildHostNetCoreVersion).
+      We specifically reference Microsoft.Build 17.11.31, since it's the oldest version still compatible $(NetRoslynBuildHostNetCoreVersion).
       The version targeted is only used for build time, since we use MSBuildLocator to discover the proper version at runtime.
     -->
-    <_MsbuildVersion>17.3.4</_MsbuildVersion>
-    <!-- S.C.I 9.0 no longer supports .NET 6 -->
-    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+    <_MsbuildVersion>17.11.31</_MsbuildVersion>
   </PropertyGroup>
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
     <PackageReference Include="Microsoft.Build" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
@@ -75,18 +73,18 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Include="Rpc\Readme.md" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <EmbeddedResource Update="WorkspaceMSBuildBuildHostResources.resx" GenerateSource="true" />
   </ItemGroup>

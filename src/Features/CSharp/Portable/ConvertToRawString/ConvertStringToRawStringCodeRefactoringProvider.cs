@@ -41,7 +41,7 @@ internal sealed partial class ConvertStringToRawStringCodeRefactoringProvider() 
     private static readonly ImmutableArray<IConvertStringProvider> s_convertStringProviders =
         [ConvertRegularStringToRawStringProvider.Instance, ConvertInterpolatedStringToRawStringProvider.Instance];
 
-    protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
+    protected override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes => AllRefactorAllScopes;
 
     protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
 
@@ -139,7 +139,7 @@ internal sealed partial class ConvertStringToRawStringCodeRefactoringProvider() 
         return document.WithSyntaxRoot(root.ReplaceNode(expression, replacement));
     }
 
-    protected override async Task FixAllAsync(
+    protected override async Task RefactorAllAsync(
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,

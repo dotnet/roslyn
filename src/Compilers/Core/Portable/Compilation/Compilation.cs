@@ -3435,7 +3435,70 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        private protected abstract EmitBaseline MapToCompilation(CommonPEModuleBuilder moduleBeingBuilt);
+        /// <summary>
+        /// Return a version of the baseline with all definitions mapped to this compilation.
+        /// Definitions from the initial generation, from metadata, are not mapped since
+        /// the initial generation is always included as metadata. That is, the symbols from
+        /// types, methods, ... in the TypesAdded, MethodsAdded, ... collections are replaced
+        /// by the corresponding symbols from the current compilation.
+        /// </summary>
+        internal EmitBaseline MapToCompilation(CommonPEModuleBuilder moduleBeingBuilt)
+        {
+            var previousGeneration = moduleBeingBuilt.PreviousGeneration;
+            Debug.Assert(previousGeneration != null);
+            Debug.Assert(previousGeneration.Compilation != this);
+
+            if (previousGeneration.Ordinal == 0)
+            {
+                // Initial generation, nothing to map. (Since the initial generation
+                // is always loaded from metadata in the context of the current
+                // compilation, there's no separate mapping step.)
+                return previousGeneration;
+            }
+
+            Debug.Assert(previousGeneration.Compilation != null);
+            Debug.Assert(previousGeneration.PEModuleBuilder != null);
+            Debug.Assert(moduleBeingBuilt.EncSymbolChanges != null);
+
+            var currentSynthesizedTypes = moduleBeingBuilt.GetAllSynthesizedTypes();
+            var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
+            var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.DeletedMembers;
+
+            // Mapping from previous compilation to the current.
+            var matcher = CreatePreviousToCurrentSourceAssemblyMatcher(
+                previousGeneration,
+                currentSynthesizedTypes,
+                currentSynthesizedMembers,
+                currentDeletedMembers);
+
+            var mappedSynthesizedTypes = matcher.MapSynthesizedTypes(previousGeneration.SynthesizedTypes, currentSynthesizedTypes);
+
+            var mappedSynthesizedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, isDeletedMemberMapping: false);
+
+            // Deleted members are mapped the same way as synthesized members, so we can just call the same method.
+            var mappedDeletedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, isDeletedMemberMapping: true);
+
+            // TODO: can we reuse some data from the previous matcher?
+            var matcherWithAllSynthesizedTypesAndMembers = CreatePreviousToCurrentSourceAssemblyMatcher(
+                previousGeneration,
+                mappedSynthesizedTypes,
+                mappedSynthesizedMembers,
+                mappedDeletedMembers);
+
+            return matcherWithAllSynthesizedTypesAndMembers.MapBaselineToCompilation(
+                previousGeneration,
+                this,
+                moduleBeingBuilt,
+                mappedSynthesizedTypes,
+                mappedSynthesizedMembers,
+                mappedDeletedMembers);
+        }
+
+        private protected abstract SymbolMatcher CreatePreviousToCurrentSourceAssemblyMatcher(
+            EmitBaseline previousGeneration,
+            SynthesizedTypeMaps otherSynthesizedTypes,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherSynthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> otherDeletedMembers);
 
         internal EmitBaseline? SerializeToDeltaStreams(
             CommonPEModuleBuilder moduleBeingBuilt,
@@ -3511,7 +3574,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 finally
                 {
-                    foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMethodDefinitions())
+                    foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMemberDefinitions())
                     {
                         builder.Free();
                     }

@@ -31,18 +31,18 @@ public sealed class UnifiedSettingsTests
     /// Dictionary containing the option to unified setting path for C#.
     /// </summary>
     private static readonly ImmutableDictionary<IOption2, string> s_csharpUnifiedSettingsStorage = ImmutableDictionary<IOption2, string>.Empty.
-        Add(CompletionOptionsStorage.TriggerOnTypingLetters, "textEditor.csharp.intellisense.triggerCompletionOnTypingLetters").
-        Add(CompletionOptionsStorage.TriggerOnDeletion, "textEditor.csharp.intellisense.triggerCompletionOnDeletion").
-        Add(CompletionOptionsStorage.TriggerInArgumentLists, "textEditor.csharp.intellisense.triggerCompletionInArgumentLists").
-        Add(CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, "textEditor.csharp.intellisense.highlightMatchingPortionsOfCompletionListItems").
-        Add(CompletionViewOptionsStorage.ShowCompletionItemFilters, "textEditor.csharp.intellisense.showCompletionItemFilters").
-        Add(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon, "textEditor.csharp.intellisense.completeStatementOnSemicolon").
-        Add(CompletionOptionsStorage.SnippetsBehavior, "textEditor.csharp.intellisense.snippetsBehavior").
-        Add(CompletionOptionsStorage.EnterKeyBehavior, "textEditor.csharp.intellisense.returnKeyCompletionBehavior").
-        Add(CompletionOptionsStorage.ShowNameSuggestions, "textEditor.csharp.intellisense.showNameCompletionSuggestions").
-        Add(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, "textEditor.csharp.intellisense.showCompletionItemsFromUnimportedNamespaces").
-        Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "textEditor.csharp.intellisense.enableArgumentCompletionSnippets").
-        Add(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, "textEditor.csharp.intellisense.showNewSnippetExperience");
+        Add(CompletionOptionsStorage.TriggerOnTypingLetters, "languages.csharp.intellisense.triggerCompletionOnTypingLetters").
+        Add(CompletionOptionsStorage.TriggerOnDeletion, "languages.csharp.intellisense.triggerCompletionOnDeletion").
+        Add(CompletionOptionsStorage.TriggerInArgumentLists, "languages.csharp.intellisense.triggerCompletionInArgumentLists").
+        Add(CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, "languages.csharp.intellisense.highlightMatchingPortionsOfCompletionListItems").
+        Add(CompletionViewOptionsStorage.ShowCompletionItemFilters, "languages.csharp.intellisense.showCompletionItemFilters").
+        Add(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon, "languages.csharp.intellisense.completeStatementOnSemicolon").
+        Add(CompletionOptionsStorage.SnippetsBehavior, "languages.csharp.intellisense.snippetsBehavior").
+        Add(CompletionOptionsStorage.EnterKeyBehavior, "languages.csharp.intellisense.returnKeyCompletionBehavior").
+        Add(CompletionOptionsStorage.ShowNameSuggestions, "languages.csharp.intellisense.showNameCompletionSuggestions").
+        Add(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, "languages.csharp.intellisense.showCompletionItemsFromUnimportedNamespaces").
+        Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "languages.csharp.intellisense.enableArgumentCompletionSnippets").
+        Add(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, "languages.csharp.intellisense.showNewSnippetExperience");
 
     /// <summary>
     /// Array containing the option to expected unified settings for C# intellisense page.
@@ -132,9 +132,8 @@ public sealed class UnifiedSettingsTests
         var categories = jsonDocument!.Root["categories"]!.AsObject();
         var propertyToCategory = categories.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Deserialize<Category>());
         Assert.Equal(2, propertyToCategory.Count);
-        Assert.Equal("C#", propertyToCategory["textEditor.csharp"]!.Title);
-        Assert.Equal("IntelliSense", propertyToCategory["textEditor.csharp.intellisense"]!.Title);
-        Assert.Equal(Guids.CSharpOptionPageIntelliSenseIdString, propertyToCategory["textEditor.csharp.intellisense"]!.LegacyOptionPageId);
+        Assert.Equal("C#", propertyToCategory["languages.csharp"]!.Title);
+        Assert.Equal("IntelliSense", propertyToCategory["languages.csharp.intellisense"]!.Title);
         await VerifyTagAsync(jsonDocument.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
     }
 
@@ -148,7 +147,7 @@ public sealed class UnifiedSettingsTests
             Assert.True(s_csharpUnifiedSettingsStorage.ContainsKey(option));
         }
 
-        VerifyProperties(jsonDocument!, "textEditor.csharp.intellisense", s_csharpIntellisenseExpectedSettings);
+        VerifyProperties(jsonDocument!, "languages.csharp.intellisense", s_csharpIntellisenseExpectedSettings);
         await VerifyTagAsync(jsonDocument!.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
     }
 
@@ -159,14 +158,14 @@ public sealed class UnifiedSettingsTests
     /// Dictionary containing the option to unified setting path for VB.
     /// </summary>
     private static readonly ImmutableDictionary<IOption2, string> s_visualBasicUnifiedSettingsStorage = ImmutableDictionary<IOption2, string>.Empty.
-        Add(CompletionOptionsStorage.TriggerOnTypingLetters, "textEditor.basic.intellisense.triggerCompletionOnTypingLetters").
-        Add(CompletionOptionsStorage.TriggerOnDeletion, "textEditor.basic.intellisense.triggerCompletionOnDeletion").
-        Add(CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, "textEditor.basic.intellisense.highlightMatchingPortionsOfCompletionListItems").
-        Add(CompletionViewOptionsStorage.ShowCompletionItemFilters, "textEditor.basic.intellisense.showCompletionItemFilters").
-        Add(CompletionOptionsStorage.SnippetsBehavior, "textEditor.basic.intellisense.snippetsBehavior").
-        Add(CompletionOptionsStorage.EnterKeyBehavior, "textEditor.basic.intellisense.returnKeyCompletionBehavior").
-        Add(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, "textEditor.basic.intellisense.showCompletionItemsFromUnimportedNamespaces").
-        Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "textEditor.basic.intellisense.enableArgumentCompletionSnippets");
+        Add(CompletionOptionsStorage.TriggerOnTypingLetters, "languages.basic.intellisense.triggerCompletionOnTypingLetters").
+        Add(CompletionOptionsStorage.TriggerOnDeletion, "languages.basic.intellisense.triggerCompletionOnDeletion").
+        Add(CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems, "languages.basic.intellisense.highlightMatchingPortionsOfCompletionListItems").
+        Add(CompletionViewOptionsStorage.ShowCompletionItemFilters, "languages.basic.intellisense.showCompletionItemFilters").
+        Add(CompletionOptionsStorage.SnippetsBehavior, "languages.basic.intellisense.snippetsBehavior").
+        Add(CompletionOptionsStorage.EnterKeyBehavior, "languages.basic.intellisense.returnKeyCompletionBehavior").
+        Add(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, "languages.basic.intellisense.showCompletionItemsFromUnimportedNamespaces").
+        Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "languages.basic.intellisense.enableArgumentCompletionSnippets");
 
     /// <summary>
     /// Array containing the option to expected unified settings for VB intellisense page.
@@ -233,9 +232,8 @@ public sealed class UnifiedSettingsTests
         var categories = jsonDocument!.Root["categories"]!.AsObject();
         var propertyToCategory = categories.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Deserialize<Category>());
         Assert.Equal(2, propertyToCategory.Count);
-        Assert.Equal("Visual Basic", propertyToCategory["textEditor.basic"]!.Title);
-        Assert.Equal("IntelliSense", propertyToCategory["textEditor.basic.intellisense"]!.Title);
-        Assert.Equal(Guids.VisualBasicOptionPageIntelliSenseIdString, propertyToCategory["textEditor.basic.intellisense"]!.LegacyOptionPageId);
+        Assert.Equal("Visual Basic", propertyToCategory["languages.basic"]!.Title);
+        Assert.Equal("IntelliSense", propertyToCategory["languages.basic.intellisense"]!.Title);
         await VerifyTagAsync(jsonDocument.ToString(), "Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
     }
 
@@ -249,7 +247,7 @@ public sealed class UnifiedSettingsTests
             Assert.True(s_visualBasicUnifiedSettingsStorage.ContainsKey(option));
         }
 
-        VerifyProperties(jsonDocument!, "textEditor.basic.intellisense", s_visualBasicIntellisenseExpectedSettings);
+        VerifyProperties(jsonDocument!, "languages.basic.intellisense", s_visualBasicIntellisenseExpectedSettings);
         await VerifyTagAsync(jsonDocument!.ToString(), "Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
     }
 
@@ -276,7 +274,7 @@ public sealed class UnifiedSettingsTests
     private static async Task VerifyTagAsync(string registrationFile, string pkgdefFileName)
     {
         using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream(pkgdefFileName);
-        using var streamReader = new StreamReader(pkgDefFileStream!);
+        using var streamReader = new StreamReader(pkgDefFileStream);
         var pkgdefFile = await streamReader.ReadToEndAsync();
 
         var fileBytes = Encoding.ASCII.GetBytes(registrationFile);
@@ -318,7 +316,7 @@ public sealed class UnifiedSettingsTests
         // If the option default value is null, it means the option is in experiment mode and is hidden by a feature flag.
         // In Unified Settings it is not allowed and should be replaced by using the alternative default.
         // Like:
-        //     "textEditor.csharp.intellisense.showNewSnippetExperience": {
+        //     "languages.csharp.intellisense.showNewSnippetExperience": {
         //         "type": "boolean",
         //         "default": false,
         //         "alternateDefault": {

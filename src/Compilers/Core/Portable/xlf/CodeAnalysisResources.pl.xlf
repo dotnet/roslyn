@@ -2,16 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../CodeAnalysisResources.resx">
     <body>
-      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
-        <source>A language name cannot be specified for this option.</source>
-        <target state="translated">Nie można określić nazwy języka dla tej opcji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="A_language_name_must_be_specified_for_this_option">
-        <source>A language name must be specified for this option.</source>
-        <target state="translated">Nazwa języka musi zostać określona dla tej opcji.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
         <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
         <target state="translated">Zestaw zawierający typ „{0}” odwołuje się do platformy .NET Framework, co nie jest obsługiwane.</target>
@@ -183,6 +173,11 @@
         <target state="translated">Oczekiwano symbolu metody</target>
         <note />
       </trans-unit>
+      <trans-unit id="MissingTokenListItem">
+        <source>The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</source>
+        <target state="new">The specified token must be a direct element of a SyntaxTokenList (such as a modifier in a list of modifiers). The token cannot be an arbitrary token from the syntax tree.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ModuleHasInvalidAttributes">
         <source>Module has invalid attributes.</source>
         <target state="translated">Moduł ma nieprawidłowe atrybuty.</target>
@@ -218,11 +213,6 @@
         <target state="translated">Rodzaj wyjścia nie jest obsługiwany.</target>
         <note />
       </trans-unit>
-      <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
-        <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
-        <target state="translated">Ścieżka zwrócona przez element {0}.ResolveMetadataFile musi być bezwzględna: „{1}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AssemblyMustHaveAtLeastOneModule">
         <source>Assembly must have at least one module.</source>
         <target state="translated">Zestaw musi mieć co najmniej jeden moduł.</target>
@@ -231,6 +221,16 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Nie można użyć kopii modułu do utworzenia metadanych zestawu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SeparatorTokenMustHaveSameLanguage">
+        <source>New separator must have the same Language as the separator being replaced.</source>
+        <target state="new">New separator must have the same Language as the separator being replaced.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SeparatorTokenMustHaveSameRawKind">
+        <source>New separator must have the same RawKind as the separator being replaced.</source>
+        <target state="new">New separator must have the same RawKind as the separator being replaced.</target>
         <note />
       </trans-unit>
       <trans-unit id="SigningTempPathUnavailable">
@@ -398,11 +398,6 @@
         <target state="translated">Rozmiar musi być wartością dodatnią.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AssemblyFileNotFound">
-        <source>Assembly file not found</source>
-        <target state="translated">Nie znaleziono pliku zestawu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CannotEmbedInteropTypesFromModule">
         <source>Can't embed interop types from module.</source>
         <target state="translated">Nie można osadzić typów międzyoperacyjnych z modułu.</target>
@@ -418,24 +413,9 @@
         <target state="translated">Nieprawidłowy alias.</target>
         <note />
       </trans-unit>
-      <trans-unit id="GetMetadataMustReturnInstance">
-        <source>{0}.GetMetadata() must return an instance of {1}.</source>
-        <target state="translated">Metoda {0}.GetMetadata() musi zwrócić wystąpienie {1}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="UnsupportedSuppressionReported">
         <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
         <target state="translated">Zgłoszone pominięcie o identyfikatorze „{0}” nie jest obsługiwane przez eliminator.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
-        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">Wartość jest zbyt duża, dlatego nie może być reprezentowana jako 30-bitowa liczba całkowita bez znaku.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
-        <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">Nie można przeprowadzić serializacji tablic z więcej niż jednym wymiarem.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAssemblyName">
@@ -456,11 +436,6 @@
       <trans-unit id="NullValueInPathMap">
         <source>A value in the pathMap is null.</source>
         <target state="translated">Wartość elementu pathMap to null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CompilationOptionsMustNotHaveErrors">
-        <source>Compilation options must not have errors.</source>
-        <target state="translated">Opcje kompilacji nie mogą zawierać błędów.</target>
         <note />
       </trans-unit>
       <trans-unit id="ReturnTypeCannotBeValuePointerbyRefOrOpen">
@@ -523,24 +498,9 @@
         <target state="translated">Nie znaleziono pliku.</target>
         <note />
       </trans-unit>
-      <trans-unit id="PathReturnedByResolveStrongNameKeyFileMustBeAbsolute">
-        <source>Path returned by {0}.ResolveStrongNameKeyFile must be absolute: '{1}'</source>
-        <target state="translated">Ścieżka zwrócona przez element {0}.ResolveStrongNameKeyFile musi być bezwzględna: „{1}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TypeMustBeASubclassOfSyntaxAnnotation">
-        <source>type must be a subclass of SyntaxAnnotation.</source>
-        <target state="translated">Typ musi być podklasą elementu SyntaxAnnotation.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="InvalidModuleName">
         <source>Invalid module name specified in metadata module '{0}': '{1}'</source>
         <target state="translated">Nieprawidłowa nazwa modułu została określona w module metadanych „{0}”: „{1}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FileSizeExceedsMaximumAllowed">
-        <source>File size exceeds maximum allowed size of a valid metadata file.</source>
-        <target state="translated">Rozmiar pliku przekracza maksymalny dozwolony rozmiar prawidłowego pliku metadanych.</target>
         <note />
       </trans-unit>
       <trans-unit id="NameCannotBeNull">
@@ -583,11 +543,6 @@
         <target state="translated">Nieprawidłowy typ zawartości</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExpectedNonEmptyPublicKey">
-        <source>Expected non-empty public key</source>
-        <target state="translated">Oczekiwano klucza publicznego, który nie jest pusty</target>
-        <note />
-      </trans-unit>
       <trans-unit id="InvalidSizeOfPublicKeyToken">
         <source>Invalid size of public key token.</source>
         <target state="translated">Nieprawidłowy rozmiar tokenu klucza publicznego.</target>
@@ -596,11 +551,6 @@
       <trans-unit id="InvalidCharactersInAssemblyName">
         <source>Invalid characters in assembly name</source>
         <target state="translated">Nieprawidłowe znaki w nazwie zestawu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="InvalidCharactersInAssemblyCultureName">
-        <source>Invalid characters in assembly culture name</source>
-        <target state="translated">Nieprawidłowe znaki w nazwie kultury zestawu</target>
         <note />
       </trans-unit>
       <trans-unit id="StreamMustSupportReadAndSeek">
@@ -636,11 +586,6 @@
       <trans-unit id="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream">
         <source>Including private members should not be used when emitting to the secondary assembly output.</source>
         <target state="translated">Uwzględnianie prywatnych składowych nie powinno być używane podczas emitowania danych wyjściowych pomocniczego zestawu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="MustIncludePrivateMembersUnlessRefAssembly">
-        <source>Must include private members unless emitting a ref assembly.</source>
-        <target state="translated">Musi zawierać prywatne składowe, chyba że emituje zestaw odwołania.</target>
         <note />
       </trans-unit>
       <trans-unit id="EmbeddingPdbUnexpectedWhenEmittingMetadata">
@@ -733,11 +678,6 @@
         <target state="translated">Tożsamość WindowsRuntime nie może być elementem, który można ponownie ustawić jako cel</target>
         <note />
       </trans-unit>
-      <trans-unit id="PEImageNotAvailable">
-        <source>PE image not available.</source>
-        <target state="translated">Obraz PE jest niedostępny.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AssemblySigningNotSupported">
         <source>Assembly signing not supported.</source>
         <target state="translated">Podpisywanie zestawu nie jest obsługiwane.</target>
@@ -746,11 +686,6 @@
       <trans-unit id="XmlReferencesNotSupported">
         <source>References to XML documents are not supported.</source>
         <target state="translated">Odwołania do dokumentów XML są nieobsługiwane.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FailedToResolveRuleSetName">
-        <source>Could not locate the rule set file '{0}'.</source>
-        <target state="translated">Nie można odnaleźć pliku zestawu reguł „{0}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidRuleSetInclude">
@@ -845,21 +780,6 @@
       <trans-unit id="InvalidDiagnosticLocationReported">
         <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
         <target state="translated">Lokalizacja źródłowa zgłoszonych danych diagnostycznych „{0}” znajduje się w pliku „{1}”, który nie jest częścią analizowanej kompilacji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
-        <source>The type '{0}' is not understood by the serialization binder.</source>
-        <target state="translated">Typ „{0}” nie jest zrozumiały dla integratora serializacji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_deserialize_type_0">
-        <source>Cannot deserialize type '{0}'.</source>
-        <target state="translated">Nie można deserializować typu „{0}”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_serialize_type_0">
-        <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">Nie można serializować typu „{0}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
@@ -1079,11 +999,6 @@
         <target state="translated">Osadzony tekst jest obsługiwany tylko w przypadku emitowania pliku PDB.</target>
         <note />
       </trans-unit>
-      <trans-unit id="TheStreamCannotBeWrittenTo">
-        <source>The stream cannot be written to.</source>
-        <target state="translated">Nie można zapisać do strumienia.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ElementIsExpected">
         <source>element is expected</source>
         <target state="translated">element jest oczekiwany</target>
@@ -1094,29 +1009,9 @@
         <target state="translated">oczekiwano separatora</target>
         <note />
       </trans-unit>
-      <trans-unit id="TheStreamCannotBeReadFrom">
-        <source>The stream cannot be read from.</source>
-        <target state="translated">Nie można odczytać ze strumienia.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
-        <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">Czytnik deserializacji dla elementu „{0}” odczytuje nieprawidłową liczbę wartości.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Stream_contains_invalid_data">
-        <source>Stream contains invalid data</source>
-        <target state="translated">Strumień zawiera nieprawidłowe dane</target>
-        <note />
-      </trans-unit>
       <trans-unit id="InvalidDiagnosticSpanReported">
         <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
         <target state="translated">Zgłoszone dane diagnostyczne „{0}” mają lokalizację źródłową „{1}” w pliku „{2}”, który jest spoza podanego pliku.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ExceptionEnablingMulticoreJit">
-        <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
-        <target state="translated">Ostrzeżenie: Nie można włączyć wielordzeniowego kompilowania JIT z powodu wyjątku: {0}.</target>
         <note />
       </trans-unit>
     </body>

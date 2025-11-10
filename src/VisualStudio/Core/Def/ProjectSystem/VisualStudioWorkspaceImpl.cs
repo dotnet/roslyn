@@ -1630,4 +1630,16 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         // value after the main thread switch.
         uiContext.IsActive = this.CurrentSolution.Projects.Any(p => p.Language == language);
     }
+
+    internal void PreloadProjectSystemComponents(string languageName)
+    {
+        // Ensure we have any listeners for WellKnownEventListeners.Workspace warmed up, since these are otherwise created
+        // the first time we make a change to the CurrentSolution
+        base.EnsureEventListeners();
+
+        // Load up the command line parser and warm it up. This generally ensures we have our language specific binaries loaded
+        // and we have the command line parser ready to go, since those tend to be more expensive things to JIT.
+        var commandLineParserService = Services.GetRequiredLanguageService<ICommandLineParserService>(languageName);
+        commandLineParserService.Parse([], null, isInteractive: false, sdkDirectory: null);
+    }
 }

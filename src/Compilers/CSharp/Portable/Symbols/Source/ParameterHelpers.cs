@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ImmutableArray<ParameterSymbol> parametersForNameConflict = parameters.Cast<TParameterSymbol, ParameterSymbol>();
 
-                if (owner.GetIsNewExtensionMember())
+                if (owner.IsExtensionBlockMember())
                 {
                     typeParameters = owner.ContainingType.TypeParameters.Concat(typeParameters);
 
@@ -370,11 +370,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void EnsureParamCollectionAttributeExistsAndModifyCompilation(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
+        internal static void EnsureParamCollectionAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
         {
             if (parameters.LastOrDefault(static (p) => p.IsParamsCollection) is { } parameter)
             {
-                compilation.EnsureParamCollectionAttributeExistsAndModifyCompilation(diagnostics, GetParameterLocation(parameter));
+                moduleBuilder.EnsureParamCollectionAttributeExists(null, null);
+            }
+        }
+
+        internal static void EnsureParamCollectionAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
+        {
+            if (parameters.LastOrDefault(static (p) => p.IsParamsCollection) is { } parameter)
+            {
+                compilation.EnsureParamCollectionAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
             }
         }
 
@@ -521,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void CheckUnderspecifiedGenericExtension(Symbol extensionMember, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(extensionMember.GetIsNewExtensionMember());
+            Debug.Assert(extensionMember.IsExtensionBlockMember());
 
             NamedTypeSymbol extension = extensionMember.ContainingType;
             if (extension.ExtensionParameter is not { } extensionParameter || extension.ContainingType.Arity != 0)
@@ -838,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int parameterIndex = ordinal;
             bool isDefault = syntax is ParameterSyntax { Default: { } };
 
-            if (thisKeyword.Kind() == SyntaxKind.ThisKeyword && parameterIndex != 0)
+            if (thisKeyword.Kind() == SyntaxKind.ThisKeyword && parameterIndex != 0 && owner?.IsExtensionBlockMember() != true)
             {
                 // Report CS1100 on "this". Note that is a change from Dev10
                 // which reports the error on the type following "this".
@@ -954,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Only need to report CS1743 for the first parameter. The caller will
                 // have reported CS1100 if 'this' appeared on another parameter.
-                if (parameter.Ordinal == 0)
+                if (parameter.Ordinal == 0 && !parameter.ContainingSymbol.IsExtensionBlockMember())
                 {
                     // error CS1743: Cannot specify a default value for the 'this' parameter
                     diagnostics.Add(ErrorCode.ERR_DefaultValueForExtensionParameter, thisKeyword.GetLocation());

@@ -87,14 +87,7 @@ internal sealed partial class TriviaDataFactory : AbstractTriviaDataFactory
     }
 
     private static bool ContainsOnlyWhitespace(Analyzer.AnalysisResult result)
-    {
-        return
-            !result.HasComments &&
-            !result.HasPreprocessor &&
-            !result.HasSkippedTokens &&
-            !result.HasSkippedOrDisabledText &&
-            !result.HasConflictMarker;
-    }
+        => result is { HasComments: false, HasPreprocessor: false, HasSkippedTokens: false, HasSkippedOrDisabledText: false, HasConflictMarker: false };
 
     private TriviaData? GetWhitespaceOnlyTriviaInfo(SyntaxToken token1, SyntaxToken token2, Analyzer.AnalysisResult result)
     {
@@ -114,7 +107,7 @@ internal sealed partial class TriviaDataFactory : AbstractTriviaDataFactory
         }
 
         // tab is used in a place where it is not an indentation
-        if (result.LineBreaks == 0 && result.Tab > 0)
+        if (result is { LineBreaks: 0, Tab: > 0 })
         {
             // calculate actual space size from tab
             var spaces = CalculateSpaces(token1, token2);
@@ -143,7 +136,7 @@ internal sealed partial class TriviaDataFactory : AbstractTriviaDataFactory
         var indentation = result.Tab * Options.TabSize + result.Space;
         if (result.HasTrailingSpace || result.HasUnknownWhitespace)
         {
-            if (result.HasUnknownWhitespace && result.LineBreaks == 0 && indentation == 0)
+            if (result is { HasUnknownWhitespace: true, LineBreaks: 0 } && indentation == 0)
             {
                 // make sure we don't remove all whitespace
                 indentation = 1;

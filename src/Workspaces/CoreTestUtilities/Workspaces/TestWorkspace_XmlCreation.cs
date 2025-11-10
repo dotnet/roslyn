@@ -183,7 +183,7 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
     }
 
     private static XElement CreateMetadataReference(string path)
-        => new XElement(MetadataReferenceElementName, path);
+        => new(MetadataReferenceElementName, path);
 
     protected static XElement CreateDocumentElement(
         string code, string filePath, string folders = null, ParseOptions parseOptions = null, bool isMarkup = true)

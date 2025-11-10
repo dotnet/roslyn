@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.IO;
-using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
@@ -16,7 +15,7 @@ public sealed class MSBuildManagedToolTests
     {
         var taskPath = Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!;
         var relativePath = RuntimeHostInfo.IsCoreClrRuntime
-            ? Path.Combine("bincore", "csc.dll")
+            ? Path.Combine("bincore", $"csc{PlatformInformation.ExeExtension}")
             : "csc.exe";
         var task = new Csc();
         Assert.Equal(Path.Combine(taskPath, relativePath), task.PathToBuiltInTool);

@@ -4460,7 +4460,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact, CompilerTrait(CompilerFeature.Patterns)]
         public void IsBoolConstant_03()
         {
             var source = @"
@@ -4498,24 +4498,24 @@ class C
     void M4(bool b)
     {
         int x, y;
-        _ = (b && M0(x = y = 0)) is true or true
+        _ = (b && M0(x = y = 0)) is true or true // 5
             ? x.ToString()
-            : y.ToString(); // 5
+            : y.ToString(); // 6
     }
 
     void M5(bool b)
     {
         int x, y;
-        _ = (b && M0(x = y = 0)) is true and true
+        _ = (b && M0(x = y = 0)) is true and true // 7
             ? x.ToString()
-            : y.ToString(); // 6
+            : y.ToString(); // 8
     }
 
     void M6(bool b)
     {
         int x, y;
-        _ = (b && M0(x = y = 0)) is false or false
-            ? x.ToString() // 7
+        _ = (b && M0(x = y = 0)) is false or false // 9
+            ? x.ToString() // 10
             : y.ToString();
     }
 
@@ -4523,24 +4523,24 @@ class C
     {
         int x, y;
         _ = (b && M0(x = y = 0)) is false and var z
-            ? x.ToString() // 8
+            ? x.ToString() // 11
             : y.ToString();
     }
 
     void M8(bool b)
     {
         int x, y;
-        _ = (b && M0(x = y = 0)) is var z or true // 9
-            ? x.ToString() // 10
+        _ = (b && M0(x = y = 0)) is var z or true // 12
+            ? x.ToString() // 13
             : y.ToString(); // unreachable
     }
 
     void M9(bool b)
     {
         int x, y;
-        _ = (b && M0(x = y = 0)) is not (false and false)
+        _ = (b && M0(x = y = 0)) is not (false and false) // 14
             ? x.ToString()
-            : y.ToString(); // 11
+            : y.ToString(); // 15
     }
 }
 ";
@@ -4557,26 +4557,38 @@ class C
                 // (30,15): error CS0165: Use of unassigned local variable 'y'
                 //             : y.ToString(); // 4
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(30, 15),
+                // (36,45): hidden CS9335: The pattern is redundant.
+                //         _ = (b && M0(x = y = 0)) is true or true // 5
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(36, 45),
                 // (38,15): error CS0165: Use of unassigned local variable 'y'
-                //             : y.ToString(); // 5
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(38, 15),
-                // (46,15): error CS0165: Use of unassigned local variable 'y'
                 //             : y.ToString(); // 6
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(38, 15),
+                // (44,46): hidden CS9335: The pattern is redundant.
+                //         _ = (b && M0(x = y = 0)) is true and true // 7
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(44, 46),
+                // (46,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 8
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(46, 15),
+                // (52,46): hidden CS9335: The pattern is redundant.
+                //         _ = (b && M0(x = y = 0)) is false or false // 9
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(52, 46),
                 // (53,15): error CS0165: Use of unassigned local variable 'x'
-                //             ? x.ToString() // 7
+                //             ? x.ToString() // 10
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(53, 15),
                 // (61,15): error CS0165: Use of unassigned local variable 'x'
-                //             ? x.ToString() // 8
+                //             ? x.ToString() // 11
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(61, 15),
                 // (68,41): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                //         _ = (b && M0(x = y = 0)) is var z or true // 9
+                //         _ = (b && M0(x = y = 0)) is var z or true // 12
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(68, 41),
                 // (69,15): error CS0165: Use of unassigned local variable 'x'
-                //             ? x.ToString() // 10
+                //             ? x.ToString() // 13
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(69, 15),
+                // (76,52): hidden CS9335: The pattern is redundant.
+                //         _ = (b && M0(x = y = 0)) is not (false and false) // 14
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(76, 52),
                 // (78,15): error CS0165: Use of unassigned local variable 'y'
-                //             : y.ToString(); // 11
+                //             : y.ToString(); // 15
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(78, 15)
                 );
         }
@@ -4795,7 +4807,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact, CompilerTrait(CompilerFeature.Patterns)]
         public void IsCondAccess_04()
         {
             var source = @"
@@ -4825,24 +4837,24 @@ class C
     void M3(C? c)
     {
         int x, y;
-        _ = c?.M0(x = y = 0) is not null and C
+        _ = c?.M0(x = y = 0) is not null and C // 3
             ? x.ToString()
-            : y.ToString(); // 3
+            : y.ToString(); // 4
     }
 
     void M4(C? c)
     {
         int x, y;
         _ = c?.M0(x = y = 0) is null
-            ? x.ToString() // 4
+            ? x.ToString() // 5
             : y.ToString();
     }
 
     void M5(C? c)
     {
         int x, y;
-        _ = c?.M0(x = y = 0) is not (C or { })
-            ? x.ToString() // 5
+        _ = c?.M0(x = y = 0) is not (C or { }) // 6
+            ? x.ToString() // 7
             : y.ToString();
     }
 
@@ -4851,7 +4863,7 @@ class C
         int x, y;
         _ = c?.M0(x = y = 0) is _ and C
             ? x.ToString()
-            : y.ToString(); // 6
+            : y.ToString(); // 8
     }
 
     void M7(C? c)
@@ -4859,7 +4871,7 @@ class C
         int x, y;
         _ = c?.M0(x = y = 0) is C and _
             ? x.ToString()
-            : y.ToString(); // 7
+            : y.ToString(); // 9
     }
 }
 ";
@@ -4870,20 +4882,26 @@ class C
                 // (21,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 2
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(21, 15),
+                // (28,46): warning CS9336: The pattern is redundant.
+                //         _ = c?.M0(x = y = 0) is not null and C // 3
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "C").WithLocation(28, 46),
                 // (30,15): error CS0165: Use of unassigned local variable 'y'
-                //             : y.ToString(); // 3
+                //             : y.ToString(); // 4
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(30, 15),
                 // (37,15): error CS0165: Use of unassigned local variable 'x'
-                //             ? x.ToString() // 4
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(37, 15),
-                // (45,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 5
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(37, 15),
+                // (44,43): hidden CS9335: The pattern is redundant.
+                //         _ = c?.M0(x = y = 0) is not (C or { }) // 6
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(44, 43),
+                // (45,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 7
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(45, 15),
                 // (54,15): error CS0165: Use of unassigned local variable 'y'
-                //             : y.ToString(); // 6
+                //             : y.ToString(); // 8
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(54, 15),
                 // (62,15): error CS0165: Use of unassigned local variable 'y'
-                //             : y.ToString(); // 7
+                //             : y.ToString(); // 9
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(62, 15)
                 );
         }
@@ -6102,6 +6120,67 @@ class C
                 // class C(out int a) : Base(Test(() =>
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "C").WithArguments("a").WithLocation(1, 7)
                 );
+        }
+
+        [Fact]
+        public void OutParameterIsNotAssigned_LocalFunction()
+        {
+            var source = """
+                class C
+                {
+                    void M(out int i)
+                    {
+                        f();
+                        static void f() { }
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,10): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+                //     void M(out int i)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("i").WithLocation(3, 10));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79437")]
+        public void OutParameterIsNotAssigned_LocalFunction_Extern()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+                class C
+                {
+                    void M(out int i)
+                    {
+                        f();
+                        [DllImport("test")] static extern void f();
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,10): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+                //     void M(out int i)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("i").WithLocation(4, 10));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79437")]
+        public void UnassignedVariable_LocalFunction_Extern()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+                class C
+                {
+                    void M()
+                    {
+                        int i;
+                        f();
+                        i.ToString();
+                        [DllImport("test")] extern static void f();
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,9): error CS0165: Use of unassigned local variable 'i'
+                //         i.ToString();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(8, 9));
         }
     }
 }

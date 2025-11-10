@@ -121,22 +121,16 @@ public sealed partial class CodeCleanupTests
     }
 
     [PartNotDiscoverable, Shared, ExportCodeFixProvider(LanguageNames.CSharp)]
-    private sealed class TestThirdPartyCodeFixDoesNotSupportDocumentScope : TestThirdPartyCodeFix
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private sealed class TestThirdPartyCodeFixDoesNotSupportDocumentScope() : TestThirdPartyCodeFix
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestThirdPartyCodeFixDoesNotSupportDocumentScope()
-        {
-        }
-
         public override FixAllProvider GetFixAllProvider() => new ModifySolutionFixAll();
 
         private sealed class ModifySolutionFixAll : FixAllProvider
         {
             public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-            {
-                return new[] { FixAllScope.Project, FixAllScope.Solution, FixAllScope.Custom };
-            }
+                => [FixAllScope.Project, FixAllScope.Solution, FixAllScope.Custom];
 
             public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {

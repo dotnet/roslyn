@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol.Arity != 0)
                 {
                     builder.Append("``");
-                    builder.Append(symbol.Arity);
+                    builder.Append(symbol.Arity.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
 
                 if (symbol.Parameters.Any() || symbol.IsVararg)
@@ -168,20 +168,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Append('`');
                 }
 
-                builder.Append(symbol.Ordinal + ordinalOffset);
+                builder.Append((symbol.Ordinal + ordinalOffset).ToString(System.Globalization.CultureInfo.InvariantCulture));
 
                 return null;
             }
 
             public override object VisitNamedType(NamedTypeSymbol symbol, StringBuilder builder)
             {
-                if ((object)symbol.ContainingSymbol != null && symbol.ContainingSymbol.Name.Length != 0)
+                Symbol containingSymbol = symbol.ContainingSymbol;
+                if ((object)containingSymbol != null && (containingSymbol.Name.Length != 0 || containingSymbol is NamedTypeSymbol { IsExtension: true }))
                 {
-                    Visit(symbol.ContainingSymbol, builder);
+                    Visit(containingSymbol, builder);
                     builder.Append('.');
                 }
 
-                builder.Append(symbol.IsExtension ? symbol.ExtensionName : symbol.Name);
+                builder.Append(symbol.IsExtension ? symbol.ExtensionGroupingName : symbol.Name);
 
                 if (symbol.Arity != 0)
                 {
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!_inParameterOrReturnType && TypeSymbol.Equals(symbol, symbol.ConstructedFrom, TypeCompareKind.AllIgnoreOptions))
                     {
                         builder.Append('`');
-                        builder.Append(symbol.Arity);
+                        builder.Append(symbol.Arity.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     }
                     else
                     {

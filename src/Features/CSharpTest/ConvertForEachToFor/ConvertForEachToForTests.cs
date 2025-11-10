@@ -24,7 +24,7 @@ public sealed partial class ConvertForEachToForTests : AbstractCSharpCodeActionT
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertForEachToForCodeRefactoringProvider();
 
-    private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
+    private readonly CodeStyleOption2<bool> onWithSilent = new(true, NotificationOption2.Silent);
 
     private OptionsCollection ImplicitTypeEverywhere
         => new(GetLanguage())

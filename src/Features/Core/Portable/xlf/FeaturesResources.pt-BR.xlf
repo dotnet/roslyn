@@ -885,6 +885,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Foi encontrado um assembly: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Equals">
+        <source>Generate Equals(...)</source>
+        <target state="new">Generate Equals(...)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Gerar operadores de comparação</target>
@@ -2575,11 +2580,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Renomear uma variável capturada de '{0}' para '{1}' requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">Renomear membros de tipo anônimo ainda não é suportado.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Substituir '{0}' por '{1}'</target>
@@ -3613,6 +3613,11 @@ Se o especificador de formato "d" for usado sem outros especificadores de format
         <target state="translated">embutido</target>
         <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
       </trans-unit>
+      <trans-unit id="extension_block">
+        <source>extension block</source>
+        <target state="new">extension block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="external">
         <source>external</source>
         <target state="translated">externo</target>
@@ -3930,11 +3935,6 @@ Se o especificador de formato "M" for usado sem outros especificadores de format
         <target state="translated">Gerar Equals e GetHashCode</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Equals_object">
-        <source>Generate Equals(object)</source>
-        <target state="translated">Gerar Equals(object)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_GetHashCode">
         <source>Generate GetHashCode()</source>
         <target state="translated">Gerar GetHashCode()</target>
@@ -4145,8 +4145,8 @@ Deseja continuar?</target>
       </trans-unit>
       <trans-unit id="Change_signature">
         <source>Change signature...</source>
-        <target state="translated">Alterar assinatura...</target>
-        <note />
+        <target state="needs-review-translation">Alterar assinatura...</target>
+        <note>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</note>
       </trans-unit>
       <trans-unit id="Generate_new_type">
         <source>Generate new type...</source>

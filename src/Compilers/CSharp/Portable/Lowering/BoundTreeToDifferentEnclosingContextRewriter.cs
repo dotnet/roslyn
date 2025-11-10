@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Dictionary<LocalSymbol, LocalSymbol> localMap = new Dictionary<LocalSymbol, LocalSymbol>();
 
         //to handle type changes (e.g. type parameters) we need to update placeholders
-        private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
+        private readonly Dictionary<BoundValuePlaceholderBase, BoundValuePlaceholderBase> _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundValuePlaceholderBase>();
 
         // A mapping for types in the original method to types in its replacement.  This is mainly necessary
         // when the original method was generic, as type parameters in the original method are mapping into
@@ -134,7 +134,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _placeholderMap.Remove(awaitablePlaceholder);
 
-            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult);
+            BoundCall? runtimeAsyncAwaitCall = null;
+            var runtimeAsyncAwaitCallPlaceholder = node.RuntimeAsyncAwaitCallPlaceholder;
+            var rewrittenRuntimeAsyncAwaitCallPlaceholder = runtimeAsyncAwaitCallPlaceholder;
+            if (rewrittenRuntimeAsyncAwaitCallPlaceholder is not null)
+            {
+                rewrittenRuntimeAsyncAwaitCallPlaceholder = runtimeAsyncAwaitCallPlaceholder!.Update(VisitType(runtimeAsyncAwaitCallPlaceholder.Type));
+                _placeholderMap.Add(runtimeAsyncAwaitCallPlaceholder, rewrittenRuntimeAsyncAwaitCallPlaceholder);
+                runtimeAsyncAwaitCall = (BoundCall?)this.Visit(node.RuntimeAsyncAwaitCall);
+                _placeholderMap.Remove(runtimeAsyncAwaitCallPlaceholder);
+            }
+            else
+            {
+                Debug.Assert(node.RuntimeAsyncAwaitCall is null);
+            }
+
+            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult, runtimeAsyncAwaitCall, rewrittenRuntimeAsyncAwaitCallPlaceholder);
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
@@ -146,8 +161,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Local rewriter should have already rewritten interpolated strings into their final form of calls and gotos
             Debug.Assert(node.InterpolatedStringHandlerData is null);
+            Debug.Assert(!node.OperatorKind.IsDynamic());
 
-            return BoundBinaryOperator.UncommonData.CreateIfNeeded(node.ConstantValueOpt, VisitMethodSymbol(node.Method), VisitType(node.ConstrainedToType), node.OriginalUserDefinedOperatorsOpt);
+            return BoundBinaryOperator.UncommonData.CreateIfNeeded(node.ConstantValueOpt, VisitMethodSymbol(node.BinaryOperatorMethod), VisitType(node.ConstrainedToType), node.OriginalUserDefinedOperatorsOpt);
         }
 
         public override BoundNode? VisitConversion(BoundConversion node)
@@ -177,15 +193,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
+
             if (property.ContainingType.IsAnonymousType)
             {
                 //at this point we expect that the code is lowered and that getters of anonymous types are accessed
-                //only via their corresponding get-methods (see VisitMethodSymbol)
+                //only via their corresponding get-methods, except for properties in expression trees
+
+                // Property of an anonymous type
+                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly();
+                if (ReferenceEquals(newType, property.ContainingType))
+                {
+                    // Anonymous type symbol was not rewritten
+                    return property;
+                }
+
+                // get a new property by name
+                foreach (var member in newType.GetMembers(property.Name))
+                {
+                    if (member.Kind == SymbolKind.Property)
+                    {
+                        return (PropertySymbol)member;
+                    }
+                }
+
                 throw ExceptionUtilities.Unreachable();
             }
+
             return ((PropertySymbol)property.OriginalDefinition)
                     .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly())
                     ;
+        }
+
+        [return: NotNullIfNotNull(nameof(field))]
+        public override FieldSymbol? VisitFieldSymbol(FieldSymbol? field)
+        {
+            if (field is null)
+            {
+                return null;
+            }
+
+            // Field of a regular type
+            return ((FieldSymbol)field.OriginalDefinition)
+                .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(field.ContainingType).AsTypeSymbolOnly());
         }
 
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)

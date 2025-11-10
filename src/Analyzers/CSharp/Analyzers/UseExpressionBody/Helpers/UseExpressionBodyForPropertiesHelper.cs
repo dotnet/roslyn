@@ -63,10 +63,12 @@ internal sealed class UseExpressionBodyForPropertiesHelper :
         throw new InvalidOperationException();
     }
 
-    protected override PropertyDeclarationSyntax WithGenerateBody(SemanticModel semanticModel, PropertyDeclarationSyntax declaration)
-        => WithAccessorList(semanticModel, declaration);
+    protected override PropertyDeclarationSyntax WithGenerateBody(
+        SemanticModel semanticModel, PropertyDeclarationSyntax declaration, CancellationToken cancellation)
+        => WithAccessorList(semanticModel, declaration, cancellation);
 
-    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, PropertyDeclarationSyntax declaration) => true;
+    protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, PropertyDeclarationSyntax declaration, CancellationToken cancellationToken)
+        => true;
 
     protected override bool TryConvertToExpressionBody(
         PropertyDeclarationSyntax declaration,

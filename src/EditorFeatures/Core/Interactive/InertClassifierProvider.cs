@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Interactive;
 [TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)]
 internal sealed partial class InertClassifierProvider : IClassifierProvider
 {
-    private static readonly object s_classificationsKey = new object();
+    private static readonly object s_classificationsKey = new();
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

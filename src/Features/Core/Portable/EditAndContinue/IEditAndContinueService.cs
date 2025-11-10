@@ -24,7 +24,7 @@ internal interface IEditAndContinueService
     void CommitSolutionUpdate(DebuggingSessionId sessionId);
     void DiscardSolutionUpdate(DebuggingSessionId sessionId);
 
-    ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken);
+    DebuggingSessionId StartDebuggingSession(Solution solution, IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, bool reportDiagnostics);
     void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState);
     void EndDebuggingSession(DebuggingSessionId sessionId);
 

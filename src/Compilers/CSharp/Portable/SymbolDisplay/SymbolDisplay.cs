@@ -279,8 +279,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var visitor = SymbolDisplayVisitor.GetInstance(builder, format, semanticModelOpt, positionOpt);
                 symbol.Accept(visitor);
+
+                if (symbol is INamedTypeSymbol { IsExtension: true } extension
+                    && format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
+                {
+                    visitor.AddExtensionMarkerName(extension);
+                }
+
                 visitor.Free();
             }
+
             return builder;
         }
 
@@ -297,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="long"/>, <see cref="ulong"/>, <see cref="double"/>, <see cref="float"/>, <see cref="decimal"/>,
         /// and <c>null</c>.
         /// </remarks>
-        public static string FormatPrimitive(object obj, bool quoteStrings, bool useHexadecimalNumbers)
+        public static string? FormatPrimitive(object? obj, bool quoteStrings, bool useHexadecimalNumbers)
         {
             var options = ObjectDisplayOptions.EscapeNonPrintableCharacters;
             if (quoteStrings)

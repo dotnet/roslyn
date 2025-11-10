@@ -91,7 +91,7 @@ internal static class SemanticTokensHelpers
         using var _2 = Classifier.GetPooledList(out var updatedClassifiedSpans);
 
         var textSpans = spans.SelectAsArray(static (span, text) => text.Lines.GetTextSpan(span), text);
-        await GetClassifiedSpansForDocumentAsync(
+        await AddClassifiedSpansForDocumentAsync(
             classifiedSpans, document, textSpans, options, cancellationToken).ConfigureAwait(false);
 
         // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
@@ -108,7 +108,7 @@ internal static class SemanticTokensHelpers
         return ComputeTokens(text.Lines, updatedClassifiedSpans, supportsVisualStudioExtensions, tokenTypesToIndex);
     }
 
-    private static async Task GetClassifiedSpansForDocumentAsync(
+    private static async Task AddClassifiedSpansForDocumentAsync(
         SegmentedList<ClassifiedSpan> classifiedSpans,
         Document document,
         ImmutableArray<TextSpan> textSpans,
@@ -121,13 +121,11 @@ internal static class SemanticTokensHelpers
         // then the semantic token classifications will override them.
 
         // `includeAdditiveSpans` will add token modifiers such as 'static', which we want to include in LSP.
-        var spans = await ClassifierHelper.GetClassifiedSpansAsync(
-            document, textSpans, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
+        await ClassifierHelper.AddClassifiedSpansAsync(
+            classifiedSpans, document, textSpans, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
 
         // Some classified spans may not be relevant and should be filtered out before we convert to tokens.
-        var filteredSpans = spans.Where(s => !ShouldFilterClassification(s));
-
-        classifiedSpans.AddRange(filteredSpans);
+        classifiedSpans.RemoveAll(static s => ShouldFilterClassification(s));
     }
 
     private static bool ShouldFilterClassification(ClassifiedSpan s)

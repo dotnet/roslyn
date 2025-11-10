@@ -70,7 +70,7 @@ internal sealed class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCode
 
                 // Only if there was a base.GetHashCode() do we pass in the ContainingType
                 // so that we generate the same.
-                var containingType = accessesBase ? method!.ContainingType : null;
+                var containingType = accessesBase ? method.ContainingType : null;
                 var components = generator.GetGetHashCodeComponents(
                     generatorInternal, semanticModel.Compilation, containingType, members, justMemberReference: true);
 

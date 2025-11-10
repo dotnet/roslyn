@@ -11,6 +11,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Tasks.Hosting;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -199,6 +200,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
+            // Pass sdkpath if we are invoking core compiler from framework to preserve the behavior that framework compiler would have.
+            if (IsSdkFrameworkToCoreBridgeTask)
+            {
+                commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
+            }
+
             commandLine.AppendSwitchIfNotNull("/lib:", AdditionalLibPaths, ",");
             commandLine.AppendPlusOrMinusSwitch("/unsafe", _store, nameof(AllowUnsafeBlocks));
             commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));

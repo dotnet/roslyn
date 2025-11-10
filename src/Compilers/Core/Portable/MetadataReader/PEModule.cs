@@ -1054,6 +1054,11 @@ namespace Microsoft.CodeAnalysis
             return HasStringValuedAttribute(token, AttributeDescription.DefaultMemberAttribute, out memberName);
         }
 
+        internal bool HasExtensionMarkerAttribute(EntityHandle token, out string markerName)
+        {
+            return HasStringValuedAttribute(token, AttributeDescription.ExtensionMarkerAttribute, out markerName);
+        }
+
         internal bool HasGuidAttribute(EntityHandle token, out string guidValue)
         {
             return HasStringValuedAttribute(token, AttributeDescription.GuidAttribute, out guidValue);

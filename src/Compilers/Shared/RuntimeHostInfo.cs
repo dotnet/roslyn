@@ -5,10 +5,8 @@
 #nullable enable
 
 using System;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.IO.Pipes;
+using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -21,9 +19,6 @@ namespace Microsoft.CodeAnalysis
     {
         internal static bool IsDesktopRuntime => !IsCoreClrRuntime;
 
-        internal static string GetDotNetExecCommandLine(string toolFilePath, string commandLineArguments) =>
-            $@"exec ""{toolFilePath}"" {commandLineArguments}";
-
         internal static bool IsCoreClrRuntime =>
 #if NET
             true;
@@ -31,8 +26,40 @@ namespace Microsoft.CodeAnalysis
             false;
 #endif
 
+        internal const string DotNetRootEnvironmentName = "DOTNET_ROOT";
         private const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
         private const string DotNetExperimentalHostPathEnvironmentName = "DOTNET_EXPERIMENTAL_HOST_PATH";
+
+        /// <summary>
+        /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
+        /// </summary>
+        internal static string? GetToolDotNetRoot(Action<string, object[]>? logger)
+        {
+            var dotNetPath = GetDotNetPathOrDefault();
+
+            // Resolve symlinks to dotnet
+            try
+            {
+                var resolvedPath = File.ResolveLinkTarget(dotNetPath, returnFinalTarget: true);
+                if (resolvedPath != null)
+                {
+                    dotNetPath = resolvedPath.FullName;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger?.Invoke("Failed to resolve symbolic link for dotnet path '{0}': {1}", [dotNetPath, ex.Message]);
+                return null;
+            }
+
+            var directoryName = Path.GetDirectoryName(dotNetPath);
+            if (string.IsNullOrEmpty(directoryName))
+            {
+                return null;
+            }
+
+            return directoryName;
+        }
 
         /// <summary>
         /// Get the path to the dotnet executable. In the case the .NET SDK did not provide this information
@@ -74,5 +101,8 @@ namespace Microsoft.CodeAnalysis
 
             return fileName;
         }
+
+        internal static string GetDotNetExecCommandLine(string toolFilePath, string commandLineArguments) =>
+            $@"exec ""{toolFilePath}"" {commandLineArguments}";
     }
 }

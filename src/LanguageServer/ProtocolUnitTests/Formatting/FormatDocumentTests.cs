@@ -316,7 +316,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
     }
 
     private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(DocumentUri uri, bool insertSpaces, int tabSize)
-        => new LSP.DocumentFormattingParams()
+        => new()
         {
             TextDocument = CreateTextDocumentIdentifier(uri),
             Options = new LSP.FormattingOptions()

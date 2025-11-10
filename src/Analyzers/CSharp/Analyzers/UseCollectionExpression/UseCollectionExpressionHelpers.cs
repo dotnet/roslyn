@@ -101,7 +101,7 @@ internal static class UseCollectionExpressionHelpers
             return false;
 
         // (X[])[1, 2, 3] is target typed.  `(X)[1, 2, 3]` is currently not (because it looks like indexing into an expr).
-        if (topMostExpression.Parent is CastExpressionSyntax castExpression && castExpression.Type is IdentifierNameSyntax)
+        if (topMostExpression.Parent is CastExpressionSyntax { Type: IdentifierNameSyntax })
             return false;
 
         // X[] = new Y[] { 1, 2, 3 }
@@ -183,6 +183,9 @@ internal static class UseCollectionExpressionHelpers
         {
             return false;
         }
+
+        if (IsImplementationOfCollectionBuilderPattern())
+            return false;
 
         return true;
 
@@ -292,6 +295,57 @@ internal static class UseCollectionExpressionHelpers
             }
 
             // Add more cases to support here.
+            return false;
+        }
+
+        bool IsImplementationOfCollectionBuilderPattern()
+        {
+            // Check if the type being created has a CollectionBuilder attribute that points to the method we're currently in.
+            // If so, suppress the diagnostic to avoid suggesting a change that would cause infinite recursion.
+            // For example, if we're inside the Create method of a CollectionBuilder, and we have:
+            //   MyCustomCollection<T> collection = new();
+            //   foreach (T item in items) { collection.Add(item); }
+            // We should NOT suggest changing it to:
+            //   MyCustomCollection<T> collection = [.. items];
+            // Because that would recursively call the same Create method.
+
+            if (targetType is not INamedTypeSymbol namedType)
+                return false;
+
+            // For generic types, get the type definition to check for the attribute
+            var typeToCheck = namedType.OriginalDefinition;
+
+            // Look for CollectionBuilder attribute on the type
+            var collectionBuilderAttribute = typeToCheck.GetAttributes().FirstOrDefault(attr =>
+                attr.AttributeClass?.IsCollectionBuilderAttribute() == true);
+
+            if (collectionBuilderAttribute == null)
+                return false;
+
+            // Get the builder type and method name from the attribute.
+            // CollectionBuilderAttribute has exactly 2 constructor parameters: builderType and methodName
+            if (collectionBuilderAttribute.ConstructorArguments is not
+                [
+                { Kind: TypedConstantKind.Type, Value: INamedTypeSymbol builderType },
+                { Kind: TypedConstantKind.Primitive, Value: string methodName }
+                ])
+            {
+                return false;
+            }
+
+            // Get the containing method we're currently analyzing
+            var containingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(expression.SpanStart, cancellationToken);
+            if (containingMethod == null)
+                return false;
+
+            // Check if the containing method matches the CollectionBuilder method
+            // We need to compare the original definitions in case the method is generic
+            if (containingMethod.Name == methodName &&
+                SymbolEqualityComparer.Default.Equals(containingMethod.ContainingType.OriginalDefinition, builderType.OriginalDefinition))
+            {
+                return true;
+            }
+
             return false;
         }
     }
@@ -977,13 +1031,13 @@ internal static class UseCollectionExpressionHelpers
                 if (arguments.Count == 1 &&
                     compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
                     originalCreateMethod.Parameters is [
-                    {
-                        Type: INamedTypeSymbol
                         {
-                            Name: nameof(Span<>) or nameof(ReadOnlySpan<>),
-                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                        } spanType
-                    }])
+                            Type: INamedTypeSymbol
+                            {
+                                Name: nameof(Span<>) or nameof(ReadOnlySpan<>),
+                                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                            } spanType
+                        }])
                 {
                     if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                         spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
@@ -1021,7 +1075,7 @@ internal static class UseCollectionExpressionHelpers
         if (argExpression is ObjectCreationExpressionSyntax objectCreation)
         {
             // Can't have any arguments, as we cannot preserve them once we grab out all the elements.
-            if (objectCreation.ArgumentList != null && objectCreation.ArgumentList.Arguments.Count > 0)
+            if (objectCreation.ArgumentList is { Arguments.Count: > 0 })
                 return false;
 
             // If it's got an initializer, it has to be a collection initializer (or an empty object initializer);

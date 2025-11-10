@@ -43,9 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The value is set during binding the symbols that need those attributes, and is frozen on first trial to get it.
         /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
         /// </summary>
-        internal EmbeddableAttributes GetNeedsGeneratedAttributes()
+        internal EmbeddableAttributes GetNeedsGeneratedAttributes(bool freezeState = true)
         {
-            _needsGeneratedAttributes_IsFrozen = true;
+            if (freezeState)
+            {
+                _needsGeneratedAttributes_IsFrozen = true;
+            }
+
             return (EmbeddableAttributes)_needsGeneratedAttributes;
         }
 
@@ -537,9 +541,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute, diagnostics, location, modifyCompilation);
         }
 
-        internal void EnsureParamCollectionAttributeExistsAndModifyCompilation(BindingDiagnosticBag? diagnostics, Location location)
+        internal void EnsureParamCollectionAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ParamCollectionAttribute, diagnostics, location, modifyCompilation: true);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ParamCollectionAttribute, diagnostics, location, modifyCompilation: modifyCompilation);
         }
 
         internal void EnsureIsByRefLikeAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
@@ -571,6 +575,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void EnsureScopedRefAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.ScopedRefAttribute, diagnostics, location, modifyCompilation);
+        }
+
+        internal void EnsureExtensionMarkerAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ExtensionMarkerAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, BindingDiagnosticBag? diagnosticsOpt, Location locationOpt)
@@ -658,6 +667,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor);
+
+                case EmbeddableAttributes.ExtensionMarkerAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);

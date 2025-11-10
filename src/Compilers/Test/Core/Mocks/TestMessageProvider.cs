@@ -205,6 +205,11 @@ namespace Roslyn.Test.Utilities
             get { throw new NotImplementedException(); }
         }
 
+        public override int ERR_MethodImplAttributeAsyncCannotBeUsed
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public override int ERR_PdbWritingFailed
         {
             get { throw new NotImplementedException(); }

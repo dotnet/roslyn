@@ -4,6 +4,13 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>$(NetVSShared)</TargetFramework>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.SemanticSearch.Extensions</PackageId>
+    <PackageDescription>
+      Extensions for Roslyn semantic search queries.
+    </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features" />

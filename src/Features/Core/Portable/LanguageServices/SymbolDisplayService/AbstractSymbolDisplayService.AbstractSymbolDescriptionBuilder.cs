@@ -158,32 +158,33 @@ internal abstract partial class AbstractSymbolDisplayService
 
             // Grab the doc comment once as computing it for each portion we're concatenating can be expensive for
             // LSIF (which does this for every symbol in an entire solution).
-            var firstSymbolDocumentationComment = GetAppropriateDocumentationComment(firstSymbol, Compilation, CancellationToken);
+            var firstSymbolDocumentationComment = GetAppropriateDocumentationComment(firstSymbol);
 
             await AddDescriptionPartAsync(firstSymbol).ConfigureAwait(false);
-
             AddOverloadCountPart(symbols);
-            FixAllStructuralTypes(firstSymbol);
-            AddExceptions(firstSymbolDocumentationComment);
-            AddCaptures(firstSymbol);
 
-            AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment);
+            var typeDisplayInfo = GetStructuralTypeDisplayInfo(firstSymbol);
+            FixAllStructuralTypes(typeDisplayInfo);
+            AddExceptions(firstSymbolDocumentationComment, typeDisplayInfo);
+            AddCaptures(this._semanticModel, firstSymbol, typeDisplayInfo);
+            AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment, typeDisplayInfo);
         }
 
-        private DocumentationComment GetAppropriateDocumentationComment(ISymbol firstSymbol, Compilation compilation, CancellationToken cancellationToken)
+        private DocumentationComment GetAppropriateDocumentationComment(ISymbol firstSymbol)
         {
             // For locals, we synthesize the documentation comment from the leading trivia of the local declaration.
             return firstSymbol is ILocalSymbol localSymbol
-                ? SynthesizeDocumentationCommentForLocal(localSymbol, cancellationToken)
-                : firstSymbol.GetAppropriateDocumentationComment(compilation, cancellationToken);
+                ? SynthesizeDocumentationCommentForLocal(localSymbol)
+                : firstSymbol.GetAppropriateDocumentationComment(this.Compilation, this.CancellationToken);
         }
 
         private DocumentationComment SynthesizeDocumentationCommentForLocal(
-            ILocalSymbol localSymbol, CancellationToken cancellationToken)
+            ILocalSymbol localSymbol)
         {
             if (localSymbol.DeclaringSyntaxReferences is not [var reference])
                 return DocumentationComment.Empty;
 
+            var cancellationToken = this.CancellationToken;
             var node = reference.GetSyntax(cancellationToken);
 
             var syntaxFacts = LanguageServices.GetRequiredService<ISyntaxFactsService>();
@@ -246,18 +247,21 @@ internal abstract partial class AbstractSymbolDisplayService
                 => index < 0 || index >= leadingTrivia.Count ? default : leadingTrivia[index];
         }
 
-        private void AddDocumentationContent(ISymbol symbol, DocumentationComment documentationComment)
+        private void AddDocumentationContent(
+            ISymbol symbol,
+            DocumentationComment documentationComment,
+            StructuralTypeDisplayInfo typeDisplayInfo)
         {
             var formatter = LanguageServices.GetRequiredService<IDocumentationCommentFormattingService>();
             var format = ISymbolExtensions2.CrefFormat;
 
             _documentationMap.Add(
                 SymbolDescriptionGroups.Documentation,
-                formatter.Format(documentationComment.SummaryText, symbol, _semanticModel, _position, format, CancellationToken));
+                formatter.Format(documentationComment.SummaryText, symbol, _semanticModel, _position, format, typeDisplayInfo, CancellationToken));
 
             _documentationMap.Add(
                 SymbolDescriptionGroups.RemarksDocumentation,
-                formatter.Format(documentationComment.RemarksText, symbol, _semanticModel, _position, format, CancellationToken));
+                formatter.Format(documentationComment.RemarksText, symbol, _semanticModel, _position, format, typeDisplayInfo, CancellationToken));
 
             AddDocumentationPartsWithPrefix(documentationComment.ReturnsText, SymbolDescriptionGroups.ReturnsDocumentation, FeaturesResources.Returns_colon);
             AddDocumentationPartsWithPrefix(documentationComment.ValueText, SymbolDescriptionGroups.ValueDocumentation, FeaturesResources.Value_colon);
@@ -269,7 +273,7 @@ internal abstract partial class AbstractSymbolDisplayService
                 if (string.IsNullOrEmpty(rawXmlText))
                     return;
 
-                var parts = formatter.Format(rawXmlText, symbol, _semanticModel, _position, format, CancellationToken);
+                var parts = formatter.Format(rawXmlText, symbol, _semanticModel, _position, format, typeDisplayInfo, CancellationToken);
                 if (!parts.IsDefaultOrEmpty)
                 {
                     _documentationMap.Add(group,
@@ -284,7 +288,9 @@ internal abstract partial class AbstractSymbolDisplayService
             }
         }
 
-        private void AddExceptions(DocumentationComment documentationComment)
+        private void AddExceptions(
+            DocumentationComment documentationComment,
+            StructuralTypeDisplayInfo typeDisplayInfo)
         {
             if (documentationComment.ExceptionTypes.Any())
             {
@@ -295,7 +301,8 @@ internal abstract partial class AbstractSymbolDisplayService
                 {
                     parts.AddRange(LineBreak());
                     parts.AddRange(Space(count: 2));
-                    parts.AddRange(AbstractDocumentationCommentFormattingService.CrefToSymbolDisplayParts(exceptionString, _position, _semanticModel));
+                    parts.AddRange(AbstractDocumentationCommentFormattingService.CrefToSymbolDisplayParts(
+                        exceptionString, _position, _semanticModel, typeDisplayInfo: typeDisplayInfo));
                 }
 
                 AddToGroup(SymbolDescriptionGroups.Exceptions, parts);
@@ -307,15 +314,14 @@ internal abstract partial class AbstractSymbolDisplayService
         /// by that local or anonymous function to the "Captures" group.
         /// </summary>
         /// <param name="symbol"></param>
-        protected abstract void AddCaptures(ISymbol symbol);
+        protected abstract void AddCaptures(SemanticModel semanticModel, ISymbol symbol, StructuralTypeDisplayInfo displayInfo);
 
         /// <summary>
         /// Given the body of a local or an anonymous function (lambda or delegate), add the variables captured
         /// by that local or anonymous function to the "Captures" group.
         /// </summary>
-        protected void AddCaptures(SyntaxNode syntax)
+        protected void AddCaptures(SemanticModel semanticModel, SyntaxNode syntax, StructuralTypeDisplayInfo displayInfo)
         {
-            var semanticModel = GetSemanticModel(syntax.SyntaxTree);
             if (semanticModel.IsSpeculativeSemanticModel)
             {
                 // The region analysis APIs used below are not meaningful/applicable in the context of speculation (because they are designed
@@ -344,7 +350,8 @@ internal abstract partial class AbstractSymbolDisplayService
                     }
 
                     parts.AddRange(Space(count: 1));
-                    parts.AddRange(ToMinimalDisplayParts(captured, s_formatForCaptures));
+                    parts.AddRange(displayInfo.ReplaceStructuralTypes(
+                        ToMinimalDisplayParts(captured, s_formatForCaptures), semanticModel, syntax.SpanStart));
                     first = false;
                 }
 

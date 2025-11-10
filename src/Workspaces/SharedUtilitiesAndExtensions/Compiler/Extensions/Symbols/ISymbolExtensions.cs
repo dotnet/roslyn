@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -271,7 +270,8 @@ internal static partial class ISymbolExtensions
     public static bool IsEnumMember([NotNullWhen(true)] this ISymbol? symbol)
         => symbol is { Kind: SymbolKind.Field, ContainingType.TypeKind: TypeKind.Enum };
 
-    public static bool IsExtensionMethod(this ISymbol symbol)
+    /// <inheritdoc cref="IMethodSymbol.IsExtensionMethod"/>
+    public static bool IsExtensionMethod([NotNullWhen(true)] this ISymbol? symbol)
         => symbol is IMethodSymbol { IsExtensionMethod: true };
 
     public static bool IsLocalFunction([NotNullWhen(true)] this ISymbol? symbol)
@@ -839,5 +839,36 @@ internal static partial class ISymbolExtensions
             return false;
 
         return symbol.GetAttributes().Any(static (attribute, attributeClass) => attributeClass.Equals(attribute.AttributeClass), attributeClass);
+    }
+
+    public static bool IsClassicOrModernInstanceExtensionMethod(
+        [NotNullWhen(true)] this ISymbol? symbol)
+    {
+        return IsClassicOrModernInstanceExtensionMethod(symbol, out _);
+    }
+
+    public static bool IsClassicOrModernInstanceExtensionMethod(
+        [NotNullWhen(true)] this ISymbol? symbol,
+        [NotNullWhen(true)] out IMethodSymbol? classicExtensionMethod)
+    {
+        if (symbol is IMethodSymbol method)
+        {
+            if (method.IsExtensionMethod)
+            {
+                classicExtensionMethod = method;
+                return true;
+            }
+
+#if !ROSLYN_4_12_OR_LOWER
+            if (method is { IsStatic: false, AssociatedExtensionImplementation: { } associatedMethod })
+            {
+                classicExtensionMethod = associatedMethod;
+                return true;
+            }
+#endif
+        }
+
+        classicExtensionMethod = null;
+        return false;
     }
 }

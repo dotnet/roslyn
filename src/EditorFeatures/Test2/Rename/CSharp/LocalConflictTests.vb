@@ -138,9 +138,8 @@ class Program : IDisposable
             End Using
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConflictingLocalWithSimpleLambdaParameter(host As RenameTestHost)
+        <Theory, CombinatorialData>
+        Public Sub NoConflictingLocalWithSimpleLambdaParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -152,7 +151,7 @@ class Program
     static void Main(string[] args)
     {
         int {|stmt1:$$x|} = 1;
-        Func<int> lambda = {|Conflict:y|} => 42;
+        Func<int> lambda = y => 42;
     }
 }
                             ]]></Document>
@@ -160,13 +159,11 @@ class Program
                 </Workspace>, host:=host, renameTo:="y")
 
                 result.AssertLabeledSpansAre("stmt1", "y", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Theory>
-        <CombinatorialData>
-        Public Sub ConflictingLocalWithParenthesizedLambdaParameter(host As RenameTestHost)
+        <Theory, CombinatorialData>
+        Public Sub NoConflictingLocalWithParenthesizedLambdaParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -178,7 +175,7 @@ class Program
     static void Main(string[] args)
     {
         int {|stmt1:$$x|} = 1;
-        Func<int> lambda = ({|Conflict:y|}) => 42;
+        Func<int> lambda = (y) => 42;
     }
 }
                             ]]></Document>
@@ -186,7 +183,6 @@ class Program
                 </Workspace>, host:=host, renameTo:="y")
 
                 result.AssertLabeledSpansAre("stmt1", "y", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
@@ -598,6 +594,93 @@ class Test
 
                 result.AssertLabeledSpansAre("stmt1", "j", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", "j", RelatedLocationType.UnresolvableConflict)
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60728")>
+        Public Sub NoConflictingLocalWithLocalFunctionParameter(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        int {|stmt1:$$t|} = 0;
+
+        void ALocalFunction()
+        {
+            int t1 = 0;
+        }
+    }
+}
+                            </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="t1")
+
+                result.AssertLabeledSpansAre("stmt1", "t1", RelatedLocationType.NoConflict)
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60728")>
+        Public Sub NoConflictingLocalWithStaticLocalFunctionParameter(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        int {|stmt1:$$t|} = 0;
+
+        static void ALocalFunction()
+        {
+            int t1 = 0;
+        }
+    }
+}
+                            </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="t1")
+
+                result.AssertLabeledSpansAre("stmt1", "t1", RelatedLocationType.NoConflict)
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60728")>
+        Public Sub NoConflictingLocalWithLocalFunctionLocal(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        int {|stmt1:$$t|} = 0;
+
+        void ALocalFunction(int param)
+        {
+            int t1 = 0;
+        }
+    }
+}
+                            </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="t1")
+
+                result.AssertLabeledSpansAre("stmt1", "t1", RelatedLocationType.NoConflict)
             End Using
         End Sub
     End Class

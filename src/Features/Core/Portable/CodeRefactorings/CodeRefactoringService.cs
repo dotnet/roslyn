@@ -31,7 +31,7 @@ internal sealed class CodeRefactoringService(
     [ImportMany] IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers) : ICodeRefactoringService
 {
     private readonly Lazy<ImmutableDictionary<ProviderKey, Lazy<ImmutableArray<CodeRefactoringProvider>>>> _lazyLanguageDocumentToProvidersMap =
-        new Lazy<ImmutableDictionary<ProviderKey, Lazy<ImmutableArray<CodeRefactoringProvider>>>>(() =>
+        new(() =>
             ImmutableDictionary.CreateRange(
                 DistributeLanguagesAndDocuments(providers)
                     .GroupBy(lz => new ProviderKey(lz.Metadata.Language, lz.Metadata.DocumentKind, lz.Metadata.DocumentExtension))

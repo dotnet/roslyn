@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -19,20 +19,32 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class CommonAttributeDataComparer : IEqualityComparer<AttributeData>
     {
-        public static CommonAttributeDataComparer Instance = new CommonAttributeDataComparer();
-        private CommonAttributeDataComparer() { }
+        public static CommonAttributeDataComparer Instance = new CommonAttributeDataComparer(considerNamedArgumentsOrder: true);
+        public static CommonAttributeDataComparer InstanceIgnoringNamedArgumentOrder = new CommonAttributeDataComparer(considerNamedArgumentsOrder: false);
+
+        private readonly bool _considerNamedArgumentsOrder;
+        private CommonAttributeDataComparer(bool considerNamedArgumentsOrder)
+        {
+            this._considerNamedArgumentsOrder = considerNamedArgumentsOrder;
+        }
 
         public bool Equals(AttributeData attr1, AttributeData attr2)
         {
             Debug.Assert(attr1 != null);
             Debug.Assert(attr2 != null);
 
-            return attr1.AttributeClass == attr2.AttributeClass &&
+            var typedConstantComparer = TypedConstantComparer.IgnoreAll;
+            var namedArgumentComparer = NamedArgumentComparer.IgnoreAll;
+
+            bool equals = attr1.AttributeClass == attr2.AttributeClass &&
                 attr1.AttributeConstructor == attr2.AttributeConstructor &&
                 attr1.HasErrors == attr2.HasErrors &&
                 attr1.IsConditionallyOmitted == attr2.IsConditionallyOmitted &&
-                attr1.CommonConstructorArguments.SequenceEqual(attr2.CommonConstructorArguments) &&
-                attr1.NamedArguments.SequenceEqual(attr2.NamedArguments);
+                attr1.CommonConstructorArguments.SequenceEqual(attr2.CommonConstructorArguments, typedConstantComparer) &&
+                (_considerNamedArgumentsOrder ? attr1.NamedArguments.SequenceEqual(attr2.NamedArguments, namedArgumentComparer) : attr1.NamedArguments.SetEquals(attr2.NamedArguments, namedArgumentComparer));
+
+            Debug.Assert(!equals || GetHashCode(attr1) == GetHashCode(attr2), "If attributes are equal for some options, their hashes must be equal for those same options.");
+            return equals;
         }
 
         public int GetHashCode(AttributeData attr)
@@ -61,7 +73,7 @@ namespace Microsoft.CodeAnalysis
             return hash;
         }
 
-        private static int GetHashCodeForNamedArguments(ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments)
+        private int GetHashCodeForNamedArguments(ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments)
         {
             int hash = 0;
 
@@ -69,13 +81,76 @@ namespace Microsoft.CodeAnalysis
             {
                 if (arg.Key != null)
                 {
-                    hash = Hash.Combine(arg.Key.GetHashCode(), hash);
+                    hash = hashCombine(arg.Key.GetHashCode(), hash, _considerNamedArgumentsOrder);
                 }
 
-                hash = Hash.Combine(arg.Value.GetHashCode(), hash);
+                hash = hashCombine(arg.Value.GetHashCode(), hash, _considerNamedArgumentsOrder);
             }
 
             return hash;
+
+            static int hashCombine(int value, int currentHash, bool considerNamedArgumentsOrder)
+            {
+                // Prefer Hash.Combine for better distribution, unless we are ignoring the order of named arguments (then we use XOR which is commutative).
+                if (!considerNamedArgumentsOrder)
+                {
+                    return value ^ currentHash;
+                }
+
+                return Hash.Combine(value, currentHash);
+            }
+        }
+
+        private class TypedConstantComparer : IEqualityComparer<TypedConstant>
+        {
+            public static readonly TypedConstantComparer IgnoreAll = new TypedConstantComparer();
+
+            private TypedConstantComparer()
+            {
+            }
+
+            public bool Equals(TypedConstant x, TypedConstant y)
+            {
+                bool result = equals(x, y);
+                Debug.Assert(!result || GetHashCode(x) == GetHashCode(y), "If TypedConstants are equal, their hashes must be equal.");
+                return result;
+
+                static bool equals(TypedConstant x, TypedConstant y)
+                {
+                    if (x.Kind == TypedConstantKind.Type && y.Kind == TypedConstantKind.Type)
+                    {
+                        return x.ValueInternal is ISymbolInternal xType && y.ValueInternal is ISymbolInternal yType && xType.Equals(yType, TypeCompareKind.AllIgnoreOptions);
+                    }
+
+                    return x.Equals(y);
+                }
+            }
+
+            public int GetHashCode(TypedConstant obj)
+            {
+                return obj.GetHashCode();
+            }
+        }
+
+        private class NamedArgumentComparer : IEqualityComparer<KeyValuePair<string, TypedConstant>>
+        {
+            public static readonly NamedArgumentComparer IgnoreAll = new NamedArgumentComparer();
+
+            private NamedArgumentComparer()
+            {
+            }
+
+            public bool Equals(KeyValuePair<string, TypedConstant> pair1, KeyValuePair<string, TypedConstant> pair2)
+            {
+                bool equals = pair1.Key == pair2.Key && TypedConstantComparer.IgnoreAll.Equals(pair1.Value, pair2.Value);
+                Debug.Assert(!equals || GetHashCode(pair1) == GetHashCode(pair2), "If named arguments are equal, their hashes must be equal.");
+                return equals;
+            }
+
+            public int GetHashCode(KeyValuePair<string, TypedConstant> pair)
+            {
+                return pair.GetHashCode();
+            }
         }
     }
 }

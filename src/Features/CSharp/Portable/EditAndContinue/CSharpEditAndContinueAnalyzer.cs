@@ -929,7 +929,7 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
     }
 
     internal override bool IsPrimaryConstructorDeclaration(SyntaxNode declaration)
-        => declaration.Parent is TypeDeclarationSyntax { ParameterList: var parameterList } && parameterList == declaration;
+        => declaration.Parent is TypeDeclarationSyntax { ParameterList: var parameterList } and not ExtensionBlockDeclarationSyntax && parameterList == declaration;
 
     internal override bool IsConstructorWithMemberInitializers(ISymbol symbol, CancellationToken cancellationToken)
     {
@@ -1643,6 +1643,10 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
                 return GetDiagnosticSpan(typeDeclaration.Modifiers, typeDeclaration.Keyword,
                     typeDeclaration.TypeParameterList ?? (SyntaxNodeOrToken)typeDeclaration.Identifier);
 
+            case SyntaxKind.ExtensionBlockDeclaration:
+                var extensionBlockDeclaration = (ExtensionBlockDeclarationSyntax)node;
+                return extensionBlockDeclaration.Keyword.Span;
+
             case SyntaxKind.BaseList:
                 var baseList = (BaseListSyntax)node;
                 return baseList.Types.Span;
@@ -2248,6 +2252,9 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
 
                 return CSharpFeaturesResources.local_variable_declaration;
 
+            case SyntaxKind.ExtensionBlockDeclaration:
+                return FeaturesResources.extension_block;
+
             default:
                 return null;
         }
@@ -2395,6 +2402,11 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
         {
             switch (node.Kind())
             {
+                case SyntaxKind.ExtensionBlockDeclaration:
+                    // https://github.com/dotnet/roslyn/issues/78959 Disallowed for now
+                    ReportError(RudeEditKind.Insert);
+                    return;
+
                 case SyntaxKind.ExternAliasDirective:
                     ReportError(RudeEditKind.Insert);
                     return;
@@ -2422,6 +2434,11 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
                 case SyntaxKind.ExternAliasDirective:
                     // To allow removal of declarations we would need to update method bodies that 
                     // were previously binding to them but now are binding to another symbol that was previously hidden.
+                    ReportError(RudeEditKind.Delete);
+                    return;
+
+                case SyntaxKind.ExtensionBlockDeclaration:
+                    // https://github.com/dotnet/roslyn/issues/78959 Disallowed for now
                     ReportError(RudeEditKind.Delete);
                     return;
 

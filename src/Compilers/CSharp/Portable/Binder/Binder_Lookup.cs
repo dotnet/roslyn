@@ -202,37 +202,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
 
             // 1. Collect new extension members
-            var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
+            var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
+            this.GetCandidateExtensionMembersInSingleBinder(extensionCandidates, name, alternativeName: null, arity, options, originalBinder);
 
-            foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
+            foreach (var candidate in extensionCandidates)
             {
-                if (extensionDeclaration.ExtensionParameter is null)
+                SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
+                if (resultOfThisMember.Kind == LookupResultKind.Empty)
                 {
                     continue;
                 }
 
-                var candidates = name is null ? extensionDeclaration.GetMembers() : extensionDeclaration.GetMembers(name);
+                Debug.Assert(resultOfThisMember.Symbol is not null);
+                result.Add(resultOfThisMember);
 
-                foreach (var candidate in candidates)
+                if (candidate is MethodSymbol { IsStatic: false } shadows &&
+                    shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
                 {
-                    SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
-                    result.Add(resultOfThisMember);
-
-                    if (candidate is MethodSymbol { IsStatic: false } shadows &&
-                        shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
-                    {
-                        implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
-                        implementationsToShadow.Add(toShadow);
-                    }
+                    implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
+                    implementationsToShadow.Add(toShadow);
                 }
             }
 
-            extensionDeclarations.Free();
+            extensionCandidates.Free();
 
             // 2. Collect classic extension methods
             var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-            this.GetCandidateExtensionMethods(extensionMethods, name, arity, options, originalBinder: originalBinder);
+            this.GetCandidateExtensionMethodsInSingleBinder(extensionMethods, name, arity, options, originalBinder: originalBinder);
 
             foreach (var method in extensionMethods)
             {
@@ -240,7 +236,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
                 {
                     SingleLookupResult resultOfThisMember = originalBinder.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref classicExtensionUseSiteInfo);
-                    result.Add(resultOfThisMember);
+                    if (resultOfThisMember.Kind != LookupResultKind.Empty)
+                    {
+                        result.Add(resultOfThisMember);
+                    }
                 }
             }
 
@@ -799,11 +798,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return the extension methods from this specific binding scope that match the name and optional
         /// arity. Since the lookup of extension methods is iterative, proceeding one binding scope at a time,
-        /// GetCandidateExtensionMethods should not defer to the next binding scope. Instead, the caller is
+        /// <see cref="GetCandidateExtensionMethodsInSingleBinder"/> should not defer to the next binding scope. Instead, the caller is
         /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
         /// to search the available members list in binding types that represent types, namespaces, and usings.
         /// </summary>
-        internal virtual void GetCandidateExtensionMethods(
+        /// <remarks>Does not perform a full viability check</remarks>
+        internal virtual void GetCandidateExtensionMethodsInSingleBinder(
             ArrayBuilder<MethodSymbol> methods,
             string name,
             int arity,
@@ -814,13 +814,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         /// <summary>
-        /// Return the extension declarations from this specific binding scope
+        /// Return the extension members from this specific binding scope
         /// Since the lookup of extension members is iterative, proceeding one binding scope at a time,
-        /// GetExtensionDeclarations should not defer to the next binding scope. Instead, the caller is
+        /// <see cref="GetCandidateExtensionMembersInSingleBinder"/> should not defer to the next binding scope. Instead, the caller is
         /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
         /// to search the available members list in binding types that represent types, namespaces, and usings.
+        /// An alternativeName should only be provided if a name is provided.
         /// </summary>
-        internal virtual void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        /// <remarks>Does not perform a full viability check</remarks>
+        internal virtual void GetCandidateExtensionMembersInSingleBinder(
+            ArrayBuilder<Symbol> members,
+            string? name,
+            string? alternativeName,
+            int arity,
+            LookupOptions options,
+            Binder originalBinder)
         {
         }
 #nullable disable
@@ -1783,14 +1791,14 @@ symIsHidden:;
                 case SymbolKind.Property:
                 case SymbolKind.NamedType:
                 case SymbolKind.Event:
-                    return !IsInvocableMember(symbol);
+                    return !IsInvocableMember(symbol, this.FieldsBeingBound);
 
                 default:
                     return false;
             }
         }
 
-        private bool IsInvocableMember(Symbol symbol)
+        internal static bool IsInvocableMember(Symbol symbol, ConsList<FieldSymbol> fieldsBeingBound)
         {
             // If a member is a method or event, or if it is a constant, field or property of 
             // either a delegate type or the type dynamic, then the member is said to be invocable.
@@ -1804,7 +1812,7 @@ symIsHidden:;
                     return true;
 
                 case SymbolKind.Field:
-                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound).Type;
+                    type = ((FieldSymbol)symbol).GetFieldType(fieldsBeingBound).Type;
                     break;
 
                 case SymbolKind.Property:

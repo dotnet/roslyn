@@ -184,7 +184,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
     private protected static ImmutableArray<(string resultId, TextDocumentIdentifier identifier)> CreateDiagnosticParamsFromPreviousReports(ImmutableArray<TestDiagnosticResult> results)
     {
         // If there was no resultId provided in the response, we cannot create previous results for it.
-        return [.. results.Where(r => r.ResultId != null).Select(r => (r.ResultId!, r.TextDocument))];
+        return results.SelectAsArray(r => r.ResultId != null, r => (r.ResultId!, r.TextDocument));
     }
 
     private protected static VSInternalDocumentDiagnosticsParams CreateDocumentDiagnosticParams(
@@ -371,8 +371,8 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
     [DiagnosticAnalyzer(InternalLanguageNames.TypeScript), PartNotDiscoverable]
     private sealed class MockTypescriptDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
     {
-        public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-        "TS01", "TS error", "TS error", "Error", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        public static readonly DiagnosticDescriptor Descriptor = new(
+            "TS01", "TS error", "TS error", "Error", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
 

@@ -19491,8 +19491,72 @@ public struct Buffer4<T>
     }
 }
 ";
+            var expectedOutput = " 111 112 113 114";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: " 111 112 113 114").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.FailsILVerify with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x7f }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size      128 (0x80)
+                  .maxstack  2
+                  .locals init (C V_0, //x
+                                Buffer4<int>.AsyncEnumerator V_1,
+                                System.Threading.CancellationToken V_2)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "C"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldflda     "Buffer4<int> C.F"
+                  IL_000f:  call       "ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer4<int>, int>(ref Buffer4<int>)"
+                  IL_0014:  ldc.i4.s   111
+                  IL_0016:  stind.i4
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  ldflda     "Buffer4<int> C.F"
+                  IL_001e:  ldc.i4.1
+                  IL_001f:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)"
+                  IL_0024:  ldc.i4.s   112
+                  IL_0026:  stind.i4
+                  IL_0027:  ldloca.s   V_0
+                  IL_0029:  ldflda     "Buffer4<int> C.F"
+                  IL_002e:  ldc.i4.2
+                  IL_002f:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)"
+                  IL_0034:  ldc.i4.s   113
+                  IL_0036:  stind.i4
+                  IL_0037:  ldloca.s   V_0
+                  IL_0039:  ldflda     "Buffer4<int> C.F"
+                  IL_003e:  ldc.i4.3
+                  IL_003f:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)"
+                  IL_0044:  ldc.i4.s   114
+                  IL_0046:  stind.i4
+                  IL_0047:  ldloca.s   V_0
+                  IL_0049:  ldflda     "Buffer4<int> C.F"
+                  IL_004e:  ldloca.s   V_2
+                  IL_0050:  initobj    "System.Threading.CancellationToken"
+                  IL_0056:  ldloc.2
+                  IL_0057:  call       "Buffer4<int>.AsyncEnumerator Buffer4<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_005c:  stloc.1
+                  IL_005d:  br.s       IL_0071
+                  IL_005f:  ldloc.1
+                  IL_0060:  callvirt   "int Buffer4<int>.AsyncEnumerator.Current.get"
+                  IL_0065:  ldc.i4.s   32
+                  IL_0067:  call       "void System.Console.Write(char)"
+                  IL_006c:  call       "void System.Console.Write(int)"
+                  IL_0071:  ldloc.1
+                  IL_0072:  ldc.i4.1
+                  IL_0073:  callvirt   "System.Threading.Tasks.Task<bool> Buffer4<int>.AsyncEnumerator.MoveNextAsync(int)"
+                  IL_0078:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_007d:  brtrue.s   IL_005f
+                  IL_007f:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -20171,8 +20235,9 @@ class Program
     }
 }
 ";
+            var expectedOutput = " 0 1 2 3";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.<Test>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
@@ -20323,7 +20388,66 @@ class Program
 }
 ");
             comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src + Buffer4Definition, options: TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Test]: Return value missing on the stack. { Offset = 0x62 }
+                    [InlineArrayAsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xc }
+                    """
+            });
+            verifier.VerifyIL("Program.Test(C)", """
+                {
+                  // Code size       99 (0x63)
+                  .maxstack  2
+                  .locals init (C V_0,
+                                int V_1,
+                                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                                System.Runtime.CompilerServices.YieldAwaitable V_3)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloc.0
+                  IL_0003:  ldfld      "Buffer4<int> C.F"
+                  IL_0008:  pop
+                  IL_0009:  ldc.i4.0
+                  IL_000a:  stloc.1
+                  IL_000b:  br.s       IL_005e
+                  IL_000d:  ldloc.0
+                  IL_000e:  ldflda     "Buffer4<int> C.F"
+                  IL_0013:  ldloc.1
+                  IL_0014:  call       "ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4<int>, int>(ref Buffer4<int>, int)"
+                  IL_0019:  ldind.i4
+                  IL_001a:  call       "void Program.Increment()"
+                  IL_001f:  ldc.i4.s   32
+                  IL_0021:  call       "void System.Console.Write(char)"
+                  IL_0026:  call       "void System.Console.Write(int)"
+                  IL_002b:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                  IL_0030:  stloc.3
+                  IL_0031:  ldloca.s   V_3
+                  IL_0033:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                  IL_0038:  stloc.2
+                  IL_0039:  ldloca.s   V_2
+                  IL_003b:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                  IL_0040:  brtrue.s   IL_0048
+                  IL_0042:  ldloc.2
+                  IL_0043:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                  IL_0048:  ldloca.s   V_2
+                  IL_004a:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                  IL_004f:  ldc.i4.2
+                  IL_0050:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
+                  IL_0055:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_005a:  ldloc.1
+                  IL_005b:  ldc.i4.1
+                  IL_005c:  add
+                  IL_005d:  stloc.1
+                  IL_005e:  ldloc.1
+                  IL_005f:  ldc.i4.4
+                  IL_0060:  blt.s      IL_000d
+                  IL_0062:  ret
+                }
+                """);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -20384,17 +20508,20 @@ class Program
     static ref Buffer4<int> GetBuffer() => throw null;
 }
 ";
-            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-            comp.VerifyEmitDiagnostics(
-                // (6,9): error CS8178: A reference returned by a call to 'Program.GetBuffer()' cannot be preserved across 'await' or 'yield' boundary.
-                //         foreach (int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait,
+            // (6,9): error CS8178: A reference returned by a call to 'Program.GetBuffer()' cannot be preserved across 'await' or 'yield' boundary.
+            //         foreach (int y in GetBuffer())
+            DiagnosticDescription expected = Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait,
         @"foreach (int y in GetBuffer())
         {
             await System.Threading.Tasks.Task.Yield();
-        }").WithArguments("Program.GetBuffer()").WithLocation(6, 9)
-                );
+        }").WithArguments("Program.GetBuffer()").WithLocation(6, 9);
+
+            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(expected);
+
+            comp = CreateRuntimeAsyncCompilation(src + Buffer4Definition);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]

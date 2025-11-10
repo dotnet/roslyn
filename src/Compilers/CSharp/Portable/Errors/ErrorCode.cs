@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAwaitInQuery = 1995,
         ERR_BadAwaitInLock = 1996,
         ERR_TaskRetNoObjectRequired = 1997,
-        WRN_AsyncLacksAwaits = 1998,
+        // WRN_AsyncLacksAwaits = 1998,
         ERR_FileNotFound = 2001,
         WRN_FileAlreadyIncluded = 2002,
         //ERR_DuplicateResponseFile = 2003,
@@ -1457,7 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Unused 8193-8195
 
         #region diagnostics for out var
-        ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
+        ERR_ImplicitlyTypedVariableUsedInForbiddenZone = 8196,
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
         ERR_ExpressionTreeContainsOutVariable = 8198,
         #endregion diagnostics for out var
@@ -1815,7 +1815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 8801,
         ERR_SimpleProgramMultipleUnitsWithTopLevelStatements = 8802,
         ERR_TopLevelStatementAfterNamespaceOrType = 8803,
-        ERR_SimpleProgramDisallowsMainType = 8804,
+        // ERR_SimpleProgramDisallowsMainType = 8804,
         ERR_SimpleProgramNotAnExecutable = 8805,
 
         ERR_UnsupportedCallingConvention = 8806,
@@ -2422,6 +2422,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterpolatedStringHandlerArgumentDisallowed = 9325,
         ERR_MemberNameSameAsExtendedType = 9326,
         ERR_FeatureNotAvailableInVersion14 = 9327,
+        ERR_UnsupportedFeatureInRuntimeAsync = 9328,
+        ERR_ExtensionBlockCollision = 9329,
+        ERR_MethodImplAttributeAsyncCannotBeUsed = 9330,
+        ERR_AttributeCannotBeAppliedManually = 9331,
+        ERR_BadSpreadInCatchFilter = 9332,
+        ERR_ExplicitInterfaceMemberTypeMismatch = 9333,
+        ERR_ExplicitInterfaceMemberReturnTypeMismatch = 9334,
+
+        HDN_RedundantPattern = 9335,
+        WRN_RedundantPattern = 9336,
+        HDN_RedundantPatternStackGuard = 9337,
+
+        ERR_BadVisBaseType = 9338,
+        ERR_AmbigExtension = 9339,
+        ERR_SingleInapplicableBinaryOperator = 9340,
+        ERR_SingleInapplicableUnaryOperator = 9341,
+        ERR_AmbigOperator = 9342,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

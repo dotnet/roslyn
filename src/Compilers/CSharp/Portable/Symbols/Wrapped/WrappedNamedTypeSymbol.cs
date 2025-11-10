@@ -95,14 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override string ExtensionName
-        {
-            get
-            {
-                return _underlyingType.ExtensionName;
-            }
-        }
-
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return _underlyingType.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);

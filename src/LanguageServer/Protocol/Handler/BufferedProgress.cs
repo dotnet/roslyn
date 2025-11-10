@@ -67,7 +67,7 @@ internal readonly struct BufferedProgress<T> : IProgress<T>, IDisposable
 internal static class BufferedProgress
 {
     public static BufferedProgress<T> Create<T>(IProgress<T>? progress)
-        => new BufferedProgress<T>(progress);
+        => new(progress);
 
     public static BufferedProgress<TIn> Create<TIn, TOut>(IProgress<TOut>? progress, Func<TIn, TOut> transform)
         => Create(progress?.Transform(transform));

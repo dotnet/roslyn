@@ -5,7 +5,7 @@
 {
   "properties": {
     // CompletionOptionsStorage.TriggerOnTypingLetters
-    "textEditor.basic.intellisense.triggerCompletionOnTypingLetters": {
+    "languages.basic.intellisense.triggerCompletionOnTypingLetters": {
       "title": "@Show_completion_list_after_a_character_is_typed;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
@@ -20,7 +20,7 @@
       }
     },
     // CompletionOptionsStorage.TriggerOnDeletion
-    "textEditor.basic.intellisense.triggerCompletionOnDeletion": {
+    "languages.basic.intellisense.triggerCompletionOnDeletion": {
       "title": "@Show_completion_list_after_a_character_is_deleted;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
@@ -35,7 +35,7 @@
       }
     },
     // CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems
-    "textEditor.basic.intellisense.highlightMatchingPortionsOfCompletionListItems": {
+    "languages.basic.intellisense.highlightMatchingPortionsOfCompletionListItems": {
       "title": "@Highlight_matching_portions_of_completion_list_items;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
@@ -50,7 +50,7 @@
       }
     },
     // CompletionViewOptionsStorage.ShowCompletionItemFilters
-    "textEditor.basic.intellisense.showCompletionItemFilters": {
+    "languages.basic.intellisense.showCompletionItemFilters": {
       "title": "@Show_completion_item_filters;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
@@ -65,7 +65,7 @@
       }
     },
     // CompletionOptionsStorage.SnippetsBehavior
-    "textEditor.basic.intellisense.snippetsBehavior": {
+    "languages.basic.intellisense.snippetsBehavior": {
       "title": "@Snippets_behavior;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
       "enum": [ "neverInclude", "alwaysInclude", "includeAfterTypingIdentifierQuestionTab" ],
@@ -104,7 +104,7 @@
       }
     },
     // CompletionOptionsStorage.EnterKeyBehavior
-    "textEditor.basic.intellisense.returnKeyCompletionBehavior": {
+    "languages.basic.intellisense.returnKeyCompletionBehavior": {
       "title": "@Enter_key_behavior;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
       "enum": [ "never", "afterFullyTypedWord", "always" ],
@@ -143,7 +143,7 @@
       }
     },
     // CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces
-    "textEditor.basic.intellisense.showCompletionItemsFromUnimportedNamespaces": {
+    "languages.basic.intellisense.showCompletionItemsFromUnimportedNamespaces": {
       "title": "@Show_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
@@ -158,7 +158,7 @@
       }
     },
     // CompletionViewOptionsStorage.EnableArgumentCompletionSnippets
-    "textEditor.basic.intellisense.enableArgumentCompletionSnippets": {
+    "languages.basic.intellisense.enableArgumentCompletionSnippets": {
       "title": "@Tab_twice_to_insert_arguments;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
@@ -179,12 +179,11 @@
     }
   },
   "categories": {
-    "textEditor.basic":{
+    "languages.basic":{
       "title": "@101;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
     },
-    "textEditor.basic.intellisense": {
-      "title": "@112;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
-      "legacyOptionPageId": "04460A3B-1B5F-4402-BC6D-89A4F6F0A8D7"
+    "languages.basic.intellisense": {
+      "title": "@112;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
     }
   }
 }

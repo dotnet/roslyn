@@ -44,8 +44,8 @@ internal readonly struct SymbolUsageResult(
     /// Gets symbol writes that have are never read.
     /// WriteOperation will be null for the initial value write to parameter symbols from the callsite.
     /// </summary>
-    public IEnumerable<(ISymbol Symbol, IOperation WriteOperation)> GetUnreadSymbolWrites()
-        => SymbolWritesMap.Where(kvp => !kvp.Value).Select(kvp => kvp.Key);
+    public ImmutableArray<(ISymbol Symbol, IOperation WriteOperation)> GetUnreadSymbolWrites()
+        => SymbolWritesMap.SelectAsArray(kvp => !kvp.Value, kvp => kvp.Key);
 
     /// <summary>
     /// Returns true if the initial value of the parameter from the caller is used.

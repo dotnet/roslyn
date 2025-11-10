@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitInstanceIncrementOperator(BoundIncrementOperator node, bool used)
         {
             Debug.Assert(node.MethodOpt is { });
-            Debug.Assert(node.OperandConversion is null || (node.Operand.Type!.IsReferenceType && node.MethodOpt.GetIsNewExtensionMember()));
+            Debug.Assert(node.OperandConversion is null || (node.Operand.Type!.IsReferenceType && node.MethodOpt.IsExtensionBlockMember()));
 
             SyntaxNode syntax = node.Syntax;
 
@@ -450,10 +450,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(node.OperandConversion is null);
 
-            return MakeInstanceCompoundAssignmentOperatorResult(node.Syntax, node.Operand, rightOpt: null, node.MethodOpt, node.OperatorKind.IsChecked());
+            return MakeInstanceCompoundAssignmentOperatorResult(node.Syntax, node.Operand, rightOpt: null, node.MethodOpt, node.OperatorKind.IsChecked(), AssignmentKind.IncrementDecrement);
         }
 
-        private BoundExpression MakeInstanceCompoundAssignmentOperatorResult(SyntaxNode syntax, BoundExpression left, BoundExpression? rightOpt, MethodSymbol operatorMethod, bool isChecked)
+        private BoundExpression MakeInstanceCompoundAssignmentOperatorResult(SyntaxNode syntax, BoundExpression left, BoundExpression? rightOpt, MethodSymbol operatorMethod, bool isChecked, AssignmentKind assignmentKind)
         {
             TypeSymbol? operandType = left.Type; //type of the variable being incremented
             Debug.Assert(operandType is { });
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operandType.IsValueType)
             {
                 BoundCall increment = makeIncrementCall(syntax, boundTemp, rightOpt, operatorMethod);
-                BoundExpression assignBack = makeAssignmentBack(syntax, transformedLHS, boundTemp, isChecked);
+                BoundExpression assignBack = makeAssignmentBack(syntax, transformedLHS, boundTemp, isChecked, assignmentKind);
 
                 tempInitializers.Add(increment);
                 tempInitializers.Add(assignBack);
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundCall increment = makeIncrementCall(syntax, boundTemp, rightOpt, operatorMethod);
-                BoundExpression assignBack = makeAssignmentBack(syntax, transformedLHS, boundTemp, isChecked);
+                BoundExpression assignBack = makeAssignmentBack(syntax, transformedLHS, boundTemp, isChecked, assignmentKind);
 
                 //  (object)default(T) != null
                 var isNotClass = _factory.IsNotNullReference(_factory.Default(operandType));
@@ -525,9 +525,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.False, operatorMethod, rightOpt is null ? [] : [rightOpt]);
             }
 
-            BoundExpression makeAssignmentBack(SyntaxNode syntax, BoundExpression transformedLHS, BoundLocal boundTemp, bool isChecked)
+            BoundExpression makeAssignmentBack(SyntaxNode syntax, BoundExpression transformedLHS, BoundLocal boundTemp, bool isChecked, AssignmentKind assignmentKind)
             {
-                return MakeAssignmentOperator(syntax, transformedLHS, boundTemp, used: false, isChecked: isChecked, isCompoundAssignment: false);
+                return MakeAssignmentOperator(syntax, transformedLHS, boundTemp, used: false, isChecked: isChecked, assignmentKind);
             }
         }
 
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // prefix:  temp = (X)(T.Increment((T)operand)));  operand = temp; 
                 // postfix: temp = operand;                        operand = (X)(T.Increment((T)temp)));
-                tempInitializers.Add(MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), used: false, isChecked: isChecked, isCompoundAssignment: false));
+                tempInitializers.Add(MakeAssignmentOperator(syntax, boundTemp, isPrefix ? newValue : MakeRValue(transformedLHS), used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment));
 
                 if (!isPrefix && IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
                 {
@@ -669,11 +669,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundLocal incrementResult = _factory.StoreToTemp(newValue, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
                     tempSymbols.Add(incrementResult.LocalSymbol);
                     tempInitializers.Add(assignmentToTemp);
-                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, incrementResult, used: false, isChecked: isChecked, isCompoundAssignment: false));
+                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, incrementResult, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement));
                 }
                 else
                 {
-                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, isPrefix ? boundTemp : newValue, used: false, isChecked: isChecked, isCompoundAssignment: false));
+                    tempInitializers.Add(MakeAssignmentOperator(syntax, transformedLHS, isPrefix ? boundTemp : newValue, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement));
                 }
 
                 // prefix:  Seq( operand initializers; temp = (T)(operand + 1); operand = temp;          result: temp)
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var tempValue = isPrefix ? newValue : MakeRValue(operand);
                 Debug.Assert(tempValue.Type is { });
-                var tempAssignment = MakeAssignmentOperator(syntax, boundTemp, tempValue, used: false, isChecked: isChecked, isCompoundAssignment: false);
+                var tempAssignment = MakeAssignmentOperator(syntax, boundTemp, tempValue, used: false, isChecked: isChecked, AssignmentKind.SimpleAssignment);
 
                 var operandValue = isPrefix ? boundTemp : newValue;
                 var tempAssignedAndOperandValue = new BoundSequence(
@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // prefix:  operand = Seq{temp = (T)(operand + 1);  temp;}
                 // postfix: operand = Seq{temp = operand;        ;  (T)(temp + 1);}
-                BoundExpression operandAssignment = MakeAssignmentOperator(syntax, operand, tempAssignedAndOperandValue, used: false, isChecked: isChecked, isCompoundAssignment: false);
+                BoundExpression operandAssignment = MakeAssignmentOperator(syntax, operand, tempAssignedAndOperandValue, used: false, isChecked: isChecked, AssignmentKind.IncrementDecrement);
 
                 // prefix:  Seq{operand initializers; operand = Seq{temp = (T)(operand + 1);  temp;}          result: temp}
                 // postfix: Seq{operand initializers; operand = Seq{temp = operand;        ;  (T)(temp + 1);} result: temp}

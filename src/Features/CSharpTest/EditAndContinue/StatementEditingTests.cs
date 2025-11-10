@@ -3755,10 +3755,82 @@ public sealed class StatementEditingTests : EditingTestBase
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79783")]
+    public void Lambdas_Update_Signature_ParameterDefaultValue()
+    {
+        var src1 = """
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    var f = <N:0>(int a = 1) => 1</N:0>;
+                }
+            }
+            """;
+        var src2 = """
+            using System;
+            
+            class C
+            {
+                void F()
+                {
+                    var f = <N:0>(int a = 2) => 1</N:0>;
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
+    }
+
+    [Fact]
+    public void Lambdas_Update_Signature_ParamsArray()
+    {
+        var src1 = """
+            using System;
+
+            class C
+            {
+                void F()
+                {
+                    var f = <N:0>(int[] a) => 1</N:0>;
+                }
+            }
+            """;
+        var src2 = """
+            using System;
+            
+            class C
+            {
+                void F()
+                {
+                    var f = <N:0>(params int[] a) => 1</N:0>;
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
+    }
+
+    [Fact]
     public void Lambdas_Update_Signature_ParameterRefness1()
     {
         var src1 = """
-
             using System;
 
             delegate int D1(ref int a);
@@ -3774,10 +3846,8 @@ public sealed class StatementEditingTests : EditingTestBase
                     G1(<N:0>(ref int a) => 1</N:0>);
                 }
             }
-
             """;
         var src2 = """
-
             using System;
 
             delegate int D1(ref int a);
@@ -3793,8 +3863,8 @@ public sealed class StatementEditingTests : EditingTestBase
                     G2(<N:0>(int a) => 2</N:0>);
                 }
             }
-
             """;
+
         var edits = GetTopEdits(src1, src2);
         var syntaxMap = edits.GetSyntaxMap();
 

@@ -132,13 +132,13 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
             return;
 
         // cannot convert a partial-definition to a delegate (unless there's an existing implementation part that can be used).
-        if (invokedMethod.IsPartialDefinition && invokedMethod.PartialImplementationPart is null)
+        if (invokedMethod is { IsPartialDefinition: true, PartialImplementationPart: null })
             return;
 
         // Check if the invoked method is a member of a struct. If it is, and it is not readonly and the invoked method
         // is not readonly, then we don't want to convert it to a method group. If we did, we may accidently change the
         // behaviour of the code, since structs are value types and the method group will be copied rather than referenced.
-        if (invokedMethod.ContainingType.TypeKind == TypeKind.Struct && !invokedMethod.IsReadOnly && !invokedMethod.ContainingType.IsReadOnly)
+        if (invokedMethod is { ContainingType.TypeKind: TypeKind.Struct, IsReadOnly: false, ContainingType.IsReadOnly: false })
             return;
 
         // If we're calling a generic method, we have to have supplied type arguments.  They cannot be inferred once
@@ -217,7 +217,7 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
         }
 
         var rewrittenConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).ConvertedType;
-        if (!lambdaTypeInfo.ConvertedType.Equals(rewrittenConvertedType))
+        if (!lambdaTypeInfo.ConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability))
             return;
 
         if (OverloadsChanged(
@@ -274,7 +274,16 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
             return false;
 
         var conversion = compilation.ClassifyConversion(type1, type2);
-        return conversion.IsIdentityOrImplicitReference();
+        if (!conversion.IsIdentityOrImplicitReference())
+            return false;
+
+        // When the types are the same except for nullability annotations, we need to check
+        // if they're truly compatible. This prevents suggesting conversions that would introduce
+        // nullability warnings, such as converting Task<string> to Task<string?> on an invariant type.
+        // For types that differ (e.g., string vs object), we allow the conversion as that's proper
+        // covariance/contravariance and won't produce nullability warnings.
+        return !type1.Equals(type2, SymbolEqualityComparer.Default) ||
+               type1.Equals(type2, SymbolEqualityComparer.IncludeNullability);
     }
 
     private static bool MayHaveSideEffects(ExpressionSyntax expression)
@@ -307,7 +316,7 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
         if (anonymousFunction.ExpressionBody != null)
             return TryGetInvocation(anonymousFunction.ExpressionBody, out invocation, out wasAwaited);
 
-        if (anonymousFunction.Block != null && anonymousFunction.Block.Statements.Count == 1)
+        if (anonymousFunction.Block is { Statements.Count: 1 })
         {
             var statement = anonymousFunction.Block.Statements[0];
             if (statement is ReturnStatementSyntax { Expression: { } expression })

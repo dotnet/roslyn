@@ -26,6 +26,6 @@ internal static class OnAutoInsert
                 predicate: s => s.Metadata.Language == LanguageNames.CSharp,
                 selector: s => s.Value);
 
-        return OnAutoInsertHandler.GetOnAutoInsertResponseAsync(globalOptions, services, document, linePosition, character, formattingOptions, isRazorRequest: true, cancellationToken);
+        return OnAutoInsertHandler.GetOnAutoInsertResponseAsync(globalOptions, services, document, linePosition, character, formattingOptions, includeNewLineBraceFormatting: true, cancellationToken);
     }
 }

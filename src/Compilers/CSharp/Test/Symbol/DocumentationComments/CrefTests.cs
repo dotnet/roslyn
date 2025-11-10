@@ -87,15 +87,15 @@ class Program { }
 class Program { }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute ' `'
+                // (3,21): warning CS1584: XML comment has syntactically incorrect cref attribute ' `'
                 // /// See <see cref=" `"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, " ").WithArguments(" `"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "`").WithArguments(" `").WithLocation(3, 21),
                 // (3,21): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref=" `"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "`").WithArguments("Identifier expected", "1001"),
-                // (3,20): warning CS1658: Unexpected character '`'. See also error CS1056.
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "`").WithArguments("Identifier expected", "1001").WithLocation(3, 21),
+                // (3,21): warning CS1658: Unexpected character '`'. See also error CS1056.
                 // /// See <see cref=" `"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '`'", "1056"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '`'", "1056").WithLocation(3, 21));
         }
 
         [Fact]
@@ -278,25 +278,25 @@ class Program { }
             compilation.VerifyDiagnostics(
                 // (4,20): warning CS1584: XML comment has syntactically incorrect cref attribute ':'
                 // /// See <see cref=":"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, ":").WithArguments(":"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, ":").WithArguments(":").WithLocation(4, 20),
                 // (4,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref=":"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, ":").WithArguments("Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, ":").WithArguments("Identifier expected", "1001").WithLocation(4, 20),
                 // (5,20): warning CS1584: XML comment has syntactically incorrect cref attribute '::'
                 // /// See <see cref="::"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, ":").WithArguments("::"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "::").WithArguments("::").WithLocation(5, 20),
                 // (5,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref="::"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "::").WithArguments("Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "::").WithArguments("Identifier expected", "1001").WithLocation(5, 20),
                 // (6,20): warning CS1584: XML comment has syntactically incorrect cref attribute '&#58;&#58;Gibberish'
                 // /// See <see cref="&#58;&#58;Gibberish"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "&").WithArguments("&#58;&#58;Gibberish"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "&#58;&#58;").WithArguments("&#58;&#58;Gibberish").WithLocation(6, 20),
                 // (6,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref="&#58;&#58;Gibberish"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "&#58;&#58;").WithArguments("Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "&#58;&#58;").WithArguments("Identifier expected", "1001").WithLocation(6, 20),
                 // (3,20): warning CS1574: XML comment has cref attribute 'A' that could not be resolved
                 // /// See <see cref="A"/> - only one character.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "A").WithArguments("A"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "A").WithArguments("A").WithLocation(3, 20));
 
             var crefSyntaxes = GetCrefSyntaxes(compilation);
             Assert.Equal(4, crefSyntaxes.Count());
@@ -5393,9 +5393,9 @@ class Program
 
             var compilation = (Compilation)CreateCompilationWithMscorlib40AndDocumentationComments(source);
             compilation.VerifyDiagnostics(
-                // (2,20): warning CS1570: XML comment has badly formed XML -- 'Duplicate 'cref' attribute'
+                // (2,21): warning CS1570: XML comment has badly formed XML -- 'Duplicate 'cref' attribute'
                 // /// <see cref="int" cref="long"/>
-                Diagnostic(ErrorCode.WRN_XMLParseError, @" cref=""long").WithArguments("cref"));
+                Diagnostic(ErrorCode.WRN_XMLParseError, @"cref=""long""").WithArguments("cref").WithLocation(2, 21));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntaxes = GetCrefSyntaxes(compilation).ToArray();

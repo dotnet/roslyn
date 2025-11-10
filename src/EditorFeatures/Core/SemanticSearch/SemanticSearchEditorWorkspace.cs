@@ -26,12 +26,12 @@ internal sealed class SemanticSearchEditorWorkspace(
     private ITextBuffer? _queryTextBuffer;
     private DocumentId? _queryDocumentId;
 
-    public async Task OpenQueryDocumentAsync(ITextBuffer buffer, CancellationToken cancellationToken)
+    public async Task OpenQueryDocumentAsync(ITextBuffer buffer, string? targetLanguage, CancellationToken cancellationToken)
     {
         _queryTextBuffer = buffer;
 
         // initialize solution with default query, unless it has already been initialized:
-        var queryDocument = await UpdateQueryDocumentAsync(query: null, cancellationToken).ConfigureAwait(false);
+        var queryDocument = await UpdateQueryDocumentAsync(query: null, targetLanguage, cancellationToken).ConfigureAwait(false);
 
         _queryDocumentId = queryDocument.Id;
 

@@ -2227,26 +2227,26 @@ internal sealed class StyleViewModel : AbstractOptionPreviewViewModel
 
         var usingDirectivePlacementPreferences = new List<CodeStylePreference>
         {
-            new CodeStylePreference(CSharpVSResources.Inside_namespace, isChecked: false),
-            new CodeStylePreference(CSharpEditorResources.Outside_namespace, isChecked: false),
+            new(CSharpVSResources.Inside_namespace, isChecked: false),
+            new(CSharpEditorResources.Outside_namespace, isChecked: false),
         };
 
         var qualifyMemberAccessPreferences = new List<CodeStylePreference>
         {
-            new CodeStylePreference(CSharpVSResources.Prefer_this, isChecked: true),
-            new CodeStylePreference(CSharpVSResources.Do_not_prefer_this, isChecked: false),
+            new(CSharpVSResources.Prefer_this, isChecked: true),
+            new(CSharpVSResources.Do_not_prefer_this, isChecked: false),
         };
 
         var predefinedTypesPreferences = new List<CodeStylePreference>
         {
-            new CodeStylePreference(ServicesVSResources.Prefer_predefined_type, isChecked: true),
-            new CodeStylePreference(ServicesVSResources.Prefer_framework_type, isChecked: false),
+            new(ServicesVSResources.Prefer_predefined_type, isChecked: true),
+            new(ServicesVSResources.Prefer_framework_type, isChecked: false),
         };
 
         var typeStylePreferences = new List<CodeStylePreference>
         {
-            new CodeStylePreference(CSharpVSResources.Prefer_var, isChecked: true),
-            new CodeStylePreference(CSharpVSResources.Prefer_explicit_type, isChecked: false),
+            new(CSharpVSResources.Prefer_var, isChecked: true),
+            new(CSharpVSResources.Prefer_explicit_type, isChecked: false),
         };
 
         CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.QualifyFieldAccess, CSharpVSResources.Qualify_field_access_with_this, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, this, optionStore, qualifyGroupTitle, qualifyMemberAccessPreferences));
@@ -2370,9 +2370,9 @@ internal sealed class StyleViewModel : AbstractOptionPreviewViewModel
     {
         var bracesPreferences = new List<CodeStylePreference>
         {
-            new CodeStylePreference(EditorFeaturesResources.Yes, isChecked: false),
-            new CodeStylePreference(EditorFeaturesResources.No, isChecked: false),
-            new CodeStylePreference(CSharpVSResources.When_on_multiple_lines, isChecked: false),
+            new(EditorFeaturesResources.Yes, isChecked: false),
+            new(EditorFeaturesResources.No, isChecked: false),
+            new(CSharpVSResources.When_on_multiple_lines, isChecked: false),
         };
 
         var enumValues = new[] { PreferBracesPreference.Always, PreferBracesPreference.None, PreferBracesPreference.WhenMultiline };
@@ -2389,8 +2389,8 @@ internal sealed class StyleViewModel : AbstractOptionPreviewViewModel
     {
         var preferences = new List<CodeStylePreference>
         {
-            new CodeStylePreference(CSharpVSResources.Block_scoped, isChecked: false),
-            new CodeStylePreference(CSharpVSResources.File_scoped, isChecked: false),
+            new(CSharpVSResources.Block_scoped, isChecked: false),
+            new(CSharpVSResources.File_scoped, isChecked: false),
         };
 
         var enumValues = new[] { NamespaceDeclarationPreference.BlockScoped, NamespaceDeclarationPreference.FileScoped };
@@ -2407,9 +2407,9 @@ internal sealed class StyleViewModel : AbstractOptionPreviewViewModel
     {
         var expressionBodyPreferences = new List<CodeStylePreference>
         {
-            new CodeStylePreference(ServicesVSResources.Never, isChecked: false),
-            new CodeStylePreference(CSharpVSResources.When_possible, isChecked: false),
-            new CodeStylePreference(CSharpVSResources.When_on_single_line, isChecked: false),
+            new(ServicesVSResources.Never, isChecked: false),
+            new(CSharpVSResources.When_possible, isChecked: false),
+            new(CSharpVSResources.When_on_single_line, isChecked: false),
         };
 
         var enumValues = new[] { ExpressionBodyPreference.Never, ExpressionBodyPreference.WhenPossible, ExpressionBodyPreference.WhenOnSingleLine };
@@ -2475,8 +2475,8 @@ internal sealed class StyleViewModel : AbstractOptionPreviewViewModel
     {
         var unusedValuePreferences = new List<CodeStylePreference>
         {
-            new CodeStylePreference(ServicesVSResources.Unused_local, isChecked: false),
-            new CodeStylePreference(CSharpVSResources.Discard, isChecked: true),
+            new(ServicesVSResources.Unused_local, isChecked: false),
+            new(CSharpVSResources.Discard, isChecked: true),
         };
 
         var enumValues = new[]

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _compilation = compilation;
 
             var typeMap = underlyingMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
-            typeMap.WithAlphaRename(underlyingMethod, this, out _typeParameters);
+            typeMap.WithAlphaRename(underlyingMethod, this, propagateAttributes: false, out _typeParameters);
 
             _underlyingMethod = underlyingMethod.ConstructIfGeneric(TypeArgumentsWithAnnotations);
             _parameters = SynthesizedParameterSymbol.DeriveParameters(_underlyingMethod, this);
@@ -89,14 +89,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
-            ParameterSymbol underlyingThisParameter;
+            ParameterSymbol? underlyingThisParameter;
             if (!_underlyingMethod.TryGetThisParameter(out underlyingThisParameter))
             {
                 thisParameter = null;
                 return false;
             }
 
-            thisParameter = (object)underlyingThisParameter != null
+            thisParameter = underlyingThisParameter is not null
                 ? new ThisParameterSymbol(this)
                 : null;
             return true;

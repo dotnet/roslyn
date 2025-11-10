@@ -279,8 +279,8 @@ internal sealed partial class ChangeSignatureDialogViewModel : AbstractNotifyPro
     {
         return new ParameterConfiguration(
             _originalParameterConfiguration.ThisParameter,
-            [.. _parametersWithoutDefaultValues.Where(p => !p.IsRemoved).Select(p => p.Parameter)],
-            [.. _parametersWithDefaultValues.Where(p => !p.IsRemoved).Select(p => p.Parameter)],
+            _parametersWithoutDefaultValues.SelectAsArray(p => !p.IsRemoved, p => p.Parameter),
+            _parametersWithDefaultValues.SelectAsArray(p => !p.IsRemoved, p => p.Parameter),
             (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : (ExistingParameter)_paramsParameter.Parameter,
             selectedIndex: -1);
     }

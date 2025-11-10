@@ -34,7 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 internal sealed partial class VisualStudioDiagnosticAnalyzerService(
     VisualStudioWorkspace workspace,
     IVsService<SVsStatusbar, IVsStatusbar> statusbar,
-    DiagnosticAnalyzerInfoCache.SharedGlobalCache diagnosticAnalyzerInfoCache,
     IThreadingContext threadingContext,
     IVsHierarchyItemManager vsHierarchyItemManager,
     IAsynchronousOperationListenerProvider listenerProvider) : IVisualStudioDiagnosticAnalyzerService
@@ -45,7 +44,6 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
 
     private readonly VisualStudioWorkspace _workspace = workspace;
     private readonly IVsService<IVsStatusbar> _statusbar = statusbar;
-    private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache = diagnosticAnalyzerInfoCache.AnalyzerInfoCache;
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IVsHierarchyItemManager _vsHierarchyItemManager = vsHierarchyItemManager;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
@@ -69,14 +67,19 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         }
     }
 
-    public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy? hierarchy)
+    public async Task<IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>>> GetAllDiagnosticDescriptorsAsync(
+        IVsHierarchy? hierarchy,
+        CancellationToken cancellationToken)
     {
         var currentSolution = _workspace.CurrentSolution;
         var hostAnalyzers = currentSolution.SolutionState.Analyzers;
+        var diagnosticService = currentSolution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         if (hierarchy == null)
         {
-            return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache));
+            return Transform(
+                await diagnosticService.GetDiagnosticDescriptorsPerReferenceAsync(
+                    currentSolution, cancellationToken).ConfigureAwait(false));
         }
 
         // Analyzers are only supported for C# and VB currently.
@@ -88,8 +91,8 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         {
             var project = projectsWithHierarchy.FirstOrDefault();
             return project == null
-                ? Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache))
-                : Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, project));
+                ? Transform(await diagnosticService.GetDiagnosticDescriptorsPerReferenceAsync(currentSolution, cancellationToken).ConfigureAwait(false))
+                : Transform(await diagnosticService.GetDiagnosticDescriptorsPerReferenceAsync(project, cancellationToken).ConfigureAwait(false));
         }
         else
         {
@@ -98,7 +101,8 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             var descriptorsMap = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticDescriptor>>();
             foreach (var project in projectsWithHierarchy)
             {
-                var descriptorsPerReference = hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, project);
+                var descriptorsPerReference = await diagnosticService.GetDiagnosticDescriptorsPerReferenceAsync(
+                    project, cancellationToken).ConfigureAwait(false);
                 foreach (var (displayName, descriptors) in descriptorsPerReference)
                 {
                     if (descriptorsMap.TryGetValue(displayName, out var existingDescriptors))

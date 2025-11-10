@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup;
 [Trait(Traits.Feature, Traits.Features.EventHookup)]
 public sealed class EventHookupCommandHandlerTests
 {
-    private readonly NamingStylesTestOptionSets _namingOptions = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+    private readonly NamingStylesTestOptionSets _namingOptions = new(LanguageNames.CSharp);
 
     [WpfFact]
     public async Task HandlerName_EventInThisClass()
@@ -1203,5 +1203,5 @@ public sealed class EventHookupCommandHandlerTests
     }
 
     private static OptionsCollection QualifyMethodAccessWithNotification(NotificationOption2 notification)
-        => new OptionsCollection(LanguageNames.CSharp) { { CodeStyleOptions2.QualifyMethodAccess, true, notification } };
+        => new(LanguageNames.CSharp) { { CodeStyleOptions2.QualifyMethodAccess, true, notification } };
 }

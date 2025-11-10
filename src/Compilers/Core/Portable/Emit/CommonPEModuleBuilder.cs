@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private ArrayMethods? _lazyArrayMethods;
 
         // Calculated when emitting EnC deltas.
-        private IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.IMethodDefinition>>? _encDeletedMethodDefinitions;
+        private IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.ITypeDefinitionMember>>? _encDeletedMemberDefinitions;
 
         // Only set when running tests to allow inspection of the emitted data.
         internal CompilationTestData? TestData { get; private set; }
@@ -119,24 +119,24 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract INamedTypeSymbolInternal? GetUsedSynthesizedHotReloadExceptionType();
 
         /// <summary>
-        /// Creates definitions for deleted methods based on symbol changes if emitting EnC delta.
+        /// Creates definitions for deleted methods and properties based on symbol changes if emitting EnC delta.
         /// Must be called before <see cref="PrivateImplementationDetails.Freeze"/>.
         /// </summary>
-        public void CreateDeletedMethodDefinitions(DiagnosticBag diagnosticBag)
+        public void CreateDeletedMemberDefinitions(DiagnosticBag diagnosticBag)
         {
-            Debug.Assert(_encDeletedMethodDefinitions == null);
+            Debug.Assert(_encDeletedMemberDefinitions == null);
 
             if (EncSymbolChanges != null)
             {
                 var context = new EmitContext(this, diagnosticBag, metadataOnly: false, includePrivateMembers: true);
-                _encDeletedMethodDefinitions = DeltaMetadataWriter.CreateDeletedMethodsDefs(context, EncSymbolChanges);
+                _encDeletedMemberDefinitions = DeltaMetadataWriter.CreateDeletedMemberDefs(context, EncSymbolChanges);
             }
         }
 
-        public IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.IMethodDefinition>> GetDeletedMethodDefinitions()
+        public IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.ITypeDefinitionMember>> GetDeletedMemberDefinitions()
         {
-            Debug.Assert(_encDeletedMethodDefinitions != null);
-            return _encDeletedMethodDefinitions;
+            Debug.Assert(_encDeletedMemberDefinitions != null);
+            return _encDeletedMemberDefinitions;
         }
 
 #nullable disable
@@ -159,13 +159,25 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract IAssemblySymbolInternal CommonCorLibrary { get; }
         internal abstract CommonModuleCompilationState CommonModuleCompilationState { get; }
         internal abstract void CompilationFinished();
+
+        /// <summary>
+        /// Returns all type members synthesized when compiling method bodies for this module.
+        /// </summary>
         internal abstract ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetAllSynthesizedMembers();
+
+        /// <summary>
+        /// Returns all delegates and anonymous templates synthesized when compiling method bodies for this module.
+        /// </summary>
+        internal abstract SynthesizedTypeMaps GetAllSynthesizedTypes();
+
         internal abstract CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt { get; }
         internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbolInternal type, DiagnosticBag diagnostics);
         public abstract IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly);
         public abstract IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes();
         public abstract IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes();
-        internal abstract Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor);
+#nullable enable
+        internal abstract Cci.ICustomAttribute? SynthesizeAttribute(WellKnownMember attributeConstructor);
+#nullable disable
         public abstract Cci.IMethodReference GetInitArrayHelper();
 
         public abstract Cci.IFieldReference GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics);
@@ -176,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly
         /// followed by types forwarded to another assembly.
         /// </summary>
-        public abstract ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics);
+        public abstract ImmutableArray<Cci.ExportedType> GetExportedTypes(EmitContext context);
 
         /// <summary>
         /// Used to distinguish which style to pick while writing native PDB information.
@@ -270,11 +282,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 if (privateImpl != null)
                 {
                     yield return privateImpl;
-
-                    foreach (var typeDef in privateImpl.GetAdditionalTopLevelTypes())
-                    {
-                        yield return typeDef;
-                    }
                 }
             }
         }
@@ -1076,6 +1083,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return builder.ToImmutable();
         }
+
+        internal sealed override SynthesizedTypeMaps GetAllSynthesizedTypes()
+            => Compilation.CommonAnonymousTypeManager.GetSynthesizedTypeMaps();
 
         #endregion
 

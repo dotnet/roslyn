@@ -487,7 +487,7 @@ public abstract class AbstractPersistentStorageTests : IDisposable
         }
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
             Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
         }
@@ -508,7 +508,7 @@ public abstract class AbstractPersistentStorageTests : IDisposable
         }
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
             Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
         }
@@ -619,7 +619,7 @@ public abstract class AbstractPersistentStorageTests : IDisposable
         }
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
             Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
 
@@ -643,7 +643,7 @@ public abstract class AbstractPersistentStorageTests : IDisposable
         }
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
             Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
 
@@ -662,12 +662,12 @@ public abstract class AbstractPersistentStorageTests : IDisposable
         var streamName1 = "stream";
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
         }
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
             Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
         }
@@ -683,12 +683,12 @@ public abstract class AbstractPersistentStorageTests : IDisposable
         var streamName1 = "stream";
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
         }
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
             Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
         }
@@ -704,7 +704,7 @@ public abstract class AbstractPersistentStorageTests : IDisposable
         var streamName1 = "stream";
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
         }
 
@@ -725,7 +725,7 @@ public abstract class AbstractPersistentStorageTests : IDisposable
         var streamName1 = "stream";
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
         }
 
@@ -746,7 +746,7 @@ public abstract class AbstractPersistentStorageTests : IDisposable
         var streamName1 = "stream";
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
         }
 
@@ -770,7 +770,7 @@ public abstract class AbstractPersistentStorageTests : IDisposable
         var streamName1 = "stream";
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
         }
 
@@ -794,12 +794,12 @@ public abstract class AbstractPersistentStorageTests : IDisposable
         var streamName1 = "stream";
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
         }
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
             Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
 
@@ -818,12 +818,12 @@ public abstract class AbstractPersistentStorageTests : IDisposable
         var streamName1 = "stream";
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), checksum: s_checksum1);
         }
 
         {
-            var storage = await GetStorageFromKeyAsync(solution.Workspace.Services, SolutionKey.ToSolutionKey(solution));
+            var storage = await GetStorageFromKeyAsync(solution.Services, SolutionKey.ToSolutionKey(solution));
             Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
             Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
 
@@ -1008,7 +1008,7 @@ public abstract class AbstractPersistentStorageTests : IDisposable
         _storageService?.GetTestAccessor().Shutdown();
         var configuration = new MockPersistentStorageConfiguration(solution.Id, persistentFolder.Path, throwOnFailure);
 
-        _storageService = (AbstractPersistentStorageService)solution.Workspace.Services.SolutionServices.GetPersistentStorageService();
+        _storageService = (AbstractPersistentStorageService)solution.Services.GetPersistentStorageService();
         var storage = await _storageService.GetStorageAsync(
             SolutionKey.ToSolutionKey(solution), configuration, faultInjector, CancellationToken.None);
 
@@ -1022,11 +1022,11 @@ public abstract class AbstractPersistentStorageTests : IDisposable
     }
 
     internal async Task<IChecksummedPersistentStorage> GetStorageFromKeyAsync(
-        HostWorkspaceServices services, SolutionKey solutionKey, IPersistentStorageFaultInjector? faultInjector = null)
+        SolutionServices services, SolutionKey solutionKey, IPersistentStorageFaultInjector? faultInjector = null)
     {
         var configuration = new MockPersistentStorageConfiguration(solutionKey.Id, _persistentFolder.Path, throwOnFailure: true);
 
-        _storageService = (AbstractPersistentStorageService)services.SolutionServices.GetPersistentStorageService();
+        _storageService = (AbstractPersistentStorageService)services.GetPersistentStorageService();
         var storage = await _storageService.GetStorageAsync(
             solutionKey, configuration, faultInjector, CancellationToken.None);
 

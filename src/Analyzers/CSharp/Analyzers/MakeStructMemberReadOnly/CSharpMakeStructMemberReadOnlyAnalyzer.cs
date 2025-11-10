@@ -104,7 +104,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 // No need to lock the dictionary here.  Processing only is called once, after all mutation work is done.
                 foreach (var (method, diagnostic) in methodToDiagnostic)
                 {
-                    if (method.IsInitOnly && method.AssociatedSymbol is IPropertySymbol owningProperty)
+                    if (method is { IsInitOnly: true, AssociatedSymbol: IPropertySymbol owningProperty })
                     {
                         // Iff we have an init method that we want to mark as readonly, we can only do so if there is no
                         // `get` accessor, or if the `get` method is already `readonly` or would determined we want to
@@ -181,8 +181,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
 
         // An init accessor in a readonly property is already readonly.  No need to analyze it.  Note: there is no way
         // to tell this symbolically.  We have to check to the syntax here.
-        if (owningMethod.IsInitOnly &&
-            owningMethod.AssociatedSymbol is IPropertySymbol { DeclaringSyntaxReferences: [var reference, ..] } &&
+        if (owningMethod is { IsInitOnly: true, AssociatedSymbol: IPropertySymbol { DeclaringSyntaxReferences: [var reference, ..] } } &&
             reference.GetSyntax(cancellationToken) is PropertyDeclarationSyntax property &&
             property.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
         {

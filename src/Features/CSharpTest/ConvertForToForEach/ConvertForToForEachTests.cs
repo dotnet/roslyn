@@ -22,10 +22,10 @@ public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEd
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertForToForEachCodeRefactoringProvider();
 
-    private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
+    private readonly CodeStyleOption2<bool> onWithSilent = new(true, NotificationOption2.Silent);
 
     private OptionsCollection ImplicitTypeEverywhere()
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
             { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },

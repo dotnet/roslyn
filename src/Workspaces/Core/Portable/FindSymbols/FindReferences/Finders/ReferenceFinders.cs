@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal static class ReferenceFinders
 {
-    // Rename does not need to include base/this constructor initializer calls
-    public static readonly ImmutableArray<IReferenceFinder> DefaultRenameReferenceFinders =
-        [
+    // Rename does not need to include base/this constructor initializer calls (explicit or implicit).
+    public static readonly ImmutableArray<IReferenceFinder> DefaultRenameReferenceFinders = [
+            AliasSymbolReferenceFinder.Instance,
             ConstructorSymbolReferenceFinder.Instance,
             PropertySymbolReferenceFinder.Instance,
             new DestructorSymbolReferenceFinder(),
@@ -36,5 +36,8 @@ internal static class ReferenceFinders
     /// <summary>
     /// The list of common reference finders.
     /// </summary>
-    internal static readonly ImmutableArray<IReferenceFinder> DefaultReferenceFinders = [.. DefaultRenameReferenceFinders, new ConstructorInitializerSymbolReferenceFinder()];
+    internal static readonly ImmutableArray<IReferenceFinder> DefaultReferenceFinders = [
+        .. DefaultRenameReferenceFinders,
+        ExplicitConstructorInitializerSymbolReferenceFinder.Instance,
+        ImplicitConstructorInitializerSymbolReferenceFinder.Instance];
 }

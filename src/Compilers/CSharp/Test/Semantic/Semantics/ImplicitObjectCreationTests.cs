@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         private static readonly CSharpParseOptions ImplicitObjectCreationTestOptions = TestOptions.Regular9;
 
-        private static CSharpCompilation CreateCompilation(string source, CSharpCompilationOptions options = null, IEnumerable<MetadataReference> references = null)
-        {
-            return CSharpTestBase.CreateCompilation(source, options: options, parseOptions: ImplicitObjectCreationTestOptions, references: references);
-        }
-
         [Fact]
         public void TestInLocal()
         {
@@ -1454,8 +1449,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
-                );
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Animal");
         }
 
@@ -2267,11 +2261,8 @@ class C
             comp.VerifyDiagnostics(
                 // (8,9): error CS0411: The type arguments for method 'C.F<T>(Task<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(async () => new());
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("C.F<T>(System.Threading.Tasks.Task<T>)").WithLocation(8, 9),
-                // (8,20): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         F(async () => new());
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(8, 20)
-                );
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("C.F<T>(System.Threading.Tasks.Task<T>)").WithLocation(8, 9)
+            );
         }
 
         [Fact]
@@ -5048,6 +5039,3634 @@ class A
                 // _ = new MyList<A> {new()};
                 Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAddStr, "new()").WithArguments("MyList<A>.Add(A)", "Message").WithLocation(9, 20)
                 );
+        }
+
+        [Fact]
+        public void OutVar_01()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M0(out var a, a);
+    }
+
+    void M0(out int a, int x) => throw null;
+    void M2(C c, int x) { }
+
+    C(C other){}
+    public C(out int x, int y) { x = 0; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,23): error CS8196: Reference to an implicitly-typed out variable 'a' is not permitted in this location.
+                //         M0(out var a, a);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "a").WithArguments("a").WithLocation(8, 23)
+                );
+        }
+
+        [Fact]
+        public void OutVar_02()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M2(GetC(new(out var u)), u);
+        M2(GetC(GetC(out var v)), v);
+        M2(new(GetC(out var w)), w);
+    }
+
+    void M0(out int a, int x) => throw null;
+    void M2(C c, int x) { }
+
+    C(C other){}
+    public C(out int x, int y) { x = 0; }
+    static C GetC(C c) => c;
+    static C GetC(out int x) => new C(out x);
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_03()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+#line 9
+        M1(new(out var x), x);
+    }
+
+    void M0(out int a, int x) => throw null;
+    void M2(C c, int x) { }
+
+    C(C other){}
+    public C(out int x, int y) { x = 0; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0103: The name 'M1' does not exist in the current context
+                //         M1(new(out var x), x);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(9, 9),
+                // (9,28): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M1(new(out var x), x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(9, 28)
+                );
+        }
+
+        [Fact]
+        public void OutVar_04()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+#line 10
+        M2(new(out var y), y);
+    }
+
+    void M0(out int a, int x) => throw null;
+    void M2(C c, int x) { }
+
+    C(C other){}
+    public C(out int x, int y) { x = 0; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,28): error CS8196: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                //         M2(new(out var y), y);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(10, 28)
+                );
+        }
+
+        [Fact]
+        public void OutVar_05()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+#line 11
+        M2(new(new(out var z)), z);
+    }
+
+    void M0(out int a, int x) => throw null;
+    void M2(C c, int x) { }
+
+    C(C other){}
+    public C(out int x, int y) { x = 0; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,33): error CS8196: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                //         M2(new(new(out var z)), z);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(11, 33)
+                );
+        }
+
+        [Fact]
+        public void OutVar_06()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+#line 15
+        _ = new C(out var b, b);
+    }
+
+    void M0(out int a, int x) => throw null;
+    void M2(C c, int x) { }
+
+    C(C other){}
+    public C(out int x, int y) { x = 0; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (15,30): error CS8196: Reference to an implicitly-typed out variable 'b' is not permitted in this location.
+                //         _ = new C(out var b, b);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "b").WithArguments("b").WithLocation(15, 30)
+                );
+        }
+
+        [Fact]
+        public void OutVar_07()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+#line 16
+        _ = (C)new(out var c, c);
+    }
+
+    void M0(out int a, int x) => throw null;
+    void M2(C c, int x) { }
+
+    C(C other){}
+    public C(out int x, int y) { x = 0; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,31): error CS8196: Reference to an implicitly-typed out variable 'c' is not permitted in this location.
+                //         _ = (C)new(out var c, c);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "c").WithArguments("c").WithLocation(16, 31)
+                );
+        }
+
+        [Fact]
+        public void OutVar_08()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public int F1;
+
+    public void M()
+    {
+        M2(new(out var y) { F1 = y });
+    }
+
+    void M2(C c) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_09()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public int F1;
+    public int F2;
+    public C F3;
+
+    public void M()
+    {
+        M2(new() {F1 = GetInt(out var x)}, x);
+    }
+
+    public C(int x) {}
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,44): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new() {F1 = GetInt(out var x)}, x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(13, 44)
+                );
+        }
+
+        [Fact]
+        public void OutVar_10()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public int F1;
+    public int F2;
+    public C F3;
+
+    public void M()
+    {
+        M2(new() {F1 = GetInt(out var y), F2 = y}, 2);
+    }
+
+    public C(int x) {}
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_11()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public int F1;
+    public int F2;
+    public C F3;
+
+    public void M()
+    {
+#line 15
+        M2(new() {F3 = new(out var u)}, u);
+    }
+
+    public C(int x) {}
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (15,41): error CS8196: Reference to an implicitly-typed variable 'u' is not permitted in this location.
+                //         M2(new() {F3 = new(out var u)}, u);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "u").WithArguments("u").WithLocation(15, 41)
+                );
+        }
+
+        [Fact]
+        public void OutVar_12()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public int F1;
+    public int F2;
+    public C F3;
+
+    public void M()
+    {
+        M2(new() {F3 = new(out var v), F2 = v}, 2);
+    }
+
+    public C(int x) {}
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_13()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public int F1;
+    public int F2;
+    public C F3;
+
+    public void M()
+    {
+#line 17
+        M2(new() {F3 = new(GetInt(out var w))}, w);
+    }
+
+    public C(int x) {}
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (17,49): error CS8196: Reference to an implicitly-typed variable 'w' is not permitted in this location.
+                //         M2(new() {F3 = new(GetInt(out var w))}, w);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "w").WithArguments("w").WithLocation(17, 49)
+                );
+        }
+
+        [Fact]
+        public void OutVar_14()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public int this[int x] { get => 0; set{} }
+
+    public void M()
+    {
+        M2(new(out var y) { [y] = 1 });
+    }
+
+    void M2(C c) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_15()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int this[int x] { get => 0; set{} }
+
+    public void M()
+    {
+        M2(new() {[GetInt(out var x)] = 1}, x);
+    }
+
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,45): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new() {[GetInt(out var x)] = 1}, x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(10, 45)
+                );
+        }
+
+        [Fact]
+        public void OutVar_16()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int this[int x] { get => 0; set{} }
+
+    public void M()
+    {
+        M2(new() {[GetInt(out var y)] = 2, [3] = y}, 2);
+    }
+
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_17()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<int>
+{
+    public C(out int x) { x = 0; }
+
+    public IEnumerator<int> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void Add(int x) {}
+
+    public void M()
+    {
+        M2(new(out var y) { y });
+    }
+
+    void M2(C c) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_18()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<C>
+{
+    public C() {}
+    public C(out C x) { x = this; }
+
+    public IEnumerator<C> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void Add(C x) {}
+
+    public void M()
+    {
+        M2(new() {GetC(out var x)}, x);
+    }
+
+    void M2(C c, C x) { }
+
+    C GetC(out C x)
+    {
+        x = this;
+        return this;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (24,37): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new() {GetC(out var x)}, x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(24, 37)
+                );
+        }
+
+        [Fact]
+        public void OutVar_19()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<C>
+{
+    public C() {}
+    public C(out C x) { x = this; }
+
+    public IEnumerator<C> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void Add(C x) {}
+
+    public void M()
+    {
+#line 26
+        M2(new() {new(out var u)}, u);
+    }
+
+    void M2(C c, C x) { }
+
+    C GetC(out C x)
+    {
+        x = this;
+        return this;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (26,36): error CS8196: Reference to an implicitly-typed variable 'u' is not permitted in this location.
+                //         M2(new() {new(out var u)}, u);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "u").WithArguments("u").WithLocation(26, 36)
+                );
+        }
+
+        [Fact]
+        public void OutVar_20()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<C>
+{
+    public C() {}
+    public C(out C x) { x = this; }
+
+    public IEnumerator<C> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void Add(C x) {}
+
+    public void M()
+    {
+        M2(new() {GetC(out var y), y}, null);
+        M2(new() {new(out var v), v}, null);
+    }
+
+    void M2(C c, C x) { }
+
+    C GetC(out C x)
+    {
+        x = this;
+        return this;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_21()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<C>
+{
+    public C() {}
+    public C(out C x) { x = this; }
+
+    public IEnumerator<C> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void M()
+    {
+        M2(new() {new(out var u)}, u);
+    }
+
+    void M2(C c, C x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (22,19): error CS1061: 'C' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         M2(new() {new(out var u)}, u);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new(out var u)").WithArguments("C", "Add").WithLocation(22, 19),
+                // (22,36): error CS8196: Reference to an implicitly-typed variable 'u' is not permitted in this location.
+                //         M2(new() {new(out var u)}, u);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "u").WithArguments("u").WithLocation(22, 36)
+                );
+        }
+
+        [Fact]
+        public void OutVar_22()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<C>
+{
+    public C() {}
+    public C(out C x) { x = this; }
+
+    public IEnumerator<C> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void M()
+    {
+#line 23
+        M2(new() {new(out var v), v}, null);
+    }
+
+    void M2(C c, C x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (23,19): error CS1061: 'C' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         M2(new() {new(out var v), v}, null);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new(out var v)").WithArguments("C", "Add").WithLocation(23, 19),
+                // (23,35): error CS1061: 'C' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         M2(new() {new(out var v), v}, null);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "v").WithArguments("C", "Add").WithLocation(23, 35)
+                );
+        }
+
+        [Fact]
+        public void OutVar_23()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<C>
+{
+    public C() {}
+    public C(out C x) { x = this; }
+
+    public IEnumerator<C> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void Add(C x, C y) {}
+
+    public void M()
+    {
+        M2(new() {{new(out var u), null}, {u, null}});
+    }
+
+    void M2(C c) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_24()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<C>
+{
+    public C() {}
+    public C(out C x) { x = this; }
+
+    public IEnumerator<C> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void Add(C x, C y) {}
+
+    public void M()
+    {
+#line 25
+        M2(new() {{new(out var v), v}});
+    }
+
+    void M2(C c) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (25,36): error CS8196: Reference to an implicitly-typed variable 'v' is not permitted in this location.
+                //         M2(new() {{new(out var v), v}});
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "v").WithArguments("v").WithLocation(25, 36)
+                );
+        }
+
+        [Fact]
+        public void OutVar_25()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<C>
+{
+    public C() {}
+    public C(out C x) { x = this; }
+
+    public IEnumerator<C> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void M()
+    {
+        M2(new() {{new(out var u), null}, {u, null}});
+    }
+
+    void M2(C c) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (22,19): error CS1061: 'C' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         M2(new() {{new(out var u), null}, {u, null}});
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "{new(out var u), null}").WithArguments("C", "Add").WithLocation(22, 19),
+                // (22,43): error CS1061: 'C' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         M2(new() {{new(out var u), null}, {u, null}});
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "{u, null}").WithArguments("C", "Add").WithLocation(22, 43)
+                );
+        }
+
+        [Fact]
+        public void OutVar_26()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<C>
+{
+    public C() {}
+    public C(out C x) { x = this; }
+
+    public IEnumerator<C> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void M()
+    {
+#line 23
+        M2(new() {{new(out var v), v}});
+    }
+
+    void M2(C c) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (23,19): error CS1061: 'C' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         M2(new() {{new(out var v), v}});
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "{new(out var v), v}").WithArguments("C", "Add").WithLocation(23, 19),
+                // (23,36): error CS8196: Reference to an implicitly-typed variable 'v' is not permitted in this location.
+                //         M2(new() {{new(out var v), v}});
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "v").WithArguments("v").WithLocation(23, 36)
+                );
+        }
+
+        [Fact]
+        public void OutVar_27()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        new(out var x).M1(x);
+    }
+
+    void M1(int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8754: There is no target type for 'new()'
+                //         new(out var x).M1(x);
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void OutVar_28()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        new(out var x).M1(x);
+    }
+}
+
+static class E
+{
+    public static void M1(this C c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8754: There is no target type for 'new()'
+                //         new(out var x).M1(x);
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void OutVar_29()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        new(out var x).M1(x);
+    }
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public void M1(int x) { }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8754: There is no target type for 'new()'
+                //         new(out var x).M1(x);
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void OutVar_30()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M0(new(out var x)).M1(x);
+    }
+
+    C M0(C x) => x;
+    void M1(int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_01()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        var a = new[] {new(out var x), x};
+    }
+
+    C GetC(out C x) { return (x = this); }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,40): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         var a = new[] {new(out var x), x};
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 40)
+                );
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_02()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        var b = new[] {GetC(out var y), y};
+    }
+
+    C GetC(out C x) { return (x = this); }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_03()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        var a = new C[] {new(out var x), x};
+    }
+
+    C GetC(out C x) { return (x = this); }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,42): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         var a = new C[] {new(out var x), x};
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 42)
+                );
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_04()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        var b = new C[] {GetC(out var y), y};
+    }
+
+    C GetC(out C x) { return (x = this); }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_05()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        C[] a = {new(out var x), x};
+    }
+
+    C GetC(out C x) { return (x = this); }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,34): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         C[] a = {new(out var x), x};
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 34)
+                );
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_06()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        C[] b = {GetC(out var y), y};
+    }
+
+    C GetC(out C x) { return (x = this); }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_07()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        var a = new C[,] {{new(out var x)}, {x}};
+    }
+
+    C GetC(out C x) { return (x = this); }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,46): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         var a = new C[,] {{new(out var x)}, {x}};
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 46)
+                );
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_08()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        var b = new C[,] {{GetC(out var y)}, {y}};
+    }
+
+    C GetC(out C x) { return (x = this); }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_09()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public int F1;
+
+    public void M()
+    {
+        M2(new[] {new(out var y) { F1 = y }, (C)null});
+    }
+
+    void M2(C[] c) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_10()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new[] {new() {F1 = GetInt(out var x)}, (C)null}, x);
+        M2(new[] {new() {F1 = GetInt(out var y), F2 = y}, (C)null}, 2);
+    }
+
+    void M2(C[] c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+
+    C(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_11()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int F1;
+    public int F2;
+
+    public void M()
+    {
+#line 13
+        M2(new[] {new() {F1 = GetInt(out var z)}, new C(z)}, 3);
+    }
+
+    void M2(C[] c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+
+    C(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,57): error CS8196: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                //         M2(new[] {new() {F1 = GetInt(out var z)}, new C(z)}, 3);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(13, 57)
+                );
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_12()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public int this[int x] { get => 0; set{} }
+
+    public void M()
+    {
+        M2(new[] {new(out var y) { [y] = 1 }, (C)null});
+    }
+
+    void M2(C[] c) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_13()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<int>
+{
+    public C(out int x) { x = 0; }
+
+    public IEnumerator<int> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void Add(int x) {}
+
+    public void M()
+    {
+        M2(new[] {new(out var y) { y }, (C)null});
+    }
+
+    void M2(C[] c) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_14()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<int>
+{
+    public C() {}
+
+    public IEnumerator<int> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void Add(int x) {}
+
+    public void M()
+    {
+        M2(new[] {new() {GetInt(out var x)}, (C)null}, x);
+        M2(new[] {new() {GetInt(out var y), y}, (C)null}, 2);
+    }
+
+    void M2(C[] c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+
+   C(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_15()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<int>
+{
+    public C() {}
+
+    public IEnumerator<int> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void Add(int x) {}
+
+    public void M()
+    {
+#line 25
+        M2(new[] {new() {GetInt(out var z)}, new C(z)}, 3);
+    }
+
+    void M2(C[] c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+
+   C(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (25,52): error CS8196: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                //         M2(new[] {new() {GetInt(out var z)}, new C(z)}, 3);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(25, 52)
+                );
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_16()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public C[] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = new[] {new(out var x), new C()}}, x);
+    }
+
+    void M2(C c, int x) { }
+
+    C(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,58): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new() {F1 = new[] {new(out var x), new C()}}, x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(12, 58)
+                );
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_17()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public C[] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = new[] {new(out var y), new C()}, F2 = y}, 2);
+    }
+
+    void M2(C c, int x) { }
+
+    C(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_18()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public C[] F1;
+    public int F2;
+
+    public void M()
+    {
+#line 14
+        M2(new() {F1 = new[] {new(out var z), new C(z)}}, 3);
+    }
+
+    void M2(C c, int x) { }
+
+    C(int x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (14,53): error CS8196: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                //         M2(new() {F1 = new[] {new(out var z), new C(z)}}, 3);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(14, 53)
+                );
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_19()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int[] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = new[] {GetInt(out var x)}}, x);
+    }
+
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,52): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new() {F1 = new[] {GetInt(out var x)}}, x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(11, 52)
+                );
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_20()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int[] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = new[] {GetInt(out var y), y}, F2 = y}, 2);
+    }
+
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_21()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M2(new[] {new(out var y), new C(out _)}, y);
+        M2(new[] {GetC(out var z), new C(out _)}, z);
+    }
+
+    void M2(C[] c, int x) { }
+    
+    C GetC(out int x) { x = 0; return this;}
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M2({new(out var y), new C(out _)}, y);
+    }
+
+    void M2(C[] c, int x) { }
+}
+";
+            var comp2 = CreateCompilation(source2);
+            comp2.VerifyDiagnostics(
+                // (8,9): error CS7036: There is no argument given that corresponds to the required parameter 'c' of 'C.M2(C[], int)'
+                //         M2({new(out var y), new C(out _)}, y);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("c", "C.M2(C[], int)").WithLocation(8, 9),
+                // (8,12): error CS1026: ) expected
+                //         M2({new(out var y), new C(out _)}, y);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(8, 12),
+                // (8,12): error CS1002: ; expected
+                //         M2({new(out var y), new C(out _)}, y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(8, 12),
+                // (8,13): error CS8754: There is no target type for 'new()'
+                //         M2({new(out var y), new C(out _)}, y);
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var y)").WithArguments("new()").WithLocation(8, 13),
+                // (8,27): error CS1002: ; expected
+                //         M2({new(out var y), new C(out _)}, y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(8, 27),
+                // (8,27): error CS1513: } expected
+                //         M2({new(out var y), new C(out _)}, y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(8, 27),
+                // (8,41): error CS1002: ; expected
+                //         M2({new(out var y), new C(out _)}, y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(8, 41),
+                // (8,42): error CS1513: } expected
+                //         M2({new(out var y), new C(out _)}, y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(8, 42),
+                // (8,44): error CS0103: The name 'y' does not exist in the current context
+                //         M2({new(out var y), new C(out _)}, y);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(8, 44),
+                // (8,45): error CS1002: ; expected
+                //         M2({new(out var y), new C(out _)}, y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(8, 45),
+                // (8,45): error CS1513: } expected
+                //         M2({new(out var y), new C(out _)}, y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 45)
+                );
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_22()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C(C[] x) {}
+    public C(C[] x, int y) {}
+    public C(int x) {}
+
+    public void M0()
+    {
+        M2(new(new[] {new(out var x), new C(x)}), 1);
+    }
+
+    void M2(C c, int x) { }
+    
+    C GetC(out int x) { x = 0; return this;}
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (11,45): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new(new[] {new(out var x), new C(x)}), 1);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(11, 45)
+                );
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_23()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C(C[] x) {}
+    public C(C[] x, int y) {}
+    public C(int x) {}
+
+    public void M0()
+    {
+        M2(new(new[] {new(out var y), new C(out _)}), y);
+        M2(new(new[] {new(out var z), new C(out _)}, z), 3);
+    }
+
+    public void M1()
+    {
+        M2(new(new[] {GetC(out var x), new C(x)}), 1);
+        M2(new(new[] {GetC(out var y), new C(out _)}), y);
+        M2(new(new[] {GetC(out var z), new C(out _)}, z), 3);
+    }
+
+    void M2(C c, int x) { }
+    
+    C GetC(out int x) { x = 0; return this;}
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_ArrayInitializer_24()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M2(new C[,] {new(out var y)}, y);
+    }
+
+    void M2(C[,] c, int x) { }
+    
+    C GetC(out int x) { x = 0; return this;}
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (8,22): error CS0846: A nested array initializer is expected
+                //         M2(new C[,] {new(out var y)}, y);
+                Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "new(out var y)").WithLocation(8, 22)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_01()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        var a = [new(out var x), x];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,17): error CS9176: There is no target type for the collection expression.
+                //         var a = [new(out var x), x];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[new(out var x), x]").WithLocation(8, 17),
+                // (8,34): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         var a = [new(out var x), x];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 34)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_02()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        C[] a = [new(out var x), x];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,34): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         C[] a = [new(out var x), x];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 34)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_03()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<int>
+{
+    public C(out int x) { x = 0; }
+
+    public IEnumerator<int> GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void M()
+    {
+        C[] a = [.. new(out var x), x];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (21,21): error CS8754: There is no target type for 'new()'
+                //         C[] a = [.. new(out var x), x];
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(21, 21)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_04()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        C[] a = [.. [new(out var x)], x];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,21): error CS9176: There is no target type for the collection expression.
+                //         C[] a = [.. [new(out var x)], x];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[new(out var x)]").WithLocation(8, 21)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_05()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        C[] a = [.. new[] {new(out var x), (C)null}, x];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_06()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        C[] a = [.. [new(out var x), x], null];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,21): error CS9176: There is no target type for the collection expression.
+                //         C[] a = [.. [new(out var x), x], null];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[new(out var x), x]").WithLocation(8, 21),
+                // (8,38): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         C[] a = [.. [new(out var x), x], null];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 38)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_07()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        C[] a = [.. new[] {new(out var x), x}, null];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,44): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         C[] a = [.. new[] {new(out var x), x}, null];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 44)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_08()
+        {
+            var source = @"
+public class C
+{
+    public C(out C[] x) { x = [this]; }
+
+    public void M()
+    {
+        C[][] a = [[new(out var x)], x];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,38): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         C[][] a = [[new(out var x)], x];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 38)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_09()
+        {
+            var source = @"
+public class C
+{
+    public C(out C[] x) { x = [this]; }
+
+    public void M()
+    {
+        C[][] a = [new[] {new(out var x), (C)null}, x];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_10()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        C[][] a = [[new(out var x), x], null];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,37): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         C[][] a = [[new(out var x), x], null];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 37)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_11()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        C[][] a = [new[] {new(out var x), (C)null, x}, null];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,52): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         C[][] a = [new[] {new(out var x), (C)null, x}, null];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 52)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_12()
+        {
+            var source = @"
+public class C
+{
+    public C(out C[] x) { x = [this]; }
+
+    public void M()
+    {
+        C[][] a = [..[[new(out var x)], x]];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,22): error CS9176: There is no target type for the collection expression.
+                //         C[][] a = [..[[new(out var x)], x]];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[[new(out var x)], x]").WithLocation(8, 22),
+                // (8,41): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         C[][] a = [..[[new(out var x)], x]];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 41)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_13()
+        {
+            var source = @"
+public class C
+{
+    public C(out C[] x) { x = [this]; }
+
+    public void M()
+    {
+        C[][] a = [..[[new(out var x)]], x];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,22): error CS9176: There is no target type for the collection expression.
+                //         C[][] a = [..[[new(out var x)]], x];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[[new(out var x)]]").WithLocation(8, 22)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_14()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        var a = new C[][] {[new(out var x)], [x]};
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,47): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         var a = new C[][] {[new(out var x)], [x]};
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 47)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_15()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public C[] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = [new(out var x), new C()]}, x);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,52): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new() {F1 = [new(out var x), new C()]}, x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(12, 52)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_16()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public C[] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = [new(out var y), new C()], F2 = y}, 2);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_17()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int[] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = [GetInt(out var x)]}, x);
+    }
+
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,46): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new() {F1 = [GetInt(out var x)]}, x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(11, 46)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_18()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int[] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = [GetInt(out var y), y], F2 = y}, 2);
+    }
+
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_19()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M2([new(out var y), new C(out _)], y);
+    }
+
+    void M2(C[] c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,44): error CS8196: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                //         M2([new(out var y), new C(out _)], y);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(8, 44)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_20()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public C[][] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = [[new(out var x), new C()]]}, x);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,54): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new() {F1 = [[new(out var x), new C()]]}, x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(12, 54)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_21()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public C[][] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = [[new(out var y), new C()]], F2 = y}, 2);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_22()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int[][] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = [[GetInt(out var x)]]}, x);
+    }
+
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,48): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new() {F1 = [[GetInt(out var x)]]}, x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(11, 48)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_23()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int[][] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = [[GetInt(out var y), y]], F2 = y}, 2);
+    }
+
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_24()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M2([[new(out var y), new C(out _)]], y);
+    }
+
+    void M2(C[][] c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,46): error CS8196: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                //         M2([[new(out var y), new C(out _)]], y);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(8, 46)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_25()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public C[] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = [.. [new(out var x), new C()]]}, x);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,28): error CS9176: There is no target type for the collection expression.
+                //         M2(new() {F1 = [.. [new(out var x), new C()]]}, x);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[new(out var x), new C()]").WithLocation(12, 28),
+                // (12,57): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new() {F1 = [.. [new(out var x), new C()]]}, x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(12, 57)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_26()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+    public C(out int x) { x = 0; }
+
+    public C[] F1;
+    public int F2;
+
+    public void M()
+    {
+#line 13
+        M2(new() {F1 = [.. [new(out var y), new C()]], F2 = y}, 2);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,28): error CS9176: There is no target type for the collection expression.
+                //         M2(new() {F1 = [.. [new(out var y), new C()]], F2 = y}, 2);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[new(out var y), new C()]").WithLocation(13, 28)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_27()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int[] F1;
+    public int F2;
+
+    public void M()
+    {
+        M2(new() {F1 = [.. [GetInt(out var x)]]}, x);
+    }
+
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,28): error CS9176: There is no target type for the collection expression.
+                //         M2(new() {F1 = [.. [GetInt(out var x)]]}, x);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[GetInt(out var x)]").WithLocation(11, 28),
+                // (11,51): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new() {F1 = [.. [GetInt(out var x)]]}, x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(11, 51)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_28()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int[] F1;
+    public int F2;
+
+    public void M()
+    {
+#line 12
+        M2(new() {F1 = [.. [GetInt(out var y), y]], F2 = y}, 2);
+    }
+
+    void M2(C c, int x) { }
+
+    static int GetInt(out int x)
+    {
+        x = 0;
+        return 0;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,28): error CS9176: There is no target type for the collection expression.
+                //         M2(new() {F1 = [.. [GetInt(out var y), y]], F2 = y}, 2);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[GetInt(out var y), y]").WithLocation(12, 28)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_29()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M2([.. [new(out var y), new C(out _)]], y);
+    }
+
+    void M2(C[] c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS9176: There is no target type for the collection expression.
+                //         M2([.. [new(out var y), new C(out _)]], y);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[new(out var y), new C(out _)]").WithLocation(8, 16)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_30()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M2([new(out var y)], y);
+    }
+
+    void M2(C[] c, int x) { }
+    
+    C GetC(out int x) { x = 0; return this;}
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (8,30): error CS8196: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                //         M2([new(out var y)], y);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(8, 30)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_31()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C(C[] x) {}
+    public C(C[] x, int y) {}
+    public C(int x) {}
+
+    public void M0()
+    {
+        M2(new([new(out var x), new C(x)]), 1);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (11,39): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new([new(out var x), new C(x)]), 1);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(11, 39)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_32()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C(C[] x) {}
+    public C(C[] x, int y) {}
+    public C(int x) {}
+
+    public void M0()
+    {
+#line 12
+        M2(new([new(out var y), new C(out _)]), y);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (12,49): error CS8196: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                //         M2(new([new(out var y), new C(out _)]), y);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(12, 49)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_33()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C(C[] x) {}
+    public C(C[] x, int y) {}
+    public C(int x) {}
+
+    public void M0()
+    {
+#line 13
+        M2(new([new(out var z), new C(out _)], z), 3);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (13,48): error CS8196: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                //         M2(new([new(out var z), new C(out _)], z), 3);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(13, 48)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CollectionExpression_34()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C(C[] x) {}
+    public C(C[] x, int y) {}
+    public C(int x) {}
+
+    public void M1()
+    {
+        M2(new([GetC(out var x), new C(x)]), 1);
+        M2(new([GetC(out var y), new C(out _)]), y);
+        M2(new([GetC(out var z), new C(out _)], z), 3);
+    }
+
+    void M2(C c, int x) { }
+    
+    C GetC(out int x) { x = 0; return this;}
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_Tuples_01()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        var a = (new(out var x), x);
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,18): error CS8754: There is no target type for 'new()'
+                //         var a = (new(out var x), x);
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(8, 18),
+                // (8,34): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         var a = (new(out var x), x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 34)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_02()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        (C, int) a = (new(out var x), x);
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,39): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         (C, int) a = (new(out var x), x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 39)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_03()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        ((C, int), int) a = ((new(out var x), 1), x);
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,51): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         ((C, int), int) a = ((new(out var x), 1), x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 51)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_04()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M2((new(out var y), new C(out _)), y);
+    }
+
+    void M2((C, C) c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,44): error CS8196: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                //         M2((new(out var y), new C(out _)), y);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(8, 44)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_05()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M2([(new(out var y), new C(out _))], y);
+    }
+
+    void M2((C, C)[] c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,46): error CS8196: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                //         M2([(new(out var y), new C(out _))], y);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(8, 46)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_06()
+        {
+            var source = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+
+    public void M()
+    {
+        M2(((new(out var y), 1), 2), y);
+    }
+
+    void M2(((C, int), int) c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,38): error CS8196: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                //         M2(((new(out var y), 1), 2), y);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(8, 38)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_07()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C((C, int) x, int y) {}
+
+    public void M0()
+    {
+        M2(new((new(out var x), x), 1), 1);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (9,16): error CS1503: Argument 1: cannot convert from '(new(), var)' to '(C, int)'
+                //         M2(new((new(out var x), x), 1), 1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "(new(out var x), x)").WithArguments("1", "(new(), var)", "(C, int)").WithLocation(9, 16),
+                // (9,33): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new((new(out var x), x), 1), 1);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(9, 33)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_08()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C((C, int) x, int y) {}
+
+    public void M0()
+    {
+#line 10
+        M2(new((new(out var y), 2), 2), y);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (10,41): error CS8196: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                //         M2(new((new(out var y), 2), 2), y);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(10, 41)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_09()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C((C, int) x, int y) {}
+
+    public void M0()
+    {
+#line 11
+        M2(new((new(out var z), 3), z), 3);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (11,37): error CS8196: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                //         M2(new((new(out var z), 3), z), 3);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(11, 37)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_10()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C((C, int) x, int y) {}
+
+    public void M1()
+    {
+        M2(new((GetC(out var x), x), 1), 1);
+        M2(new((GetC(out var y), 2), 2), y);
+        M2(new((GetC(out var z), 3), z), 3);
+    }
+
+    void M2(C c, int x) { }
+    
+    C GetC(out int x) { x = 0; return this;}
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_Tuples_11()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C((C, int)[] x, int y) {}
+    public C(int x) {}
+
+    public void M0()
+    {
+        M2(new([(new(out var x), x)], 1), 1);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (10,34): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new([(new(out var x), x)], 1), 1);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(10, 34)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_12()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C((C, int)[] x, int y) {}
+    public C(int x) {}
+
+    public void M0()
+    {
+#line 11
+        M2(new([(new(out var y), 2)], 2), y);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (11,43): error CS8196: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                //         M2(new([(new(out var y), 2)], 2), y);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(11, 43)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_13()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C((C, int)[] x, int y) {}
+    public C(int x) {}
+
+    public void M0()
+    {
+#line 12
+        M2(new([(new(out var z), 3)], z), 3);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (12,39): error CS8196: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                //         M2(new([(new(out var z), 3)], z), 3);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(12, 39)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_14()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C((C, int)[] x, int y) {}
+    public C(int x) {}
+
+    public void M0()
+    {
+#line 13
+        M2(new([(new(out var u), 4), (new C(u), 4)], 4), 4);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (13,45): error CS8196: Reference to an implicitly-typed variable 'u' is not permitted in this location.
+                //         M2(new([(new(out var u), 4), (new C(u), 4)], 4), 4);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "u").WithArguments("u").WithLocation(13, 45)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_15()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C((C, int)[] x, int y) {}
+    public C(int x) {}
+
+    public void M1()
+    {
+        M2(new([(GetC(out var x), x)], 1), 1);
+        M2(new([(GetC(out var y), 2)], 2), y);
+        M2(new([(GetC(out var z), 3)], z), 3);
+        M2(new([(GetC(out var u), 4), (new C(u), 4)], 4), 4);
+    }
+
+    void M2(C c, int x) { }
+    
+    C GetC(out int x) { x = 0; return this;}
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_Tuples_16()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C((C[], int) x, int y) {}
+
+    public void M0()
+    {
+        M2(new(([new(out var x)], x), 1), 1);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (9,16): error CS1503: Argument 1: cannot convert from '(collection expression, var)' to '(C[], int)'
+                //         M2(new(([new(out var x)], x), 1), 1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "([new(out var x)], x)").WithArguments("1", "(collection expression, var)", "(C[], int)").WithLocation(9, 16),
+                // (9,35): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new(([new(out var x)], x), 1), 1);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(9, 35)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_17()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C((C[], int) x, int y) {}
+
+    public void M0()
+    {
+#line 10
+        M2(new(([new(out var y)], 2), 2), y);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (10,43): error CS8196: Reference to an implicitly-typed variable 'y' is not permitted in this location.
+                //         M2(new(([new(out var y)], 2), 2), y);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y").WithArguments("y").WithLocation(10, 43)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_18()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C((C[], int) x, int y) {}
+
+    public void M0()
+    {
+#line 11
+        M2(new(([new(out var z)], 3), z), 3);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (11,39): error CS8196: Reference to an implicitly-typed variable 'z' is not permitted in this location.
+                //         M2(new(([new(out var z)], 3), z), 3);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "z").WithArguments("z").WithLocation(11, 39)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Tuples_19()
+        {
+            var source1 = @"
+public class C
+{
+    public C(out int x) { x = 0; }
+    public C((C[], int) x, int y) {}
+
+    public void M1()
+    {
+        M2(new(([GetC(out var x)], x), 1), 1);
+        M2(new(([GetC(out var y)], 2), 2), y);
+        M2(new(([GetC(out var z)], 3), z), 3);
+    }
+
+    void M2(C c, int x) { }
+    
+    C GetC(out int x) { x = 0; return this;}
+}
+";
+            var comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutVar_Conditional_01()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M(bool b)
+    {
+        var a = b ? new(out var x) : x;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,38): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         var a = b ? new(out var x) : x;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 38)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Conditional_02()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M(bool b)
+    {
+        C a = b ? new(out var x) : x;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,36): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         C a = b ? new(out var x) : x;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 36)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Conditional_03()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+    public C() {}
+
+    public void M(bool b)
+    {
+        M1(b ? new(out var x) : x);
+    }
+
+    void M1(C x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,33): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M1(b ? new(out var x) : x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(9, 33)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Conditional_04()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+    public C() {}
+
+    public void M(bool b)
+    {
+#line 10
+        M2(b ? new(out var y) : new C(), y);
+    }
+
+    void M2(C x, C y) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,42): error CS0165: Use of unassigned local variable 'y'
+                //         M2(b ? new(out var y) : new C(), y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(10, 42)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Conditional_05()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+    public C() {}
+
+    public (C, C) M(bool b)
+    {
+        (C, C) a = (b ? new(out var x) : new C(), x);
+        return a;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,51): error CS0165: Use of unassigned local variable 'x'
+                //         (C, C) a = (b ? new(out var x) : new C(), x);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(9, 51)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Conditional_06()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+    public C() {}
+
+    public void M(bool b)
+    {
+        C[] a = [b ? new(out var x) : new C(), x];
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,48): error CS0165: Use of unassigned local variable 'x'
+                //         C[] a = [b ? new(out var x) : new C(), x];
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(9, 48)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Coalesce_01()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        var a = new(out var x) ?? x;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,17): error CS8754: There is no target type for 'new()'
+                //         var a = new(out var x) ?? x;
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Coalesce_02()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        C a = new(out var x) ?? x;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,15): error CS8754: There is no target type for 'new()'
+                //         C a = new(out var x) ?? x;
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(8, 15)
+                );
+        }
+
+        [Fact]
+        public void OutVar_CoalesceAssignment_01()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        new(out var x) ??= x;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         new(out var x) ??= x;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new(out var x)").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void OutVar_Assignment_01()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        new(out var x) = x;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         new(out var x) = x;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new(out var x)").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void OutVar_SwitchExpression_01()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M(bool b)
+    {
+        var a = b switch { true => new(out var x), false => x };
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,61): error CS0103: The name 'x' does not exist in the current context
+                //         var a = b switch { true => new(out var x), false => x };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(8, 61)
+                );
+        }
+
+        [Fact]
+        public void OutVar_SwitchExpression_02()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M(bool b)
+    {
+        C a = b switch { true => new(out var x), false => x };
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,59): error CS0103: The name 'x' does not exist in the current context
+                //         C a = b switch { true => new(out var x), false => x };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(8, 59)
+                );
+        }
+
+        [Fact]
+        public void OutVar_SwitchExpression_03()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+    public C() {}
+
+    public void M(bool b)
+    {
+        M1(b switch { true => new(out var x), false => x });
+    }
+
+    void M1(C x) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,56): error CS0103: The name 'x' does not exist in the current context
+                //         M1(b switch { true => new(out var x), false => x });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(9, 56)
+                );
+        }
+
+        [Fact]
+        public void OutVar_SwitchExpression_04()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+    public C() {}
+
+    public void M(bool b)
+    {
+        M2(b switch { true => new(out var y), false => new C() }, y);
+    }
+
+    void M2(C x, C y) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,67): error CS0103: The name 'y' does not exist in the current context
+                //         M2(b switch { true => new(out var y), false => new C() }, y);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(9, 67)
+                );
+        }
+
+        [Fact]
+        public void OutVar_BinaryExpression_01()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+
+    public void M()
+    {
+        _ = new(out var x) + x;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,30): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         _ = new(out var x) + x;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(8, 30)
+                );
+        }
+
+        [Fact]
+        public void OutVar_BinaryExpression_02()
+        {
+            var source = @"
+public class C
+{
+    public C(out C x) { x = this; }
+    public C() {}
+
+    public static C operator +(C c1, C c2) => c1;
+
+    public void M()
+    {
+         M1(new(out var x) + new C(), x);
+    }
+
+    void M1(C x, C y) {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS8310: Operator '+' cannot be applied to operand 'new()'
+                //          M1(new(out var x) + new C(), x);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new(out var x) + new C()").WithArguments("+", "new()").WithLocation(11, 13)
+                );
+        }
+
+        [Fact]
+        public void OutVar_UsedInIndex_01()
+        {
+            var text = """
+                
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    public C this[C c] => c;
+
+                    public C M()
+                        => new(out var x)[x];
+                }
+                """;
+            CreateCompilation(text).VerifyDiagnostics(
+                // (9,12): error CS8754: There is no target type for 'new()'
+                //         => new(out var x)[x];
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(9, 12),
+                // (9,27): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         => new(out var x)[x];
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(9, 27)
+                );
+        }
+
+        [Fact]
+        public void OutVar_UsedInConditionalIndex_01()
+        {
+            var text = """
+                
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    public C this[C c] => c;
+
+                    public C M()
+                        => new(out var x)?[x];
+                }
+                """;
+            CreateCompilation(text).VerifyDiagnostics(
+                // (9,12): error CS8754: There is no target type for 'new()'
+                //         => new(out var x)?[x];
+                Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new(out var x)").WithArguments("new()").WithLocation(9, 12)
+                );
+        }
+
+        [Fact]
+        public void OurVar_UsedInDirectInvocation_01()
+        {
+            var text = """
+                
+                public class C
+                {
+                    public C(out C c) { c = null; }
+
+                    public C M()
+                        => new(out var x)(x);
+                }
+                """;
+            CreateCompilation(text).VerifyDiagnostics(
+                // (7,12): error CS0149: Method name expected
+                //         => new(out var x)(x);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "new(out var x)").WithLocation(7, 12),
+                // (7,27): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         => new(out var x)(x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(7, 27)
+                );
+        }
+
+        [Fact]
+        public void PatternVar_01()
+        {
+            var source = @"
+public class C
+{
+    public C(bool x) {}
+
+    public void M(int a)
+    {
+        M2(new(a is var x), x);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PatternVar_02()
+        {
+            var source = @"
+public class C
+{
+    public C(bool x) {}
+
+    public void M(int a)
+    {
+        M2(new(GetBool(a is var x)), x);
+    }
+
+    void M2(C c, int x) { }
+    bool GetBool(bool x) => x;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PatternVar_03()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int this[int x] { get => 0; set{} }
+
+    public void M(int a)
+    {
+        M2(new() {[a is var x ? 0 : 1] = 1}, x);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,46): error CS8196: Reference to an implicitly-typed variable 'x' is not permitted in this location.
+                //         M2(new() {[a is var x ? 0 : 1] = 1}, x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x").WithArguments("x").WithLocation(10, 46)
+                );
+        }
+
+        [Fact]
+        public void PatternVar_04()
+        {
+            var source = @"
+public class C
+{
+    public C() {}
+
+    public int this[int x] { get => 0; set{} }
+
+    public void M(int a)
+    {
+        M2(new() {[a is var y ? 0 : 1] = 2, [3] = y}, 2);
+    }
+
+    void M2(C c, int x) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
     }
 }

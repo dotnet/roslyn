@@ -166,18 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        [return: NotNullIfNotNull(nameof(symbol))]
-        public override FieldSymbol? VisitFieldSymbol(FieldSymbol? symbol)
-        {
-            if (symbol is null)
-            {
-                return null;
-            }
-
-            return symbol.OriginalDefinition
-                .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(symbol.ContainingType).AsTypeSymbolOnly());
-        }
-
         public override BoundNode? VisitCall(BoundCall node)
         {
             return ExtensionMethodReferenceRewriter.VisitCall(this, node);
@@ -196,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: NotNullIfNotNull(nameof(symbol))]
         public override PropertySymbol? VisitPropertySymbol(PropertySymbol? symbol)
         {
-            Debug.Assert(symbol?.GetIsNewExtensionMember() != true);
+            Debug.Assert(symbol?.IsExtensionBlockMember() != true);
             return base.VisitPropertySymbol(symbol);
         }
 

@@ -47,7 +47,7 @@ internal sealed partial class SolutionCompilationState
         ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration);
 
         /// <summary>
-        /// Updates the creation policy for this tracker.  Setting it to <see cref="CreationPolicy.DoNotCreate"/>.
+        /// Updates the creation policy for this tracker. Setting it to <see cref="CreationPolicy.DoNotCreate"/>.
         /// </summary>
         ICompilationTracker WithDoNotCreateCreationPolicy();
 

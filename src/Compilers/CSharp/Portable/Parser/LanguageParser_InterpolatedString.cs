@@ -58,12 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             interpolations.Free();
             if (error != null)
-            {
-                // Errors are positioned relative to the start of the token that was lexed.  Specifically relative to
-                // the starting `$` or `@`.  However, when placed on a node like this, it will be relative to the node's
-                // full start.  So we have to adjust the diagnostics taking that into account.
-                result = result.WithDiagnosticsGreen(MoveDiagnostics(new[] { error }, originalToken.GetLeadingTrivia()?.FullWidth ?? 0));
-            }
+                result = result.WithDiagnosticsGreen([error]);
 
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
             return result;
@@ -109,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         originalTextSpan[currentContentStart..interpolation.OpenBraceRange.Start]));
 
                     // Now parse the interpolation itself.
-                    var interpolationNode = ParseInterpolation(this.Options, originalText, interpolation, kind, IsInFieldKeywordContext);
+                    var interpolationNode = ParseInterpolation(this.Options, originalText, interpolation, kind, IsInFieldKeywordContext, IsInAsync);
 
                     // Make sure the interpolation starts at the right location.
                     var indentationError = getInterpolationIndentationError(indentationWhitespace, interpolation);
@@ -362,7 +357,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             string text,
             Lexer.Interpolation interpolation,
             Lexer.InterpolatedStringKind kind,
-            bool isInFieldKeywordContext)
+            bool isInFieldKeywordContext,
+            bool isInAsync)
         {
             // Grab the text from after the { all the way to the start of the } (or the start of the : if present). This
             // will be used to parse out the expression of the interpolation.
@@ -378,7 +374,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Now create a parser to actually handle the expression portion of the interpolation
             using var tempParser = new LanguageParser(tempLexer, oldTree: null, changes: null);
-            using var _ = new FieldKeywordContext(tempParser, isInFieldKeywordContext);
+            using var _1 = new FieldKeywordContext(tempParser, isInFieldKeywordContext);
+            using var _2 = new AsyncContext(tempParser, isInAsync);
 
             var result = tempParser.ParseInterpolation(
                 text, interpolation, kind,

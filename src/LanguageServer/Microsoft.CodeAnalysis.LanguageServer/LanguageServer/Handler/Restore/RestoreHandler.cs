@@ -53,7 +53,7 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFac
         }
         else
         {
-            _logger.LogError($"Restore completed with errors. See '.NET NuGet Restore' output window for more details.");
+            _logger.LogError($"Restore completed with errors.");
         }
 
         return progress.GetValues() ?? [];

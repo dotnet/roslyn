@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class NoOpLspLogger : AbstractLspLogger, ILspService
 {
-    public static readonly NoOpLspLogger Instance = new NoOpLspLogger();
+    public static readonly NoOpLspLogger Instance = new();
 
     private NoOpLspLogger() { }
 

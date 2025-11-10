@@ -173,7 +173,6 @@ internal interface ISyntaxFacts
     bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node);
     bool IsGlobalModuleAttribute([NotNullWhen(true)] SyntaxNode? node);
     bool IsDeclaration([NotNullWhen(true)] SyntaxNode? node);
-    bool IsTypeDeclaration(SyntaxNode node);
 
     bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node);
 
@@ -332,6 +331,7 @@ internal interface ISyntaxFacts
 
     bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node);
     bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? initializedInstance);
+    bool IsAnonymousObjectMemberDeclaratorNameIdentifier([NotNullWhen(true)] SyntaxNode? node);
     bool IsAnyInitializerExpression([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? creationExpression);
 
     bool IsDirective([NotNullWhen(true)] SyntaxNode? node);
@@ -365,6 +365,8 @@ internal interface ISyntaxFacts
 
     bool IsThisConstructorInitializer(SyntaxToken token);
     bool IsBaseConstructorInitializer(SyntaxToken token);
+    bool HasImplicitBaseConstructorInitializer(SyntaxNode constructorDeclaration);
+
     bool IsQueryKeyword(SyntaxToken token);
     bool IsElementAccessExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsIdentifierStartCharacter(char c);
@@ -418,6 +420,8 @@ internal interface ISyntaxFacts
     // Violation.  This is a feature level API.
     void AddMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> result);
 
+    SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode typeDeclaration);
+    SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode typeDeclaration);
     SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
 
     // Violation.  This is a feature level API.
@@ -439,9 +443,6 @@ internal interface ISyntaxFacts
     /// </summary>
     // Violation.  This is a feature level API.
     SyntaxNode? TryGetBindableParent(SyntaxToken token);
-
-    // Violation.  This is a feature level API.
-    IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken);
 
     /// <summary>
     /// Given a <see cref="SyntaxNode"/>, that represents and argument return the string representation of
@@ -498,6 +499,7 @@ internal interface ISyntaxFacts
 
     bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsBaseNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node);
+    bool IsTypeDeclaration(SyntaxNode node);
     bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);

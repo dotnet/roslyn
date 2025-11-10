@@ -235,16 +235,14 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 {
                     var codeAction = new TopLevelSuppressionCodeAction(
                         diagnostic, nestedActions.ToImmutableAndClear());
-                    result.Add(new CodeFix(project, codeAction, diagnostic));
+                    result.Add(new CodeFix(codeAction, [diagnostic]));
                 }
             }
             else if (!skipUnsuppress)
             {
                 var codeAction = await RemoveSuppressionCodeAction.CreateAsync(suppressionTargetInfo, documentOpt, project, diagnostic, this, cancellationToken).ConfigureAwait(false);
                 if (codeAction != null)
-                {
-                    result.Add(new CodeFix(project, codeAction, diagnostic));
-                }
+                    result.Add(new CodeFix(codeAction, [diagnostic]));
             }
         }
 

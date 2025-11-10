@@ -214,7 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
             {
                 Visit(node.IterationVariableType);
-                Visit(node.AwaitOpt);
                 if (node.EnumeratorInfoOpt != null)
                 {
                     VisitForEachEnumeratorInfo(node.EnumeratorInfoOpt);
@@ -228,6 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void VisitForEachEnumeratorInfo(ForEachEnumeratorInfo enumeratorInfo)
             {
+                Visit(enumeratorInfo.MoveNextAwaitableInfo);
                 Visit(enumeratorInfo.DisposeAwaitableInfo);
                 if (enumeratorInfo.GetEnumeratorInfo.Method.IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/78828: Test this code path with new extensions
                 {
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
             {
                 if (node.LeftConversion is BoundConversion leftConversion &&
-                    !(node.Operator.Method is { IsStatic: false } method && method.GetIsNewExtensionMember()))
+                    !(node.Operator.Method is { IsStatic: false } method && method.IsExtensionBlockMember()))
                 {
                     VerifyExpression(leftConversion);
                 }

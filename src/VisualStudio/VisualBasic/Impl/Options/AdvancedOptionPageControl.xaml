@@ -172,6 +172,10 @@
                 <StackPanel>
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleApostrophes"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
+                    <CheckBox x:Name="GenerateXmlDocCommentsOnSingleLine"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsOnSingleLine}" />
+                    <CheckBox x:Name="GenerateOnlySummaryTag"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateOnlySummaryTag}" />
                     <CheckBox x:Name="InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments}" />
                 </StackPanel>
@@ -230,16 +234,6 @@
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_JSON_strings}" />
                     <CheckBox x:Name="Highlight_related_JSON_components_under_cursor"
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
-                </StackPanel>
-            </GroupBox>
-            
-            <GroupBox x:Uid="EditorColorSchemeGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Editor_Color_Scheme}">
-                <StackPanel>
-                    <ComboBox x:Name="Editor_color_scheme" IsEditable="false">
-                        <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2019}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2019_Tag}" />
-                        <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2017}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2017_Tag}" />
-                    </ComboBox>
                 </StackPanel>
             </GroupBox>
 

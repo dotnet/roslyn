@@ -6197,5 +6197,46 @@ $"  ///  </summary>{Environment.NewLine}" +
                 }
                 """);
         }
+
+        [Fact]
+        public void TestNormalizeExtension_01()
+        {
+            TestNormalizeDeclaration("""
+static class E
+{
+extension < T > ( int i )  where   T   : struct
+{
+}
+}
+""", """
+static class E
+{
+  extension<T>(int i)
+    where T : struct
+  {
+  }
+}
+""");
+        }
+
+        [Fact]
+        public void TestNormalizeExtension_02()
+        {
+            TestNormalizeDeclaration("""
+static class E
+{
+extension ( int  )
+{
+}
+}
+""", """
+static class E
+{
+  extension(int)
+  {
+  }
+}
+""");
+        }
     }
 }

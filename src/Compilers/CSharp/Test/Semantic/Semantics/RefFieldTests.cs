@@ -18312,8 +18312,7 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net70);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("Program.Main",
-                source: source,
-                sequencePoints: "Program.Main",
+                sequencePointDisplay: SequencePointDisplayMode.Enhanced,
                 expectedIL:
 @"{
   // Code size       30 (0x1e)
@@ -30413,6 +30412,245 @@ Block[B2] - Exit
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(4, 28));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void ConstructorInitializer_03()
+        {
+            // Verify that a ref to local declared in a constructor initializer cannot escape into 'this'
+            var source = """
+                ref struct R
+                {
+                    R(int x, ref int y) { }
+                    public R() : this(M(out int x), ref x) // 1, 2
+                    {
+                    }
+
+                    public static int M(out int x) => x = 1;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,16): error CS8350: This combination of arguments to 'R.R(int, ref int)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //     public R() : this(M(out int x), ref x) // 1, 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, ": this(M(out int x), ref x)").WithArguments("R.R(int, ref int)", "y").WithLocation(4, 16),
+                // (4,41): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //     public R() : this(M(out int x), ref x) // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(4, 41));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void ConstructorInitializer_04()
+        {
+            // Verify that a local in a constructor initializer is assignable to a scoped ref struct parameter
+            var source = """
+                using System;
+
+                struct R
+                {
+                    R(int x, int y) { }
+                    public R(scoped Span<int> span) : this(M(out int x), (span = new Span<int>(ref x))[0])
+                    {
+                    }
+
+                    public static int M(out int x) => x = 1;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void ConstructorInitializer_05()
+        {
+            // Verify that a local in a constructor initializer is not assignable to a ref struct parameter
+            var source = """
+                using System;
+
+                struct R
+                {
+                    R(int x, int y) { }
+                    public R(Span<int> span) : this(M(out int x), (span = new Span<int>(ref x))[0])
+                    {
+                    }
+
+                    public static int M(out int x) => x = 1;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (6,59): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 'reference' outside of their declaration scope
+                //     public R(Span<int> span) : this(M(out int x), (span = new Span<int>(ref x))[0])
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref x)").WithArguments("System.Span<int>.Span(ref int)", "reference").WithLocation(6, 59),
+                // (6,77): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //     public R(Span<int> span) : this(M(out int x), (span = new Span<int>(ref x))[0])
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(6, 77));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void OutParamVsConstructor_01()
+        {
+            // Expect 'this' in a constructor to behave similarly to an 'out' parameter in an ordinary method with respect to ref safety.
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    private R(in int i) => _i = ref i; // ok
+
+                    void M1(out R r, in int i)
+                        => r = new R(in i); // ok
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void OutParamVsConstructor_02()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    private R(in int i) => _i = ref i;
+
+                    public R()
+                    {
+                        int i = 1;
+                        this = new R(in i); // 1, 2
+                    }
+
+                    void M1(out R r)
+                    {
+                        int i = 1;
+                        r = new R(in i); // 3, 4
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         this = new R(in i); // 1, 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(in i)").WithArguments("R.R(in int)", "i").WithLocation(9, 16),
+                // (9,25): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         this = new R(in i); // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(9, 25),
+                // (15,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         r = new R(in i); // 3, 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(in i)").WithArguments("R.R(in int)", "i").WithLocation(15, 13),
+                // (15,22): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         r = new R(in i); // 3, 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(15, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void OutParamVsConstructor_03()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    private R(in int i) => _i = ref i;
+
+                    public R()
+                    {
+                        this = new R(1); // 1, 2
+                    }
+
+                    void M1(out R r)
+                        => r = new R(1); // 3, 4
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         this = new R(1); // 1, 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(8, 16),
+                // (8,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         this = new R(1); // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(8, 22),
+                // (12,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         => r = new R(1); // 3, 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(12, 16),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         => r = new R(1); // 3, 4
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void OutParamVsConstructor_04()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    private R(in int i) => _i = ref i;
+
+                    public R()
+                    {
+                        int i = 1;
+                        M1(out this, in i); // 1, 2
+                    }
+
+                    void M1(out R r, in int i)
+                        => r = new R(in i); // ok
+
+                    void M2(out R r)
+                    {
+                        int i = 1;
+                        M1(out r, in i); // 3, 4
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS8350: This combination of arguments to 'R.M1(out R, in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         M1(out this, in i); // 1, 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M1(out this, in i)").WithArguments("R.M1(out R, in int)", "i").WithLocation(9, 9),
+                // (9,25): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         M1(out this, in i); // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(9, 25),
+                // (18,9): error CS8350: This combination of arguments to 'R.M1(out R, in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         M1(out r, in i); // 3, 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M1(out r, in i)").WithArguments("R.M1(out R, in int)", "i").WithLocation(18, 9),
+                // (18,22): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         M1(out r, in i); // 3, 4
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(18, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80745")]
+        public void OutParamVsConstructor_05()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    private R(in int i) => _i = ref i;
+
+                    void M1(out R r, in int i)
+                        => r = new R(in i);
+
+                    public R()
+                        => M1(out this, 1); // 1, 2
+
+                    void M2(out R r)
+                        => M1(out r, 1); // 3, 4
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (10,12): error CS8350: This combination of arguments to 'R.M1(out R, in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         => M1(out this, 1); // 1, 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M1(out this, 1)").WithArguments("R.M1(out R, in int)", "i").WithLocation(10, 12),
+                // (10,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         => M1(out this, 1); // 1, 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(10, 25),
+                // (13,12): error CS8350: This combination of arguments to 'R.M1(out R, in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         => M1(out r, 1); // 3, 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M1(out r, 1)").WithArguments("R.M1(out R, in int)", "i").WithLocation(13, 12),
+                // (13,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         => M1(out r, 1); // 3, 4
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(13, 22));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -31990,6 +32228,136 @@ Block[B2] - Exit
                 // (11,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         M(GetValue().F);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "GetValue().F").WithArguments("1", "ref").WithLocation(11, 11));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
+        public void Repro_80244_NetCoreApp()
+        {
+            var comp = CreateCompilation("""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                ref struct SpanReader
+                {
+                    long _spanEndStreamOffset;
+                    ReadOnlySpan<byte> _buffer;
+                    public SpanReader(ReadOnlySpan<byte> buffer, long spanStartStreamOffset)
+                    {
+                        _buffer = buffer;
+                        _spanEndStreamOffset = spanStartStreamOffset + buffer.Length;
+                    }
+
+                    public ref readonly T ReadRef<T>() where T : struct
+                    {
+                        if (_buffer.Length >= Unsafe.SizeOf<T>())
+                        {
+                            ref readonly T ret = ref MemoryMarshal.Cast<byte, T>(_buffer)[0];
+                            _buffer = _buffer.Slice(Unsafe.SizeOf<T>());
+                            return ref ret;
+                        }
+                        else
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp,
+                parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
+        [InlineData(LanguageVersion.CSharp8), InlineData(LanguageVersion.CSharp14)]
+        public void Repro_80244_NetStandard(LanguageVersion consumerLanguageVersion)
+        {
+            var spanCompilation = CreateCompilation(TestSources.Span, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular8);
+            var spanReference = spanCompilation.EmitToImageReference();
+            var source0 = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public static class Unsafe
+                    {
+                        public static int SizeOf<T>() => throw null!;
+                    }
+                }
+
+                namespace System.Runtime.InteropServices
+                {
+                    public static class MemoryMarshal
+                    {
+                        public static ReadOnlySpan<TTo> Cast<TFrom, TTo>(ReadOnlySpan<TFrom> span)
+                            where TFrom : struct
+                            => throw null!;
+                    }
+                }
+                """;
+            var source1 = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                ref struct SpanReader
+                {
+                    long _spanEndStreamOffset;
+                    ReadOnlySpan<byte> _buffer;
+                    public SpanReader(ReadOnlySpan<byte> buffer, long spanStartStreamOffset)
+                    {
+                        _buffer = buffer;
+                        _spanEndStreamOffset = spanStartStreamOffset + buffer.Length;
+                    }
+
+                    public ref readonly T ReadRef<T>() where T : struct
+                    {
+                        if (_buffer.Length >= Unsafe.SizeOf<T>())
+                        {
+                            ref readonly T ret = ref MemoryMarshal.Cast<byte, T>(_buffer)[0];
+                            _buffer = _buffer.Slice(Unsafe.SizeOf<T>());
+                            return ref ret;
+                        }
+                        else
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source0, source1],
+                references: [spanReference],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(consumerLanguageVersion),
+                targetFramework: TargetFramework.NetStandard20);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80244")]
+        public void Repro_80244_Simple()
+        {
+            var source0 = """
+                public ref struct RS
+                {
+                    public ref byte this[int i] => throw null!;
+                }
+                """;
+
+            var reference = CreateCompilation(source0, parseOptions: TestOptions.Regular8).EmitToImageReference();
+            var source1 = """
+                class Program
+                {
+                    static ref byte M1(RS rs)
+                    {
+                        ref byte ret = ref rs[1];
+                        return ref ret;
+                    }
+
+                    static ref byte M2(RS rs)
+                    {
+                        return ref rs[1];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source1, references: [reference], parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

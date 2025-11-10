@@ -99,7 +99,7 @@ internal sealed class SimpleFileChangeWatcher : IFileChangeWatcher
                 _context = context;
 
                 // We always must create a watch on an entire directory, so create that, filtered to the single file name
-                var directoryPath = Path.GetDirectoryName(filePath)!;
+                var directoryPath = Path.GetDirectoryName(filePath);
 
                 // TODO: support missing directories properly
                 if (Directory.Exists(directoryPath))

@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition;
 [Export(typeof(ICommandHandler))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [Name(PredefinedCommandHandlerNames.GoToDefinition)]
+[Order(Before = PredefinedCommandHandlerNames.LspGoToDefinition)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class GoToDefinitionCommandHandler(
@@ -130,7 +131,7 @@ internal sealed class GoToDefinitionCommandHandler(
             // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
             // causing ourselves to self-cancel.
             var disposable = await backgroundIndicator.SuppressAutoCancelAsync().ConfigureAwait(false);
-            await using var _ = disposable.ConfigureAwait(false);
+            await using var _2 = disposable.ConfigureAwait(false);
 
             succeeded = definitionLocation != null && await definitionLocation.Location.TryNavigateToAsync(
                 _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true),

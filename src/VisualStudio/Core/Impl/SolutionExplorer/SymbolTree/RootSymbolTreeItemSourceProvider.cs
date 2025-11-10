@@ -18,12 +18,13 @@ using Microsoft.CodeAnalysis.GoToBase;
 using Microsoft.CodeAnalysis.GoToImplementation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Internal.VisualStudio.PlatformUI;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.Utilities.UnifiedSettings;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
@@ -59,6 +60,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     private readonly IGoOrFindNavigationService _goToBaseNavigationService;
     private readonly IGoOrFindNavigationService _goToImplementationNavigationService;
     private readonly IGoOrFindNavigationService _findReferencesNavigationService;
+    private readonly SVsServiceProvider _serviceProvider;
 
     public readonly SolutionExplorerNavigationSupport NavigationSupport;
     public readonly IThreadingContext ThreadingContext;
@@ -66,9 +68,12 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
 
     public readonly IContextMenuController ContextMenuController;
 
+    private bool? _isEnabled;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public RootSymbolTreeItemSourceProvider(
+        SVsServiceProvider serviceProvider,
         IThreadingContext threadingContext,
         VisualStudioWorkspace workspace,
         GoToBaseNavigationService goToBaseNavigationService,
@@ -76,6 +81,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         FindReferencesNavigationService findReferencesNavigationService,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
+        _serviceProvider = serviceProvider;
         ThreadingContext = threadingContext;
         _workspace = workspace;
         _goToBaseNavigationService = goToBaseNavigationService;
@@ -92,11 +98,17 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             this.Listener,
             this.ThreadingContext.DisposalToken);
 
+        // Register for workspace changes so that if any documents change, we can update the symbol tree *as long as it
+        // has been expanded at least once* to reflect the new state of the document.
         this._workspace.RegisterWorkspaceChangedHandler(
             e =>
             {
                 var oldPath = e.OldSolution.GetDocument(e.DocumentId)?.FilePath;
                 var newPath = e.NewSolution.GetDocument(e.DocumentId)?.FilePath;
+
+                // Update both the old and new paths.  That way if the path changed, we'll remove the old source and add
+                // in the new one.  Note: if the paths are the same, this will just add one entry to the queue as we
+                // dedupe based on file path.
 
                 if (oldPath != null)
                     _updateSourcesQueue.AddWork(oldPath);
@@ -105,6 +117,34 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                     _updateSourcesQueue.AddWork(newPath);
             },
             options: new WorkspaceEventOptions(RequiresMainThread: false));
+
+        // Register for document open events so that if a document is opened, we can preemptively update the symbol tree
+        // even if it was never opened before.  We do this as users expect the root symbol tree arrow to be there or not
+        // if the file has no symbols within it.  We don't do this for closed documents as it would be extremely
+        // expensive to go to every file and read/parse it.  However, once opened, we're going to do all that work
+        // anyways so it is worthwhile to force it to happen.
+        this._workspace.RegisterDocumentOpenedHandler(
+            e =>
+            {
+                var filePath = e.Document.FilePath;
+
+                if (filePath == null)
+                    return;
+
+                lock (_filePathToCollectionSources)
+                {
+                    if (_filePathToCollectionSources.TryGetValue(filePath, out var pathSources))
+                    {
+                        // For each source, go and ensure that the .Items collection is computed.  If the source was
+                        // already expanded, this will no-op.  If it was never expanded, this will mark it as being
+                        // expanded, and kick off the work back to us (in _updateSourcesQueue) to compute the actual
+                        // items.
+                        foreach (var source in pathSources)
+                            source.EnsureItemsComputed();
+                    }
+                }
+            },
+            new WorkspaceEventOptions(RequiresMainThread: false));
 
         this.ContextMenuController = new SymbolItemContextMenuController(this);
     }
@@ -129,10 +169,41 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             cancellationToken,
             async (source, cancellationToken) =>
             {
-                await source.UpdateIfEverExpandedAsync(cancellationToken)
+                await source.UpdateIfEverBeenAskedToComputeAsync(cancellationToken)
                     .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
                     .ConfigureAwait(false);
             }).ConfigureAwait(false);
+    }
+
+    private bool IsEnabled
+    {
+        get
+        {
+            return _isEnabled ??= ComputeIsEnabled();
+
+            bool ComputeIsEnabled()
+            {
+                try
+                {
+                    var settingsManager = _serviceProvider.GetService<SVsUnifiedSettingsManager, ISettingsManager>(ThreadingContext.JoinableTaskFactory);
+
+                    // Key provided by the Solution Explorer team.
+                    var setting = settingsManager.GetReader().GetValue<bool>("projectsAndSolutions.general.showLanguageSymbolsInsideSolutionExplorerFiles");
+
+                    // Only if we can actually read the value successfully, and it is false, are we disabled.
+                    // In all other circumstances (value missing, error reading, value true), we are enabled.
+                    if (setting.Outcome != SettingRetrievalOutcome.Success)
+                        return true;
+
+                    return setting.Value;
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                    // On any error reading from unified settings, just assume we're enabled.
+                    return true;
+                }
+            }
+        }
     }
 
     protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
@@ -146,26 +217,27 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             return null;
         }
 
-        var hierarchy = item.HierarchyIdentity.NestedHierarchy;
-        var itemId = item.HierarchyIdentity.NestedItemID;
-
-        if (hierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_ProjectTreeCapabilities, out var capabilitiesObj) != VSConstants.S_OK ||
-            capabilitiesObj is not string capabilities)
-        {
-            return null;
-        }
-
-        if (!capabilities.Contains(nameof(VisualStudio.ProjectSystem.ProjectTreeFlags.SourceFile)) ||
-            !capabilities.Contains(nameof(VisualStudio.ProjectSystem.ProjectTreeFlags.FileOnDisk)))
-        {
-            return null;
-        }
-
         // Important: currentFilePath is mutable state captured *AND UPDATED* in the local function  
         // OnItemPropertyChanged below.  It allows us to know the file path of the item *prior* to
-        // it being changed *when* we hear the update about it having changed (since hte event doesn't
+        // it being changed *when* we hear the update about it having changed (since the event doesn't
         // contain the old value).  
         if (item.CanonicalName is not string currentFilePath)
+            return null;
+
+        if (item.HierarchyIdentity.NestedHierarchy.GetGuidProperty(
+                item.HierarchyIdentity.NestedItemID,
+                (int)__VSHPROPID.VSHPROPID_TypeGuid,
+                out var guid) != VSConstants.S_OK)
+        {
+            return null;
+        }
+
+        // We only support this for real files that we'll then have Roslyn Documents for.  All the other
+        // things in a project (like folders, nested projects, etc) are not supported.
+        if (guid != VSConstants.ItemTypeGuid.PhysicalFile_guid)
+            return null;
+
+        if (!IsEnabled)
             return null;
 
         var source = new RootSymbolTreeItemCollectionSource(this, item);

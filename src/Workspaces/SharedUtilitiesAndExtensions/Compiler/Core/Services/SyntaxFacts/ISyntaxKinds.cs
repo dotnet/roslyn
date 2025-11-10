@@ -233,6 +233,7 @@ internal interface ISyntaxKinds
 
     #region other
 
+    int? ExpressionElement { get; }
     int? ImplicitElementAccess { get; }
     int Interpolation { get; }
     int InterpolatedStringText { get; }

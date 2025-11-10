@@ -8,16 +8,25 @@ Microsoft.CodeAnalysis.CommandLineResource.IsPublic.get -> bool
 Microsoft.CodeAnalysis.CommandLineResource.LinkedResourceFileName.get -> string?
 Microsoft.CodeAnalysis.CommandLineResource.ResourceName.get -> string!
 Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.Func<Microsoft.CodeAnalysis.ISymbol!, bool>! isAddedSymbol, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions options, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options, System.Action<System.Exception!, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!, Microsoft.CodeAnalysis.Diagnostic!>? onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime, bool reportSuppressedDiagnostics, System.Func<System.Exception!, bool>? analyzerExceptionFilter, System.Func<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!, Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!>? getAnalyzerConfigOptionsProvider) -> void
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitDifferenceOptions() -> void
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.get -> bool
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.init -> void
+Microsoft.CodeAnalysis.IMethodSymbol.AssociatedExtensionImplementation.get -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IMethodSymbol.IsIterator.get -> bool
+Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IMethodSymbol?
+Microsoft.CodeAnalysis.INamedTypeSymbol.ExtensionGroupingName.get -> string?
+Microsoft.CodeAnalysis.INamedTypeSymbol.ExtensionMarkerName.get -> string?
+Microsoft.CodeAnalysis.INamedTypeSymbol.ExtensionParameter.get -> Microsoft.CodeAnalysis.IParameterSymbol?
+Microsoft.CodeAnalysis.INamedTypeSymbol.IsExtension.get -> bool
+Microsoft.CodeAnalysis.IPropertySymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IPropertySymbol?
 static readonly Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.Default -> Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
 Microsoft.CodeAnalysis.IEventSymbol.IsPartialDefinition.get -> bool
 Microsoft.CodeAnalysis.IEventSymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IEventSymbol?
 Microsoft.CodeAnalysis.IEventSymbol.PartialImplementationPart.get -> Microsoft.CodeAnalysis.IEventSymbol?
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddEmbeddedAttributeDefinition() -> void
+Microsoft.CodeAnalysis.RuntimeCapability.RuntimeAsyncMethods = 9 -> Microsoft.CodeAnalysis.RuntimeCapability
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.ToString() -> string!
 Microsoft.CodeAnalysis.ITypeSymbol.IsExtension.get -> bool
 Microsoft.CodeAnalysis.TypeKind.Extension = 14 -> Microsoft.CodeAnalysis.TypeKind

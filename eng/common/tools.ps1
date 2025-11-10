@@ -257,7 +257,20 @@ function Retry($downloadBlock, $maxRetries = 5) {
 
 function GetDotNetInstallScript([string] $dotnetRoot) {
   $installScript = Join-Path $dotnetRoot 'dotnet-install.ps1'
+  $shouldDownload = $false
+  
   if (!(Test-Path $installScript)) {
+    $shouldDownload = $true
+  } else {
+    # Check if the script is older than 30 days
+    $fileAge = (Get-Date) - (Get-Item $installScript).LastWriteTime
+    if ($fileAge.Days -gt 30) {
+      Write-Host "Existing install script is too old, re-downloading..."
+      $shouldDownload = $true
+    }
+  }
+  
+  if ($shouldDownload) {
     Create-Directory $dotnetRoot
     $ProgressPreference = 'SilentlyContinue' # Don't display the console progress UI - it's a huge perf hit
     $uri = "https://builds.dotnet.microsoft.com/dotnet/scripts/$dotnetInstallScriptVersion/dotnet-install.ps1"
@@ -381,8 +394,8 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
 
   # If the version of msbuild is going to be xcopied,
   # use this version. Version matches a package here:
-  # https://dev.azure.com/dnceng/public/_artifacts/feed/dotnet-eng/NuGet/Microsoft.DotNet.Arcade.MSBuild.Xcopy/versions/17.13.0
-  $defaultXCopyMSBuildVersion = '17.13.0'
+  # https://dev.azure.com/dnceng/public/_artifacts/feed/dotnet-eng/NuGet/Microsoft.DotNet.Arcade.MSBuild.Xcopy/versions/17.14.16
+  $defaultXCopyMSBuildVersion = '17.14.16'
 
   if (!$vsRequirements) {
     if (Get-Member -InputObject $GlobalJson.tools -Name 'vs') {
@@ -531,7 +544,8 @@ function LocateVisualStudio([object]$vsRequirements = $null){
   if (Get-Member -InputObject $GlobalJson.tools -Name 'vswhere') {
     $vswhereVersion = $GlobalJson.tools.vswhere
   } else {
-    $vswhereVersion = '2.5.2'
+    # keep this in sync with the VSWhereVersion in DefaultVersions.props
+    $vswhereVersion = '3.1.7'
   }
 
   $vsWhereDir = Join-Path $ToolsDir "vswhere\$vswhereVersion"
@@ -539,7 +553,8 @@ function LocateVisualStudio([object]$vsRequirements = $null){
 
   if (!(Test-Path $vsWhereExe)) {
     Create-Directory $vsWhereDir
-    Write-Host 'Downloading vswhere'
+    Write-Host "Downloading vswhere $vswhereVersion"
+    $ProgressPreference = 'SilentlyContinue' # Don't display the console progress UI - it's a huge perf hit
     Retry({
       Invoke-WebRequest "https://netcorenativeassets.blob.core.windows.net/resource-packages/external/windows/vswhere/$vswhereVersion/vswhere.exe" -OutFile $vswhereExe
     })

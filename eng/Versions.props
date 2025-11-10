@@ -7,7 +7,7 @@
   -->
   <PropertyGroup>
     <MajorVersion>5</MajorVersion>
-    <MinorVersion>0</MinorVersion>
+    <MinorVersion>3</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
@@ -32,7 +32,7 @@
     <SystemValueTupleVersion>4.6.1</SystemValueTupleVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
-    <MicrosoftIORedistVersion>6.0.1</MicrosoftIORedistVersion>
+    <MicrosoftIORedistVersion>6.1.0</MicrosoftIORedistVersion>
     <SystemBuffersVersion>4.6.0</SystemBuffersVersion>
     <!--
     Microsoft.TeamFoundationServer.Client is referencing System.Data.SqlClient causing CG alert
@@ -100,6 +100,17 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
+  <!--
+    Patched package versions used by src\RoslynAnalyzers\Tools\Metrics*
+
+    Metrics targets the same older Microsoft.CodeAnalysis version as the RoslynAnalyzers. Analyzers pick up patched versions
+    of Roslyn's transtive dependencies from the compiler that is hosting them. Since Metrics is a standalone tool and not an
+    Analyzer, it needs to directly reference patched versions of some transitive dependencies.
+  -->
+  <PropertyGroup>
+    <MicrosoftBuildTasksCoreVersionForMetrics>17.11.48</MicrosoftBuildTasksCoreVersionForMetrics>
+    <SystemTextJsonVersionForMetrics>8.0.5</SystemTextJsonVersionForMetrics>
+  </PropertyGroup>
   <PropertyGroup>
     <UsingToolVSSDK Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVSSDK>
     <UsingToolPdbConverter>false</UsingToolPdbConverter>

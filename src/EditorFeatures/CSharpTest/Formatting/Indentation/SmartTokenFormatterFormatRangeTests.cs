@@ -3133,13 +3133,11 @@ public sealed class SmartTokenFormatterFormatRangeTests
             return;
         }
 
-        Assert.Equal(startTokenKind, tokenRange.Value.Item1.Kind());
-        if (tokenRange.Value.Item1.Equals(tokenRange.Value.Item2))
-        {
+        Assert.Equal(startTokenKind, tokenRange.Value.startToken.Kind());
+        if (tokenRange.Value.startToken.Equals(tokenRange.Value.endToken))
             return;
-        }
 
-        var changes = formatter.FormatRange(tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
+        var changes = formatter.FormatRange(tokenRange.Value.startToken, tokenRange.Value.endToken, CancellationToken.None);
         var actual = GetFormattedText(buffer, changes);
         Assert.Equal(expected, actual);
     }

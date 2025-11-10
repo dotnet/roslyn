@@ -32,7 +32,7 @@ public abstract class AbstractCodeLensTest
                 foreach (var span in annotatedSpan.Value)
                 {
                     var declarationSyntaxNode = syntaxNode.FindNode(span);
-                    var result = await new CodeLensReferencesService().GetReferenceCountAsync(workspace.CurrentSolution, annotatedDocument.Id,
+                    var result = await workspace.Services.GetRequiredService<ICodeLensReferencesService>().GetReferenceCountAsync(workspace.CurrentSolution, annotatedDocument.Id,
                         declarationSyntaxNode, cap, CancellationToken.None);
                     Assert.NotNull(result);
                     Assert.Equal(expected, result.Value.Count);
@@ -59,7 +59,7 @@ public abstract class AbstractCodeLensTest
                 foreach (var span in annotatedSpan.Value)
                 {
                     var declarationSyntaxNode = syntaxNode.FindNode(span);
-                    var result = await new CodeLensReferencesService().FindReferenceLocationsAsync(workspace.CurrentSolution,
+                    var result = await workspace.Services.GetRequiredService<ICodeLensReferencesService>().FindReferenceLocationsAsync(workspace.CurrentSolution,
                         annotatedDocument.Id, declarationSyntaxNode, CancellationToken.None);
                     Assert.True(result.HasValue);
                     Assert.Equal(expected, result.Value.Length);
@@ -85,7 +85,7 @@ public abstract class AbstractCodeLensTest
                 foreach (var span in annotatedSpan.Value)
                 {
                     var declarationSyntaxNode = syntaxNode.FindNode(span);
-                    var result = await new CodeLensReferencesService().FindReferenceMethodsAsync(workspace.CurrentSolution,
+                    var result = await workspace.Services.GetRequiredService<ICodeLensReferencesService>().FindReferenceMethodsAsync(workspace.CurrentSolution,
                         annotatedDocument.Id, declarationSyntaxNode, CancellationToken.None);
                     Assert.True(result.HasValue);
                     Assert.Equal(expected, result.Value.Length);
@@ -111,7 +111,7 @@ public abstract class AbstractCodeLensTest
                 foreach (var span in annotatedSpan.Value)
                 {
                     var declarationSyntaxNode = syntaxNode.FindNode(span);
-                    var actual = await new CodeLensReferencesService().GetFullyQualifiedNameAsync(workspace.CurrentSolution,
+                    var actual = await workspace.Services.GetRequiredService<ICodeLensReferencesService>().GetFullyQualifiedNameAsync(workspace.CurrentSolution,
                         annotatedDocument.Id, declarationSyntaxNode, CancellationToken.None);
                     Assert.Equal(expected, actual);
                 }

@@ -67,10 +67,8 @@ internal sealed partial class ContentControlService : IContentControlService
         //
         // our underlying preview tagger and mechanism to attach tagger to associated buffer of
         // opened document will light up automatically
-        var workspace = new PreviewWorkspace(document.Project.Solution);
-        workspace.OpenDocument(document.Id, textBuffer.AsTextContainer());
-
-        return new DisposableToolTip(toolTip, workspace);
+        return new DisposableToolTip(
+            toolTip, PreviewWorkspace.CreateWithDocumentContents(document, textBuffer.AsTextContainer()));
     }
 
     public DisposableToolTip CreateDisposableToolTip(ITextBuffer textBuffer, object backgroundResourceKey)

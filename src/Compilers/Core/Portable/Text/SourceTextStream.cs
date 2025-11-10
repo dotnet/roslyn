@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -18,17 +19,20 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly Encoding _encoding;
         private readonly Encoder _encoder;
 
+        internal const int BufferSize = 2048;
+        private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[BufferSize], size: 8);
+
         private readonly int _minimumTargetBufferCount;
         private int _position;
         private int _sourceOffset;
-        private readonly char[] _charBuffer;
+        private char[] _charBuffer;
         private int _bufferOffset;
         private int _bufferUnreadChars;
         private bool _preambleWritten;
 
         private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 
-        public SourceTextStream(SourceText source, int bufferSize = 2048, bool useDefaultEncodingIfNull = false)
+        public SourceTextStream(SourceText source, bool useDefaultEncodingIfNull = false)
         {
             Debug.Assert(source.Encoding != null || useDefaultEncodingIfNull);
 
@@ -38,10 +42,21 @@ namespace Microsoft.CodeAnalysis.Text
             _minimumTargetBufferCount = _encoding.GetMaxByteCount(charCount: 1);
             _sourceOffset = 0;
             _position = 0;
-            _charBuffer = new char[Math.Min(bufferSize, _source.Length)];
+            _charBuffer = s_charArrayPool.Allocate();
             _bufferOffset = 0;
             _bufferUnreadChars = 0;
             _preambleWritten = false;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && _charBuffer != null)
+            {
+                s_charArrayPool.Free(_charBuffer);
+                _charBuffer = null!;
+            }
+
+            base.Dispose(disposing);
         }
 
         public override bool CanRead

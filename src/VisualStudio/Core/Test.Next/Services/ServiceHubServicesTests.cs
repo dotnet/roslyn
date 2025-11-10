@@ -1419,21 +1419,60 @@ public sealed partial class ServiceHubServicesTests
         var callCount = 0;
         var normalDocId = AddSimpleDocument(workspace, new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callCount++)));
 
+        using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+        var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+
+        // synchronize the remote workspace with the inproc one
+        _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string)>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
+            CancellationToken.None).ConfigureAwait(false);
+
+        var solution = workspace.CurrentSolution;
+        await UpdatePrimaryWorkspace(client, solution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
         var project = workspace.CurrentSolution.Projects.Single();
         var documents = await project.GetSourceGeneratedDocumentsAsync();
 
         var document = Assert.Single(documents);
         Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
 
+        var expectedCallCount = 0;
+
         if (enqueueChangeBeforeEdit)
+        {
+            // if we force regeneration we expect generators to run
+            expectedCallCount += forceRegeneration ? 1 : 0;
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
+        }
+        await UpdatePrimaryWorkspace(client, solution);
         await WaitForSourceGeneratorsAsync(workspace);
+
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
 
         // Now, make a simple edit to the main document.
         Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(normalDocId, SourceText.From("// new text"))));
 
+        // If we're in automatic, we'll always run, because we made a change.
+        expectedCallCount += executionPreference == SourceGeneratorExecutionPreference.Automatic ? 1 : 0;
+
+        solution = workspace.CurrentSolution;
+        await UpdatePrimaryWorkspace(client, solution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
+
         if (enqueueChangeAfterEdit)
+        {
+            // If we force regeneration we expect to run.
+            // If we are in balanced mode then we expect to run.
+            // In auto we don't expect to run, because we already did for the edit.
+            expectedCallCount += forceRegeneration || executionPreference == SourceGeneratorExecutionPreference.Balanced ? 1 : 0;
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration);
+        }
+        await UpdatePrimaryWorkspace(client, solution);
         await WaitForSourceGeneratorsAsync(workspace);
 
         project = workspace.CurrentSolution.Projects.Single();
@@ -1441,30 +1480,326 @@ public sealed partial class ServiceHubServicesTests
 
         document = Assert.Single(documents);
 
-        if (executionPreference == SourceGeneratorExecutionPreference.Automatic)
+        Assert.Equal("// callCount: " + expectedCallCount, (await document.GetTextAsync()).ToString());
+    }
+
+    [Theory, CombinatorialData]
+    internal async Task TestSourceGenerationExecution_RazorGeneratorAlwaysRuns_OtherGeneratorsRespectPreference(SourceGeneratorExecutionPreference executionPreference)
+    {
+        using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
+
+        var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
+
+        using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+        var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+        _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string)>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
+            CancellationToken.None).ConfigureAwait(false);
+
+        var callBackCallCount = 0;
+        var generator1 = new CallbackGenerator(() => ("hintName.cs", "// callCount: " + ++callBackCallCount));
+
+        var razorCallCount = 0;
+        var generator2 = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator((c) => c.AddSource("file.cs", "// callCount: " + ++razorCallCount));
+
+        var projectId = ProjectId.CreateNewId();
+        var project = workspace.CurrentSolution
+            .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+            .GetRequiredProject(projectId)
+            .WithCompilationOutputInfo(new CompilationOutputInfo(
+                assemblyPath: Path.Combine(TempRoot.Root, "Test.dll"),
+                generatedFilesOutputDirectory: null))
+            .AddAnalyzerReference(new TestGeneratorReference(generator1))
+            .AddAnalyzerReference(new TestGeneratorReference(generator2));
+        var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
+
+        Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        // Initial: all generators run
+        await ValidateSourceGeneratorDocuments(
+            expectedCallback: 1,
+            expectedRazor: 1);
+
+        // Now, make a simple edit to the main document.
+        Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(tempDoc.Id, SourceText.From("// new text"))));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        await ValidateSourceGeneratorDocuments(
+            expectedCallback: executionPreference == SourceGeneratorExecutionPreference.Automatic ? 2 : 1,
+            expectedRazor: 2);
+
+        // Get the documents again and ensure nothing ran
+        await ValidateSourceGeneratorDocuments(
+            expectedCallback: executionPreference == SourceGeneratorExecutionPreference.Automatic ? 2 : 1,
+            expectedRazor: 2);
+
+        // Make another change, but this time enqueue an update too
+        Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(tempDoc.Id, SourceText.From("// more new text"))));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
+
+        await ValidateSourceGeneratorDocuments(
+            expectedCallback: executionPreference == SourceGeneratorExecutionPreference.Automatic ? 3 : 2,
+            expectedRazor: 3);
+
+        async Task ValidateSourceGeneratorDocuments(int expectedCallback, int expectedRazor)
         {
-            // in automatic mode we always rerun after a doc edit.
-            Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
-            return;
+            await WaitForSourceGeneratorsAsync(workspace);
+            var project = workspace.CurrentSolution.Projects.Single();
+            var documents = await project.GetSourceGeneratedDocumentsAsync();
+
+            await AssertDocumentTextForGenerator(documents, "Roslyn.Test.Utilities.TestGenerators.CallbackGenerator", expectedCallback);
+            await AssertDocumentTextForGenerator(documents, "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", expectedRazor);
         }
 
-        if (forceRegeneration && (enqueueChangeBeforeEdit || enqueueChangeAfterEdit))
+        async static Task AssertDocumentTextForGenerator(IEnumerable<SourceGeneratedDocument> docs, string generatorTypeName, int expectedCount)
         {
-            // If a force-regenerate notification came through either before or after the edit, we should regenerate.
-            Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
-            return;
+            var text = await docs
+                    .Single(d => d.Identity.Generator.TypeName == generatorTypeName)
+                    .GetTextAsync();
+            Assert.Equal($"// callCount: {expectedCount}", text.ToString());
+        }
+    }
+
+    [Fact]
+    internal async Task TestSourceGenerationExecution_GeneratorRuns_WhenAddedAfterEarlierRuns_Balanced()
+    {
+        using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
+
+        var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+
+        using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+        var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+        _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string)>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
+            CancellationToken.None).ConfigureAwait(false);
+
+        var callBackCallCount1 = 0;
+        var generator1 = new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callBackCallCount1++));
+
+        var callBackCallCount2 = 0;
+        var generator2 = new CallbackGenerator2((i) => { }, (e) => { e.AddSource("hintName2.cs", "// secondCallCount: " + callBackCallCount2++); });
+
+        // add a single generator
+        var projectId = ProjectId.CreateNewId();
+        var project = workspace.CurrentSolution
+            .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+            .GetRequiredProject(projectId)
+            .WithCompilationOutputInfo(new CompilationOutputInfo(
+                assemblyPath: Path.Combine(TempRoot.Root, "Test.dll"),
+                generatedFilesOutputDirectory: null))
+            .AddAnalyzerReference(new TestGeneratorReference(generator1));
+        var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
+
+        Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        project = workspace.CurrentSolution.Projects.Single();
+        var documents = await project.GetSourceGeneratedDocumentsAsync();
+        var doc = Assert.Single(documents);
+        Assert.Equal($"// callCount: 0", (await doc.GetTextAsync()).ToString());
+
+        // Now, make a simple edit to the main document.
+        Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(tempDoc.Id, SourceText.From("// new text"))));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        // we don't run because we're not a 'required' generator
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
+        doc = Assert.Single(documents);
+        Assert.Equal($"// callCount: 0", (await doc.GetTextAsync()).ToString());
+
+        // add the second generator
+        Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithProjectAnalyzerReferences(projectId, [.. project.AnalyzerReferences, new TestGeneratorReference(generator2)])));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        // neither generator will run, because we don't go to OOP at all yet
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
+        doc = Assert.Single(documents);
+        Assert.Equal($"// callCount: 0", (await doc.GetTextAsync()).ToString());
+
+        // make another change, but this time enqueue an update
+        Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(tempDoc.Id, SourceText.From("// more new text"))));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
+        Assert.Equal(2, documents.Count());
+
+        var doc1 = documents.Single(d => d.Name == "hintName.cs");
+        Assert.Equal($"// callCount: 1", (await doc1.GetTextAsync()).ToString());
+
+        var doc2 = documents.Single(d => d.Name == "hintName2.cs");
+        Assert.Equal($"// secondCallCount: 0", (await doc2.GetTextAsync()).ToString());
+    }
+
+    [Fact]
+    internal async Task TestSourceGenerationExecution_RazorGeneratorRuns_WhenAddedAfterEarlierRuns_Balanced()
+    {
+        using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
+
+        var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+
+        using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+        var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+        _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string)>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
+            CancellationToken.None).ConfigureAwait(false);
+
+        var callBackCallCount = 0;
+        var generator1 = new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callBackCallCount++));
+
+        var razorCallCount = 0;
+        var generator2 = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator((c) => c.AddSource("razor.cs", "// razorCallCount: " + razorCallCount++));
+
+        // add a single generator
+        var projectId = ProjectId.CreateNewId();
+        var project = workspace.CurrentSolution
+            .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+            .GetRequiredProject(projectId)
+            .WithCompilationOutputInfo(new CompilationOutputInfo(
+                assemblyPath: Path.Combine(TempRoot.Root, "Test.dll"),
+                generatedFilesOutputDirectory: null))
+            .AddAnalyzerReference(new TestGeneratorReference(generator1));
+        var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
+
+        Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        project = workspace.CurrentSolution.Projects.Single();
+        var documents = await project.GetSourceGeneratedDocumentsAsync();
+        var doc = Assert.Single(documents);
+        Assert.Equal($"// callCount: 0", (await doc.GetTextAsync()).ToString());
+
+        // Now, make a simple edit to the main document.
+        Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(tempDoc.Id, SourceText.From("// new text"))));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        // we don't run because we're not a 'required' generator
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
+        doc = Assert.Single(documents);
+        Assert.Equal($"// callCount: 0", (await doc.GetTextAsync()).ToString());
+
+        // add the razor generator
+        Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithProjectAnalyzerReferences(projectId, [.. project.AnalyzerReferences, new TestGeneratorReference(generator2)])));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        // Razor will run, but the previously added generator will not
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
+        Assert.Equal(2, documents.Count());
+
+        var doc1 = documents.Single(d => d.Name == "hintName.cs");
+        Assert.Equal($"// callCount: 0", (await doc1.GetTextAsync()).ToString());
+
+        var doc2 = documents.Single(d => d.Name == "razor.cs");
+        Assert.Equal($"// razorCallCount: 0", (await doc2.GetTextAsync()).ToString());
+
+        // make another change, but this time enqueue an update
+        Contract.ThrowIfFalse(workspace.TryApplyChanges(workspace.CurrentSolution.WithDocumentText(tempDoc.Id, SourceText.From("// more new text"))));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
+        Assert.Equal(2, documents.Count());
+
+        doc1 = documents.Single(d => d.Name == "hintName.cs");
+        Assert.Equal($"// callCount: 1", (await doc1.GetTextAsync()).ToString());
+
+        doc2 = documents.Single(d => d.Name == "razor.cs");
+        Assert.Equal($"// razorCallCount: 1", (await doc2.GetTextAsync()).ToString());
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80714")]
+    internal async Task TestSourceGenerationExecution_AnalyzerReferenceChange_AlwaysObserved(
+        bool queryForSourceGeneratorsPriorToChangeNotification)
+    {
+        using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
+
+        var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+
+        using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+        var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+        _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string)>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, TempRoot.Root, cancellationToken),
+            CancellationToken.None).ConfigureAwait(false);
+
+        var callBackCallCount1 = 0;
+        var generator1 = new CallbackGenerator(() => ("hintName.cs", "// callCount: " + callBackCallCount1++));
+        var analyzerReference1 = new TestGeneratorReference(generator1);
+
+        // add a single generator
+        var projectId = ProjectId.CreateNewId();
+        var project = workspace.CurrentSolution
+            .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+            .GetRequiredProject(projectId)
+            .WithCompilationOutputInfo(new CompilationOutputInfo(
+                assemblyPath: Path.Combine(TempRoot.Root, "Test.dll"),
+                generatedFilesOutputDirectory: null))
+            .AddAnalyzerReference(analyzerReference1);
+        var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
+
+        Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        project = workspace.CurrentSolution.Projects.Single();
+        var documents = await project.GetSourceGeneratedDocumentsAsync();
+        var doc = Assert.Single(documents);
+        Assert.Equal($"// callCount: 0", (await doc.GetTextAsync()).ToString());
+
+        // Now, change the analyzer reference with a new one, simulating that ProjectSystemProjectFactory heard about a
+        // change, and moved the workspace to incorporate it.
+        var analyzerReference2 = new TestGeneratorReference(generator1);
+        workspace.TryApplyChanges(workspace.CurrentSolution.WithProjectAnalyzerReferences(projectId, [analyzerReference1]));
+
+        await UpdatePrimaryWorkspace(client, workspace.CurrentSolution);
+        await WaitForSourceGeneratorsAsync(workspace);
+
+        // Simulate a client querying now.  We want to make sure that even as we retrieve the same cached SG documents
+        // from the last run, that that won't 'stick' once we hear about the file changes for the analyzer references.
+        if (queryForSourceGeneratorsPriorToChangeNotification)
+        {
+            // We should have the same result as before as nothing will have changed the SG version for this
+            // project so we won't have rerun anything.  But we
+            project = workspace.CurrentSolution.Projects.Single();
+            documents = await project.GetSourceGeneratedDocumentsAsync();
+            doc = Assert.Single(documents);
+            Assert.Equal($"// callCount: 0", (await doc.GetTextAsync()).ToString());
         }
 
-        if (enqueueChangeAfterEdit)
-        {
-            // In balanced mode, if we hear about a save/build after a the last change to a project, we do want to regenerate.
-            Assert.Equal("// callCount: 1", (await document.GetTextAsync()).ToString());
-        }
-        else
-        {
-            // In balanced mode, if there was no save/build after the last change, we want to reuse whatever we produced last time.
-            Assert.Equal("// callCount: 0", (await document.GetTextAsync()).ToString());
-        }
+        // Simulate what we do in ProjectSystemProjectFactory.StartRefreshingAnalyzerReferenceForFileAsync once we have
+        // incorporated the changed analyzer references.  Absent this, the above call could cause us to never rerun
+        // until the next build/save (or some other operation that would refresh the SG version).
+        workspace.EnqueueUpdateSourceGeneratorVersion(null, forceRegeneration: true);
+
+        await WaitForSourceGeneratorsAsync(workspace);
+        project = workspace.CurrentSolution.Projects.Single();
+        documents = await project.GetSourceGeneratedDocumentsAsync();
+        doc = Assert.Single(documents);
+        Assert.Equal($"// callCount: 1", (await doc.GetTextAsync()).ToString());
     }
 
     private static async Task<Solution> VerifyIncrementalUpdatesAsync(

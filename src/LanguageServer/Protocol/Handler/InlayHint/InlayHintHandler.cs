@@ -49,13 +49,18 @@ internal sealed class InlayHintHandler : ILspServiceDocumentRequestHandler<Inlay
 
     internal static async Task<LSP.InlayHint[]?> GetInlayHintsAsync(Document document, TextDocumentIdentifier textDocumentIdentifier, LSP.Range range, InlineHintsOptions options, bool displayAllOverride, InlayHintCache inlayHintCache, CancellationToken cancellationToken)
     {
-        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var hints = await CalculateInlayHintsAsync(document, range, options, displayAllOverride, cancellationToken).ConfigureAwait(false);
-        var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
         // Store the members in the resolve cache so that when we get a resolve request for a particular
         // member we can re-use the inline hint.
         var resultId = inlayHintCache.UpdateCache(new InlayHintCache.InlayHintCacheEntry(hints));
+
+        if (hints.Length == 0)
+            return Array.Empty<LSP.InlayHint>();
+
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxVersionString = syntaxVersion.ToString();
 
         var inlayHints = new LSP.InlayHint[hints.Length];
         for (var i = 0; i < hints.Length; i++)
@@ -85,7 +90,7 @@ internal sealed class InlayHintHandler : ILspServiceDocumentRequestHandler<Inlay
                 ToolTip = null,
                 PaddingLeft = leftPadding,
                 PaddingRight = rightPadding,
-                Data = new InlayHintResolveData(resultId, i, textDocumentIdentifier, syntaxVersion.ToString(), range, displayAllOverride)
+                Data = new InlayHintResolveData(resultId, i, textDocumentIdentifier, syntaxVersionString, range, displayAllOverride)
             };
 
             inlayHints[i] = inlayHint;
@@ -110,35 +115,34 @@ internal sealed class InlayHintHandler : ILspServiceDocumentRequestHandler<Inlay
     /// </summary>
     private static (string label, bool leftPadding, bool rightPadding) Trim(ImmutableArray<TaggedText> taggedTexts)
     {
-        using var _ = ArrayBuilder<TaggedText>.GetInstance(out var result);
         var leftPadding = false;
         var rightPadding = false;
 
+        if (taggedTexts.Length == 0)
+            return (string.Empty, leftPadding, rightPadding);
+
+        var first = taggedTexts.First();
+        var trimStart = first.Text.TrimStart();
+        leftPadding = first.Text.Length - trimStart.Length != 0;
+
         if (taggedTexts.Length == 1)
         {
-            var first = taggedTexts.First();
-
-            var trimStart = first.Text.TrimStart();
             var trimBoth = trimStart.TrimEnd();
-            result.Add(new TaggedText(first.Tag, trimBoth));
-            leftPadding = first.Text.Length - trimStart.Length != 0;
             rightPadding = trimStart.Length - trimBoth.Length != 0;
-        }
-        else if (taggedTexts.Length >= 2)
-        {
-            var first = taggedTexts.First();
-            var trimStart = first.Text.TrimStart();
-            result.Add(new TaggedText(first.Tag, trimStart));
-            leftPadding = first.Text.Length - trimStart.Length != 0;
 
-            for (var i = 1; i < taggedTexts.Length - 1; i++)
-                result.Add(taggedTexts[i]);
-
-            var last = taggedTexts.Last();
-            var trimEnd = last.Text.TrimEnd();
-            result.Add(new TaggedText(last.Tag, trimEnd));
-            rightPadding = last.Text.Length - trimEnd.Length != 0;
+            return (trimBoth, leftPadding, rightPadding);
         }
+
+        using var _ = ArrayBuilder<TaggedText>.GetInstance(out var result);
+        result.Add(new TaggedText(first.Tag, trimStart));
+
+        for (var i = 1; i < taggedTexts.Length - 1; i++)
+            result.Add(taggedTexts[i]);
+
+        var last = taggedTexts.Last();
+        var trimEnd = last.Text.TrimEnd();
+        result.Add(new TaggedText(last.Tag, trimEnd));
+        rightPadding = last.Text.Length - trimEnd.Length != 0;
 
         return (result.ToImmutable().JoinText(), leftPadding, rightPadding);
     }

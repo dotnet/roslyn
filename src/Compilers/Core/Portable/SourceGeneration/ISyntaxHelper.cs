@@ -22,6 +22,18 @@ namespace Microsoft.CodeAnalysis
         bool IsAttribute(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
 
+        /// <summary>
+        /// Given an attribute target (like <c>int x</c>) remaps to the actual syntax node that the attribute is placed on
+        /// (in this case the FieldDeclarationSyntax for <c>private int x, y;</c>
+        /// </summary>
+        SyntaxNode RemapAttributeTarget(SyntaxNode target);
+
+        /// <summary>
+        /// Given an attribute syntax, return the node that should be considered its owner.  This is generally, but not always
+        /// the parent of the AttributeListSyntax the attribute is in.
+        /// </summary>
+        SyntaxNode GetAttributeOwningNode(SyntaxNode attribute);
+
         bool IsLambdaExpression(SyntaxNode node);
 
         string GetUnqualifiedIdentifierOfName(SyntaxNode node);
@@ -47,6 +59,9 @@ namespace Microsoft.CodeAnalysis
 
         public abstract bool IsAttribute(SyntaxNode node);
         public abstract SyntaxNode GetNameOfAttribute(SyntaxNode node);
+
+        public abstract SyntaxNode RemapAttributeTarget(SyntaxNode target);
+        public abstract SyntaxNode GetAttributeOwningNode(SyntaxNode attribute);
 
         public abstract bool IsAttributeList(SyntaxNode node);
         public abstract SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);

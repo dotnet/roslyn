@@ -57,7 +57,7 @@ public partial class AbstractLanguageServerClientTests
             // Initialize the capabilities.
             var initializeResponse = await lspClient.Initialize(clientCapabilities);
             Assert.NotNull(initializeResponse?.Capabilities);
-            lspClient._serverCapabilities = initializeResponse!.Capabilities;
+            lspClient._serverCapabilities = initializeResponse.Capabilities;
 
             await lspClient.Initialized();
 

@@ -23,8 +23,8 @@ internal sealed partial class CodeModelProjectCache
     private readonly ProjectId _projectId;
     private readonly ICodeModelInstanceFactory _codeModelInstanceFactory;
 
-    private readonly Dictionary<string, CacheEntry> _cache = new Dictionary<string, CacheEntry>(StringComparer.OrdinalIgnoreCase);
-    private readonly object _cacheGate = new object();
+    private readonly Dictionary<string, CacheEntry> _cache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly object _cacheGate = new();
 
     private EnvDTE.CodeModel? _rootCodeModel;
     private bool _zombied;

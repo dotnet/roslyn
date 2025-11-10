@@ -177,6 +177,11 @@
         <target state="translated">Ustaw preferencje na sprawdzanie wartości „null” zamiast sprawdzania typu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Property_accessor_can_be_simplified">
+        <source>Property accessor can be simplified</source>
+        <target state="new">Property accessor can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Property_pattern_can_be_simplified">
         <source>Property pattern can be simplified</source>
         <target state="translated">Wzorzec właściwości można uprościć</target>
@@ -220,6 +225,11 @@
       <trans-unit id="Simplify_delegate_invocation">
         <source>Simplify delegate invocation</source>
         <target state="translated">Uprość wywołanie delegata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_property_accessor">
+        <source>Simplify property accessor</source>
+        <target state="new">Simplify property accessor</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_property_pattern">

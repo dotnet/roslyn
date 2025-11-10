@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Trees0" xml:space="preserve">
-    <value>trees({0})</value>
-  </data>
   <data name="TreesMustHaveRootNode" xml:space="preserve">
     <value>trees({0}) must have root node with SyntaxKind.CompilationUnit.</value>
   </data>
@@ -210,12 +207,6 @@
   <data name="ERR_NoSources" xml:space="preserve">
     <value>no input sources specified</value>
   </data>
-  <data name="WRN_FileAlreadyIncluded" xml:space="preserve">
-    <value>source file '{0}' specified multiple times</value>
-  </data>
-  <data name="WRN_FileAlreadyIncluded_Title" xml:space="preserve">
-    <value>Source file specified multiple times</value>
-  </data>
   <data name="ERR_CantOpenFileWrite" xml:space="preserve">
     <value>can't open '{0}' for writing: {1}</value>
   </data>
@@ -239,12 +230,6 @@
   </data>
   <data name="WRN_NoConfigInResponseFile_Title" xml:space="preserve">
     <value>Ignoring /noconfig option because it was specified in a response file</value>
-  </data>
-  <data name="WRN_InvalidWarningId" xml:space="preserve">
-    <value>warning number '{0}' for the option '{1}' is either not configurable or not valid</value>
-  </data>
-  <data name="WRN_InvalidWarningId_Title" xml:space="preserve">
-    <value>Warning number is either not configurable or not valid</value>
   </data>
   <data name="ERR_NoSourcesOut" xml:space="preserve">
     <value>cannot infer an output file name from resource only input files; provide the '/out' option</value>
@@ -1526,9 +1511,6 @@
   </data>
   <data name="ERR_UnrecognizedEnd" xml:space="preserve">
     <value>'End' statement not valid.</value>
-  </data>
-  <data name="ERR_ArrayInitForNonArray2" xml:space="preserve">
-    <value>Array initializers are valid only for arrays, but the type of '{0}' is '{1}'.</value>
   </data>
   <data name="ERR_EndRegionNoRegion" xml:space="preserve">
     <value>'#End Region' must be preceded by a matching '#Region'.</value>
@@ -3784,12 +3766,6 @@
   <data name="WRN_ConditionalNotValidOnFunction_Title" xml:space="preserve">
     <value>Attribute 'Conditional' is only valid on 'Sub' declarations</value>
   </data>
-  <data name="WRN_UseSwitchInsteadOfAttribute" xml:space="preserve">
-    <value>Use command-line option '{0}' or appropriate project settings instead of '{1}'.</value>
-  </data>
-  <data name="WRN_UseSwitchInsteadOfAttribute_Title" xml:space="preserve">
-    <value>Use command-line option /keyfile, /keycontainer, or /delaysign instead of AssemblyKeyFileAttribute, AssemblyKeyNameAttribute, or AssemblyDelaySignAttribute</value>
-  </data>
   <data name="WRN_RecursiveAddHandlerCall" xml:space="preserve">
     <value>Statement recursively calls the containing '{0}' for event '{1}'.</value>
   </data>
@@ -4197,12 +4173,6 @@
   </data>
   <data name="WRN_RelDelegatePassedToRemoveHandler_Title" xml:space="preserve">
     <value>The 'AddressOf' expression has no effect in this context because the method argument to 'AddressOf' requires a relaxed conversion to the delegate type of the event</value>
-  </data>
-  <data name="WRN_QueryMissingAsClauseinVarDecl" xml:space="preserve">
-    <value>Range variable is assumed to be of type Object because its type cannot be inferred. Use an 'As' clause to specify a different type.</value>
-  </data>
-  <data name="WRN_QueryMissingAsClauseinVarDecl_Title" xml:space="preserve">
-    <value>Range variable is assumed to be of type Object because its type cannot be inferred</value>
   </data>
   <data name="ERR_MultilineLambdaMissingFunction" xml:space="preserve">
     <value>Multiline lambda expression is missing 'End Function'.</value>
@@ -5230,8 +5200,7 @@
 -reportivts[+|-]                  Output information on all IVTs granted to this
                                   assembly by all dependencies, and annotate foreign assembly
                                   accessibility errors with what assembly they came from.
--sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
-                                  (mscorlib.dll).
+-sdkpath:&lt;path&gt;             Path used to search for standard library assemblies.
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  Emit compiler output in UTF-8 character
@@ -5736,5 +5705,12 @@
   </data>
   <data name="ERR_EmbeddedAttributeMustFollowPattern" xml:space="preserve">
     <value>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</value>
+  </data>
+  <data name="ERR_MethodImplAttributeAsyncCannotBeUsed" xml:space="preserve">
+    <value>'MethodImplAttribute.Async' cannot be manually applied to methods.</value>
+    <comment>'MethodImplAttribute.Async' is not localizable.</comment>
+  </data>
+  <data name="ERR_AttributeCannotBeAppliedManually" xml:space="preserve">
+    <value>'{0}' cannot be applied manually.</value>
   </data>
 </root>

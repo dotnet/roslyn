@@ -30,7 +30,7 @@ namespace Roslyn.Utilities
             }
 
             Debug.Assert(number >= 0);
-            return (number < numerals.Length) ? numerals[number] : number.ToString();
+            return (number < numerals.Length) ? numerals[number] : number.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
 
         public static string Join(this IEnumerable<string?> source, string separator)
@@ -138,20 +138,20 @@ namespace Roslyn.Utilities
         }
 
         internal static string? GetWithoutAttributeSuffix(
-            this string name,
+            this string? name,
             bool isCaseSensitive)
         {
             return TryGetWithoutAttributeSuffix(name, isCaseSensitive, out var result) ? result : null;
         }
 
         internal static bool TryGetWithoutAttributeSuffix(
-            this string name,
+            this string? name,
             bool isCaseSensitive,
             [NotNullWhen(returnValue: true)] out string? result)
         {
             if (name.HasAttributeSuffix(isCaseSensitive))
             {
-                result = name.Substring(0, name.Length - AttributeSuffix.Length);
+                result = name[..^AttributeSuffix.Length];
                 return true;
             }
 
@@ -159,8 +159,11 @@ namespace Roslyn.Utilities
             return false;
         }
 
-        internal static bool HasAttributeSuffix(this string name, bool isCaseSensitive)
+        internal static bool HasAttributeSuffix([NotNullWhen(true)] this string? name, bool isCaseSensitive)
         {
+            if (name is null)
+                return false;
+
             var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
             return name.Length > AttributeSuffix.Length && name.EndsWith(AttributeSuffix, comparison);
         }

@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class ParsingErrorRecoveryTests(ITestOutputHelper helper) : ParsingTests(helper)
+    public sealed class ParsingErrorRecoveryTests(ITestOutputHelper helper) : ParsingTests(helper)
     {
         private new CompilationUnitSyntax ParseTree(string text, CSharpParseOptions options = null)
         {
@@ -8681,6 +8681,87 @@ class c
                 // (5,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 // _ = (object)null; // 1
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)null").WithLocation(5, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79935")]
+        public void MissingNodeWithSkippedTokens1()
+        {
+            UsingTree("""
+                i,(#
+
+                interface
+                """,
+                // (1,2): error CS1001: Identifier expected
+                // i,(#
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 2),
+                // (1,3): error CS1001: Identifier expected
+                // i,(#
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 3),
+                // (1,3): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                // i,(#
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(").WithLocation(1, 3),
+                // (1,3): error CS1003: Syntax error, '[' expected
+                // i,(#
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(1, 3),
+                // (1,4): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // i,(#
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 4),
+                // (1,4): error CS1003: Syntax error, ']' expected
+                // i,(#
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(1, 4),
+                // (1,4): error CS1002: ; expected
+                // i,(#
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 4),
+                // (3,10): error CS1001: Identifier expected
+                // interface
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 10),
+                // (3,10): error CS1514: { expected
+                // interface
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(3, 10),
+                // (3,10): error CS1513: } expected
+                // interface
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 10));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "i");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.CommaToken);
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.BracketedArgumentList);
+                                {
+                                    M(SyntaxKind.OpenBracketToken);
+                                    M(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    M(SyntaxKind.IdentifierToken);
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
     }
 }

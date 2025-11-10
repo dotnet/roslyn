@@ -6884,6 +6884,80 @@ new TestParameters(Options.Script));
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72420")]
+    public Task TestGenericWithNullableStruct()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                public void T()
+                {
+                    static void test<T>(Func<T> func)
+                    {
+                    }
+
+                    // IDE0001 NOT expected for this call
+                    [|test<UnmanagedCustomStruct?>|](() => new UnmanagedCustomStruct());
+                }
+
+                public struct UnmanagedCustomStruct
+                {
+                    public Guid Foo;
+                    public int Bar;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72420")]
+    public Task TestGenericWithStruct()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                public void T()
+                {
+                    static void test<T>(Func<T> func)
+                    {
+                    }
+
+                    // IDE0001 expected for this call
+                    [|test<UnmanagedCustomStruct>|](() => new UnmanagedCustomStruct());
+                }
+
+                public struct UnmanagedCustomStruct
+                {
+                    public Guid Foo;
+                    public int Bar;
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                public void T()
+                {
+                    static void test<T>(Func<T> func)
+                    {
+                    }
+
+                    // IDE0001 expected for this call
+                    test(() => new UnmanagedCustomStruct());
+                }
+
+                public struct UnmanagedCustomStruct
+                {
+                    public Guid Foo;
+                    public int Bar;
+                }
+            }
+            """);
+
     private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         => await TestInRegularAndScriptAsync(code, expected, index, new TestParameters(options: PreferIntrinsicTypeEverywhere));
 

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class SyntaxToken
     {
-        internal class MissingTokenWithTrivia : SyntaxTokenWithTrivia
+        internal sealed class MissingTokenWithTrivia : SyntaxTokenWithTrivia
         {
             internal MissingTokenWithTrivia(SyntaxKind kind, GreenNode leading, GreenNode trailing)
                 : base(kind, leading, trailing)

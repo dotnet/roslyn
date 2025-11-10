@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -350,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private NamespaceOrTypeSymbol GetContainingNamespaceOrNonExtensionType(Symbol symbol)
         {
             if (symbol.ContainingNamespaceOrType() is { } containing
-                && containing is not TypeSymbol { IsExtension: true })
+                && containing is not NamedTypeSymbol { IsExtension: true })
             {
                 return containing;
             }
@@ -1584,8 +1585,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Debug.Assert(symbol.GetIsNewExtensionMember());
-                            if (SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(this.Compilation, symbol, receiverType) is { } compatibleSubstitutedMember)
+                            Debug.Assert(symbol.IsExtensionBlockMember());
+                            if (SourceNamedTypeSymbol.ReduceExtensionMember(this.Compilation, symbol, receiverType, wasExtensionFullyInferred: out _) is { } compatibleSubstitutedMember)
                             {
                                 if (compatibleSubstitutedMember.IsStatic)
                                 {
@@ -1694,12 +1695,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal NamedTypeSymbol GetSpecialType(SpecialType typeId, BindingDiagnosticBag diagnostics, SyntaxNode node)
+        internal NamedTypeSymbol GetSpecialType(ExtendedSpecialType typeId, BindingDiagnosticBag diagnostics, SyntaxNode node)
         {
             return GetSpecialType(this.Compilation, typeId, node, diagnostics);
         }
 
-        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, SyntaxNode node, BindingDiagnosticBag diagnostics)
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, ExtendedSpecialType typeId, SyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
@@ -1707,7 +1708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeSymbol;
         }
 
-        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, Location location, BindingDiagnosticBag diagnostics)
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, ExtendedSpecialType typeId, Location location, BindingDiagnosticBag diagnostics)
         {
             NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
@@ -1836,6 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetWellKnownType(compilation, type, diagnostics, node.Location);
         }
 
+#nullable enable
         internal static NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, BindingDiagnosticBag diagnostics, Location location)
         {
             NamedTypeSymbol typeSymbol = compilation.GetWellKnownType(type);
@@ -1843,6 +1845,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportUseSite(typeSymbol, diagnostics, location);
             return typeSymbol;
         }
+
+        internal static bool TryGetOptionalWellKnownType(CSharpCompilation compilation, WellKnownType type, BindingDiagnosticBag diagnostics, Location location, [NotNullWhen(true)] out NamedTypeSymbol? typeSymbol)
+        {
+            typeSymbol = compilation.GetWellKnownType(type);
+            Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
+            var useSiteInfo = typeSymbol.GetUseSiteInfo();
+            if (useSiteInfo.DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
+            {
+                typeSymbol = null;
+                return false;
+            }
+
+            // Ignore warnings
+            useSiteInfo = new UseSiteInfo<AssemblySymbol>(diagnosticInfo: null, useSiteInfo.PrimaryDependency, useSiteInfo.SecondaryDependencies);
+            diagnostics.Add(useSiteInfo, location);
+            return true;
+        }
+#nullable disable
 
         /// <summary>
         /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known

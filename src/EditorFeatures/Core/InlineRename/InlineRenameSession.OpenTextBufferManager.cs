@@ -163,8 +163,8 @@ internal sealed partial class InlineRenameSession
         internal IEnumerable<RenameTrackingSpan> GetRenameTrackingSpans()
             => _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Concat(_conflictResolutionRenameTrackingSpans);
 
-        internal IEnumerable<SnapshotSpan> GetEditableSpansForSnapshot(ITextSnapshot snapshot)
-            => _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Select(r => r.TrackingSpan.GetSpan(snapshot));
+        internal ImmutableArray<SnapshotSpan> GetEditableSpansForSnapshot(ITextSnapshot snapshot)
+            => _referenceSpanToLinkedRenameSpanMap.Values.SelectAsArray(r => r.Type != RenameSpanKind.None, r => r.TrackingSpan.GetSpan(snapshot));
 
         internal void SetReferenceSpans(IEnumerable<TextSpan> spans)
         {
@@ -281,7 +281,7 @@ internal sealed partial class InlineRenameSession
             _session.UndoManager.ApplyCurrentState(
                 _subjectBuffer,
                 s_propagateSpansEditTag,
-                _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Select(r => r.TrackingSpan));
+                _referenceSpanToLinkedRenameSpanMap.Values.SelectAsArray(r => r.Type != RenameSpanKind.None, r => r.TrackingSpan));
 
             if (updateSelection && _activeSpan.HasValue && this.ActiveTextView != null)
             {
