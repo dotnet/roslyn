@@ -7,7 +7,7 @@ This is not an exhaustive list of our features but rather the ones which have ac
 efforts behind them.
 
 The "Feature" column contains a link to the championed proposal or doc for the feature.  
-The "State" column contains a link to the test plan issue for the feature. The test plan should have a "Feature - XYZ" label, which is also used on PRs for the feature.  
+The "State" column contains a link to the test plan issue for the feature. The test plan should have a "Feature - XYZ" label, which is also used on PRs and issues for the feature.  
 
 # Working Set C#
 
