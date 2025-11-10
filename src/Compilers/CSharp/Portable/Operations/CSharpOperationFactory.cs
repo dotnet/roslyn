@@ -719,13 +719,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundObjectCreationExpressionOperation(BoundObjectCreationExpression boundObjectCreationExpression)
         {
-            MethodSymbol constructor = boundObjectCreationExpression.Constructor;
             SyntaxNode syntax = boundObjectCreationExpression.Syntax;
             ITypeSymbol? type = boundObjectCreationExpression.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundObjectCreationExpression.ConstantValueOpt;
             bool isImplicit = boundObjectCreationExpression.WasCompilerGenerated;
-
-            Debug.Assert(constructor is not null);
 
             if (!CanDeriveObjectCreationExpressionArguments(boundObjectCreationExpression))
             {
@@ -749,7 +746,15 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<IArgumentOperation> arguments = DeriveArguments(boundObjectCreationExpression);
             IObjectOrCollectionInitializerOperation? initializer = (IObjectOrCollectionInitializerOperation?)Create(boundObjectCreationExpression.InitializerExpressionOpt);
 
-            return new ObjectCreationOperation(constructor.GetPublicSymbol(), initializer, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new ObjectCreationOperation(
+                boundObjectCreationExpression.Constructor.GetPublicSymbol(),
+                initializer,
+                arguments,
+                _semanticModel,
+                syntax,
+                type,
+                constantValue,
+                isImplicit);
         }
 
         private IOperation CreateBoundWithExpressionOperation(BoundWithExpression boundWithExpression)
