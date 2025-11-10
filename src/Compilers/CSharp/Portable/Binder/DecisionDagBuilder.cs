@@ -1469,8 +1469,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
                         (s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
                         (s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
+                        Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
+                        Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
                         // Ignore input source as it will be matched in the subsequent iterations.
-                        if (s1Input.Index == s2Input.Index)
+                        if (s1Input.Index == s2Input.Index &&
+                            // We don't want to pair two indices within the same pattern.
+                            s1LengthTemp.Syntax != s2LengthTemp.Syntax)
                         {
                             Debug.Assert(s1LengthTemp.IsEquivalentTo(s2LengthTemp));
                             if (s1Index == s2Index)
