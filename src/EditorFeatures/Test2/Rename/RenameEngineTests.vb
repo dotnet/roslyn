@@ -6940,6 +6940,7 @@ class C
         End Sub
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2040")>
         <WorkItem("https://github.com/dotnet/roslyn/issues/44070")>
         Public Sub RenameTypeParameterFromCRef(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
