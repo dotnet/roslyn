@@ -3041,7 +3041,7 @@ parse_member_name:;
             bool looksLikeStartOfPropertyBody()
             {
                 // Need to see at least some modifiers, or something that strongly looks like a property type in order
-                // for us to at least consider this a property.  Otherwise, we end up cases where errant `{` and `=>`
+                // for us to at least consider this a property.  Otherwise, we end up in cases where errant `{` and `=>`
                 // tokens would lead us to think we're a property in inappropriate places.
                 if (modifiers.Count == 0 && !looksLikePropertyType())
                     return false;
