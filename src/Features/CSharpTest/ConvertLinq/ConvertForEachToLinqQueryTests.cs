@@ -1755,7 +1755,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
             {
                 public void M(IEnumerable<string> strings)
                 {
-                    foreach (var x in from x in Enumerable.Empty<string>()
+                    foreach (var _ in from x in Enumerable.Empty<string>()
                                       let b = true
                                       select new { })
                     {

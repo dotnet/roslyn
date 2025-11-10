@@ -107,7 +107,7 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
                 identifier: forEachStatement.Type.IsVar
                             ? forEachStatement.Identifier.WithPrependedLeadingTrivia(
                                 SyntaxNodeOrTokenExtensions.GetTrivia(forEachStatement.Type.GetFirstToken())
-                                .FilterComments(isLeading: true, addElasticMarker: false))
+                                .FilterComments(addElasticMarker: false))
                             : forEachStatement.Identifier,
                 inKeyword: forEachStatement.InKeyword.KeepCommentsAndAddElasticMarkers(),
                 expression: forEachStatement.Expression)
@@ -165,7 +165,7 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
         var lambda = SimpleLambdaExpression(
             Parameter(
                 forEachStatement.Identifier.WithPrependedLeadingTrivia(
-                SyntaxNodeOrTokenExtensions.GetTrivia(forEachStatement.Type.GetFirstToken()).FilterComments(isLeading: true, addElasticMarker: false))),
+                SyntaxNodeOrTokenExtensions.GetTrivia(forEachStatement.Type.GetFirstToken()).FilterComments(addElasticMarker: false))),
             lambdaBody)
             .WithCommentsFrom(leadingCommentsTrivia, trailingCommentsTrivia,
                 forEachStatement.OpenParenToken, forEachStatement.InKeyword, forEachStatement.CloseParenToken);
