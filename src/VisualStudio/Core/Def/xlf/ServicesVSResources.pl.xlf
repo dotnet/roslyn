@@ -237,6 +237,11 @@
         <target state="translated">Analiza kodu zakończyła się przed zakończeniem dla: „{0}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_preview">
+        <source>Code preview</source>
+        <target state="new">Code preview</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">Zwiń funkcje lokalne podczas zwijania do definicji</target>

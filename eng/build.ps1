@@ -47,7 +47,7 @@ param (
   [switch]$fromVMR = $false,
   [switch]$oop64bit = $true,
   [switch]$lspEditor = $false,
-  [string]$solution = "Roslyn.sln",
+  [string]$solution = "Roslyn.slnx",
 
   # official build settings
   [string]$officialBuildId = "",
@@ -117,7 +117,7 @@ function Print-Usage() {
   Write-Host "  -warnAsError              Treat all warnings as errors"
   Write-Host "  -productBuild             Build the repository in product-build mode"
   Write-Host "  -fromVMR                  Set when building from within the VMR"
-  Write-Host "  -solution                 Solution to build (default is Roslyn.sln)"
+  Write-Host "  -solution                 Solution to build (default is Roslyn.slnx)"
   Write-Host ""
   Write-Host "Official build settings:"
   Write-Host "  -officialBuildId                                  An official build id, e.g. 20190102.3"
@@ -561,13 +561,6 @@ function EnablePreviewSdks() {
 # deploying at build time.
 function Deploy-VsixViaTool() {
 
-  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net9.0\VSIXExpInstaller\VSIXExpInstaller.exe"
-  Write-Host "VSIX EXE path: " $vsixExe
-  if (-not (Test-Path $vsixExe)) {
-    Write-Host "VSIX EXE not found: '$vsixExe'." -ForegroundColor Red
-    ExitWithExitCode 1
-  }
-
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {
     throw "Unable to locate required Visual Studio installation"
@@ -580,7 +573,7 @@ function Deploy-VsixViaTool() {
 
   $hive = "RoslynDev"
   Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
-  $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
+  $baseArgs = "/rootSuffix:$hive /quiet /shutdownprocesses"
 
   Write-Host "Uninstalling old Roslyn VSIX"
 
@@ -609,9 +602,10 @@ function Deploy-VsixViaTool() {
 
   foreach ($vsixFileName in $orderedVsixFileNames) {
     $vsixFile = Join-Path $VSSetupDir $vsixFileName
+    $vsixInstallerExe = Join-Path $vsDir "Common7\IDE\VSIXInstaller.exe"
     $fullArg = "$baseArgs $vsixFile"
     Write-Host "`tInstalling $vsixFileName"
-    Exec-Command $vsixExe $fullArg
+    Exec-Command $vsixInstallerExe $fullArg
   }
 
   # Set up registry

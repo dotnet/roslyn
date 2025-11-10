@@ -4335,7 +4335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
 
-            return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor).GetPublicSymbol();
+            return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor, BindingDiagnosticBag.Discarded).GetPublicSymbol();
         }
 
         protected override IMethodSymbol CommonCreateBuiltinOperator(

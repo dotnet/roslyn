@@ -320,11 +320,11 @@
     <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsNugetPackageVersion)" />
     <PackageVersion Include="SourceBrowser" Version="1.0.21" />
-    <PackageVersion Include="RoslynTools.VSIXExpInstaller" Version="1.1.0-beta3.22474.1" />
     <PackageVersion Include="MicroBuildPluginsSwixBuild" Version="1.1.87" />
     <PackageVersion Include="vswhere" Version="$(vswhereVersion)" />
     <PackageVersion Include="CliWrap" Version="3.8.2" />
     <PackageVersion Include="Microsoft.DotNet.DarcLib" Version="$(MicrosoftDotNetDarcLibPackageVersion)" />
+    <PackageVersion Include="Microsoft.DotNet.FileBasedPrograms" Version="$(MicrosoftDotNetFileBasedProgramsPackageVersion)" />
     <PackageVersion Include="Spectre.Console" Version="0.51.1" />
     <!--
       The version of Roslyn we build Source Generators against that are built in this

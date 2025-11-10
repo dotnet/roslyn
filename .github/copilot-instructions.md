@@ -90,4 +90,4 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - `docs/contributing/Building, Debugging, and Testing on Unix.md` - Development setup
 - `src/Compilers/Core/Portable/` - Core compiler APIs
 - `src/Workspaces/Core/Portable/` - Workspace object model
-- Solution filters: `Roslyn.sln`, `Compilers.slnf`, `Ide.slnf` for focused builds
+- Solution filters: `Roslyn.slnx`, `Compilers.slnf`, `Ide.slnf` for focused builds
