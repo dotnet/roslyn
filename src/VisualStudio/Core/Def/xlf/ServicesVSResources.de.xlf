@@ -237,6 +237,11 @@
         <target state="translated">Die Codeanalyse wurde für "{0}" vorzeitig beendet.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_preview">
+        <source>Code preview</source>
+        <target state="new">Code preview</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">Lokale Funktionen beim Reduzieren auf Definitionen reduzieren</target>
