@@ -3395,6 +3395,21 @@ public sealed class CSharpMoveStaticMembersTests
             },
         }.RunAsync().ConfigureAwait(false);
     }
+
+    [Fact]
+    public async Task TestSelectEnumMember_NoAction()
+    {
+        await TestNoRefactoringAsync("""
+            namespace TestNs1
+            {
+                enum E
+                {
+                    No[||]ne = 0,
+                    Some = 1
+                }
+            }
+            """).ConfigureAwait(false);
+    }
     #endregion
 
     private sealed class Test : VerifyCS.Test
