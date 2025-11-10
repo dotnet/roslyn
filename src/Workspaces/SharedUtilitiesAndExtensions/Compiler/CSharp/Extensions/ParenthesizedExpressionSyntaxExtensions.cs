@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -253,6 +254,18 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         // (sizeof(int)) -> sizeof(int)
         if (expression is TypeOfExpressionSyntax or DefaultExpressionSyntax or CheckedExpressionSyntax or SizeOfExpressionSyntax)
             return true;
+
+        // (++x)      -> ++x
+        // (-1)       -> -1
+        //
+        // However, we have to be careful to not allow this if the parent is a cast, as that can change parsing.  For example:
+        //
+        // (x)(-y)   is a cast, while (x)-y is subtraction.
+        if (expression is PrefixUnaryExpressionSyntax prefixUnary &&
+            parentExpression is not CastExpressionSyntax)
+        {
+            return true;
+        }
 
         // (this)   -> this
         if (expression.IsKind(SyntaxKind.ThisExpression))
