@@ -3068,11 +3068,18 @@ parse_member_name:;
                     propertyType = refType.Type;
 
                 // Unlikely cases to actually be a property.  Likely some runaway error recovery case.  For example:
+                //
                 // with { }   (likely a with expression)
                 // extension { }  (likely an extension block being written)
                 // get { } (likely an accessor, not a property called 'get').  Same for set/add/remove/init.
-                if (propertyType is IdentifierNameSyntax { Identifier.ValueText: "extension" or "with" or "get" or "set" or "add" or "remove" or "init" })
+                //
+                // Properties are virtually always going to have a pascal cased identifier name.  So if we see one with
+                // an actual lowercase identifier, then it's unlikely to be a property.
+                if (propertyType is IdentifierNameSyntax { Identifier.ValueText: var identifierText } &&
+                    identifierText.All(char.IsLower))
+                {
                     return false;
+                }
 
                 // Can add more cases here if we find ourselves being too eager.
 
