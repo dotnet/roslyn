@@ -139,6 +139,9 @@ public abstract class IntegrationTestBase : TestBase
                         </PropertyGroup>
                     </Project>
                     """ },
+                { "global.json", """
+                    { "tools": { "sdk": { "allowPrerelease": true } } }
+                    """ },
             });
 
         if (result == null) return;
@@ -174,6 +177,9 @@ public abstract class IntegrationTestBase : TestBase
                             <UseSharedCompilation>{useSharedCompilation}</UseSharedCompilation>
                         </PropertyGroup>
                     </Project>
+                    """ },
+                { "global.json", """
+                    { "tools": { "sdk": { "allowPrerelease": true } } }
                     """ },
             });
 
