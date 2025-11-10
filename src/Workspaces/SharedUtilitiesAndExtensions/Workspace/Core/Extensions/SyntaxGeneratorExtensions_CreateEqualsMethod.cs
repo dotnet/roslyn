@@ -33,6 +33,7 @@ internal static partial class SyntaxGeneratorExtensions
     {
         var isRecord = containingType.IsRecord;
         var localName = localNameOpt ?? (isRecord ? GetLocalName(containingType) : null);
+        var parameterName = isRecord ? localName : ObjName;
         var statements = CreateEqualsMethodStatements(
             factory, generatorInternal, compilation, parseOptions, containingType, symbols, localName);
 
@@ -40,7 +41,7 @@ internal static partial class SyntaxGeneratorExtensions
             compilation,
             modifiers: isRecord ? containingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual : null,
             parameterType: isRecord ? containingType : null,
-            parameterName: localName,
+            parameterName: parameterName,
             statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation)));
     }
 
