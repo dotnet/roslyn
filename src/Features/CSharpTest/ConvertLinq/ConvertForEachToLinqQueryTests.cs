@@ -1728,6 +1728,45 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
             """, index: 1);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80781")]
+    public Task TestStatementTrailingTrivia1()
+        => TestInRegularAndScriptAsync("""
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class D
+            {
+                public void M(IEnumerable<string> strings)
+                {
+                    [|foreach (var x in Enumerable.Empty<string>())
+                    {
+                        bool b = true;
+                        A(); // A
+                    }|]
+                }
+
+                void A() { }
+            }
+            """, """
+            using System.Collections.Generic;
+            using System.Linq;
+            
+            class D
+            {
+                public void M(IEnumerable<string> strings)
+                {
+                    foreach (var x in from x in Enumerable.Empty<string>()
+                                      let b = true
+                                      select new { })
+                    {
+                        A(); // A
+                    }
+                }
+            
+                void A() { }
+            }
+            """, index: 0);
+
     #endregion
 
     #region In ToList

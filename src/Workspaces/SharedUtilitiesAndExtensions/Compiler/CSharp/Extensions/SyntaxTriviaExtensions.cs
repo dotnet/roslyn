@@ -6,11 +6,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -162,41 +164,44 @@ internal static class SyntaxTriviaExtensions
         return syntaxTree.GetRoot(cancellationToken).FindTrivia(span.Start - 1, findInsideTrivia);
     }
 
-    public static IEnumerable<SyntaxTrivia> FilterComments(this IEnumerable<SyntaxTrivia> trivia, bool addElasticMarker)
+    public static ImmutableArray<SyntaxTrivia> FilterComments(
+        this IEnumerable<SyntaxTrivia> trivia, bool isLeading, bool addElasticMarker)
     {
-        var previousIsSingleLineComment = false;
-        foreach (var t in trivia)
+        using var _1 = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
+
+        // Add all whitespace/comments to the temp buffer.
+        result.AddRange(trivia.Where(t => t.IsRegularComment() || t.IsWhitespaceOrEndOfLine()));
+
+        var firstCommentIndex = result.FindIndex(static t => t.IsRegularComment());
+        if (firstCommentIndex < 0)
         {
-            if (previousIsSingleLineComment && t.IsEndOfLine())
-            {
-                yield return t;
-            }
+            // If we had no comments at all, clear everything out.  We don't want to transfer anything over.
+            result.Clear();
+        }
+        else if (firstCommentIndex > 0)
+        {
+            // We have a comment
 
-            if (t.IsSingleOrMultiLineComment())
-            {
-                yield return t;
-            }
+            // If we're transferring trailing trivia over, also transfer any whitespace that precedes the first comment.
+            // This ensures that if we have:  `X(); // comment` that we keep that space before the comment as well.
+            if (!isLeading && result[firstCommentIndex - 1].IsWhitespace())
+                firstCommentIndex--;
 
-            previousIsSingleLineComment = t.IsSingleLineComment();
+            result.RemoveRange(0, firstCommentIndex);
+        }
+
+        // We only want to keep a following newline if we're adding trailing trivia to a node. 
+        if (isLeading)
+        {
+            while (result.Count > 0 && result[^1].IsWhitespaceOrEndOfLine())
+                result.RemoveAt(result.Count - 1);
         }
 
         if (addElasticMarker)
-        {
-            yield return SyntaxFactory.ElasticMarker;
-        }
-    }
+            result.Add(SyntaxFactory.ElasticMarker);
 
-#if false
-    public static int Width(this SyntaxTrivia trivia)
-    {
-        return trivia.Span.Length;
+        return result.ToImmutable();
     }
-
-    public static int FullWidth(this SyntaxTrivia trivia)
-    {
-        return trivia.FullSpan.Length;
-    }
-#endif
 
     public static bool IsPragmaDirective(this SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes)
     {
