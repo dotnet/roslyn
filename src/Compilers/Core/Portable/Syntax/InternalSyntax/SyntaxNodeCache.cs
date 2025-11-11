@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             // If the parent kind matches, the slot count must match as well.  Only if the parent kind does not match
             // (so two different node kinds hashed to the same array location) could the slot counts differ.
-            Debug.Assert(parent.RawKind != kind || parent.SlotCount == 2);
+            Debug.Assert(parent.RawKind != kind || parent.SlotCount == 3);
 
             return parent.RawKind == kind &&
                 parent.Flags == flags &&
