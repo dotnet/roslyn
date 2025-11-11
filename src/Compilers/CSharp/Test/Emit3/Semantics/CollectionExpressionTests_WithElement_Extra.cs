@@ -390,38 +390,31 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("Program.NoArgs<T>", """
             {
-                // Code size       57 (0x39)
-                .maxstack  3
-                .locals init (int V_0,
-                            System.Span<T> V_1,
-                            int V_2)
-                IL_0000:  ldc.i4.2
-                IL_0001:  stloc.0
-                IL_0002:  ldloc.0
-                IL_0003:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
-                IL_0008:  dup
-                IL_0009:  ldloc.0
-                IL_000a:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<T>(System.Collections.Generic.List<T>, int)"
-                IL_000f:  dup
-                IL_0010:  call       "System.Span<T> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<T>(System.Collections.Generic.List<T>)"
-                IL_0015:  stloc.1
-                IL_0016:  ldc.i4.0
-                IL_0017:  stloc.2
-                IL_0018:  ldloca.s   V_1
-                IL_001a:  ldloc.2
-                IL_001b:  call       "ref T System.Span<T>.this[int].get"
-                IL_0020:  ldarg.0
-                IL_0021:  stobj      "T"
-                IL_0026:  ldloc.2
-                IL_0027:  ldc.i4.1
-                IL_0028:  add
-                IL_0029:  stloc.2
-                IL_002a:  ldloca.s   V_1
-                IL_002c:  ldloc.2
-                IL_002d:  call       "ref T System.Span<T>.this[int].get"
-                IL_0032:  ldarg.1
-                IL_0033:  stobj      "T"
-                IL_0038:  ret
+              // Code size       51 (0x33)
+              .maxstack  3
+              .locals init (int V_0,
+                            System.Span<T> V_1)
+              IL_0000:  ldc.i4.2
+              IL_0001:  stloc.0
+              IL_0002:  ldloc.0
+              IL_0003:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+              IL_0008:  dup
+              IL_0009:  ldloc.0
+              IL_000a:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<T>(System.Collections.Generic.List<T>, int)"
+              IL_000f:  dup
+              IL_0010:  call       "System.Span<T> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<T>(System.Collections.Generic.List<T>)"
+              IL_0015:  stloc.1
+              IL_0016:  ldloca.s   V_1
+              IL_0018:  ldc.i4.0
+              IL_0019:  call       "ref T System.Span<T>.this[int].get"
+              IL_001e:  ldarg.0
+              IL_001f:  stobj      "T"
+              IL_0024:  ldloca.s   V_1
+              IL_0026:  ldc.i4.1
+              IL_0027:  call       "ref T System.Span<T>.this[int].get"
+              IL_002c:  ldarg.1
+              IL_002d:  stobj      "T"
+              IL_0032:  ret
             }
             """);
         verifier.VerifyIL("Program.EmptyArgs<T>", """
