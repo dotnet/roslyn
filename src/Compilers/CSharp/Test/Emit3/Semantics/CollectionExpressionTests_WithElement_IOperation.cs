@@ -81,10 +81,12 @@ public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTes
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("int[]").WithLocation(5, 20));
         comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
             ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Int32[], IsInvalid) (Syntax: '[with(0), 1, 2, 3]')
-            Elements(3):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+              ConstructArguments(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
             """);
     }
 
@@ -106,10 +108,12 @@ public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTes
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("int[]").WithLocation(5, 20));
         comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
             ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Int32[], IsInvalid) (Syntax: '[with(capac ... ), 1, 2, 3]')
-            Elements(3):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+              ConstructArguments(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
             """);
     }
 
@@ -158,6 +162,8 @@ public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTes
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(6, 24));
         comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
             ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Span<System.Int32>, IsInvalid) (Syntax: '[with(0), 1, 2, 3]')
+              ConstructArguments(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
               Elements(3):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -184,6 +190,8 @@ public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTes
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.Span<int>").WithLocation(6, 24));
         comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
             ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Span<System.Int32>, IsInvalid) (Syntax: '[with(capac ... ), 1, 2, 3]')
+              ConstructArguments(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
               Elements(3):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -239,6 +247,8 @@ public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTes
             Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with"));
         comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), $$"""
             ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.{{typeName}}, IsInvalid) (Syntax: '[with(0), 1, 2, 3]')
+              ConstructArguments(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
               Elements(3):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -268,6 +278,8 @@ public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTes
             Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with"));
         comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), $$"""
             ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.{{typeName}}, IsInvalid) (Syntax: '[with(capac ... ), 1, 2, 3]')
+              ConstructArguments(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
               Elements(3):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')

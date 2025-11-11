@@ -244,10 +244,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (6,14): error CS9336: Collection arguments are not supported for type 'T[]'.
+            // (6,14): error CS9401: 'with(...)' elements are not supported for type 'T[]'
             //         a = [with(default), t];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("T[]").WithLocation(6, 14),
-            // (7,17): error CS9335: Collection argument element must be the first element.
+            // (6,19): error CS8716: There is no target type for the default literal.
+            //         a = [with(default), t];
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 19),
+            // (7,17): error CS9400: 'with(...)' element must be the first element
             //         a = [t, with(default)];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(7, 17));
 
@@ -305,8 +308,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Theory]
-    [InlineData("ReadOnlySpan")]
-    [InlineData("Span")]
+    [InlineData("ReadOnlySpan<T>")]
+    [InlineData("Span<T>")]
     public void Arguments_Span(string spanType)
     {
         string source = $$"""
@@ -315,19 +318,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 {
                     static void F<T>(T t)
                     {
-                        {{spanType}}<T> x =
+                        {{spanType}} x =
                             [with(default), t];
-                        {{spanType}}<T> y =
+                        {{spanType}} y =
                             [t, with(default)];
                     }
                 }
                 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (7,14): error CS9336: Collection arguments are not supported for type 'Span<T>'.
+            // (7,14): error CS9401: 'with(...)' elements are not supported for type 'Span<T>'
             //             [with(default), t];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.{spanType}<T>").WithLocation(7, 14),
-            // (9,17): error CS9335: Collection argument element must be the first element.
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(spanType).WithLocation(7, 14),
+            // (7,19): error CS8716: There is no target type for the default literal.
+            //             [with(default), t];
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 19),
+            // (9,17): error CS9400: 'with(...)' element must be the first element
             //             [t, with(default)];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(9, 17));
     }
@@ -915,19 +921,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             case "System.ReadOnlySpan<T>":
             case "System.Span<T>":
                 comp.VerifyEmitDiagnostics(
-                // (8,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                // (8,14): error CS9401: 'with(...)' elements are not supported for type 'ReadOnlySpan<T>'
                 //         c = [with()];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(8, 14),
-                // (9,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                // (9,14): error CS9401: 'with(...)' elements are not supported for type 'ReadOnlySpan<T>'
                 //         c = [with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(9, 14),
-                // (10,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                // (9,19): error CS8716: There is no target type for the default literal.
+                //         c = [with(default)];
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(9, 19),
+                // (10,14): error CS9401: 'with(...)' elements are not supported for type 'ReadOnlySpan<T>'
                 //         c = [with(capacity)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(10, 14),
-                // (11,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                // (11,14): error CS9401: 'with(...)' elements are not supported for type 'ReadOnlySpan<T>'
                 //         c = [with(comparer)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(11, 14),
-                // (12,14): error CS9336: Collection arguments are not supported for type 'ReadOnlySpan<T>'
+                // (12,14): error CS9401: 'with(...)' elements are not supported for type 'ReadOnlySpan<T>'
                 //         c = [with(capacity, comparer)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(12, 14));
                 break;
@@ -935,18 +944,21 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             case "System.Collections.Generic.IReadOnlyCollection<T>":
             case "System.Collections.Generic.IReadOnlyList<T>":
                 comp.VerifyEmitDiagnostics(
-                    // (9,14): error CS9338: 'with(...)' element for a read-only interface must be empty if present
-                    //         c = [with(default)];
-                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(9, 14),
-                    // (10,14): error CS9338: 'with(...)' element for a read-only interface must be empty if present
-                    //         c = [with(capacity)];
-                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(10, 14),
-                    // (11,14): error CS9338: 'with(...)' element for a read-only interface must be empty if present
-                    //         c = [with(comparer)];
-                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(11, 14),
-                    // (12,14): error CS9338: 'with(...)' element for a read-only interface must be empty if present
-                    //         c = [with(capacity, comparer)];
-                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(12, 14));
+                // (9,14): error CS9403: 'with(...)' element for a read-only interface must be empty if present
+                //         c = [with(default)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(9, 14),
+                // (9,19): error CS8716: There is no target type for the default literal.
+                //         c = [with(default)];
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(9, 19),
+                // (10,14): error CS9403: 'with(...)' element for a read-only interface must be empty if present
+                //         c = [with(capacity)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(10, 14),
+                // (11,14): error CS9403: 'with(...)' element for a read-only interface must be empty if present
+                //         c = [with(comparer)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(11, 14),
+                // (12,14): error CS9403: 'with(...)' element for a read-only interface must be empty if present
+                //         c = [with(capacity, comparer)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(12, 14));
                 break;
             case "System.Collections.Generic.ICollection<T>":
             case "System.Collections.Generic.IList<T>":
@@ -994,10 +1006,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (7,14): error CS9338: 'with(...)' element for a read-only interface must be empty if present
+                // (7,14): error CS9403: 'with(...)' element for a read-only interface must be empty if present
                 //         i = [with(default), t];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, "with").WithLocation(7, 14),
-                // (8,17): error CS9335: Collection argument element must be the first element
+                // (7,19): error CS8716: There is no target type for the default literal.
+                //         i = [with(default), t];
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 19),
+                // (8,17): error CS9400: 'with(...)' element must be the first element
                 //         i = [t, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17));
         }

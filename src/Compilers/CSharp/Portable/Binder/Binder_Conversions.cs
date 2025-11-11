@@ -1147,6 +1147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ErrorCode.ERR_CollectionArgumentsNotSupportedForType,
                         _node.WithElement.Syntax.GetFirstToken().GetLocation(),
                         _targetType);
+                    return null;
                 }
 
                 return CreateCollectionExpression(collectionTypeKind, elements);
@@ -1154,6 +1155,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private readonly BoundCollectionExpression? TryConvertCollectionExpressionArrayInterfaceType(ImmutableArray<BoundNode> elements)
             {
+                if (_node.WithElement?.Arguments.Length > 0 &&
+                    _targetType.IsReadOnlyArrayInterface(out _))
+                {
+                    // For the read-only array interfaces (IEnumerable<E>, IReadOnlyCollection<E>, IReadOnlyList<E>), only
+                    // the parameterless `with()` is allowed.
+                    _diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, _node.WithElement.Syntax.GetFirstToken().GetLocation());
+                    return null;
+                }
+
                 return CreateCollectionExpression(
                     CollectionExpressionTypeKind.ArrayInterface,
                     elements,
@@ -1170,13 +1180,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var withSyntax = withElement.Syntax;
                     if (@this._targetType.IsReadOnlyArrayInterface(out _))
                     {
-                        // For the read-only array interfaces (IEnumerable<E>, IReadOnlyCollection<E>, IReadOnlyList<E>), only
-                        // the parameterless `with()` is allowed.
-                        if (withElement.Arguments.Length > 0)
-                        {
-                            @this._diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeEmpty, withSyntax.GetFirstToken().GetLocation());
-                        }
-
                         // Note: we intentionally report null here.  Even though the code has `with()` in it, we're not actually
                         // going to call a particular constructor.  The lowering phase will properly handle creating a read-only
                         // interface instance.
