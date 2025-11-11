@@ -5519,8 +5519,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(fieldSyntax.Declaration.Variables.First().Identifier));
+                                var parnetSyntax = fieldSyntax.Parent;
+                                if (parnetSyntax.IsKind(SyntaxKind.CompilationUnit)
+                                    && parnetSyntax.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement)))
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_MemberIsNoTopLevelSatement,
+                                        new SourceLocation(fieldSyntax.Declaration.Variables.First().Identifier));
+                                }
+                                else
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_NamespaceUnexpected,
+                                        new SourceLocation(fieldSyntax.Declaration.Variables.First().Identifier));
+                                }
                             }
 
                             bool modifierErrors;
@@ -5563,8 +5575,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var methodSyntax = (MethodDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(methodSyntax.Identifier));
+                                var parnetSyntax = methodSyntax.Parent;
+                                if (parnetSyntax.IsKind(SyntaxKind.CompilationUnit)
+                                    && parnetSyntax.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement)))
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_MemberIsNoTopLevelSatement,
+                                        new SourceLocation(methodSyntax.Identifier));
+                                }
+                                else
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_NamespaceUnexpected,
+                                        new SourceLocation(methodSyntax.Identifier));
+                                }
                             }
 
                             var method = SourceOrdinaryMethodSymbol.CreateMethodSymbol(this, bodyBinder, methodSyntax, compilation.IsNullableAnalysisEnabledIn(methodSyntax), diagnostics);
@@ -5579,6 +5603,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
                                     new SourceLocation(constructorSyntax.Identifier));
+
+                                var parnetSyntax = constructorSyntax.Parent;
+                                if (parnetSyntax.IsKind(SyntaxKind.CompilationUnit)
+                                    && parnetSyntax.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement)))
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_MemberIsNoTopLevelSatement,
+                                        new SourceLocation(constructorSyntax.Identifier));
+                                }
+                                else
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_NamespaceUnexpected,
+                                        new SourceLocation(constructorSyntax.Identifier));
+                                }
                             }
 
                             bool isNullableEnabled = compilation.IsNullableAnalysisEnabledIn(constructorSyntax);
@@ -5596,8 +5635,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var destructorSyntax = (DestructorDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(destructorSyntax.Identifier));
+                                var parnetSyntax = destructorSyntax.Parent;
+                                if (parnetSyntax.IsKind(SyntaxKind.CompilationUnit)
+                                    && parnetSyntax.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement)))
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_MemberIsNoTopLevelSatement,
+                                        new SourceLocation(destructorSyntax.Identifier));
+                                }
+                                else
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_NamespaceUnexpected,
+                                        new SourceLocation(destructorSyntax.Identifier));
+                                }
                             }
 
                             // CONSIDER: if this doesn't (directly or indirectly) override object.Finalize, the
@@ -5614,8 +5665,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var propertySyntax = (PropertyDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(propertySyntax.Identifier));
+                                var parnetSyntax = propertySyntax.Parent;
+                                if (parnetSyntax.IsKind(SyntaxKind.CompilationUnit)
+                                    && parnetSyntax.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement)))
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_MemberIsNoTopLevelSatement,
+                                        new SourceLocation(propertySyntax.Identifier));
+                                }
+                                else
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_NamespaceUnexpected,
+                                        new SourceLocation(propertySyntax.Identifier));
+                                }
                             }
 
                             var property = SourcePropertySymbol.Create(this, bodyBinder, propertySyntax, diagnostics);
@@ -5665,9 +5728,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var eventFieldSyntax = (EventFieldDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(
-                                    ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(eventFieldSyntax.Declaration.Variables.First().Identifier));
+                                var parnetSyntax = eventFieldSyntax.Parent;
+                                if (parnetSyntax.IsKind(SyntaxKind.CompilationUnit)
+                                    && parnetSyntax.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement)))
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_MemberIsNoTopLevelSatement,
+                                        new SourceLocation(eventFieldSyntax.Declaration.Variables.First().Identifier));
+                                }
+                                else
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_NamespaceUnexpected,
+                                        new SourceLocation(eventFieldSyntax.Declaration.Variables.First().Identifier));
+                                }
                             }
 
                             foreach (VariableDeclaratorSyntax declarator in eventFieldSyntax.Declaration.Variables)
@@ -5719,8 +5793,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var eventSyntax = (EventDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(eventSyntax.Identifier));
+                                var parnetSyntax = eventSyntax.Parent;
+                                if (parnetSyntax.IsKind(SyntaxKind.CompilationUnit)
+                                    && parnetSyntax.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement)))
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_MemberIsNoTopLevelSatement,
+                                        new SourceLocation(eventSyntax.Identifier));
+                                }
+                                else
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_NamespaceUnexpected,
+                                        new SourceLocation(eventSyntax.Identifier));
+                                }
                             }
 
                             var @event = new SourceCustomEventSymbol(this, bodyBinder, eventSyntax, diagnostics);
@@ -5739,8 +5825,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var indexerSyntax = (IndexerDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(indexerSyntax.ThisKeyword));
+                                var parnetSyntax = indexerSyntax.Parent;
+                                if (parnetSyntax.IsKind(SyntaxKind.CompilationUnit)
+                                    && parnetSyntax.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement)))
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_MemberIsNoTopLevelSatement,
+                                        new SourceLocation(indexerSyntax.ThisKeyword));
+                                }
+                                else
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_NamespaceUnexpected,
+                                        new SourceLocation(indexerSyntax.ThisKeyword));
+                                }
                             }
 
                             var indexer = SourcePropertySymbol.Create(this, bodyBinder, indexerSyntax, diagnostics);
@@ -5756,8 +5854,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var conversionOperatorSyntax = (ConversionOperatorDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(conversionOperatorSyntax.OperatorKeyword));
+                                var parnetSyntax = conversionOperatorSyntax.Parent;
+                                if (parnetSyntax.IsKind(SyntaxKind.CompilationUnit)
+                                    && parnetSyntax.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement)))
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_MemberIsNoTopLevelSatement,
+                                        new SourceLocation(conversionOperatorSyntax.OperatorKeyword));
+                                }
+                                else
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_NamespaceUnexpected,
+                                        new SourceLocation(conversionOperatorSyntax.OperatorKeyword));
+                                }
                             }
 
                             var method = SourceUserDefinedConversionSymbol.CreateUserDefinedConversionSymbol(
@@ -5771,8 +5881,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var operatorSyntax = (OperatorDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(operatorSyntax.OperatorKeyword));
+                                var parnetSyntax = operatorSyntax.Parent;
+                                if (parnetSyntax.IsKind(SyntaxKind.CompilationUnit)
+                                    && parnetSyntax.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement)))
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_MemberIsNoTopLevelSatement,
+                                        new SourceLocation(operatorSyntax.OperatorKeyword));
+                                }
+                                else
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_NamespaceUnexpected,
+                                        new SourceLocation(operatorSyntax.OperatorKeyword));
+                                }
                             }
 
                             var method = SourceUserDefinedOperatorSymbol.CreateUserDefinedOperatorSymbol(

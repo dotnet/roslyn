@@ -8180,4 +8180,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AmbigOperator" xml:space="preserve">
     <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>
   </data>
+  <data name="ERR_MemberIsNoTopLevelSatement" xml:space="preserve">
+    <value>Members, such as properties, fields or events, are not allowed as top level statements </value>
+  </data>
 </root>

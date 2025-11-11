@@ -1542,6 +1542,11 @@
         <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MemberIsNoTopLevelSatement">
+        <source>Member is no valid top level statement</source>
+        <target state="new">Member is no valid top level statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsExtendedType">
         <source>'{0}': extension member names cannot be the same as their extended type</source>
         <target state="new">'{0}': extension member names cannot be the same as their extended type</target>
