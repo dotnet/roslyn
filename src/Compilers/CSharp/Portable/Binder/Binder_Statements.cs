@@ -706,6 +706,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
+            // Check for duplicate modifiers in local declarations.
+            // The actual modifier (const) is determined by node.IsConst below.
+            if (diagnostics.DiagnosticBag is not null)
+                ModifierUtils.CheckForDuplicateModifiers(node.Modifiers, diagnostics.DiagnosticBag);
+
             var typeSyntax = node.Declaration.Type;
             bool isConst = node.IsConst;
 
@@ -2742,7 +2747,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // It was not. Does it implement operator true?
             expr = BindToNaturalType(expr, diagnostics);
-            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, node, diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);
+            OperatorResolutionForReporting discardedOperatorResolutionForReporting = default;
+            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, node, diagnostics, ref discardedOperatorResolutionForReporting, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);
+            discardedOperatorResolutionForReporting.Free();
+
             if (!best.HasValue)
             {
                 // No. Give a "not convertible to bool" error.

@@ -4251,7 +4251,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>The CallerFilePathAttribute will have no effect; it is overridden by the CallerLineNumberAttribute</value>
   </data>
   <data name="ERR_InvalidDynamicCondition" xml:space="preserve">
-    <value>Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</value>
+    <value>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</value>
   </data>
   <data name="ERR_MixingWinRTEventWithRegular" xml:space="preserve">
     <value>'{0}' cannot implement '{1}' because '{2}' is a Windows Runtime event and '{3}' is a regular .NET event.</value>
@@ -8170,5 +8170,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AmbigExtension" xml:space="preserve">
     <value>The extension resolution is ambiguous between the following members: '{0}' and '{1}'</value>
+  </data>
+  <data name="ERR_SingleInapplicableBinaryOperator" xml:space="preserve">
+    <value>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</value>
+  </data>
+  <data name="ERR_SingleInapplicableUnaryOperator" xml:space="preserve">
+    <value>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</value>
+  </data>
+  <data name="ERR_AmbigOperator" xml:space="preserve">
+    <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>
   </data>
 </root>

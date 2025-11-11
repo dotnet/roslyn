@@ -804,9 +804,7 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
                 AddSymbolSourceSpans(conflicts, [containingNamedType], reverseMappedLocations);
             }
 
-            if (renamedSymbol.Kind is SymbolKind.Parameter or
-                SymbolKind.Local or
-                SymbolKind.RangeVariable)
+            if (renamedSymbol.Kind is SymbolKind.Parameter or SymbolKind.Local or SymbolKind.RangeVariable)
             {
                 var token = renamedSymbol.Locations.Single().FindToken(cancellationToken);
                 var memberDeclaration = token.GetAncestor<MemberDeclarationSyntax>();

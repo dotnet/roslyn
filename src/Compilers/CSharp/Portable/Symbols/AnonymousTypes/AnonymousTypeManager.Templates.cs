@@ -500,6 +500,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SealTemplates();
             }
 
+            // If we change conditions under which ReportMissingOrErroneousSymbols is called here,
+            // we also need to adjust conditions under which ReportMissingOrErroneousSymbols is called to 
+            // collect dependencies. Quite possibly call it in more places.
             if (anonymousTypes.Count > 0 && !ReportMissingOrErroneousSymbols(diagnostics))
             {
                 // Process all the templates
