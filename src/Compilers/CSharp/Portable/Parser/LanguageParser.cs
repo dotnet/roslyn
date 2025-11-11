@@ -4202,10 +4202,10 @@ parse_member_name:;
                     (parser.IsInFieldKeywordContext ? LanguageParserState.IsInFieldKeywordContext : 0) |
                     (parser.ForceConditionalAccessExpression ? LanguageParserState.ForceConditionalAccessExpression : 0);
 
-                _parser.IsInAsync = isInAsyncContext.GetValueOrDefault(parser.IsInAsync);
-                _parser.IsInQuery = isInQueryContext.GetValueOrDefault(parser.IsInQuery);
-                _parser.IsInFieldKeywordContext = isInFieldKeywordContext.GetValueOrDefault(parser.IsInFieldKeywordContext);
-                _parser.ForceConditionalAccessExpression = forceConditionalAccessExpression.GetValueOrDefault(parser.ForceConditionalAccessExpression);
+                _parser.IsInAsync = isInAsyncContext ?? parser.IsInAsync;
+                _parser.IsInQuery = isInQueryContext ?? parser.IsInQuery;
+                _parser.IsInFieldKeywordContext = isInFieldKeywordContext ?? parser.IsInFieldKeywordContext;
+                _parser.ForceConditionalAccessExpression = forceConditionalAccessExpression ?? parser.ForceConditionalAccessExpression;
             }
 
             public void Dispose()
