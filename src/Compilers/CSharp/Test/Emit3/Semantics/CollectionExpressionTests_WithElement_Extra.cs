@@ -308,12 +308,11 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Theory]
-    [InlineData("ReadOnlySpan<T>")]
-    [InlineData("Span<T>")]
+    [InlineData("System.ReadOnlySpan<T>")]
+    [InlineData("System.Span<T>")]
     public void Arguments_Span(string spanType)
     {
         string source = $$"""
-                using System;
                 class Program
                 {
                     static void F<T>(T t)
@@ -329,13 +328,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         comp.VerifyEmitDiagnostics(
             // (7,14): error CS9401: 'with(...)' elements are not supported for type 'Span<T>'
             //             [with(default), t];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(spanType).WithLocation(7, 14),
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(spanType),
             // (7,19): error CS8716: There is no target type for the default literal.
             //             [with(default), t];
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 19),
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 19),
             // (9,17): error CS9400: 'with(...)' element must be the first element
             //             [t, with(default)];
-            Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(9, 17));
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17));
     }
 
     [Fact]
