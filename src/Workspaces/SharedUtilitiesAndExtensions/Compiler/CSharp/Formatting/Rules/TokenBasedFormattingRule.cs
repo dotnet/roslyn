@@ -87,7 +87,8 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
                 if (!previousToken.IsCloseBraceOfExpression())
                 {
                     if (!currentToken.IsKind(SyntaxKind.SemicolonToken) &&
-                        !currentToken.IsParenInParenthesizedExpression() &&
+                        // Removed: !currentToken.IsParenInParenthesizedExpression() &&
+                        // This check was preventing indentation correction after blocks for statements like (0).ToString();
                         !currentToken.IsCommaInInitializerExpression() &&
                         !currentToken.IsCommaInAnyArgumentsList() &&
                         !currentToken.IsCommaInTupleExpression() &&
