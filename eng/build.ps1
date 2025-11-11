@@ -47,7 +47,7 @@ param (
   [switch]$fromVMR = $false,
   [switch]$oop64bit = $true,
   [switch]$lspEditor = $false,
-  [string]$solution = "Roslyn.sln",
+  [string]$solution = "Roslyn.slnx",
 
   # official build settings
   [string]$officialBuildId = "",
@@ -117,7 +117,7 @@ function Print-Usage() {
   Write-Host "  -warnAsError              Treat all warnings as errors"
   Write-Host "  -productBuild             Build the repository in product-build mode"
   Write-Host "  -fromVMR                  Set when building from within the VMR"
-  Write-Host "  -solution                 Solution to build (default is Roslyn.sln)"
+  Write-Host "  -solution                 Solution to build (default is Roslyn.slnx)"
   Write-Host ""
   Write-Host "Official build settings:"
   Write-Host "  -officialBuildId                                  An official build id, e.g. 20190102.3"

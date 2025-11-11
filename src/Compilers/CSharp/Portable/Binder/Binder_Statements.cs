@@ -706,6 +706,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
+            // Check for duplicate modifiers in local declarations.
+            // The actual modifier (const) is determined by node.IsConst below.
+            if (diagnostics.DiagnosticBag is not null)
+                ModifierUtils.CheckForDuplicateModifiers(node.Modifiers, diagnostics.DiagnosticBag);
+
             var typeSyntax = node.Declaration.Type;
             bool isConst = node.IsConst;
 

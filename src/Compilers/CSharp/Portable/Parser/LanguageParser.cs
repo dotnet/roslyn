@@ -10267,7 +10267,7 @@ done:
             }
 
             var mods = _pool.Allocate();
-            this.ParseDeclarationModifiers(mods, isUsingDeclaration: usingKeyword is not null);
+            this.ParseLocalDeclarationStatementModifiers(mods, isUsingDeclaration: usingKeyword is not null);
 
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
@@ -10561,7 +10561,7 @@ done:
             }
         }
 
-        private void ParseDeclarationModifiers(SyntaxListBuilder list, bool isUsingDeclaration)
+        private void ParseLocalDeclarationStatementModifiers(SyntaxListBuilder list, bool isUsingDeclaration)
         {
             SyntaxKind k;
             while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))
@@ -10590,11 +10590,9 @@ done:
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                 }
-                else if (list.Any(mod.RawKind))
-                {
-                    // check for duplicates, can only be const
-                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected);
-                }
+
+                // Note: Duplicate modifiers are not reported here during parsing.
+                // They will be reported during binding (see Binder_Statements.BindDeclarationStatementParts).
 
                 list.Add(mod);
             }

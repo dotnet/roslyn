@@ -805,6 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.UnconvertedObjectCreationExpression:
                 case BoundKind.UnconvertedCollectionExpression:
+                case BoundKind.UnconvertedConditionalOperator:
                 case BoundKind.TupleLiteral:
                     if (valueKind == BindValueKind.RValue)
                     {

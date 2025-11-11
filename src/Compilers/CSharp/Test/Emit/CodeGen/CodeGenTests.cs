@@ -1839,7 +1839,7 @@ public class D
  -IL_0013:  ldloc.3
   IL_0014:  ret
 }
-", sequencePoints: "D.M");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -5752,7 +5752,7 @@ public class D
  -IL_0050:  nop
  -IL_0051:  ret
 }
-", sequencePoints: "D.Main");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
