@@ -66,6 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property Utf8SingleLineRawStringLiteralToken As Integer? Implements ISyntaxKinds.Utf8SingleLineRawStringLiteralToken
         Public ReadOnly Property Utf8MultiLineRawStringLiteralToken As Integer? Implements ISyntaxKinds.Utf8MultiLineRawStringLiteralToken
 
+        Public ReadOnly Property XmlCrefAttribute As Integer = SyntaxKind.XmlCrefAttribute Implements ISyntaxKinds.XmlCrefAttribute
         Public ReadOnly Property XmlTextLiteralToken As Integer = SyntaxKind.XmlTextLiteralToken Implements ISyntaxKinds.XmlTextLiteralToken
 
         Public ReadOnly Property DelegateKeyword As Integer = SyntaxKind.DelegateKeyword Implements ISyntaxKinds.DelegateKeyword

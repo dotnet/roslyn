@@ -585,7 +585,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -726,7 +726,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -784,7 +784,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -843,7 +843,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -905,7 +905,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -974,7 +974,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -1034,7 +1034,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -1098,7 +1098,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -1160,7 +1160,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -1222,7 +1222,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -1289,7 +1289,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -1439,7 +1439,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments, new[] { baseMetadata }));
             verify(MetadataView(comp, assignments, new[] { baseMetadata }));
             verify(RetargetingView(comp, assignments, new[] { baseMetadata }));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -1502,7 +1502,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments, references));
             verify(MetadataView(comp, assignments, references));
             verify(RetargetingView(comp, assignments, references));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -1631,7 +1631,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -1908,7 +1908,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -2097,7 +2097,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -2231,7 +2231,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -2408,7 +2408,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived, Derived2)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived, Derived2)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       22 (0x16)
   .maxstack  1
@@ -2526,7 +2526,7 @@ public class Program
             verify(CompilationReferenceView(comp, assignments));
             verify(MetadataView(comp, assignments));
             verify(RetargetingView(comp, assignments));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived, Derived2)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived, Derived2)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       22 (0x16)
   .maxstack  1
@@ -2645,7 +2645,7 @@ End Class
 
             Assert.Equal(15, count);
 
-            CompileAndVerify(vbComp, verify: Verification.Skipped).VerifyIL("Derived2.T(Base, Derived, Derived2)", source: vbSource, sequencePoints: "Derived2.T", expectedIL: @"
+            CompileAndVerify(vbComp, verify: Verification.Skipped).VerifyIL("Derived2.T(Base, Derived, Derived2)", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size      360 (0x168)
   .maxstack  7
@@ -3238,7 +3238,7 @@ public class Program : Derived
             var comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
-            verifier.VerifyIL("Program.M1()", source: source, sequencePoints: "Program.M1", expectedIL: @"
+            verifier.VerifyIL("Program.M1()", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       63 (0x3f)
   .maxstack  5
@@ -3265,7 +3265,7 @@ public class Program : Derived
   IL_003e:  ret
 }
 ");
-            verifier.VerifyIL("Program.M2()", source: source, sequencePoints: "Program.M2", expectedIL: @"
+            verifier.VerifyIL("Program.M2()", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       58 (0x3a)
   .maxstack  5
@@ -3291,7 +3291,7 @@ public class Program : Derived
   IL_0039:  ret
 }
 ");
-            verifier.VerifyIL("Program.M3()", source: source, sequencePoints: "Program.M3", expectedIL: @"
+            verifier.VerifyIL("Program.M3()", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size      129 (0x81)
   .maxstack  7
@@ -3331,7 +3331,7 @@ public class Program : Derived
   IL_0080:  ret
 }
 ");
-            verifier.VerifyIL("Program.M4()", source: source, sequencePoints: "Program.M4", expectedIL: @"
+            verifier.VerifyIL("Program.M4()", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size      129 (0x81)
   .maxstack  7
@@ -3401,7 +3401,7 @@ public class Program : Derived
             var comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
-            verifier.VerifyIL("Derived.M1()", source: source, sequencePoints: "Derived.M1", expectedIL: @"
+            verifier.VerifyIL("Derived.M1()", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -3413,7 +3413,7 @@ public class Program : Derived
   IL_000d:  ret
 }
 ");
-            verifier.VerifyIL("Derived.M2()", source: source, sequencePoints: "Derived.M2", expectedIL: @"
+            verifier.VerifyIL("Derived.M2()", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -3424,7 +3424,7 @@ public class Program : Derived
   IL_000c:  ret
 }
 ");
-            verifier.VerifyIL("Derived.M3()", source: source, sequencePoints: "Derived.M3", expectedIL: @"
+            verifier.VerifyIL("Derived.M3()", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -3436,7 +3436,7 @@ public class Program : Derived
   IL_000d:  ret
 }
 ");
-            verifier.VerifyIL("Derived.M4()", source: source, sequencePoints: "Derived.M4", expectedIL: @"
+            verifier.VerifyIL("Derived.M4()", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -3447,7 +3447,7 @@ public class Program : Derived
   IL_000c:  ret
 }
 ");
-            verifier.VerifyIL("Program.M1()", source: source, sequencePoints: "Program.M1", expectedIL: @"
+            verifier.VerifyIL("Program.M1()", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -3459,7 +3459,7 @@ public class Program : Derived
   IL_000d:  ret
 }
 ");
-            verifier.VerifyIL("Program.M2()", source: source, sequencePoints: "Program.M2", expectedIL: @"
+            verifier.VerifyIL("Program.M2()", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -3470,7 +3470,7 @@ public class Program : Derived
   IL_000c:  ret
 }
 ");
-            verifier.VerifyIL("Program.M3()", source: source, sequencePoints: "Program.M3", expectedIL: @"
+            verifier.VerifyIL("Program.M3()", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -3482,7 +3482,7 @@ public class Program : Derived
   IL_000d:  ret
 }
 ");
-            verifier.VerifyIL("Program.M4()", source: source, sequencePoints: "Program.M4", expectedIL: @"
+            verifier.VerifyIL("Program.M4()", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL: @"
 {
   // Code size       13 (0xd)
   .maxstack  2
