@@ -31,6 +31,12 @@ parameters:
   - name: sha
     type: string
     default: 'None'
+  - name: visualStudioBootstrapperURI
+    type: string
+    default: ''
+  - name: testCaseFilter
+    type: string
+    default: ''
 
 variables:
 - name: XUNIT_LOGS
@@ -46,7 +52,7 @@ stages:
     name: VSIntegration
     displayName: VS Integration
     testLabPoolName: VS-Platform
-    visualStudioBootstrapperURI: https://vsdrop.corp.microsoft.com/file/v1/$(VisualStudio.BuildUnderTest.ProductsDropName);bootstrappers/Enterprise/vs_enterprise.exe
+    visualStudioBootstrapperURI: ${{ coalesce(parameters.visualStudioBootstrapperURI, 'https://vsdrop.corp.microsoft.com/file/v1/$(VisualStudio.BuildUnderTest.ProductsDropName);bootstrappers/Enterprise/vs_enterprise.exe') }}
     visualStudioInstallationParameters: --add Microsoft.VisualStudio.Component.NuGet --add Microsoft.VisualStudio.Component.Roslyn.Compiler --add Microsoft.Component.MSBuild --add Microsoft.NetCore.Component.Runtime.6.0 --add Microsoft.NetCore.Component.SDK --add Microsoft.Net.Component.4.7.2.TargetingPack --add Microsoft.VisualStudio.Component.Roslyn.LanguageServices --add Microsoft.VisualStudio.Component.FSharp --add Microsoft.ComponentGroup.ClickOnce.Publish --add Microsoft.NetCore.Component.DevelopmentTools --add Microsoft.VisualStudio.Component.MSODBC.SQL --add Microsoft.VisualStudio.Component.MSSQL.CMDLnUtils --add Microsoft.VisualStudio.Component.SQL.LocalDB.Runtime --add Microsoft.VisualStudio.Component.SQL.CLR --add Microsoft.VisualStudio.Component.CoreEditor --add Microsoft.VisualStudio.Workload.CoreEditor --add Microsoft.Net.Component.4.8.SDK --add Microsoft.Net.ComponentGroup.DevelopmentPrerequisites --add Microsoft.VisualStudio.Component.TypeScript.TSServer --add Microsoft.VisualStudio.ComponentGroup.WebToolsExtensions --add Microsoft.VisualStudio.Component.JavaScript.TypeScript --add Microsoft.VisualStudio.Component.JavaScript.Diagnostics --add Microsoft.VisualStudio.Component.TextTemplating --add Component.Microsoft.VisualStudio.RazorExtension --add Microsoft.VisualStudio.Component.IISExpress --add Microsoft.VisualStudio.Component.Common.Azure.Tools --add Microsoft.Component.ClickOnce --add Microsoft.VisualStudio.Component.ManagedDesktop.Core --add Microsoft.VisualStudio.Component.SQL.SSDT --add Microsoft.VisualStudio.Component.SQL.DataSources --add Component.Microsoft.Web.LibraryManager --add Component.Microsoft.WebTools.BrowserLink.WebLivePreview --add Microsoft.VisualStudio.ComponentGroup.Web --add Microsoft.VisualStudio.Component.FSharp.WebTemplates --add Microsoft.VisualStudio.Component.DockerTools --add Microsoft.NetCore.Component.Web --add Microsoft.VisualStudio.Component.WebDeploy --add Microsoft.VisualStudio.Component.AppInsights.Tools --add Microsoft.VisualStudio.Component.Web --add Microsoft.Net.Component.4.8.TargetingPack --add Microsoft.Net.ComponentGroup.4.8.DeveloperTools --add Microsoft.VisualStudio.Component.AspNet45 --add Microsoft.VisualStudio.Component.AspNet --add Component.Microsoft.VisualStudio.Web.AzureFunctions --add Microsoft.VisualStudio.ComponentGroup.AzureFunctions --add Microsoft.VisualStudio.Component.Debugger.Snapshot --add Microsoft.VisualStudio.ComponentGroup.Web.CloudTools --add Microsoft.VisualStudio.Component.IntelliTrace.FrontEnd --add Microsoft.VisualStudio.Component.DiagnosticTools --add Microsoft.VisualStudio.Component.EntityFramework --add Microsoft.VisualStudio.Component.LiveUnitTesting --add Microsoft.VisualStudio.Component.Debugger.JustInTime --add Component.Microsoft.VisualStudio.LiveShare.2022 --add Microsoft.VisualStudio.Component.WslDebugging --add Microsoft.VisualStudio.Component.IntelliCode --add Microsoft.VisualStudio.Workload.NetWeb --add Microsoft.VisualStudio.Component.ManagedDesktop.Prerequisites --add Microsoft.ComponentGroup.Blend --add Microsoft.VisualStudio.Component.DotNetModelBuilder --add Microsoft.VisualStudio.Component.FSharp.Desktop --add Microsoft.VisualStudio.Component.PortableLibrary --add Microsoft.VisualStudio.Workload.ManagedDesktop --add Microsoft.Net.Component.4.6.TargetingPack --add Microsoft.VisualStudio.Component.VSSDK --add Microsoft.VisualStudio.ComponentGroup.VisualStudioExtension.Prerequisites --add Microsoft.Component.CodeAnalysis.SDK --add Microsoft.VisualStudio.Workload.VisualStudioExtension --installPath "C:\Test\VisualStudio" --quiet --norestart --wait
     testExecutionJobStrategy:
       maxParallel: 4
@@ -84,3 +90,4 @@ stages:
         oop64bit: $(_oop64bit)
         lspEditor: false
         skipCheckout: true
+        testCaseFilter: ${{ parameters.testCaseFilter }}

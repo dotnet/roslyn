@@ -59,6 +59,7 @@ param (
 
   # Test actions
   [string]$testArch = "x64",
+  [string]$testFilter = "",
   [switch]$testVsi,
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
@@ -450,6 +451,10 @@ function TestUsingRunTests() {
     if ($lspEditor) {
       $args += " --testfilter Editor=LanguageServerProtocol"
     }
+  }
+
+  if ($testFilter -ne "") {
+    $args += " --testfilter $testFilter"
   }
 
   if (-not $ci -and -not $testVsi) {

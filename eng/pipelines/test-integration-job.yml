@@ -14,6 +14,9 @@ parameters:
   - name: skipCheckout
     type: boolean
     default: false
+  - name: testCaseFilter
+    type: string
+    default: ''
 
 steps:
   # Pipelines like the DartLab integration pipeline skip checkout because it is performed elsewhere.
@@ -30,7 +33,7 @@ steps:
     displayName: Build and Test
     inputs:
       filePath: eng/build.ps1
-      arguments: -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi -oop64bit:$${{ parameters.oop64bit }} -collectDumps -lspEditor:$${{ parameters.lspEditor }}
+      arguments: -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi -oop64bit:$${{ parameters.oop64bit }} -collectDumps -lspEditor:$${{ parameters.lspEditor }} -testFilter:$${{ parameters.testCaseFilter }}
 
   - task: PublishTestResults@2
     displayName: Publish xUnit Test Results
