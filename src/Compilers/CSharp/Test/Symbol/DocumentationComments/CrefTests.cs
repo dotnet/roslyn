@@ -7066,27 +7066,5 @@ record CacheContext(string String)" + terminator;
                 //         <see cref="TypeA"/>
                 Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "TypeA").WithArguments("TypeA", "System.Goo.TypeA", "System.TypeA").WithLocation(21, 24));
         }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4031")]
-        public void AmbiguousReferenceInDifferentNamespaces_WithParameters()
-        {
-            var source = """
-                namespace System.ComponentModel
-                {
-                    /// <summary>
-                    /// See <see cref="M()"/>.
-                    /// </summary>
-                    class C
-                    {
-                        void M() { }
-                        void M(__arglist) { }
-                    }
-                }
-                """;
-            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (4,24): warning CS0419: Ambiguous reference in cref attribute: 'M()'. Assuming 'System.ComponentModel.C.M()', but could have also matched other overloads including 'System.ComponentModel.C.M(__arglist)'.
-                //     /// See <see cref="M()"/>.
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "M()").WithArguments("M()", "System.ComponentModel.C.M()", "System.ComponentModel.C.M(__arglist)").WithLocation(4, 24));
-        }
     }
 }

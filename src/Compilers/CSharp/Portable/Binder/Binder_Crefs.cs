@@ -1066,9 +1066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ambiguityWinner = viable[0];
                 CrefSyntax crefSyntax = GetRootCrefSyntax(memberSyntax);
-                diagnostics.Add(ErrorCode.WRN_AmbiguousXMLReference, crefSyntax.Location, crefSyntax.ToString(),
-                    new FormattedSymbol(ambiguityWinner, SymbolDisplayFormat.CSharpErrorMessageFormat),
-                    new FormattedSymbol(viable[1], SymbolDisplayFormat.CSharpErrorMessageFormat));
+                diagnostics.Add(ErrorCode.WRN_AmbiguousXMLReference, crefSyntax.Location, crefSyntax.ToString(), ambiguityWinner, viable[1]);
             }
             else
             {
