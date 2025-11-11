@@ -1297,7 +1297,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     // Match the logic in CreateBoundCallOperation which does not DeriveArguments in the case of an
                     // erroneous call node.
                     if (boundCall.IsErroneousNode)
-                        return @this.CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundCall).InvalidNodeChildren);
+                    {
+                        var array = @this.CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundCall).InvalidNodeChildren);
+                        return array.WhereAsArray(o => o is not IPlaceholderOperation);
+                    }
 
                     var arguments = @this.DeriveArguments(collectionCreation);
 
