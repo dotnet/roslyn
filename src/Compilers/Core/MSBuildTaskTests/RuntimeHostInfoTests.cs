@@ -24,22 +24,14 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
     /// </summary>
     private string NormalizePath(string path)
     {
-        try
+        // Our test infra uses `subst` which the .NET Core's implementation of `ResolveLinkTarget` wouldn't resolve,
+        // hence we always use our Win32 polyfill on Windows to ensure paths are fully normalized and can be compared in tests.
+        var resolvedPath = PlatformInformation.IsWindows
+            ? NativeMethods.ResolveLinkTargetWin32(path, returnFinalTarget: true)
+            : File.ResolveLinkTarget(path, returnFinalTarget: true);
+        if (resolvedPath != null)
         {
-            // Our test infra uses `subst` which the .NET Core's implementation of `ResolveLinkTarget` wouldn't resolve,
-            // hence we always use our Win32 polyfill on Windows to ensure paths are fully normalized and can be compared in tests.
-            var resolvedPath = PlatformInformation.IsWindows
-                ? NativeMethods.ResolveLinkTargetWin32(path, returnFinalTarget: true)
-                : File.ResolveLinkTarget(path, returnFinalTarget: true);
-            if (resolvedPath != null)
-            {
-                return resolvedPath.FullName;
-            }
-        }
-        catch (Exception ex)
-        {
-            // If resolution fails, use the original path
-            _output.WriteLine($"Failed to resolve symbolic link for path '{path}': {ex}");
+            return resolvedPath.FullName;
         }
 
         return path;
