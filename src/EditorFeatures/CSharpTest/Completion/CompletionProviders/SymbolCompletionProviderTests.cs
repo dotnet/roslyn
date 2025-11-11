@@ -447,6 +447,124 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
         ]);
     }
 
+    [Fact]
+    public async Task AttributeTargetFiltering_AssemblyAttribute()
+    {
+        var code = """
+            [assembly: $$]
+
+            namespace TestNamespace
+            {
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                    }
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Assembly)]
+            public class AssemblyOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("AssemblyOnly"),
+            ItemExpectation.Absent("ClassOnly")
+        ]);
+    }
+
+    [Fact]
+    public async Task AttributeTargetFiltering_ClassAttribute()
+    {
+        var code = """
+            [$$]
+            class TestClass
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Assembly)]
+            public class AssemblyOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Class)]
+            public class ClassOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Absent("AssemblyOnly"),
+            ItemExpectation.Exists("ClassOnly")
+        ]);
+    }
+
+    [Fact]
+    public async Task AttributeTargetFiltering_MethodAttribute()
+    {
+        var code = """
+            class TestClass
+            {
+                [$$]
+                void TestMethod()
+                {
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Property)]
+            public class PropertyOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("MethodOnly"),
+            ItemExpectation.Absent("PropertyOnly")
+        ]);
+    }
+
+    [Fact]
+    public async Task AttributeTargetFiltering_ExplicitTargetSpecifier()
+    {
+        var code = """
+            class TestClass
+            {
+                [return: $$]
+                int TestMethod()
+                {
+                    return 0;
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.ReturnValue)]
+            public class ReturnValueOnlyAttribute : System.Attribute
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class MethodOnlyAttribute : System.Attribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("ReturnValueOnly"),
+            ItemExpectation.Absent("MethodOnly")
+        ]);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public Task NamespaceName_EmptyNameSpan_TopLevel()
         => VerifyItemExistsAsync(@"namespace $$ { }", "System", sourceCodeKind: SourceCodeKind.Regular);

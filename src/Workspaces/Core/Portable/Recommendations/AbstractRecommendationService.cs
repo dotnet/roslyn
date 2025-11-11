@@ -108,6 +108,7 @@ internal abstract partial class AbstractRecommendationService<
                 return symbol.IsOrContainsAccessibleAttribute(
                     _context.SemanticModel.GetEnclosingNamedType(_context.LeftToken.SpanStart, _cancellationToken)!,
                     _context.SemanticModel.Compilation.Assembly,
+                    _context.ValidAttributeTargets,
                     _cancellationToken);
             }
 
