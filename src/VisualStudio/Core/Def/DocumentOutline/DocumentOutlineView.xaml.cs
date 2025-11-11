@@ -228,6 +228,7 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
 
     bool IVsWindowSearch.OnNavigationKeyDown(uint dwNavigationKey, uint dwModifiers)
     {
+        // By default we are not interesting in intercepting navigation keys, so return "not handled"
         return false;
     }
 
