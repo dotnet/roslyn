@@ -10744,7 +10744,7 @@ done:
                 _pool.Free(badBuilder);
             }
 
-            using var _ = new ParserSyntaxContextResetter(this, modifiers.Any((int)SyntaxKind.AsyncKeyword));
+            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: modifiers.Any((int)SyntaxKind.AsyncKeyword));
 
             TypeParameterListSyntax typeParameterListOpt = this.ParseTypeParameterList();
             // "await f<T>()" still makes sense, so don't force accept a local function if there's a type parameter list.
