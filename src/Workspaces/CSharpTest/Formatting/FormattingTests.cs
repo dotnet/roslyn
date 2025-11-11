@@ -11437,4 +11437,26 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13945")]
+    public Task BlockFollowedBySimpleExpression()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    { }
+                    0.ToString();
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    { }
+                     0.ToString();
+                }
+            }
+            """);
 }
