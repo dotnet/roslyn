@@ -47,8 +47,6 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
 
     public readonly ISet<SyntaxKind> PrecedingModifiers;
 
-    private AttributeTargets? _lazyValidAttributeTargets;
-
     private CSharpSyntaxContext(
         Document document,
         SemanticModel semanticModel,
@@ -516,7 +514,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         return false;
     }
 
-    public override AttributeTargets ValidAttributeTargets => _lazyValidAttributeTargets ??= ComputeValidAttributeTargets();
+    public override AttributeTargets? ValidAttributeTargets => field ??= ComputeValidAttributeTargets();
 
     private AttributeTargets ComputeValidAttributeTargets()
     {

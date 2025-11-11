@@ -98,11 +98,10 @@ internal abstract class SyntaxContext(
     public ImmutableArray<ITypeSymbol> InferredTypes { get; } = document.GetRequiredLanguageService<ITypeInferenceService>().InferTypes(semanticModel, position, cancellationToken);
 
     /// <summary>
-    /// Gets the valid attribute targets for the current attribute context.
-    /// Returns <see cref="AttributeTargets.All"/> if not in an attribute context or if language-specific
-    /// filtering is not implemented.
+    /// Gets the valid attribute targets for the current attribute context. Returns <see langword="null"/> if not in an
+    /// attribute context or if language-specific filtering is not implemented.
     /// </summary>
-    public virtual AttributeTargets ValidAttributeTargets => AttributeTargets.All;
+    public virtual AttributeTargets? ValidAttributeTargets => null;
 
     public TService? GetLanguageService<TService>() where TService : class, ILanguageService
         => Document.GetLanguageService<TService>();
