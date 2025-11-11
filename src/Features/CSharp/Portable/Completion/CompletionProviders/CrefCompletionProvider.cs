@@ -70,9 +70,9 @@ internal sealed class CrefCompletionProvider(
             if (symbols.IsDefaultOrEmpty)
                 return;
 
-            context.IsExclusive = true;
-
             Contract.ThrowIfNull(semanticModel);
+
+            context.IsExclusive = true;
 
             var serializedOptions = ImmutableArray.Create(KeyValuePair.Create(HideAdvancedMembers, options.MemberDisplayOptions.HideAdvancedMembers.ToString()));
 
