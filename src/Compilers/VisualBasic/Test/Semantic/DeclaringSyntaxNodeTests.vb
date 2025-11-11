@@ -671,11 +671,7 @@ End Class
             Assert.Equal(SymbolKind.Local, localSymbol.Kind)
             Assert.Equal("exc", localSymbol.Name)
 
-            Dim declaringRefs = localSymbol.DeclaringSyntaxReferences
-            Assert.Equal(1, declaringRefs.Length)
-
-            Dim declaredSyntax = declaringRefs(0).GetSyntax()
-            Assert.NotNull(declaredSyntax)
+            Dim declaredSyntax = localSymbol.DeclaringSyntaxReferences.Single().GetSyntax()
             Assert.IsType(Of IdentifierNameSyntax)(declaredSyntax)
             Assert.Equal("exc", DirectCast(declaredSyntax, IdentifierNameSyntax).Identifier.ValueText)
         End Sub
