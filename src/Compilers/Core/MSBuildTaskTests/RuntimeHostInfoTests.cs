@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CommandLine;
@@ -22,7 +21,7 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
     /// Normalizes a path by resolving any symbolic links or subst drives (on Windows).
     /// This ensures paths can be compared even when one is a subst drive (e.g., T:\ -> D:\a\_work\1\s\artifacts\tmp\Debug).
     /// </summary>
-    private string NormalizePath(string path)
+    private static string NormalizePath(string path)
     {
         // Our test infra uses `subst` which the .NET Core's implementation of `ResolveLinkTarget` wouldn't resolve,
         // hence we always use our Win32 polyfill on Windows to ensure paths are fully normalized and can be compared in tests.
