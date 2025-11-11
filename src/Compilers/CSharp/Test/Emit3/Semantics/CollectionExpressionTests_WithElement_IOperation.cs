@@ -357,6 +357,8 @@ public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTes
             Diagnostic(ErrorCode.ERR_BadNamedArgument, "unknown").WithArguments("List", "unknown"));
         comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), $$"""
             ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.{{typeName}}, IsInvalid) (Syntax: '[with(unkno ... ), 1, 2, 3]')
+              ConstructArguments(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
               Elements(3):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -385,6 +387,9 @@ public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTes
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "2"));
         comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), $$"""
             ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.{{typeName}}, IsInvalid) (Syntax: '[with(0, 1), 1, 2, 3]')
+              ConstructArguments(2):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
               Elements(3):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -595,6 +600,10 @@ public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTes
             Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"with(0, null, """")").WithArguments("System.Collections.Generic.HashSet<int>", "3").WithLocation(6, 27));
         comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
             ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.HashSet<System.Int32>, IsInvalid) (Syntax: '[with(0, nu ... ), 1, 2, 3]')
+              ConstructArguments(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
               Elements(3):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -621,6 +630,8 @@ public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTes
             Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "System.Collections.Generic.IEnumerable<int>").WithLocation(6, 32));
         comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
             ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.HashSet<System.Int32>, IsInvalid) (Syntax: '[with(""), 1, 2, 3]')
+              ConstructArguments(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
               Elements(3):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
