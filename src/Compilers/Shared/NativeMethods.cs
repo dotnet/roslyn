@@ -103,32 +103,42 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             public static FileSystemInfo? ResolveLinkTarget(string path, bool returnFinalTarget)
             {
-                if (!returnFinalTarget) throw new NotSupportedException();
-
-                using var handle = CreateFileW(
-                    lpFileName: path,
-                    dwDesiredAccess: FILE_READ_ATTRIBUTES,
-                    dwShareMode: FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-                    lpSecurityAttributes: IntPtr.Zero,
-                    dwCreationDisposition: OPEN_EXISTING,
-                    dwFlagsAndAttributes: FILE_FLAG_BACKUP_SEMANTICS, // needed for directories
-                    hTemplateFile: IntPtr.Zero);
-
-                if (handle.IsInvalid)
-                {
-                    return null;
-                }
-
-                uint flags = FILE_NAME_NORMALIZED | VOLUME_NAME_DOS;
-                uint needed = GetFinalPathNameByHandleW(hFile: handle, lpszFilePath: null, cchFilePath: 0, dwFlags: flags);
-                if (needed == 0) return null;
-
-                var sb = new StringBuilder((int)needed + 1);
-                uint len = GetFinalPathNameByHandleW(hFile: handle, lpszFilePath: sb, cchFilePath: (uint)sb.Capacity, dwFlags: flags);
-                if (len == 0) return null;
-
-                return new FileInfo(TrimWin32ExtendedPrefix(sb.ToString()));
+                return ResolveLinkTargetWin32(path, returnFinalTarget);
             }
+        }
+#endif
+
+        /// <remarks>
+        /// Unlike .NET Core's implementation of <c>File.ResolveLinkTarget</c>,
+        /// this resolves virtual disk mappings (created via <c>subst</c>).
+        /// </remarks>
+        public static FileSystemInfo? ResolveLinkTargetWin32(string path, bool returnFinalTarget)
+        {
+            if (!returnFinalTarget) throw new NotSupportedException();
+
+            using var handle = CreateFileW(
+                lpFileName: path,
+                dwDesiredAccess: FILE_READ_ATTRIBUTES,
+                dwShareMode: FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                lpSecurityAttributes: IntPtr.Zero,
+                dwCreationDisposition: OPEN_EXISTING,
+                dwFlagsAndAttributes: FILE_FLAG_BACKUP_SEMANTICS, // needed for directories
+                hTemplateFile: IntPtr.Zero);
+
+            if (handle.IsInvalid)
+            {
+                return null;
+            }
+
+            uint flags = FILE_NAME_NORMALIZED | VOLUME_NAME_DOS;
+            uint needed = GetFinalPathNameByHandleW(hFile: handle, lpszFilePath: null, cchFilePath: 0, dwFlags: flags);
+            if (needed == 0) return null;
+
+            var sb = new StringBuilder((int)needed + 1);
+            uint len = GetFinalPathNameByHandleW(hFile: handle, lpszFilePath: sb, cchFilePath: (uint)sb.Capacity, dwFlags: flags);
+            if (len == 0) return null;
+
+            return new FileInfo(TrimWin32ExtendedPrefix(sb.ToString()));
         }
 
         private static string TrimWin32ExtendedPrefix(string s)
@@ -172,7 +182,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             StringBuilder? lpszFilePath,
             uint cchFilePath,
             uint dwFlags);
-#endif
 
     }
 }
