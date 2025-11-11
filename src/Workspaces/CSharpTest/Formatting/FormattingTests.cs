@@ -11415,4 +11415,26 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """,
             parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13945")]
+    public Task BlockFollowedByParenthesizedExpression()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    { }
+                    (0).ToString();
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    { }
+                     (0).ToString();
+                }
+            }
+            """);
 }
