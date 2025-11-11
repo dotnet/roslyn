@@ -569,9 +569,7 @@ internal static partial class ISymbolExtensions
     {
         // Get the AttributeUsageAttribute applied to this attribute type
         var attributeUsageAttribute = attributeType.GetAttributes()
-            .FirstOrDefault(attr => attr.AttributeClass?.Name == "AttributeUsageAttribute" &&
-                                   attr.AttributeClass.ContainingNamespace?.Name == "System" &&
-                                   attr.AttributeClass.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true);
+            .FirstOrDefault(attr => attr.AttributeClass is { Name: "AttributeUsageAttribute", ContainingNamespace: { Name: "System", ContainingNamespace.IsGlobalNamespace: true } });
 
         if (attributeUsageAttribute == null)
         {
@@ -580,15 +578,11 @@ internal static partial class ISymbolExtensions
         }
 
         // The first constructor argument is the AttributeTargets value
-        if (attributeUsageAttribute.ConstructorArguments.Length > 0)
+        if (attributeUsageAttribute.ConstructorArguments is [{ Value: int targetsValue }, ..])
         {
-            var constructorArg = attributeUsageAttribute.ConstructorArguments[0];
-            if (constructorArg.Value is int targetsValue)
-            {
-                var attributeTargets = (AttributeTargets)targetsValue;
-                // Check if there's any overlap between the attribute's targets and the valid targets
-                return (attributeTargets & validTargets) != 0;
-            }
+            var attributeTargets = (AttributeTargets)targetsValue;
+            // Check if there's any overlap between the attribute's targets and the valid targets
+            return (attributeTargets & validTargets) != 0;
         }
 
         // Default to allowing the attribute if we can't determine the targets

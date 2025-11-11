@@ -544,18 +544,17 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         // Check if there's an explicit target specifier (e.g., "assembly:", "return:", etc.)
         if (attributeList.Target != null)
         {
-            var targetIdentifier = attributeList.Target.Identifier.ValueText;
-            return targetIdentifier switch
+            return attributeList.Target.Identifier.Kind() switch
             {
-                "assembly" or "module" => AttributeTargets.Assembly | AttributeTargets.Module,
-                "type" => AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Interface | AttributeTargets.Delegate,
-                "method" => AttributeTargets.Method,
-                "field" => AttributeTargets.Field,
-                "property" => AttributeTargets.Property,
-                "event" => AttributeTargets.Event,
-                "param" => AttributeTargets.Parameter,
-                "return" => AttributeTargets.ReturnValue,
-                "typevar" => AttributeTargets.GenericParameter,
+                SyntaxKind.AssemblyKeyword or SyntaxKind.ModuleKeyword => AttributeTargets.Assembly | AttributeTargets.Module,
+                SyntaxKind.TypeKeyword => AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Interface | AttributeTargets.Delegate,
+                SyntaxKind.MethodKeyword => AttributeTargets.Method,
+                SyntaxKind.FieldKeyword => AttributeTargets.Field,
+                SyntaxKind.PropertyKeyword => AttributeTargets.Property,
+                SyntaxKind.EventKeyword => AttributeTargets.Event,
+                SyntaxKind.ParamKeyword => AttributeTargets.Parameter,
+                SyntaxKind.ReturnKeyword => AttributeTargets.ReturnValue,
+                SyntaxKind.TypeVarKeyword => AttributeTargets.GenericParameter,
                 _ => AttributeTargets.All
             };
         }
