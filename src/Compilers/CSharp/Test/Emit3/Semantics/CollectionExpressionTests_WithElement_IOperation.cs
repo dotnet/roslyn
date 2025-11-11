@@ -935,4 +935,83 @@ public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTes
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
             """);
     }
+
+    [Fact]
+    public void TestTypeArgument_Empty()
+    {
+        string source = $$"""
+            using System.Collections.Generic;
+            class C
+            {
+                void M<T>() where T : IList<int>, new()
+                {
+                    T a = [with(), 1, 2, 3];
+                }
+            }
+            """;
+        var comp = CreateCompilation(source).VerifyDiagnostics();
+        comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), $$"""
+            ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: T) (Syntax: '[with(), 1, 2, 3]')
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            """);
+    }
+
+    [Fact]
+    public void TestTypeArgument_SingleArg()
+    {
+        string source = $$"""
+            using System.Collections.Generic;
+            class C
+            {
+                void M<T>() where T : IList<int>, new()
+                {
+                    T a = [with(0), 1, 2, 3];
+                }
+            }
+            """;
+        var comp = CreateCompilation(source).VerifyDiagnostics(
+            // (6,16): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
+            //         T a = [with(0), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "with(0)").WithArguments("T").WithLocation(6, 16));
+        comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), $$"""
+            ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: T, IsInvalid) (Syntax: '[with(0), 1, 2, 3]')
+              ConstructArguments(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            """);
+    }
+
+    [Fact]
+    public void TestTypeArgument_NamedArg()
+    {
+        string source = $$"""
+            using System.Collections.Generic;
+            class C
+            {
+                void M<T>() where T : IList<int>, new()
+                {
+                    T a = [with(capacity: 0), 1, 2, 3];
+                }
+            }
+            """;
+        var comp = CreateCompilation(source).VerifyDiagnostics(
+            // (6,16): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
+            //         T a = [with(capacity: 0), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "with(capacity: 0)").WithArguments("T").WithLocation(6, 16));
+        comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), $$"""
+            ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: T, IsInvalid) (Syntax: '[with(capac ... ), 1, 2, 3]')
+              ConstructArguments(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            """);
+    }
 }

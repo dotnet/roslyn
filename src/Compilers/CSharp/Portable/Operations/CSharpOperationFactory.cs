@@ -1311,9 +1311,16 @@ namespace Microsoft.CodeAnalysis.Operations
                     return ImmutableArray<IOperation>.CastUp(slicedArguments);
                 }
 
+                if (collectionCreation is BoundNewT boundNewT)
+                    return [];
+
                 if (collectionCreation is BoundBadExpression boundBad)
                     return @this.CreateFromArray<BoundExpression, IOperation>(boundBad.ChildBoundNodes);
 
+                if (collectionCreation is null)
+                    return [];
+
+                Debug.Fail("Unhandled case: " + collectionCreation.GetType());
                 return [];
             }
         }
