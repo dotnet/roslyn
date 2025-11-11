@@ -7051,7 +7051,7 @@ record CacheContext(string String)" + terminator;
                 namespace A
                 {
                     using System;
-                    using System.Foo;
+                    using System.Goo;
 
                     /// <summary>
                     ///     <see cref="TypeA"/>
@@ -7062,9 +7062,9 @@ record CacheContext(string String)" + terminator;
                 }
                 """;
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (21,24): warning CS0419: Ambiguous reference in cref attribute: 'TypeA'. Assuming 'System.Foo.TypeA', but could have also matched other overloads including 'System.TypeA'.
+                // (21,24): warning CS0419: Ambiguous reference in cref attribute: 'TypeA'. Assuming 'System.Goo.TypeA', but could have also matched other overloads including 'System.TypeA'.
                 //         <see cref="TypeA"/>
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "TypeA").WithArguments("TypeA", "System.Foo.TypeA", "System.TypeA").WithLocation(21, 24));
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "TypeA").WithArguments("TypeA", "System.Goo.TypeA", "System.TypeA").WithLocation(21, 24));
         }
     }
 }
