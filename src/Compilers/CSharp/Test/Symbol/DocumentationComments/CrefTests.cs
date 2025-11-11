@@ -7041,7 +7041,7 @@ record CacheContext(string String)" + terminator;
                     }
                 }
 
-                namespace System.Foo
+                namespace System.Goo
                 {
                     class TypeA
                     {
