@@ -138,19 +138,19 @@ public abstract class EditingTestBase : CSharpTestBase
     internal static string GetDocumentFilePath(int documentIndex)
         => Path.Combine(TempRoot.Root, documentIndex.ToString() + ".cs");
 
-    private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
+    private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0, CSharpParseOptions? options = null)
         => SyntaxFactory.ParseSyntaxTree(
             SourceMarkers.Clear(markedSource),
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            (options ?? CSharpParseOptions.Default).WithLanguageVersion(LanguageVersion.Preview),
             path: GetDocumentFilePath(documentIndex));
 
     internal static EditScriptDescription GetTopEdits(string methodBody1, string methodBody2, MethodKind kind)
         => GetTopEdits(WrapMethodBodyWithClass(methodBody1, kind), WrapMethodBodyWithClass(methodBody2, kind));
 
-    internal static EditScriptDescription GetTopEdits(string src1, string src2, int documentIndex = 0)
+    internal static EditScriptDescription GetTopEdits(string src1, string src2, int documentIndex = 0, CSharpParseOptions? options = null)
     {
-        var tree1 = ParseSource(src1, documentIndex);
-        var tree2 = ParseSource(src2, documentIndex);
+        var tree1 = ParseSource(src1, documentIndex, options);
+        var tree2 = ParseSource(src2, documentIndex, options);
 
         tree1.GetDiagnostics().Verify();
         tree2.GetDiagnostics().Verify();

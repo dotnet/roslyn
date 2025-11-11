@@ -29,6 +29,31 @@ public sealed class TopLevelEditingTests : EditingTestBase
         [System.AttributeUsage(System.AttributeTargets.All)]class A : System.Attribute { public A() {} public A(int x) { } }
 
         """;
+
+    #region Project setting directives
+
+    [Fact]
+    public void ProjectSettingDirective_Update()
+    {
+        var src1 = """
+            #:package System.CommandLine@2.0.0";
+            Console.WriteLine();
+            """;
+
+        var src2 = """
+            #:package System.CommandLine@3.0.0";
+            Console.WriteLine();
+            """;
+
+        var edits = GetTopEdits(src1, src2, options: CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]));
+        edits.VerifyEdits(
+            "Update [#:package System.CommandLine@2.0.0]@0 -> [#:package System.CommandLine@3.0.0]@0");
+
+        edits.VerifySemanticDiagnostics();
+    }
+
+    #endregion
+
     #region Usings
 
     [Fact]
