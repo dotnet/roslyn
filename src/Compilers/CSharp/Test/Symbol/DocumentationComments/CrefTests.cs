@@ -7030,7 +7030,7 @@ record CacheContext(string String)" + terminator;
             Assert.Equal(SymbolKind.Property, symbol.Kind);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12345")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4031")]
         public void AmbiguousReferenceInDifferentNamespaces()
         {
             var source = """
