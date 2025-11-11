@@ -114,7 +114,7 @@
       <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DotNet.FileBasedPrograms" Version="10.0.200-preview.0.25556.104">
-      <Uri>https://github.com/dotnet/sdk</Uri>
+      <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>cc979c006a27c251782bee45e8887213c24bf806</Sha>
     </Dependency>
   </ProductDependencies>
