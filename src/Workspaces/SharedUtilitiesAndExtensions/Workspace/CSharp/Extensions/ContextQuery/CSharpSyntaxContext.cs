@@ -180,19 +180,6 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         this.PrecedingModifiers = precedingModifiers;
     }
 
-    public override AttributeTargets ValidAttributeTargets
-    {
-        get
-        {
-            if (!_lazyValidAttributeTargets.HasValue)
-            {
-                _lazyValidAttributeTargets = ComputeValidAttributeTargets();
-            }
-
-            return _lazyValidAttributeTargets.Value;
-        }
-    }
-
     public static CSharpSyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         => CreateContextWorker(document, semanticModel, position, cancellationToken);
 
@@ -529,73 +516,62 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         return false;
     }
 
+    public override AttributeTargets ValidAttributeTargets => _lazyValidAttributeTargets ??= ComputeValidAttributeTargets();
+
     private AttributeTargets ComputeValidAttributeTargets()
     {
-        // If we're not in an attribute context, return All to allow all attributes
-        if (!IsAttributeNameContext)
-            return AttributeTargets.All;
+        return ComputeWorker() ?? AttributeTargets.All;
 
-        // Find the attribute list that contains the current position
-        var token = TargetToken;
-        var attributeList = token.Parent?.FirstAncestorOrSelf<AttributeListSyntax>();
-        if (attributeList == null)
-            return AttributeTargets.All;
-
-        // Check if there's an explicit target specifier (e.g., "assembly:", "return:", etc.)
-        if (attributeList.Target != null)
+        AttributeTargets? ComputeWorker()
         {
-            return attributeList.Target.Identifier.Kind() switch
+            if (IsAttributeNameContext)
             {
-                SyntaxKind.AssemblyKeyword or SyntaxKind.ModuleKeyword => AttributeTargets.Assembly | AttributeTargets.Module,
-                SyntaxKind.TypeKeyword => AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Interface | AttributeTargets.Delegate,
-                SyntaxKind.MethodKeyword => AttributeTargets.Method,
-                SyntaxKind.FieldKeyword => AttributeTargets.Field,
-                SyntaxKind.PropertyKeyword => AttributeTargets.Property,
-                SyntaxKind.EventKeyword => AttributeTargets.Event,
-                SyntaxKind.ParamKeyword => AttributeTargets.Parameter,
-                SyntaxKind.ReturnKeyword => AttributeTargets.ReturnValue,
-                SyntaxKind.TypeVarKeyword => AttributeTargets.GenericParameter,
-                _ => AttributeTargets.All
-            };
+                var attributeList = this.TargetToken.Parent?.FirstAncestorOrSelf<AttributeListSyntax>();
+
+                // Check if there's an explicit target specifier (e.g., "assembly:", "return:", etc.)
+                if (attributeList is { Target.Identifier: var identifier })
+                {
+                    return identifier.Kind() switch
+                    {
+                        SyntaxKind.AssemblyKeyword or SyntaxKind.ModuleKeyword => AttributeTargets.Assembly | AttributeTargets.Module,
+                        SyntaxKind.TypeKeyword => AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Interface | AttributeTargets.Delegate,
+                        SyntaxKind.MethodKeyword => AttributeTargets.Method,
+                        SyntaxKind.FieldKeyword => AttributeTargets.Field,
+                        SyntaxKind.PropertyKeyword => AttributeTargets.Property,
+                        SyntaxKind.EventKeyword => AttributeTargets.Event,
+                        SyntaxKind.ParamKeyword => AttributeTargets.Parameter,
+                        SyntaxKind.ReturnKeyword => AttributeTargets.ReturnValue,
+                        SyntaxKind.TypeVarKeyword => AttributeTargets.GenericParameter,
+                        _ => null,
+                    };
+                }
+
+                // No explicit target. Walk up to find what the attribute is attached to.
+                return attributeList?.Parent switch
+                {
+                    ClassDeclarationSyntax => AttributeTargets.Class,
+                    StructDeclarationSyntax => AttributeTargets.Struct,
+                    InterfaceDeclarationSyntax => AttributeTargets.Interface,
+                    EnumDeclarationSyntax => AttributeTargets.Enum,
+                    DelegateDeclarationSyntax => AttributeTargets.Delegate,
+                    RecordDeclarationSyntax record => record.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword)
+                        ? AttributeTargets.Struct
+                        : AttributeTargets.Class,
+
+                    MethodDeclarationSyntax => AttributeTargets.Method,
+                    ConstructorDeclarationSyntax => AttributeTargets.Constructor,
+                    PropertyDeclarationSyntax or IndexerDeclarationSyntax => AttributeTargets.Property,
+                    EventDeclarationSyntax or EventFieldDeclarationSyntax => AttributeTargets.Event,
+                    FieldDeclarationSyntax => AttributeTargets.Field,
+                    ParameterSyntax => AttributeTargets.Parameter,
+                    TypeParameterSyntax => AttributeTargets.GenericParameter,
+                    CompilationUnitSyntax => AttributeTargets.Assembly | AttributeTargets.Module,
+
+                    _ => null,
+                };
+            }
+
+            return null;
         }
-
-        // No explicit target, determine from context
-        // Walk up to find what the attribute is attached to
-        var parentNode = attributeList.Parent;
-        if (parentNode == null)
-            return AttributeTargets.All;
-
-        return parentNode switch
-        {
-            // Type declarations
-            ClassDeclarationSyntax => AttributeTargets.Class,
-            StructDeclarationSyntax => AttributeTargets.Struct,
-            InterfaceDeclarationSyntax => AttributeTargets.Interface,
-            EnumDeclarationSyntax => AttributeTargets.Enum,
-            DelegateDeclarationSyntax => AttributeTargets.Delegate,
-            RecordDeclarationSyntax record => record.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword)
-                ? AttributeTargets.Struct
-                : AttributeTargets.Class,
-
-            // Member declarations
-            MethodDeclarationSyntax => AttributeTargets.Method,
-            ConstructorDeclarationSyntax => AttributeTargets.Constructor,
-            PropertyDeclarationSyntax => AttributeTargets.Property,
-            EventDeclarationSyntax => AttributeTargets.Event,
-            EventFieldDeclarationSyntax => AttributeTargets.Event,
-            FieldDeclarationSyntax => AttributeTargets.Field,
-            IndexerDeclarationSyntax => AttributeTargets.Property,
-
-            // Parameters
-            ParameterSyntax => AttributeTargets.Parameter,
-
-            // Type parameters
-            TypeParameterSyntax => AttributeTargets.GenericParameter,
-
-            // Assembly/module level
-            CompilationUnitSyntax => AttributeTargets.Assembly | AttributeTargets.Module,
-
-            _ => AttributeTargets.All
-        };
     }
 }

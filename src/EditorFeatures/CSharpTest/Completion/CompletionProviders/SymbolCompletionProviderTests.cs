@@ -362,15 +362,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
         ]);
 
     [Fact]
-    public async Task AssemblyAttribute2()
-    {
-        var code = @"[assembly: $$]";
-        var source = AddUsingDirectives("using System;", code);
-        await VerifyExpectedItemsAsync(source, [
+    public Task AssemblyAttribute2()
+        => VerifyExpectedItemsAsync(
+            AddUsingDirectives("using System;", @"[assembly: $$]"), [
+            ItemExpectation.Exists("CLSCompliant"),
             ItemExpectation.Exists("System"),
-            ItemExpectation.Exists("AttributeUsage")
+            ItemExpectation.Absent("AttributeUsage")
         ]);
-    }
 
     [Fact]
     public Task SystemAttributeIsNotAnAttribute()
@@ -392,60 +390,50 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     }
 
     [Fact]
-    public async Task TypeParamAttribute()
-    {
-        var code = AddUsingDirectives("using System;", @"class CL<[A$$]T> {}");
-        await VerifyExpectedItemsAsync(code, [
-            ItemExpectation.Exists("AttributeUsage"),
-            ItemExpectation.Exists("System")
+    public Task TypeParamAttribute()
+        => VerifyExpectedItemsAsync(
+            AddUsingDirectives("using System;", @"class CL<[A$$]T> {}"), [
+            ItemExpectation.Exists("CLSCompliant"),
+            ItemExpectation.Exists("System"),
+            ItemExpectation.Absent("AttributeUsage"),
         ]);
-    }
 
     [Fact]
-    public async Task MethodAttribute()
-    {
-        var content = """
+    public Task MethodAttribute()
+        => VerifyExpectedItemsAsync(AddUsingDirectives("using System;", """
             class CL {
                 [$$]
                 void Method() {}
             }
-            """;
-        var code = AddUsingDirectives("using System;", content);
-        await VerifyExpectedItemsAsync(code, [
-            ItemExpectation.Exists("AttributeUsage"),
-            ItemExpectation.Exists("System")
+            """), [
+            ItemExpectation.Exists("STAThread"),
+            ItemExpectation.Exists("System"),
+            ItemExpectation.Absent("AttributeUsage"),
         ]);
-    }
 
     [Fact]
-    public async Task MethodTypeParamAttribute()
-    {
-        var content = """
+    public Task MethodTypeParamAttribute()
+        => VerifyExpectedItemsAsync(AddUsingDirectives("using System;", """
             class CL{
                 void Method<[A$$]T> () {}
             }
-            """;
-        var code = AddUsingDirectives("using System;", content);
-        await VerifyExpectedItemsAsync(code, [
-            ItemExpectation.Exists("AttributeUsage"),
-            ItemExpectation.Exists("System")
+            """), [
+            ItemExpectation.Exists("CLSCompliant"),
+            ItemExpectation.Exists("System"),
+            ItemExpectation.Absent("AttributeUsage"),
         ]);
-    }
 
     [Fact]
-    public async Task MethodParamAttribute()
-    {
-        var content = """
+    public Task MethodParamAttribute()
+        => VerifyExpectedItemsAsync(AddUsingDirectives("using System;", """
             class CL{
                 void Method ([$$]int i) {}
             }
-            """;
-        var code = AddUsingDirectives("using System;", content);
-        await VerifyExpectedItemsAsync(code, [
-            ItemExpectation.Exists("AttributeUsage"),
-            ItemExpectation.Exists("System")
+            """), [
+            ItemExpectation.Exists("ParamArray"),
+            ItemExpectation.Exists("System"),
+            ItemExpectation.Absent("AttributeUsage"),
         ]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
     public async Task AttributeTargetFiltering_AssemblyAttribute()
