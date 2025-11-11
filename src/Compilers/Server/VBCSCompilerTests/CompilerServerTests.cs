@@ -6,16 +6,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
-using Castle.Core.Resource;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -113,35 +109,6 @@ End Module")
                 {
                     TempFile file = currentDirectory.CreateFile(pair.Key);
                     file.WriteAllText(pair.Value);
-                }
-            }
-        }
-
-        private static T ApplyEnvironmentVariables<T>(
-            IEnumerable<KeyValuePair<string, string>> environmentVariables,
-            Func<T> func)
-        {
-            if (environmentVariables == null)
-            {
-                return func();
-            }
-
-            var resetVariables = new Dictionary<string, string>();
-            try
-            {
-                foreach (var variable in environmentVariables)
-                {
-                    resetVariables.Add(variable.Key, Environment.GetEnvironmentVariable(variable.Key));
-                    Environment.SetEnvironmentVariable(variable.Key, variable.Value);
-                }
-
-                return func();
-            }
-            finally
-            {
-                foreach (var variable in resetVariables)
-                {
-                    Environment.SetEnvironmentVariable(variable.Key, variable.Value);
                 }
             }
         }
