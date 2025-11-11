@@ -366,12 +366,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             Debug.Assert(IsCacheable(parent));
 
-            // If the parent kind matches, the slot count must match as well.  Only if the parent kind does not match
-            // (so two different node kinds hashed to the same array location) could the slot counts differ.
-            Debug.Assert(parent.RawKind != kind || parent.SlotCount == 1);
-
             return parent.RawKind == kind &&
                 parent.Flags == flags &&
+                parent.SlotCount == 1 &&
                 parent.GetSlot(0) == child1;
         }
 
@@ -382,12 +379,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             Debug.Assert(IsCacheable(parent));
 
-            // If the parent kind matches, the slot count must match as well.  Only if the parent kind does not match
-            // (so two different node kinds hashed to the same array location) could the slot counts differ.
-            Debug.Assert(parent.RawKind != kind || parent.SlotCount == 2);
-
             return parent.RawKind == kind &&
                 parent.Flags == flags &&
+                parent.SlotCount == 2 &&
                 parent.GetSlot(0) == child1 &&
                 parent.GetSlot(1) == child2;
         }
@@ -399,12 +393,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             Debug.Assert(IsCacheable(parent));
 
-            // If the parent kind matches, the slot count must match as well.  Only if the parent kind does not match
-            // (so two different node kinds hashed to the same array location) could the slot counts differ.
-            Debug.Assert(parent.RawKind != kind || parent.SlotCount == 3);
-
             return parent.RawKind == kind &&
                 parent.Flags == flags &&
+                parent.SlotCount == 3 &&
                 parent.GetSlot(0) == child1 &&
                 parent.GetSlot(1) == child2 &&
                 parent.GetSlot(2) == child3;
