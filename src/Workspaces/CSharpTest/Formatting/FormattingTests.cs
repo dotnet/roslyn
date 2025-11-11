@@ -11416,7 +11416,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """,
             parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13945")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13163")]
     public Task BlockFollowedByParenthesizedExpression()
         => AssertFormatAsync("""
             class C
@@ -11438,7 +11438,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13945")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13163")]
     public Task BlockFollowedBySimpleExpression()
         => AssertFormatAsync("""
             class C
@@ -11460,7 +11460,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13945")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13163")]
     public Task IfStatementFollowedByParenthesizedExpression()
         => AssertFormatAsync("""
             class C
@@ -11482,7 +11482,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13945")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13163")]
     public Task BlockFollowedByCastExpression()
         => AssertFormatAsync("""
             class C
