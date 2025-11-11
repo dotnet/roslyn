@@ -62,6 +62,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private EmitData GetEmitData() => _emitData ?? throw new InvalidOperationException("Must call Emit first");
 
+        internal PortableExecutableReference GetImageReference(
+            bool embedInteropTypes = false,
+            ImmutableArray<string> aliases = default,
+            DocumentationProvider? documentation = null)
+        {
+            if (Compilation.Options.OutputKind == OutputKind.NetModule)
+            {
+                return ModuleMetadata.CreateFromImage(EmittedAssemblyData).GetReference(documentation, display: Compilation.MakeSourceModuleName());
+            }
+            else
+            {
+                return AssemblyMetadata.CreateFromImage(EmittedAssemblyData).GetReference(documentation, aliases: aliases, embedInteropTypes: embedInteropTypes, display: Compilation.MakeSourceAssemblySimpleName());
+            }
+        }
+
         internal Metadata GetMetadata()
         {
             var emitData = GetEmitData();
