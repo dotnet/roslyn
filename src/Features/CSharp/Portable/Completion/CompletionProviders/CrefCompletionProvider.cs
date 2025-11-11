@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExtensionOrder(After = nameof(EnumAndCompletionListTagCompletionProvider))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
+internal sealed class CrefCompletionProvider(
+    KeywordCompletionProvider keywordCompletionProvider) : AbstractCrefCompletionProvider
 {
     private static readonly SymbolDisplayFormat QualifiedCrefFormat =
         new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
@@ -46,6 +47,7 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
     private static readonly SymbolDisplayFormat MinimalParameterTypeFormat =
         SymbolDisplayFormat.MinimallyQualifiedFormat.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.ExpandValueTuple);
 
+    private readonly KeywordCompletionProvider _keywordCompletionProvider = keywordCompletionProvider;
     private Action<SyntaxNode?>? _testSpeculativeNodeCallback;
 
     internal override string Language => LanguageNames.CSharp;
@@ -65,21 +67,20 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
             var cancellationToken = context.CancellationToken;
 
             var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
-
             if (symbols.IsDefaultOrEmpty)
                 return;
 
-            Contract.ThrowIfNull(semanticModel);
-
             context.IsExclusive = true;
 
-            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var span = GetCompletionItemSpan(text, position);
+            Contract.ThrowIfNull(semanticModel);
+
             var serializedOptions = ImmutableArray.Create(KeyValuePair.Create(HideAdvancedMembers, options.MemberDisplayOptions.HideAdvancedMembers.ToString()));
 
-            var items = CreateCompletionItems(semanticModel, symbols, token, position, serializedOptions);
+            context.AddItems(CreateCompletionItems(semanticModel, symbols, token, position, serializedOptions));
 
-            context.AddItems(items);
+            // Because we took over completion entirely as an exclusive provider, we have to ensure that appropriate
+            // keywords are provided ourselves.
+            await _keywordCompletionProvider.ProvideCompletionsAsync(context).ConfigureAwait(false);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
         {
@@ -222,15 +223,6 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
             result.AddRange(namedTypeContainer.InstanceConstructors);
 
         return result.ToImmutableAndClear();
-    }
-
-    private static TextSpan GetCompletionItemSpan(SourceText text, int position)
-    {
-        return CommonCompletionUtilities.GetWordSpan(
-            text,
-            position,
-            ch => CompletionUtilities.IsCompletionItemStartCharacter(ch) || ch == '{',
-            ch => CompletionUtilities.IsWordCharacter(ch) || ch is '{' or '}');
     }
 
     private static IEnumerable<CompletionItem> CreateCompletionItems(
