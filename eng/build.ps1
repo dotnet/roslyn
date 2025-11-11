@@ -521,15 +521,14 @@ function TestUsingRunTests() {
       }
 
       if ($vsId) {
-        $activityLogPath = Join-Path ${env:USERPROFILE} "AppData\Roaming\Microsoft\VisualStudio\$vsMajorVersion.0_$($vsId)RoslynDev\ActivityLog.xml"
-        if (Test-Path $activityLogPath) {
-          Write-Host "Copying ActivityLog to $LogDir"
-          Copy-Item -Path $activityLogPath -Destination $LogDir
-        } else {
-          Write-Host "No ActivityLog found to copy"
-        }
+        $activityLogPath = Join-Path ${env:USERPROFILE} "AppData\Roaming\Microsoft\VisualStudio\$vsMajorVersion.0_$($vsId)$hive\ActivityLog.xml"
+        $devenvExeConfig = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$($vsId)$hive\devenv.exe.config"
+        $mefErrors = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$($vsId)$hive\ComponentModelCache\Microsoft.VisualStudio.Default.err"
+        CopyToArtifactLogs $activityLogPath
+        CopyToArtifactLogs $devenvExeConfig
+        CopyToArtifactLogs $mefErrors
       } else {
-        Write-Host "No Visual Studio instance found to copy ActivityLog from"
+        Write-Host "No Visual Studio instance found to copy logs from"
       }
 
       if ($lspEditor) {
@@ -550,6 +549,15 @@ function TestUsingRunTests() {
         }
       }
     }
+  }
+}
+
+function CopyToArtifactLogs($inputPath) {
+  if (Test-Path $inputPath) {
+    Write-Host "Copying $inputPath to $LogDir"
+    Copy-Item -Path $inputPath -Destination $LogDir
+  } else {
+    Write-Host "No log found to copy at $inputPath"
   }
 }
 
@@ -589,7 +597,7 @@ function Deploy-VsixViaTool() {
     $script:vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
     $displayVersion = $vsInfo.catalog.productDisplayVersion
 
-    $hive = "RoslynDev"
+    $script:hive = "RoslynDev"
 
     Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
 
@@ -606,30 +614,30 @@ function Deploy-VsixViaTool() {
 
     # Actual uninstall is failing at the moment using the uninstall options. Temporarily using
     # wildfire to uninstall our VSIX extensions
-    # $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsid$hive"
-    # if (Test-Path $extDir) {
-    #   foreach ($dir in Get-ChildItem -Directory $extDir) {
-    #     $name = Split-Path -leaf $dir
-    #     Write-Host "`tUninstalling $name"
-    #   }
-    #   Remove-Item -re -fo $extDir
-    # }
-
-    $orderedVsixToUninstall = @(
-      "d0122878-51f1-4b36-95ec-dec2079a2a84" # Microsoft.VisualStudio.IntegrationTest.Setup.vsix
-      "49e24138-9ee3-49e0-8ede-6b39f49303bf" # Roslyn.VisualStudio.DiagnosticsWindow.vsix
-      "21BAC26D-2935-4D0D-A282-AD647E2592B5" # ExpressionEvaluatorPackage.vsix
-      "7b9f8160-9d62-48cd-9674-b487b1e17c1f" # Roslyn.VisualStudio.Setup.Dependencies.vsix
-      "77E1B4B1-51C4-4B24-9CA2-3CFAC4943DFF" # Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix
-      "0b5e8ddb-f12d-4131-a71d-77acc26a798f" # Roslyn.VisualStudio.Setup.vsix
-      "7922692f-f018-45e7-8f3f-d3b7c0262841" # Roslyn.Compilers.Extension.vsix
-    )
-    foreach ($vsixId in $orderedVsixToUninstall) {
-      $uninstallArg = "/uninstall:$vsixId"
-      $fullUninstallArg = "$baseArgs $uninstallArg"
-      Write-Host "`tUninstalling VSIX with Id $vsixId"
-      Exec-Command $vsixInstallerExe $fullUninstallArg
+    $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsid$hive"
+    if (Test-Path $extDir) {
+      foreach ($dir in Get-ChildItem -Directory $extDir) {
+        $name = Split-Path -leaf $dir
+        Write-Host "`tUninstalling $name"
+      }
+      Remove-Item -re -fo $extDir
     }
+
+    # $orderedVsixToUninstall = @(
+    #   "d0122878-51f1-4b36-95ec-dec2079a2a84" # Microsoft.VisualStudio.IntegrationTest.Setup.vsix
+    #   "49e24138-9ee3-49e0-8ede-6b39f49303bf" # Roslyn.VisualStudio.DiagnosticsWindow.vsix
+    #   "21BAC26D-2935-4D0D-A282-AD647E2592B5" # ExpressionEvaluatorPackage.vsix
+    #   "7b9f8160-9d62-48cd-9674-b487b1e17c1f" # Roslyn.VisualStudio.Setup.Dependencies.vsix
+    #   "77E1B4B1-51C4-4B24-9CA2-3CFAC4943DFF" # Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix
+    #   "0b5e8ddb-f12d-4131-a71d-77acc26a798f" # Roslyn.VisualStudio.Setup.vsix
+    #   "7922692f-f018-45e7-8f3f-d3b7c0262841" # Roslyn.Compilers.Extension.vsix
+    # )
+    # foreach ($vsixId in $orderedVsixToUninstall) {
+    #   $uninstallArg = "/uninstall:$vsixId"
+    #   $fullUninstallArg = "$baseArgs $uninstallArg"
+    #   Write-Host "`tUninstalling VSIX with Id $vsixId"
+    #   Exec-Command $vsixInstallerExe $fullUninstallArg
+    # }
 
     Write-Host "Installing all Roslyn VSIX"
 
@@ -684,7 +692,13 @@ function Deploy-VsixViaTool() {
     $oop64bitValue = [int]$oop64bit.ToBool()
     &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
 
-    &$vsRegEdit set "$vsDir" $hive HKLM "Software\Microsoft\Fusion!EnableLog" Value dword 1
+    $fusionLogPath = Join-Path $LogDir "FusionLogs"
+
+    &$vsRegEdit set "$vsDir" $hive HKLM "Software\Microsoft\Fusion" ForceLog dword 1
+    &$vsRegEdit set "$vsDir" $hive HKLM "Software\Microsoft\Fusion" LogFailures dword 1
+    &$vsRegEdit set "$vsDir" $hive HKLM "Software\Microsoft\Fusion" LogResourceBinds dword 1
+    &$vsRegEdit set "$vsDir" $hive HKLM "Software\Microsoft\Fusion" EnableLog dword 1
+    &$vsRegEdit set "$vsDir" $hive HKLM "Software\Microsoft\Fusion" LogPath string $fusionLogPath
 
     # Disable targeted notifications
     if ($ci) {
@@ -694,12 +708,7 @@ function Deploy-VsixViaTool() {
     }
   } finally {
     $vsixInstallerLogs = Join-Path $TempDir $logFileName
-    if (Test-Path $vsixInstallerLogs) {
-      Write-Host "Copying VSIXInstaller logs to $LogDir"
-      Copy-Item -Path $vsixInstallerLogs -Destination $LogDir
-    } else {
-      Write-Host "No VSIXInstaller logs found to copy"
-    }
+    CopyToArtifactLogs $vsixInstallerLogs
   }
 }
 
