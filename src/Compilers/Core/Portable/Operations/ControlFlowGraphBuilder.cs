@@ -6542,7 +6542,6 @@ oneMoreTime:
         public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
         {
             EvalStackFrame frame = PushStackFrame();
-            EvalStackFrame argumentsFrame = PushStackFrame();
 
             if (operation.ConstructArguments.Any(a => a is IArgumentOperation) && !operation.ConstructArguments.All(a => a is IArgumentOperation))
                 throw ExceptionUtilities.UnexpectedValue("Mixed argument operations and non-argument operations in ConstructArguments");
@@ -6553,8 +6552,6 @@ oneMoreTime:
             var creationArguments = operation.ConstructArguments.As<IArgumentOperation>() is { IsDefault: false } arguments
                 ? ImmutableArray<IOperation>.CastUp(VisitArguments(arguments, instancePushed: false))
                 : VisitArray(operation.ConstructArguments);
-
-            PopStackFrame(argumentsFrame);
 
             var elements = VisitArray(
                 operation.Elements,
