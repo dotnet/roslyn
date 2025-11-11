@@ -14,6 +14,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 [CompilerTrait(CompilerFeature.CollectionExpressions)]
 public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTestBase
 {
+    private const string s_collectionBuilderType = """
+        using System;
+        using System.Collections;
+        using System.Collections.Generic;
+        using System.Runtime.CompilerServices;
+
+        [CollectionBuilder(typeof(MyHashSetBuilder), nameof(MyHashSetBuilder.Create))]
+        class MyHashSet : IEnumerable<int>
+        {
+            public void Add(int item) { }
+
+            IEnumerator<int> IEnumerable<int>.GetEnumerator() => null!;
+            IEnumerator IEnumerable.GetEnumerator() => null;
+        }
+
+        class MyHashSetBuilder
+        {
+            public static MyHashSet Create(ReadOnlySpan<int> items) => null!;
+            public static MyHashSet Create(int capacity, ReadOnlySpan<int> items) => null!;
+            public static MyHashSet Create(IEqualityComparer<int> comparer, ReadOnlySpan<int> items) => null!;
+            public static MyHashSet Create(int capacity, IEqualityComparer<int> comparer, ReadOnlySpan<int> items) => null!;
+        }
+        """;
+
     [Fact]
     public void TestArray_Empty()
     {
@@ -631,6 +655,267 @@ public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTes
         comp.VerifyOperationTree(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
             ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.HashSet<System.Int32>, IsInvalid) (Syntax: '[with(""), 1, 2, 3]')
               ConstructArguments(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            """);
+    }
+
+    [Fact]
+    public void TestCollectionBuilder_Empty()
+    {
+        string source = """
+            class C
+            {
+                void M()
+                {
+                    MyHashSet a = [with(), 1, 2, 3];
+                }
+            }
+            """;
+        var comp = CreateCompilation([source, s_collectionBuilderType], targetFramework: TargetFramework.Net90).VerifyDiagnostics();
+        comp.VerifyOperationTree(comp.SyntaxTrees.First().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
+            ICollectionExpressionOperation (3 elements, ConstructMethod: MyHashSet MyHashSetBuilder.Create(System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyHashSet) (Syntax: '[with(), 1, 2, 3]')
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            """);
+    }
+
+    [Fact]
+    public void TestCollectionBuilder_SingleArg()
+    {
+        string source = """
+            class C
+            {
+                void M()
+                {
+                    MyHashSet a = [with(0), 1, 2, 3];
+                }
+            }
+            """;
+        var comp = CreateCompilation([source, s_collectionBuilderType], targetFramework: TargetFramework.Net90).VerifyDiagnostics();
+        comp.VerifyOperationTree(comp.SyntaxTrees.First().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
+            ICollectionExpressionOperation (3 elements, ConstructMethod: MyHashSet MyHashSetBuilder.Create(System.Int32 capacity, System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyHashSet) (Syntax: '[with(0), 1, 2, 3]')
+              ConstructArguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: '0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            """);
+    }
+
+    [Fact]
+    public void TestCollectionBuilder_SingleArg_Named()
+    {
+        string source = """
+            class C
+            {
+                void M()
+                {
+                    MyHashSet a = [with(capacity: 0), 1, 2, 3];
+                }
+            }
+            """;
+        var comp = CreateCompilation([source, s_collectionBuilderType], targetFramework: TargetFramework.Net90).VerifyDiagnostics();
+        comp.VerifyOperationTree(comp.SyntaxTrees.First().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
+            ICollectionExpressionOperation (3 elements, ConstructMethod: MyHashSet MyHashSetBuilder.Create(System.Int32 capacity, System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyHashSet) (Syntax: '[with(capac ... ), 1, 2, 3]')
+              ConstructArguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'capacity: 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            """);
+    }
+
+    [Fact]
+    public void TestCollectionBuilder_SingleArg_WrongName()
+    {
+        string source = """
+            class C
+            {
+                void M()
+                {
+                    MyHashSet a = [with(unknown: 0), 1, 2, 3];
+                }
+            }
+            """;
+        var comp = CreateCompilation([source, s_collectionBuilderType], targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (5,29): error CS1739: The best overload for 'Create' does not have a parameter named 'unknown'
+            //         MyHashSet a = [with(unknown: 0), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "unknown").WithArguments("Create", "unknown").WithLocation(5, 29));
+        comp.VerifyOperationTree(comp.SyntaxTrees.First().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
+            ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: MyHashSet, IsInvalid) (Syntax: '[with(unkno ... ), 1, 2, 3]')
+              ConstructArguments(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            """);
+    }
+
+    [Fact]
+    public void TestCollectionBuilder_SingleArg_WrongType()
+    {
+        string source = """
+            class C
+            {
+                void M()
+                {
+                    MyHashSet a = [with(capacity: ""), 1, 2, 3];
+                }
+            }
+            """;
+        var comp = CreateCompilation([source, s_collectionBuilderType], targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (5,39): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            //         MyHashSet a = [with(capacity: ""), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int").WithLocation(5, 39));
+        comp.VerifyOperationTree(comp.SyntaxTrees.First().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
+            ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: MyHashSet, IsInvalid) (Syntax: '[with(capac ... ), 1, 2, 3]')
+              ConstructArguments(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            """);
+    }
+
+    [Fact]
+    public void TestCollectionBuilder_MultipleArgs()
+    {
+        string source = """
+            class C
+            {
+                void M()
+                {
+                    MyHashSet a = [with(0, null), 1, 2, 3];
+                }
+            }
+            """;
+        var comp = CreateCompilation([source, s_collectionBuilderType], targetFramework: TargetFramework.Net90).VerifyDiagnostics();
+        comp.VerifyOperationTree(comp.SyntaxTrees.First().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
+            ICollectionExpressionOperation (3 elements, ConstructMethod: MyHashSet MyHashSetBuilder.Create(System.Int32 capacity, System.Collections.Generic.IEqualityComparer<System.Int32> comparer, System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyHashSet) (Syntax: '[with(0, null), 1, 2, 3]')
+              ConstructArguments(2):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: '0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: comparer) (OperationKind.Argument, Type: null) (Syntax: 'null')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEqualityComparer<System.Int32>, Constant: null, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            """);
+    }
+
+    [Fact]
+    public void TestCollectionBuilder_MultipleArgs_Named()
+    {
+        string source = """
+            class C
+            {
+                void M()
+                {
+                    MyHashSet a = [with(capacity: 0, comparer: null), 1, 2, 3];
+                }
+            }
+            """;
+        var comp = CreateCompilation([source, s_collectionBuilderType], targetFramework: TargetFramework.Net90).VerifyDiagnostics();
+        comp.VerifyOperationTree(comp.SyntaxTrees.First().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
+            ICollectionExpressionOperation (3 elements, ConstructMethod: MyHashSet MyHashSetBuilder.Create(System.Int32 capacity, System.Collections.Generic.IEqualityComparer<System.Int32> comparer, System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyHashSet) (Syntax: '[with(capac ... ), 1, 2, 3]')
+              ConstructArguments(2):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'capacity: 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: comparer) (OperationKind.Argument, Type: null) (Syntax: 'comparer: null')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEqualityComparer<System.Int32>, Constant: null, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            """);
+    }
+
+    [Fact]
+    public void TestCollectionBuilder_MultipleArgs_Named_OutOfOrder()
+    {
+        string source = """
+            class C
+            {
+                void M()
+                {
+                    MyHashSet a = [with(comparer: null, capacity: 0), 1, 2, 3];
+                }
+            }
+            """;
+        var comp = CreateCompilation([source, s_collectionBuilderType], targetFramework: TargetFramework.Net90).VerifyDiagnostics();
+        comp.VerifyOperationTree(comp.SyntaxTrees.First().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
+            ICollectionExpressionOperation (3 elements, ConstructMethod: MyHashSet MyHashSetBuilder.Create(System.Int32 capacity, System.Collections.Generic.IEqualityComparer<System.Int32> comparer, System.ReadOnlySpan<System.Int32> items)) (OperationKind.CollectionExpression, Type: MyHashSet) (Syntax: '[with(compa ... ), 1, 2, 3]')
+              ConstructArguments(2):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: comparer) (OperationKind.Argument, Type: null) (Syntax: 'comparer: null')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEqualityComparer<System.Int32>, Constant: null, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'capacity: 0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Elements(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+            """);
+    }
+
+    [Fact]
+    public void TestCollectionBuilder_MultipleArgs_TooManyArgs()
+    {
+        string source = """
+            class C
+            {
+                void M()
+                {
+                    MyHashSet a = [with(0, null, ""), 1, 2, 3];
+                }
+            }
+            """;
+        var comp = CreateCompilation([source, s_collectionBuilderType], targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (5,24): error CS9405: No overload for method 'Create' takes 3 'with(...)' element arguments
+            //         MyHashSet a = [with(0, null, ""), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, @"with(0, null, """")").WithArguments("Create", "3").WithLocation(5, 24));
+        comp.VerifyOperationTree(comp.SyntaxTrees.First().FindNodeOrTokenByKind(SyntaxKind.CollectionExpression).AsNode(), """
+            ICollectionExpressionOperation (3 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: MyHashSet, IsInvalid) (Syntax: '[with(0, nu ... ), 1, 2, 3]')
+              ConstructArguments(3):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
               Elements(3):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
