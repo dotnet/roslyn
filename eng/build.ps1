@@ -61,6 +61,7 @@ param (
   [string]$testArch = "x64",
   [string]$testFilter = "",
   [switch]$testVsi,
+  [switch]$skipCustomRoslynDeploy = $false,
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testCompilerOnly = $false,
@@ -97,6 +98,7 @@ function Print-Usage() {
   Write-Host ""
   Write-Host "Test actions"
   Write-Host "  -testArch                 Maps to --arch parameter of dotnet test"
+  Write-Host "  -testFilter               Filter tests to run (maps to --filter parameter of xunit)"
   Write-Host "  -testDesktop              Run Desktop unit tests (short: -test)"
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
@@ -104,6 +106,7 @@ function Print-Usage() {
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
   Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature (see ROSLYN_TEST_USEDASSEMBLIES in codebase)"
   Write-Host "  -testRuntimeAsync         Run tests with runtime async validation enabled (see DOTNET_RuntimeAsync in codebase)"
+  Write-Host "  -skipCustomRoslynDeploy   Skip custom Roslyn deployment when running integration tests (uses Roslyn from the VS)"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -376,7 +379,9 @@ function TestUsingRunTests() {
   $dotnet = InitializeDotNetCli
 
   if ($testVsi) {
-    Deploy-VsixViaTool
+    if (-not $skipCustomRoslynDeploy) {
+      Deploy-VsixViaTool
+    }
 
     if ($ci) {
       # Minimize all windows to avoid interference during integration test runs

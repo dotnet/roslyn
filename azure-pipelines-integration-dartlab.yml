@@ -31,6 +31,9 @@ parameters:
   - name: testCaseFilter
     type: string
     default: ''
+  - name: skipCustomRoslynDeploy
+    type: boolean
+    default: false
 
 variables:
 - name: XUNIT_LOGS
@@ -85,3 +88,4 @@ stages:
         lspEditor: false
         skipCheckout: true
         testCaseFilter: ${{ parameters.testCaseFilter }}
+        skipCustomRoslynDeploy: ${{ parameters.skipCustomRoslynDeploy }}
