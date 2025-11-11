@@ -640,7 +640,7 @@ End Class
             CheckDeclaringSyntaxIsNoDeclaration(Of ForEachStatementSyntax)(comp, tree, "loc10")
         End Sub
 
-        <Fact,  WorkItem("https://github.com/dotnet/roslyn/issues/6209")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6209")>
         Public Sub CatchVariableDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="CatchVariableDeclaringSyntax">
