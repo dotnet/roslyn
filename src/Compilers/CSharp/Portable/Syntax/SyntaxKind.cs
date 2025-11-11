@@ -423,6 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         AllowsKeyword = 8450,
         /// <summary>Represents <see langword="extension"/>.</summary>
         ExtensionKeyword = 8451,
+        /// <summary>Represents <see langword="closed"/>.</summary>
+        ClosedKeyword = 8465, // PROTOTYPE(cc): pack
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
