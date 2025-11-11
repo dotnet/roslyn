@@ -666,17 +666,14 @@ End Class
             Dim token = tree.GetCompilationUnitRoot().FindToken(position)
             Dim identifierName = token.Parent
 
-            ' Get the symbol for the catch variable
             Dim localSymbol As ISymbol = model.GetSymbolInfo(identifierName).Symbol
             Assert.NotNull(localSymbol)
             Assert.Equal(SymbolKind.Local, localSymbol.Kind)
             Assert.Equal("exc", localSymbol.Name)
 
-            ' Check that DeclaringSyntaxReferences returns a non-empty list
             Dim declaringRefs = localSymbol.DeclaringSyntaxReferences
             Assert.Equal(1, declaringRefs.Length)
 
-            ' Verify the reference points to the IdentifierNameSyntax
             Dim declaredSyntax = declaringRefs(0).GetSyntax()
             Assert.NotNull(declaredSyntax)
             Assert.IsType(Of IdentifierNameSyntax)(declaredSyntax)
