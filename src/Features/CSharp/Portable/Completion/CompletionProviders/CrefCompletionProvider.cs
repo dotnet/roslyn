@@ -67,6 +67,7 @@ internal sealed class CrefCompletionProvider(
             var cancellationToken = context.CancellationToken;
 
             var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
+
             if (symbols.IsDefaultOrEmpty)
                 return;
 
