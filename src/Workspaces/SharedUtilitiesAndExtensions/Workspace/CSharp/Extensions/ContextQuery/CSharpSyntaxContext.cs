@@ -47,6 +47,8 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
 
     public readonly ISet<SyntaxKind> PrecedingModifiers;
 
+    private AttributeTargets? _lazyValidAttributeTargets;
+
     private CSharpSyntaxContext(
         Document document,
         SemanticModel semanticModel,
@@ -178,7 +180,18 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         this.PrecedingModifiers = precedingModifiers;
     }
 
-    public override AttributeTargets ValidAttributeTargets => ComputeValidAttributeTargets();
+    public override AttributeTargets ValidAttributeTargets
+    {
+        get
+        {
+            if (!_lazyValidAttributeTargets.HasValue)
+            {
+                _lazyValidAttributeTargets = ComputeValidAttributeTargets();
+            }
+
+            return _lazyValidAttributeTargets.Value;
+        }
+    }
 
     public static CSharpSyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         => CreateContextWorker(document, semanticModel, position, cancellationToken);
