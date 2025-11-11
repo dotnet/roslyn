@@ -7952,6 +7952,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
 
         var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(root.DescendantNodes().OfType<BlockSyntax>().Single(), semanticModel);
         ControlFlowGraphVerifier.VerifyGraph(compilation, """
+            
             Block[B0] - Entry
                 Statements (0)
                 Next (Regular) Block[B1]
@@ -7959,10 +7960,16 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             .locals {R1}
             {
                 Locals: [System.Collections.Generic.IList<System.Int32> y]
-                CaptureIds: [0]
+                CaptureIds: [0] [1]
                 Block[B1] - Block
                     Predecessors: [B0]
-                    Statements (0)
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'ComputeCapacity()')
+                          Value:
+                            IInvocationOperation (System.Int32 Program.ComputeCapacity()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'ComputeCapacity()')
+                              Instance Receiver:
+                                null
+                              Arguments(0)
                     Jump if False (Regular) to Block[B3]
                         IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'args.Length == 0')
                           Left:
@@ -7975,7 +7982,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 Block[B2] - Block
                     Predecessors: [B1]
                     Statements (1)
-                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'TrueBranch()')
+                        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'TrueBranch()')
                           Value:
                             IInvocationOperation (System.Int32 Program.TrueBranch()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'TrueBranch()')
                               Instance Receiver:
@@ -7985,7 +7992,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 Block[B3] - Block
                     Predecessors: [B1]
                     Statements (1)
-                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'FalseBranch()')
+                        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'FalseBranch()')
                           Value:
                             IInvocationOperation (System.Int32 Program.FalseBranch()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'FalseBranch()')
                               Instance Receiver:
@@ -8006,14 +8013,11 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                                 ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.List<System.Int32>..ctor(System.Int32 capacity)) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IList<System.Int32>) (Syntax: '[with(Compu ... seBranch()]')
                                   ConstructArguments(1):
                                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: capacity) (OperationKind.Argument, Type: null) (Syntax: 'ComputeCapacity()')
-                                        IInvocationOperation (System.Int32 Program.ComputeCapacity()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'ComputeCapacity()')
-                                          Instance Receiver:
-                                            null
-                                          Arguments(0)
+                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'ComputeCapacity()')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Elements(1):
-                                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'args.Length ... lseBranch()')
+                                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'args.Length ... lseBranch()')
                     Next (Regular) Block[B5]
                         Leaving: {R1}
             }
