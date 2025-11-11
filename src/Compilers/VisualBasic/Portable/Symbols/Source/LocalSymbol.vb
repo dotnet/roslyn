@@ -928,8 +928,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             If _modifiedIdentifierOpt IsNot Nothing Then
                                 Return ImmutableArray.Create(Of SyntaxReference)(_modifiedIdentifierOpt.GetReference())
                             Else
-                                ' For catch variables (and potentially other cases), there is no ModifiedIdentifierSyntax.
-                                ' Fall back to using the identifier token's parent (e.g., IdentifierNameSyntax for catch).
+                                ' Only catch variables should have Nothing for _modifiedIdentifierOpt
+                                Debug.Assert(DeclarationKind = LocalDeclarationKind.Catch)
+                                ' For catch variables, there is no ModifiedIdentifierSyntax.
+                                ' Fall back to using the identifier token's parent (IdentifierNameSyntax).
                                 Return ImmutableArray.Create(_identifierToken.Parent.GetReference())
                             End If
                     End Select
