@@ -25,12 +25,6 @@ resources:
     - main
 
 parameters:
-  - name: prNumber
-    type: string
-    default: 'None'
-  - name: sha
-    type: string
-    default: 'None'
   - name: visualStudioBootstrapperURI
     type: string
     default: ''
