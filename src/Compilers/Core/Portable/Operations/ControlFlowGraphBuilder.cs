@@ -6543,6 +6543,7 @@ oneMoreTime:
         public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
         {
             EvalStackFrame frame = PushStackFrame();
+            EvalStackFrame argumentsFrame = PushStackFrame();
 
             // Ugly, but necessary.  If we bound successfully, we'll have an array of IArgumentOperation.  We want to
             // call through to VisitArguments to handle it properly.  So attempt to cast to that type first, but
@@ -6551,9 +6552,8 @@ oneMoreTime:
                 ? ImmutableArray<IOperation>.CastUp(VisitArguments(arguments, instancePushed: false))
                 : VisitArray(operation.ConstructArguments);
 
-            PopStackFrame(frame);
+            PopStackFrame(argumentsFrame);
 
-            frame = PushStackFrame();
             var elements = VisitArray(
                 operation.Elements,
                 unwrapper: static (IOperation element) =>
@@ -6574,15 +6574,15 @@ oneMoreTime:
                             IsImplicit(spread)) :
                         operation;
                 });
-            PopStackFrame(frame);
-            return new CollectionExpressionOperation(
+
+            return PopStackFrame(frame, new CollectionExpressionOperation(
                 operation.ConstructMethod,
                 creationArguments,
                 elements,
                 semanticModel: null,
                 operation.Syntax,
                 operation.Type,
-                IsImplicit(operation));
+                IsImplicit(operation)));
         }
 
         public override IOperation? VisitSpread(ISpreadOperation operation, int? argument)
