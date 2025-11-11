@@ -237,6 +237,11 @@
         <target state="translated">'{0}' 완료 전에 코드 분석이 종료되었습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_preview">
+        <source>Code preview</source>
+        <target state="new">Code preview</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">정의로 축소할 때 로컬 함수 축소</target>

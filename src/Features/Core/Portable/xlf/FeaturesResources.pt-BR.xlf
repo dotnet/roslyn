@@ -885,6 +885,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Foi encontrado um assembly: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Equals">
+        <source>Generate Equals(...)</source>
+        <target state="new">Generate Equals(...)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Gerar operadores de comparação</target>
@@ -3928,11 +3933,6 @@ Se o especificador de formato "M" for usado sem outros especificadores de format
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Gerar Equals e GetHashCode</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Equals_object">
-        <source>Generate Equals(object)</source>
-        <target state="translated">Gerar Equals(object)</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_GetHashCode">

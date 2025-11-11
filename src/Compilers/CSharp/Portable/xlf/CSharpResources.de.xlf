@@ -11853,8 +11853,8 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
-        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</source>
-        <target state="translated">Der Ausdruck muss implizit in einen booleschen Ausdruck konvertiert werden können, oder der Typ "{0}" muss den Operator "{1}" definieren.</target>
+        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
+        <target state="needs-review-translation">Der Ausdruck muss implizit in einen booleschen Ausdruck konvertiert werden können, oder der Typ "{0}" muss den Operator "{1}" definieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">

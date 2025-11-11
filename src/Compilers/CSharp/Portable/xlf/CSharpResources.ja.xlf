@@ -11853,8 +11853,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
-        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</source>
-        <target state="translated">式はブール型に暗黙的に変換できるか、式の型 '{0}' で演算子 '{1}' を定義する必要があります。</target>
+        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
+        <target state="needs-review-translation">式はブール型に暗黙的に変換できるか、式の型 '{0}' で演算子 '{1}' を定義する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">

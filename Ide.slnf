@@ -1,6 +1,6 @@
 {
   "solution": {
-    "path": "Roslyn.sln",
+    "path": "Roslyn.slnx",
     "projects": [
       "src\\Analyzers\\CSharp\\Analyzers\\CSharpAnalyzers.shproj",
       "src\\Analyzers\\CSharp\\CodeFixes\\CSharpCodeFixes.shproj",
