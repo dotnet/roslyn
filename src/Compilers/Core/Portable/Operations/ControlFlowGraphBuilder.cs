@@ -6544,6 +6544,9 @@ oneMoreTime:
             EvalStackFrame frame = PushStackFrame();
             EvalStackFrame argumentsFrame = PushStackFrame();
 
+            if (operation.ConstructArguments.Any(a => a is IArgumentOperation) && !operation.ConstructArguments.All(a => a is IArgumentOperation))
+                throw ExceptionUtilities.UnexpectedValue("Mixed argument operations and non-argument operations in ConstructArguments");
+
             // Ugly, but necessary.  If we bound successfully, we'll have an array of IArgumentOperation.  We want to
             // call through to VisitArguments to handle it properly.  So attempt to cast to that type first, but
             // fallback to just visiting the array of expressions if we didn't bind successfully.
