@@ -574,8 +574,8 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
             InterfaceDeclarationSyntax => AttributeTargets.Interface,
             EnumDeclarationSyntax => AttributeTargets.Enum,
             DelegateDeclarationSyntax => AttributeTargets.Delegate,
-            RecordDeclarationSyntax record => record.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword) 
-                ? AttributeTargets.Struct 
+            RecordDeclarationSyntax record => record.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword)
+                ? AttributeTargets.Struct
                 : AttributeTargets.Class,
 
             // Member declarations
