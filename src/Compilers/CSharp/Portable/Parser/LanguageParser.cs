@@ -5956,8 +5956,33 @@ parse_member_name:;
                 return false;
 
             // possible attributes
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind != SyntaxKind.CloseBracketToken)
-                return true;
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+            {
+                var nextKind = this.PeekToken(1).Kind;
+                // [...
+                // The start of an attribute on a type parameter.
+                if (nextKind != SyntaxKind.CloseBracketToken)
+                    return true;
+
+                // We have `[]`.  Recover from a partially written attribute.
+                //
+                //  <[] ,
+                //  <[] Id
+                //  <[] >
+                //  <[] in/out
+                if (nextKind is SyntaxKind.CommaToken
+                             or SyntaxKind.IdentifierToken
+                             or SyntaxKind.GreaterThanToken
+                             or SyntaxKind.InKeyword
+                             or SyntaxKind.OutKeyword)
+                {
+                    return true;
+                }
+
+                // Some other use of `[]` that doesn't look like a type parameter.  Bail out so normal error recovery
+                // can proceed.
+                return false;
+            }
 
             // Variance.
             if (this.CurrentToken.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
@@ -5968,21 +5993,21 @@ parse_member_name:;
 
         private TypeParameterSyntax ParseTypeParameter()
         {
-            if (this.IsCurrentTokenWhereOfConstraintClause())
-            {
-                return _syntaxFactory.TypeParameter(
-                    default(SyntaxList<AttributeListSyntax>),
-                    varianceKeyword: null,
-                    this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected));
-            }
-
             var attrs = default(SyntaxList<AttributeListSyntax>);
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind != SyntaxKind.CloseBracketToken)
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
             {
                 var saveTerm = _termState;
                 _termState = TerminatorState.IsEndOfTypeArgumentList;
                 attrs = this.ParseAttributeDeclarations(inExpressionContext: false);
                 _termState = saveTerm;
+            }
+
+            if (this.IsCurrentTokenWhereOfConstraintClause())
+            {
+                return _syntaxFactory.TypeParameter(
+                    attrs,
+                    varianceKeyword: null,
+                    this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected));
             }
 
             return _syntaxFactory.TypeParameter(
