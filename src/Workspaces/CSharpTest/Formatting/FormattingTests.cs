@@ -11459,4 +11459,48 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13945")]
+    public Task IfStatementFollowedByParenthesizedExpression()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    if (true) { }
+                    (0).ToString();
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    if (true) { }
+                     (0).ToString();
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13945")]
+    public Task BlockFollowedByCastExpression()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    { }
+                    ((IDisposable)null).Dispose();
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    { }
+                     ((IDisposable)null).Dispose();
+                }
+            }
+            """);
 }
