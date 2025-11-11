@@ -6972,7 +6972,6 @@ new TestParameters(Options.Script));
             }
             """,
             """
-            
             unsafe class C
             {
                 static void M2()
