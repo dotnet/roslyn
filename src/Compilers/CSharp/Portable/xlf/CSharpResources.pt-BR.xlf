@@ -507,6 +507,11 @@
         <target state="translated">'{0}' não implementa o membro de interface '{1}'. '{2}' não pode implementar '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClosedTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'closed'.</source>
+        <target state="new">Types and aliases cannot be named 'closed'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">O nome do método CollectionBuilderAttribute é inválido.</target>
@@ -2730,6 +2735,11 @@
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
         <target state="translated">operadores verificados, definidos pelo usuário</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureClosedClass">
+        <source>closed classes</source>
+        <target state="new">closed classes</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">

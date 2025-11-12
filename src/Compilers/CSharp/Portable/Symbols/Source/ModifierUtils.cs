@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 checkFeature(DeclarationModifiers.PrivateProtected, MessageID.IDS_FeaturePrivateProtected) |
                 checkFeature(DeclarationModifiers.Required, MessageID.IDS_FeatureRequiredMembers) |
                 checkFeature(DeclarationModifiers.File, MessageID.IDS_FeatureFileTypes) |
+                checkFeature(DeclarationModifiers.Closed, MessageID.IDS_FeatureClosedClass) |
                 checkFeature(DeclarationModifiers.Async, MessageID.IDS_FeatureAsync);
 
             return result;
@@ -350,6 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.ScopedKeyword);
                 case DeclarationModifiers.File:
                     return SyntaxFacts.GetText(SyntaxKind.FileKeyword);
+                case DeclarationModifiers.Closed:
+                    return SyntaxFacts.GetText(SyntaxKind.ClosedKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(modifier);
             }
@@ -403,6 +406,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Scoped;
                 case SyntaxKind.FileKeyword:
                     return DeclarationModifiers.File;
+                case SyntaxKind.ClosedKeyword:
+                    return DeclarationModifiers.Closed;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

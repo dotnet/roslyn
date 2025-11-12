@@ -5819,6 +5819,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.ClassKeyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.CloseBraceToken
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.CloseBracketToken
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.CloseParenToken
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.ClosedKeyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.CoalesceAssignmentExpression
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.CoalesceExpression
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.CollectionExpression

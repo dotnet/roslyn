@@ -1416,6 +1416,7 @@ class C
         [InlineData("file")]
         [InlineData("required")]
         [InlineData("async")]
+        [InlineData("closed")]
         public void TopLevel_NewContextualKeywordArray_Incomplete(string keyword)
         {
             UsingTree($"""
@@ -1498,6 +1499,7 @@ class C
         [InlineData("file")]
         [InlineData("required")]
         [InlineData("async")]
+        [InlineData("closed")]
         public void TopLevel_NewContextualKeywordArray(string keyword)
         {
             UsingTree($"""
@@ -1587,6 +1589,7 @@ class C
         [InlineData("file")]
         [InlineData("required")]
         [InlineData("async")]
+        [InlineData("closed")]
         public void TopLevel_ContextualKeywordObjectCreation_Incomplete(string keyword)
         {
             UsingTree($"""
@@ -1673,6 +1676,7 @@ class C
         [InlineData("file")]
         [InlineData("required")]
         [InlineData("async")]
+        [InlineData("closed")]
         public void TopLevel_ContextualModifierObjectCreation(string keyword)
         {
             UsingTree($"""

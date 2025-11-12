@@ -1347,6 +1347,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             return DeclarationModifiers.Required;
                         case SyntaxKind.FileKeyword:
                             return DeclarationModifiers.File;
+                        case SyntaxKind.ClosedKeyword:
+                            return DeclarationModifiers.Closed;
                     }
 
                     goto default;
@@ -1443,6 +1445,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
 
                         // LangVersion errors for 'file' modifier are given during binding.
+                        modTok = ConvertToKeyword(EatToken());
+                        break;
+
+                    case DeclarationModifiers.Closed:
+                        if ((!IsFeatureEnabled(MessageID.IDS_FeatureClosedClass) || forTopLevelStatements) && !ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        {
+                            return;
+                        }
+
+                        // LangVersion errors for 'closed' modifier are given during binding.
                         modTok = ConvertToKeyword(EatToken());
                         break;
 
@@ -2945,7 +2957,7 @@ parse_member_name:;
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None &&
-                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.FileKeyword) &&
+                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.FileKeyword or SyntaxKind.ClosedKeyword) &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
