@@ -174,48 +174,54 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16328")]
     public Task FormatElseIfOnSeparateLines()
         => AssertFormatAsync("""
-            class A
+            void Method()
             {
-                void Method()
-                {
-                    if (true) { }
-                    else
-                        if (false) { }
-                }
+                if (true) { }
+                else
+                    if (false) { }
             }
             """, """
-            class A
+            void Method()
             {
-                void Method()
-                {
-                    if (true) { }
-                    else
+                if (true) { }
+                else
             if (false) { }
-                }
             }
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16328")]
     public Task FormatElseReturnOnSeparateLines()
         => AssertFormatAsync("""
-            class A
+            void Method()
             {
-                void Method()
-                {
-                    if (true) { }
-                    else
-                        return;
-                }
+                if (true) { }
+                else
+                    return;
             }
             """, """
-            class A
+            void Method()
             {
-                void Method()
-                {
-                    if (true) { }
-                    else
+                if (true) { }
+                else
             return;
-                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16328")]
+    public Task FormatElseWhileOnSeparateLines()
+        => AssertFormatAsync("""
+            void Method()
+            {
+                if (true) { }
+                else
+                    while (true) { }
+            }
+            """, """
+            void Method()
+            {
+                if (true) { }
+                else
+            while (true) { }
             }
             """);
 

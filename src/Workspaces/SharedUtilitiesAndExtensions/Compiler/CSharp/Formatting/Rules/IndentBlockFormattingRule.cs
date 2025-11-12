@@ -304,17 +304,12 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             // Special handling for else-if: only indent if they're on different lines
             if (elseClause.Statement is IfStatementSyntax elseIfStatement)
             {
-                var elseKeyword = elseClause.ElseKeyword;
-                var ifKeyword = elseIfStatement.IfKeyword;
-
                 // Check if there's a newline between the else and if tokens
-                var hasNewLine = elseKeyword.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) ||
-                                 ifKeyword.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia);
+                var hasNewLine = elseClause.ElseKeyword.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) ||
+                                 elseIfStatement.IfKeyword.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia);
 
                 if (hasNewLine)
-                {
                     AddEmbeddedStatementsIndentationOperation(list, elseClause.Statement);
-                }
             }
             else if (elseClause.Statement is not BlockSyntax)
             {

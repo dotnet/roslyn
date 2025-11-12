@@ -147,8 +147,11 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
         }
 
-        // else * except else if case
-        if (previousToken.Kind() == SyntaxKind.ElseKeyword && currentToken.Kind() != SyntaxKind.IfKeyword)
+        // else * except `else if` case on the same line.
+        if (previousToken.Kind() == SyntaxKind.ElseKeyword &&
+            currentToken.Kind() == SyntaxKind.IfKeyword &&
+                !previousToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) &&
+                !currentToken.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia))
         {
             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
         }

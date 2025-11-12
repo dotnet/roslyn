@@ -51,24 +51,6 @@ internal sealed class AnchorIndentationFormattingRule : BaseFormattingRule
         switch (node)
         {
             case StatementSyntax statement:
-                // Don't add anchor indentation for if statements that are on a separate line from their else keyword.
-                // The if statement should be indented like any other embedded statement in that case.
-                if (statement is IfStatementSyntax ifStatement && ifStatement.Parent is ElseClauseSyntax elseClause)
-                {
-                    var elseKeyword = elseClause.ElseKeyword;
-                    var ifKeyword = ifStatement.IfKeyword;
-                    
-                    // Check if there's a newline between the else and if tokens
-                    var hasNewLine = elseKeyword.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) ||
-                                     ifKeyword.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia);
-                    
-                    if (hasNewLine)
-                    {
-                        // Skip adding anchor operation - let the indent operation from IndentBlockFormattingRule apply
-                        return;
-                    }
-                }
-                
                 AddAnchorIndentationOperation(list, statement);
                 return;
             case UsingDirectiveSyntax usingNode:
