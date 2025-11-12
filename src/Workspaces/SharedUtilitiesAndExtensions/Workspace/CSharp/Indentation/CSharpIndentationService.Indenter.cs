@@ -223,12 +223,12 @@ internal partial class CSharpIndentationService
             while (embeddedStatementOwner.IsEmbeddedStatement())
             {
                 RoslynDebug.AssertNotNull(embeddedStatementOwner.Parent);
-                
+
                 // Don't walk up past a labeled statement, as we want to use the indentation of the
                 // statement following the label, not the label itself (which may be at column 0).
                 if (embeddedStatementOwner.Parent is LabeledStatementSyntax)
                     break;
-                
+
                 embeddedStatementOwner = embeddedStatementOwner.Parent;
             }
 
