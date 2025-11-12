@@ -144,12 +144,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
 
 #if DEBUG
-            // None of the added text tokens should have diagnostics.  Any diagnostics should be on their containing
-            // InterpolatedStringTextSyntax node instead.
-            foreach (var content in result.Contents)
+            // In the raw string case, none of the added text tokens should have diagnostics.  Any diagnostics should be
+            // on their containing InterpolatedStringTextSyntax node instead.
+            if (!isInterpolatedString)
             {
-                if (content is InterpolatedStringTextSyntax interpolatedText)
-                    Debug.Assert(!interpolatedText.TextToken.ContainsDiagnostics);
+                foreach (var content in result.Contents)
+                {
+                    if (content is InterpolatedStringTextSyntax interpolatedText)
+                        Debug.Assert(!interpolatedText.TextToken.ContainsDiagnostics);
+                }
             }
 #endif
 
