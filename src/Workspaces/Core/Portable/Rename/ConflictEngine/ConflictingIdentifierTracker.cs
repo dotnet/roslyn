@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
@@ -53,12 +54,16 @@ internal sealed class ConflictingIdentifierTracker(SyntaxToken tokenBeingRenamed
         }
     }
 
+    public void AddIdentifiers(ArrayBuilder<SyntaxToken> tokens)
+    {
+        foreach (var token in tokens)
+            AddIdentifier(token);
+    }
+
     public void AddIdentifiers(IEnumerable<SyntaxToken> tokens)
     {
         foreach (var token in tokens)
-        {
             AddIdentifier(token);
-        }
     }
 
     public void RemoveIdentifier(SyntaxToken token)
@@ -79,11 +84,15 @@ internal sealed class ConflictingIdentifierTracker(SyntaxToken tokenBeingRenamed
         }
     }
 
+    public void RemoveIdentifiers(ArrayBuilder<SyntaxToken> tokens)
+    {
+        foreach (var token in tokens)
+            RemoveIdentifier(token);
+    }
+
     public void RemoveIdentifiers(IEnumerable<SyntaxToken> tokens)
     {
         foreach (var token in tokens)
-        {
             RemoveIdentifier(token);
-        }
     }
 }

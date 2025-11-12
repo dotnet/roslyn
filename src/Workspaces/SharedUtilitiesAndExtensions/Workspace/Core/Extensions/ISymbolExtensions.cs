@@ -40,4 +40,19 @@ internal static partial class ISymbolExtensions
             .WithIsRequired(symbol.IsRequired())
             .WithPartial(symbol.IsPartial());
     }
+
+#if !ROSLYN_4_12_OR_LOWER
+    public static ISymbol? ReduceExtensionMember(this ISymbol? member, ITypeSymbol? receiverType)
+    {
+        if (member is null || receiverType is null)
+            return null;
+
+        return member switch
+        {
+            IPropertySymbol propertySymbol => propertySymbol.ReduceExtensionMember(receiverType),
+            IMethodSymbol method => method.ReduceExtensionMember(receiverType),
+            _ => null,
+        };
+    }
+#endif
 }
