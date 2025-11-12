@@ -419,7 +419,8 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                 if (getterField.IsStatic != property.IsStatic)
                     return false;
 
-                if (!getterField.Type.Equals(property.Type))
+                // Property and field have to agree on type.
+                if (!property.Type.Equals(getterField.Type))
                     return false;
 
                 if (!TryGetSyntax(getterField, out _, out var variableDeclarator, cancellationToken))
