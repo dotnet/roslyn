@@ -1000,7 +1000,7 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             indentationLine: 5,
             expectedIndentation: 8);
 
-    [WpfFact]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/15866")]
     public void LabelAtColumn0WithIfStatement()
         => AssertSmartIndent(
             """
@@ -1024,7 +1024,7 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             indentationLine: 10,
             expectedIndentation: 12);
 
-    [WpfFact]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/15866")]
     public void LabelAtColumn0WithWhileStatement()
         => AssertSmartIndent(
             """
@@ -1048,7 +1048,7 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             indentationLine: 10,
             expectedIndentation: 12);
 
-    [WpfFact]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/15866")]
     public void IndentedLabelWithIfStatement()
         => AssertSmartIndent(
             """
