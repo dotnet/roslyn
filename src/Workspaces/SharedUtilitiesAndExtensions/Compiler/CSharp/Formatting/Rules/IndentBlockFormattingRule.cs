@@ -314,32 +314,12 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
                 if (hasNewLine)
                 {
                     // Treat the if statement as an embedded statement and indent it
-                    var firstToken = elseClause.Statement.GetFirstToken(includeZeroWidth: true);
-                    var lastToken = elseClause.Statement.GetLastToken(includeZeroWidth: true);
-
-                    if (lastToken.IsMissing)
-                    {
-                        AddIndentBlockOperation(list, firstToken, lastToken);
-                    }
-                    else
-                    {
-                        AddIndentBlockOperation(list, firstToken, lastToken, TextSpan.FromBounds(firstToken.FullSpan.Start, lastToken.FullSpan.End));
-                    }
+                    AddEmbeddedStatementsIndentationOperation(list, elseClause.Statement);
                 }
             }
             else if (elseClause.Statement is not BlockSyntax)
             {
-                var firstToken = elseClause.Statement.GetFirstToken(includeZeroWidth: true);
-                var lastToken = elseClause.Statement.GetLastToken(includeZeroWidth: true);
-
-                if (lastToken.IsMissing)
-                {
-                    AddIndentBlockOperation(list, firstToken, lastToken);
-                }
-                else
-                {
-                    AddIndentBlockOperation(list, firstToken, lastToken, TextSpan.FromBounds(firstToken.FullSpan.Start, lastToken.FullSpan.End));
-                }
+                AddEmbeddedStatementsIndentationOperation(list, elseClause.Statement);
             }
 
             return;
