@@ -36,38 +36,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var interpolatedText = (InterpolatedStringTextSyntax)interpolatedString.Contents[0]!;
 
-            // Based on how ParseInterpolatedOrRawStringToken works we should never get a diagnostic on the actual
-            // interpolated string text token (since we create it, and immediately add it to the InterpolatedStringText
-            // node). Instead, 
-            Debug.Assert(!interpolatedText.TextToken.ContainsDiagnostics);
-
-            var diagnosticsBuilder = ArrayBuilder<DiagnosticInfo>.GetInstance();
-            // And any diagnostics from the interpolated string as a whole.
-            diagnosticsBuilder.AddRange(interpolatedString.GetDiagnostics());
-
-            // If there are any diagnostics on the interpolated text node, move those over too.  However, move them as
-            // they are relative to the text token, and now need to be relative to the start of the token as a whole.
-            var textTokenDiagnostics = MoveDiagnostics(interpolatedText.GetDiagnostics(), interpolatedString.StringStartToken.Width);
-            if (textTokenDiagnostics != null)
-                diagnosticsBuilder.AddRange(textTokenDiagnostics);
-
-            // if the original token had diagnostics, then we absolutely must have produced some diagnostics creating
-            // the interpolated version.  Note: the converse does not hold.  Producing the interpolation may produce
-            // indentation diagnostics, which are not something the lexer would have produced.
-            if (originalToken.ContainsDiagnostics)
-                Debug.Assert(diagnosticsBuilder.Count > 0);
+            var diagnostics = getDiagnostics();
 
             // We preserve everything from the original raw token.  Except we use the computed value text from the
             // interpolated text token instead as long as we got no diagnostics for this raw string.
             var finalToken = SyntaxFactory
                 .Literal(originalToken.GetLeadingTrivia(), originalToken.Text, originalToken.Kind, getTokenValue(), originalToken.GetTrailingTrivia())
-                .WithDiagnosticsGreen(diagnosticsBuilder.ToArrayAndFree());
+                .WithDiagnosticsGreen(diagnostics);
 
             return _syntaxFactory.LiteralExpression(expressionKind, finalToken);
 
+            DiagnosticInfo[] getDiagnostics()
+            {
+                var diagnosticsBuilder = ArrayBuilder<DiagnosticInfo>.GetInstance();
+
+                // And any diagnostics from the interpolated string as a whole.
+                diagnosticsBuilder.AddRange(interpolatedString.GetDiagnostics());
+
+                // We may have diagnostics on the InterpolatedStringText node itself, but not on the text token inside it
+                // (since we create it, and immediately add it to the InterpolatedStringText node).  If so, move those over.
+                // However, move them as they are relative to the text token, and now need to be relative to the start of
+                // the token as a whole.
+                Debug.Assert(!interpolatedText.TextToken.ContainsDiagnostics);
+                var textTokenDiagnostics = MoveDiagnostics(interpolatedText.GetDiagnostics(), interpolatedString.StringStartToken.Width);
+                if (textTokenDiagnostics != null)
+                    diagnosticsBuilder.AddRange(textTokenDiagnostics);
+
+                // if the original token had diagnostics, then we absolutely must have produced some diagnostics creating
+                // the interpolated version.  Note: the converse does not hold.  Producing the interpolation may produce
+                // indentation diagnostics, which are not something the lexer would have produced.
+                if (originalToken.ContainsDiagnostics)
+                    Debug.Assert(diagnosticsBuilder.Count > 0);
+
+                return diagnosticsBuilder.ToArrayAndFree();
+            }
+
             string getTokenValue()
             {
-                if (diagnosticsBuilder.Count == 0)
+                if (diagnostics.Length == 0)
                     return interpolatedText.TextToken.GetValueText();
 
                 // Preserve what the lexer used to do here.  In the presence of any diagnostics, the text of the raw
