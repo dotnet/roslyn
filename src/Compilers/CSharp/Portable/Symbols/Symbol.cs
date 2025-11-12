@@ -965,13 +965,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 member.ForceComplete(locationOpt, filter, cancellationToken);
             }
         }
-#nullable disable
 
         /// <summary>
         /// Returns the Documentation Comment ID for the symbol, or null if the symbol doesn't
         /// support documentation comments.
         /// </summary>
-        public virtual string GetDocumentationCommentId()
+        public virtual string? GetDocumentationCommentId()
         {
             // NOTE: we're using a try-finally here because there's a test that specifically
             // triggers an exception here to confirm that some symbols don't have documentation
@@ -990,10 +989,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#nullable enable 
-        public string GetEscapedDocumentationCommentId()
+        public string? GetEscapedDocumentationCommentId()
         {
-            return escape(GetDocumentationCommentId());
+            var documentationCommentId = GetDocumentationCommentId();
+            return documentationCommentId is null ? null : escape(documentationCommentId);
 
             static string escape(string s)
             {
