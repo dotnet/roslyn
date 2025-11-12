@@ -301,9 +301,45 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
         if (node is ElseClauseSyntax { Statement: not null } elseClause)
         {
-            if (elseClause.Statement is not (BlockSyntax or IfStatementSyntax))
+            // Special handling for else-if: only indent if they're on different lines
+            if (elseClause.Statement is IfStatementSyntax elseIfStatement)
             {
-                AddEmbeddedStatementsIndentationOperation(list, elseClause.Statement);
+                var elseKeyword = elseClause.ElseKeyword;
+                var ifKeyword = elseIfStatement.IfKeyword;
+
+                // Check if there's a newline between the else and if tokens
+                var hasNewLine = elseKeyword.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) ||
+                                 ifKeyword.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia);
+
+                if (hasNewLine)
+                {
+                    // Treat the if statement as an embedded statement and indent it
+                    var firstToken = elseClause.Statement.GetFirstToken(includeZeroWidth: true);
+                    var lastToken = elseClause.Statement.GetLastToken(includeZeroWidth: true);
+
+                    if (lastToken.IsMissing)
+                    {
+                        AddIndentBlockOperation(list, firstToken, lastToken);
+                    }
+                    else
+                    {
+                        AddIndentBlockOperation(list, firstToken, lastToken, TextSpan.FromBounds(firstToken.FullSpan.Start, lastToken.FullSpan.End));
+                    }
+                }
+            }
+            else if (elseClause.Statement is not BlockSyntax)
+            {
+                var firstToken = elseClause.Statement.GetFirstToken(includeZeroWidth: true);
+                var lastToken = elseClause.Statement.GetLastToken(includeZeroWidth: true);
+
+                if (lastToken.IsMissing)
+                {
+                    AddIndentBlockOperation(list, firstToken, lastToken);
+                }
+                else
+                {
+                    AddIndentBlockOperation(list, firstToken, lastToken, TextSpan.FromBounds(firstToken.FullSpan.Start, lastToken.FullSpan.End));
+                }
             }
 
             return;
