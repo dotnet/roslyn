@@ -128,7 +128,6 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
         var isTrivialGetAccessor = diagnostic.Properties.ContainsKey(IsTrivialGetAccessor);
         var isTrivialSetAccessor = diagnostic.Properties.ContainsKey(IsTrivialSetAccessor);
-        var needsAllowNullAttribute = diagnostic.Properties.ContainsKey(NeedsAllowNullAttribute);
 
         Debug.Assert(fieldDocument.Project == propertyDocument.Project);
         var project = fieldDocument.Project;
@@ -141,7 +140,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         var propertyDeclaration = GetPropertyDeclaration(property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken));
 
         // First, create the updated property we want to replace the old property with
-        var isWrittenToOutsideOfConstructor = await IsWrittenToOutsideOfConstructorOrPropertyAsync(
+        var (isWrittenToOutsideOfConstructor, isWrittenNull) = await AnalyzeFieldWritesAsync(
             field, fieldLocations, propertyDeclaration, cancellationToken).ConfigureAwait(false);
 
         if (!isTrivialGetAccessor ||
@@ -156,8 +155,25 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
             propertyDocument, compilation,
             field, property,
             declarator, propertyDeclaration,
-            isWrittenToOutsideOfConstructor, isTrivialGetAccessor, isTrivialSetAccessor,
+            isWrittenToOutsideOfConstructor,
+            isTrivialGetAccessor, isTrivialSetAccessor,
             cancellationToken).ConfigureAwait(false);
+
+        // We're replacing a nullable field with a non-nullable property.  If something nullable is ever written into
+        // the field, then we need to add [AllowNull] to the property to allow that same code to continue to work.
+        if (isWrittenNull &&
+            field.Type.NullableAnnotation is NullableAnnotation.Annotated &&
+            property.Type.NullableAnnotation is NullableAnnotation.NotAnnotated)
+        {
+            var allowNullAttribute = compilation.AllowNullAttribute();
+            if (allowNullAttribute != null)
+            {
+                var generator = propertyDocument.GetRequiredLanguageService<SyntaxGenerator>();
+                updatedProperty = generator.AddAttributes(
+                    updatedProperty,
+                    generator.Attribute(generator.TypeExpression(allowNullAttribute, addImport: true)));
+            }
+        }
 
         // Note: rename will try to update all the references in linked files as well.  However, 
         // this can lead to some very bad behavior as we will change the references in linked files
@@ -442,12 +458,14 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
     }
 #pragma warning restore CA1822 // Mark members as static
 
-    private static async ValueTask<bool> IsWrittenToOutsideOfConstructorOrPropertyAsync(
+    private static async ValueTask<(bool isWrittenOutsideConstructor, bool isWrittenNull)> AnalyzeFieldWritesAsync(
         IFieldSymbol field,
         ImmutableArray<ReferencedSymbol> referencedSymbols,
         TPropertyDeclaration propertyDeclaration,
         CancellationToken cancellationToken)
     {
+        var isWrittenOutsideConstructor = false;
+        var isWrittenNull = false;
         var constructorSpans = field.ContainingType
             .GetMembers()
             .Where(m => m.IsConstructor())
@@ -466,15 +484,22 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
             foreach (var location in group)
             {
-                if (await IsWrittenToOutsideOfConstructorOrPropertyAsync(
-                        lazySemanticModel, location, propertyDeclaration, constructorSpans, cancellationToken).ConfigureAwait(false))
-                {
-                    return true;
-                }
+                isWrittenOutsideConstructor = isWrittenOutsideConstructor ||
+                    await IsWrittenToOutsideOfConstructorOrPropertyAsync(lazySemanticModel, location, propertyDeclaration, constructorSpans, cancellationToken).ConfigureAwait(false);
+                isWrittenNull = isWrittenNull ||
+                    await IsWrittenNullAsync(lazySemanticModel, location, cancellationToken).ConfigureAwait(false);
+
+                if (isWrittenOutsideConstructor && isWrittenNull)
+                    return (true, true);
             }
         }
 
-        return false;
+        return (isWrittenOutsideConstructor, isWrittenNull);
+    }
+
+    private static async Task<bool> IsWrittenNullAsync(AsyncLazy<SemanticModel> lazySemanticModel, ReferenceLocation location, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 
     private static async ValueTask<bool> IsWrittenToOutsideOfConstructorOrPropertyAsync(

@@ -58,7 +58,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                 isWrittenToOutsideOfConstructor As Boolean,
                 isTrivialGetAccessor As Boolean,
                 isTrivialSetAccessor As Boolean,
-                needsAllowNullAttribute As Boolean,
                 cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim statement = propertyDeclaration.PropertyStatement
 
@@ -68,11 +67,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             statement = DirectCast(
                 generator.WithModifiers(statement, generator.GetModifiers(propertyDeclaration).WithIsReadOnly(canBeReadOnly)),
                 PropertyStatementSyntax)
-
-            ' Add [AllowNull] attribute if needed (when field is nullable but property is not)
-            If needsAllowNullAttribute Then
-                statement = AddAllowNullAttribute(statement)
-            End If
 
             Dim initializer = Await GetFieldInitializerAsync(fieldSymbol, cancellationToken).ConfigureAwait(False)
             If initializer.equalsValue IsNot Nothing Then
@@ -96,40 +90,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                     initializer.arrayBounds,
                     If(TryCast(initializer.equalsValue?.Value, CollectionInitializerSyntax), SyntaxFactory.CollectionInitializer()))
                     statement = statement.WithTrailingTrivia(SyntaxFactory.Space).
-                                      WithInitializer(SyntaxFactory.EqualsValue(arrayCreation))
+                        WithInitializer(SyntaxFactory.EqualsValue(arrayCreation))
                 End If
             End If
 
             Return statement
-        End Function
-
-        Private Shared Function AddAllowNullAttribute([statement] As PropertyStatementSyntax) As PropertyStatementSyntax
-            ' Check if AllowNull attribute already exists
-            For Each existingAttributeList In [statement].AttributeLists
-                For Each attribute In existingAttributeList.Attributes
-                    Dim name As String = attribute.Name.ToString()
-                    If name.EndsWith("AllowNull") OrElse name.EndsWith("AllowNullAttribute") Then
-                        Return [statement] ' Already has the attribute
-                    End If
-                Next
-            Next
-
-            ' Create <System.Diagnostics.CodeAnalysis.AllowNull> attribute
-            Dim allowNullAttribute = SyntaxFactory.Attribute(
-                Nothing,
-                SyntaxFactory.QualifiedName(
-                    SyntaxFactory.QualifiedName(
-                        SyntaxFactory.QualifiedName(
-                            SyntaxFactory.IdentifierName("System"),
-                            SyntaxFactory.IdentifierName("Diagnostics")),
-                        SyntaxFactory.IdentifierName("CodeAnalysis")),
-                    SyntaxFactory.IdentifierName("AllowNull")),
-                Nothing)
-
-            Dim newAttributeList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(allowNullAttribute))
-
-            ' Add the attribute to the property
-            Return [statement].AddAttributeLists(newAttributeList)
         End Function
 
         Private Shared Async Function GetFieldInitializerAsync(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of (equalsValue As EqualsValueSyntax, asNewClause As AsNewClauseSyntax, arrayBounds As ArgumentListSyntax))
