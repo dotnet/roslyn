@@ -5955,45 +5955,9 @@ parse_member_name:;
             if (this.IsCurrentTokenWhereOfConstraintClause())
                 return false;
 
-            // possible attributes
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
-            {
-                var nextKind = this.PeekToken(1).Kind;
-                // [...
-                // The start of an attribute on a type parameter.
-                if (nextKind != SyntaxKind.CloseBracketToken)
-                    return true;
-
-                // We have `[]`.  Recover from a partially written attribute.
-                //
-                //  <[] ,
-                //  <[] >
-                //  <[] in/out
-                //  <[] { ...
-                if (nextKind is SyntaxKind.CommaToken
-                             or SyntaxKind.GreaterThanToken
-                             or SyntaxKind.InKeyword
-                             or SyntaxKind.OutKeyword
-                             or SyntaxKind.OpenBraceToken)
-                {
-                    return true;
-                }
-
-                // <[] where
-                // <[] partial
-                //
-                // Parsing a type parameter will see this and treat the 'where' appropriately if it is the start
-                // of a where-clause or not.  Similarly for 'partial' and if it is a keyword, or just an identifier.
-                if (nextKind is SyntaxKind.IdentifierToken && this.PeekToken(1).ContextualKind is SyntaxKind.WhereKeyword or SyntaxKind.PartialKeyword)
-                    return true;
-
-                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-                this.EatToken(); // eat '['
-                return IsTrueIdentifier();
-            }
-
+            // possible attributes.
             // Variance.
-            if (this.CurrentToken.Kind is SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
+            if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken or SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
                 return true;
 
             return IsTrueIdentifier();
