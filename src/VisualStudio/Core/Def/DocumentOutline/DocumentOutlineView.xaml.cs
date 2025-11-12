@@ -81,26 +81,30 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        // If focus is in the Commands toolbar, move it to the Search box on Down or Tab
-        if ((e.Key == Key.Down || e.Key == Key.Tab) && Keyboard.Modifiers == ModifierKeys.None && Commands.IsKeyboardFocusWithin)
+        if (e.Key == Key.Down || e.Key == Key.Tab && Keyboard.Modifiers == ModifierKeys.None)
         {
-            if (_windowSearchHost is not null)
+            // If focus is in the Commands toolbar, move it to the Search box on Down or Tab
+            if (Commands.IsKeyboardFocusWithin)
             {
-                _windowSearchHost.Activate();
-                e.Handled = true;
-            }
-        }
-        // If focus is in the Search box, move it to the SymbolTree on Down or Tab
-        else if ((e.Key == Key.Down || e.Key == Key.Tab) && Keyboard.Modifiers == ModifierKeys.None && SearchHost.IsKeyboardFocusWithin)
-        {
-            SymbolTree.Focus();
-            if (SymbolTree.Items.Count > 0)
-            {
-                var firstItem = SymbolTree.ItemContainerGenerator.ContainerFromIndex(0) as TreeViewItem;
-                firstItem?.Focus();
+                if (_windowSearchHost is not null)
+                {
+                    _windowSearchHost.Activate();
+                    e.Handled = true;
+                }
             }
 
-            e.Handled = true;
+            // If focus is in the Search box, move it to the SymbolTree on Down or Tab
+            if (SearchHost.IsKeyboardFocusWithin)
+            {
+                SymbolTree.Focus();
+                if (SymbolTree.Items.Count > 0)
+                {
+                    var firstItem = SymbolTree.ItemContainerGenerator.ContainerFromIndex(0) as TreeViewItem;
+                    firstItem?.Focus();
+                }
+
+                e.Handled = true;
+            }
         }
     }
 
