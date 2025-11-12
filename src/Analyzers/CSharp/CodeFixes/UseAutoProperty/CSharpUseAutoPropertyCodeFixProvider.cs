@@ -190,6 +190,17 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
 
         static PropertyDeclarationSyntax AddAllowNullAttribute(PropertyDeclarationSyntax property)
         {
+            // Check if AllowNull attribute already exists
+            foreach (var existingAttributeList in property.AttributeLists)
+            {
+                foreach (var attribute in existingAttributeList.Attributes)
+                {
+                    var name = attribute.Name.ToString();
+                    if (name.EndsWith("AllowNull") || name.EndsWith("AllowNullAttribute"))
+                        return property; // Already has the attribute
+                }
+            }
+
             // Create [System.Diagnostics.CodeAnalysis.AllowNull] attribute
             var allowNullAttribute = Attribute(
                 QualifiedName(
@@ -200,7 +211,7 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
                         IdentifierName("CodeAnalysis")),
                     IdentifierName("AllowNull")));
 
-            var attributeList = AttributeList(SingletonSeparatedList(allowNullAttribute));
+            var newAttributeList = AttributeList(SingletonSeparatedList(allowNullAttribute));
 
             // Add the attribute to the property, preserving leading trivia
             var leadingTrivia = property.GetLeadingTrivia();
@@ -209,7 +220,7 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
                 : default;
 
             return property
-                .WithAttributeLists(property.AttributeLists.Insert(0, attributeList.WithLeadingTrivia(leadingTrivia)))
+                .WithAttributeLists(property.AttributeLists.Insert(0, newAttributeList.WithLeadingTrivia(leadingTrivia)))
                 .WithLeadingTrivia(indentation);
         }
 

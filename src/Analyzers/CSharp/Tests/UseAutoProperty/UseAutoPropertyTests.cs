@@ -3122,4 +3122,27 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    public Task TestNullableFieldNonNullableProperty_ReadOnly_NoAllowNull()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+            class C
+            {
+                [|private readonly string? _foo = "";|]
+
+                public string Foo
+                {
+                    get { return _foo!; }
+                }
+            }
+            """,
+            """
+            #nullable enable
+            class C
+            {
+                public string Foo { get; } = "";
+            }
+            """);
 }

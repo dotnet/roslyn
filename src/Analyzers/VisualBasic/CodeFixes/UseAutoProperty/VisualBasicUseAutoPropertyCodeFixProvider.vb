@@ -104,6 +104,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
         End Function
 
         Private Shared Function AddAllowNullAttribute([statement] As PropertyStatementSyntax) As PropertyStatementSyntax
+            ' Check if AllowNull attribute already exists
+            For Each existingAttributeList In [statement].AttributeLists
+                For Each attribute In existingAttributeList.Attributes
+                    Dim name As String = attribute.Name.ToString()
+                    If name.EndsWith("AllowNull") OrElse name.EndsWith("AllowNullAttribute") Then
+                        Return [statement] ' Already has the attribute
+                    End If
+                Next
+            Next
+
             ' Create <System.Diagnostics.CodeAnalysis.AllowNull> attribute
             Dim allowNullAttribute = SyntaxFactory.Attribute(
                 Nothing,
@@ -116,10 +126,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                     SyntaxFactory.IdentifierName("AllowNull")),
                 Nothing)
 
-            Dim attributeList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(allowNullAttribute))
+            Dim newAttributeList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(allowNullAttribute))
 
             ' Add the attribute to the property
-            Return [statement].AddAttributeLists(attributeList)
+            Return [statement].AddAttributeLists(newAttributeList)
         End Function
 
         Private Shared Async Function GetFieldInitializerAsync(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of (equalsValue As EqualsValueSyntax, asNewClause As AsNewClauseSyntax, arrayBounds As ArgumentListSyntax))
