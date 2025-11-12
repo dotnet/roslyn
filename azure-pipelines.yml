@@ -65,12 +65,6 @@ variables:
     ${{ else }}:
       value: 1es-windows-2022
 
-  - name: WindowsQueueName
-    ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: 1es-windows-2022-open
-    ${{ else }}:
-      value: 1es-windows-2022
-
   - name: HelixWindowsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: Windows.10.Amd64.Open
@@ -257,7 +251,6 @@ stages:
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
-<<<<<<< HEAD
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -270,9 +263,6 @@ stages:
         helixQueueName: $(HelixWindowsSpanishQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
         poolParameters: ${{ parameters.windowsPool }}
-||||||| parent of 10670d877da (Unify how we pass and choose pools)
-=======
->>>>>>> 10670d877da (Unify how we pass and choose pools)
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job-single-machine.yml
