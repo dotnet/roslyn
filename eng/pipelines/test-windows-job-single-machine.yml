@@ -1,69 +1,67 @@
 # Test on Windows Desktop using a single machine
 parameters:
-- name: testRunName
-  type: string
-  default: ''
-- name: jobName
-  type: string
-  default: ''
-- name: testArtifactName
-  type: string
-  default: ''
-- name: configuration
-  type: string
-  default: 'Debug'
-- name: testArguments
-  type: string
-  default: ''
-- name: poolParameters
-  type: object
+  - name: testRunName
+    type: string
+    default: ""
+  - name: jobName
+    type: string
+    default: ""
+  - name: testArtifactName
+    type: string
+    default: ""
+  - name: configuration
+    type: string
+    default: "Debug"
+  - name: testArguments
+    type: string
+    default: ""
 
 jobs:
-- job: ${{ parameters.jobName }}
-  pool: ${{ parameters.poolParameters }}
-  timeoutInMinutes: 120
-  variables:
-    DOTNET_ROLL_FORWARD: LatestMajor
-    DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
-  steps:
-    - checkout: none
+  - job: ${{ parameters.jobName }}
+    pool: ${{ parameters.poolParameters }}
+    timeoutInMinutes: 120
+    variables:
+      DOTNET_ROLL_FORWARD: LatestMajor
+      DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
+    steps:
+      - checkout: none
 
-    # A .NET 9 runtime is needed since our unit tests target net9.0
-    - task: UseDotNet@2
-      displayName: 'Install .NET 9 Runtime'
-      inputs:
-        packageType: runtime
-        version: 9.0.0-preview.3.24172.9
-        includePreviewVersions: true
-        installationPath: '$(Build.SourcesDirectory)/.dotnet'
+      # A .NET 9 runtime is needed since our unit tests target net9.0
+      - task: UseDotNet@2
+        displayName: "Install .NET 9 Runtime"
+        inputs:
+          packageType: runtime
+          version: 9.0.0-preview.3.24172.9
+          includePreviewVersions: true
+          installationPath: "$(Build.SourcesDirectory)/.dotnet"
 
-    - task: DownloadPipelineArtifact@2
-      displayName: Download Test Payload
-      inputs:
-        artifact: ${{ parameters.testArtifactName }}
-        path: '$(Build.SourcesDirectory)'
-    
-    - task: BatchScript@1
-      displayName: Rehydrate Unit Tests Environment
-      inputs:
-        filename: rehydrate-all.cmd
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Test Payload
+        inputs:
+          artifact: ${{ parameters.testArtifactName }}
+          path: "$(Build.SourcesDirectory)"
 
-    - task: PowerShell@2
-      displayName: Run Unit Tests
-      inputs:
-        filePath: eng/build.ps1
-        arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
+      - task: BatchScript@1
+        displayName: Rehydrate Unit Tests Environment
+        inputs:
+          filename: rehydrate-all.cmd
 
-    - task: PublishTestResults@2
-      displayName: Publish xUnit Test Results
-      inputs:
-        testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}\*.xml'
-        mergeTestResults: true
-        testRunTitle: '${{ parameters.testRunName }}'
-      condition: always()
+      - task: PowerShell@2
+        displayName: Run Unit Tests
+        inputs:
+          filePath: eng/build.ps1
+          arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
 
-    - template: publish-logs.yml
-      parameters:
-        configuration: ${{ parameters.configuration }}
-        jobName: ${{ parameters.jobName }}
+      - task: PublishTestResults@2
+        displayName: Publish xUnit Test Results
+        inputs:
+          testRunner: XUnit
+          testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}\*.xml'
+          mergeTestResults: true
+          testRunTitle: "${{ parameters.testRunName }}"
+        condition: always()
+
+      - template: publish-logs.yml
+        parameters:
+          configuration: ${{ parameters.configuration }}
+          jobName: ${{ parameters.jobName }}
