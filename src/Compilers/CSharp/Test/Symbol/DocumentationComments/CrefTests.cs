@@ -7030,6 +7030,79 @@ record CacheContext(string String)" + terminator;
             Assert.Equal(SymbolKind.Property, symbol.Kind);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4031")]
+        public void AmbiguousReferenceInDifferentNamespaces()
+        {
+            var source = """
+                namespace System
+                {
+                    class TypeA
+                    {
+                    }
+                }
+
+                namespace System.Goo
+                {
+                    class TypeA
+                    {
+                    }
+                }
+
+                namespace A
+                {
+                    using System;
+                    using System.Goo;
+
+                    /// <summary>
+                    ///     <see cref="TypeA"/>
+                    /// </summary>
+                    class Bar
+                    {
+                    }
+                }
+                """;
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (21,24): warning CS0419: Ambiguous reference in cref attribute: 'TypeA'. Assuming 'System.Goo.TypeA', but could have also matched other overloads including 'System.TypeA'.
+                //         <see cref="TypeA"/>
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "TypeA").WithArguments("TypeA", "System.Goo.TypeA", "System.TypeA").WithLocation(21, 24));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4031")]
+        public void AmbiguousReferenceInDifferentNamespaces_WithParameters()
+        {
+            var source = """
+                namespace System
+                {
+                    class TypeA
+                    {
+                    }
+                }
+                
+                namespace System.Goo
+                {
+                    class TypeA
+                    {
+                    }
+                }
+                
+                namespace A
+                {
+                    /// <summary>
+                    ///     <see cref="M{T}"/>
+                    /// </summary>
+                    class Bar
+                    {
+                        void M<T>(System.TypeA a) { }
+                        void M<T>(System.Goo.TypeA a) { }
+                    }
+                }
+                """;
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (18,24): warning CS0419: Ambiguous reference in cref attribute: 'M{T}'. Assuming 'A.Bar.M<T>(System.TypeA)', but could have also matched other overloads including 'A.Bar.M<T>(System.Goo.TypeA)'.
+                //     ///     <see cref="M{T}"/>
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "M{T}").WithArguments("M{T}", "A.Bar.M<T>(System.TypeA)", "A.Bar.M<T>(System.Goo.TypeA)").WithLocation(18, 24));
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81090")]
         public void Cref_FunctionPointer()
         {
