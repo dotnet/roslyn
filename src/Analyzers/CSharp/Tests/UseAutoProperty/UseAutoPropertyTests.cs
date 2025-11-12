@@ -3087,4 +3087,39 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    public Task TestNullableFieldNonNullableProperty_WithAllowNullAttribute()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+            class C
+            {
+                [|private string? _foo = "";|]
+
+                public string Foo
+                {
+                    get { return _foo!; }
+                    set { _foo = value; }
+                }
+
+                public void Reset()
+                {
+                    _foo = null;
+                }
+            }
+            """,
+            """
+            #nullable enable
+            class C
+            {
+                [System.Diagnostics.CodeAnalysis.AllowNull]
+                public string Foo { get; set; } = "";
+
+                public void Reset()
+                {
+                    Foo = null;
+                }
+            }
+            """);
 }

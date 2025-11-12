@@ -419,8 +419,11 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                 if (getterField.IsStatic != property.IsStatic)
                     return false;
 
-                // Property and field have to agree on type.
-                if (!property.Type.Equals(getterField.Type))
+                // Property and field have to agree on type, ignoring nullability.
+                // We allow a nullable field with a non-nullable property, as we can add [AllowNull] attribute.
+                var fieldTypeWithoutNullability = getterField.Type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+                var propertyTypeWithoutNullability = property.Type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+                if (!propertyTypeWithoutNullability.Equals(fieldTypeWithoutNullability))
                     return false;
 
                 if (!TryGetSyntax(getterField, out _, out var variableDeclarator, cancellationToken))
@@ -484,12 +487,22 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
         Contract.ThrowIfFalse(TryGetSyntax(getterField, out var fieldDeclaration, out var variableDeclarator, cancellationToken));
 
+        // Determine if we need [AllowNull] attribute:
+        // - Field is nullable (annotated with ?)
+        // - Property is non-nullable (not annotated with ?)
+        // - There are writes to the field
+        var needsAllowNullAttribute =
+            getterField.Type.NullableAnnotation == NullableAnnotation.Annotated &&
+            property.Type.NullableAnnotation == NullableAnnotation.NotAnnotated &&
+            property.SetMethod != null;
+
         analysisResults.Push(new AnalysisResult(
             property, getterField,
             propertyDeclaration, fieldDeclaration, variableDeclarator,
             notification,
             isTrivialGetAccessor,
-            isTrivialSetAccessor));
+            isTrivialSetAccessor,
+            needsAllowNullAttribute));
     }
 
     protected virtual bool CanConvert(IPropertySymbol property)
@@ -655,6 +668,9 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
             if (result.IsTrivialSetAccessor)
                 properties = properties.Add(IsTrivialSetAccessor, IsTrivialSetAccessor);
+
+            if (result.NeedsAllowNullAttribute)
+                properties = properties.Add(NeedsAllowNullAttribute, NeedsAllowNullAttribute);
 
             // Place the appropriate marker on the field depending on the user option.
             context.ReportDiagnostic(DiagnosticHelper.Create(
