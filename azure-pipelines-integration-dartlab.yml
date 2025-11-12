@@ -88,13 +88,13 @@ stages:
       fetchDepth: 1
       fetchTags: false
     - powershell: git checkout ${{ parameters.testsCommitHash }}
-      condition: not(eq(parameters.testsCommitHash, '(default)'))
+      condition: and(succeeded(), ${{ not(eq(parameters.testsCommitHash, '(default)')) }})
       displayName: 'Checkout tests at given commit'
     - powershell: |
         $roslynCommitHash = $(dotnet .\eng\get-roslyn-commit-hash-in-vs.cs)
         Write-Host "Checking out tests at commit from Visual Studio build: $roslynCommitHash"
         git checkout $roslynCommitHash
-      condition: eq(parameters.testsCommitFromVisualStudioBuild, true)
+      condition: and(succeeded(), ${{ eq(parameters.testsCommitFromVisualStudioBuild, true) }})
       displayName: 'Checkout tests at commit from Visual Studio build'
     - template: eng/pipelines/test-integration-job.yml
       parameters:
