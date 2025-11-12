@@ -318,7 +318,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
                 root,
                 elseClauseNode,
                 WithBraces(elseClauseNode, formattingOptions),
-                elseClauseNode.Parent!,
+                elseClauseNode.Parent,
                 [innerStatement],
                 formattingOptions,
                 cancellationToken);

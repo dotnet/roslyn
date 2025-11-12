@@ -6940,6 +6940,7 @@ class C
         End Sub
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2040")>
         <WorkItem("https://github.com/dotnet/roslyn/issues/44070")>
         Public Sub RenameTypeParameterFromCRef(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -6949,15 +6950,13 @@ class C
 class C
 {
     /// <summary>
-    /// <see cref="Goo{$${|Complex:{|unresolved:X|}|}}(X)"/>
+    /// <see cref="Goo{$$[|X|]}([|X|])"/>
     /// </summary>
     void Goo<T>(T t) { }
 }]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="D")
-
-                result.AssertLabeledSpansAre("Complex", "C.Goo{D}(X)", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
@@ -7042,6 +7041,180 @@ class Program
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="FullName")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/67640")>
+        Public Sub RenameNamedTypeAlias(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using [|$$S1|] = System.String;
+
+namespace Test
+{
+    class Program
+    {
+        void M([|S1|] s)
+        {
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="RenamedString")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/67640")>
+        Public Sub RenameTupleAlias(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using [|$$TupleExample|] = (string, int);
+
+namespace ConsoleApp
+{
+    internal class Class1
+    {
+        public void F([|TupleExample|] x)
+        {
+            [|TupleExample|] a = ("sdf", 42);
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="RenamedTupleExample")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/67640")>
+        Public Sub RenameArrayAlias(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using [|$$arrayExample|] = int[];
+
+namespace ConsoleApp
+{
+    internal class Class1
+    {
+        public void F([|arrayExample|] x)
+        {
+            [|arrayExample|] b = new[] { 3, 4, 5 };
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="RenamedArrayExample")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/67640")>
+        Public Sub RenameTupleAliasFromUsage(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using [|TupleExample|] = (string, int);
+
+namespace ConsoleApp
+{
+    internal class Class1
+    {
+        public void F([|$$TupleExample|] x)
+        {
+            [|TupleExample|] a = ("sdf", 42);
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="RenamedTupleExample")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/67640")>
+        Public Sub RenameArrayAliasFromUsage(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using [|arrayExample|] = int[];
+
+namespace ConsoleApp
+{
+    internal class Class1
+    {
+        public void F([|$$arrayExample|] x)
+        {
+            [|arrayExample|] b = new[] { 3, 4, 5 };
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="RenamedArrayExample")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/67640")>
+        Public Sub RenamePointerAlias(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using [|$$IntPtr|] = int*;
+
+namespace ConsoleApp
+{
+    internal class Class1
+    {
+        public unsafe void F([|IntPtr|] x)
+        {
+            [|IntPtr|] p = null;
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="RenamedIntPtr")
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/67640")>
+        Public Sub RenameDynamicAlias(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+using [|$$DynType|] = dynamic;
+
+namespace ConsoleApp
+{
+    internal class Class1
+    {
+        public void F([|DynType|] x)
+        {
+            [|DynType|] d = 42;
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="RenamedDynType")
             End Using
         End Sub
     End Class

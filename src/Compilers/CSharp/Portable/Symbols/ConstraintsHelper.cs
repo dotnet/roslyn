@@ -717,8 +717,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool CheckConstraints(this NamedTypeSymbol type, in CheckConstraintsArgs args)
         {
-            Debug.Assert(args.CurrentCompilation is object);
-
             if (!RequiresChecking(type))
             {
                 return true;
@@ -934,7 +932,7 @@ hasRelatedInterfaces:
                 }
             }
 
-            if (constructedContainingSymbol.GetIsNewExtensionMember() && constructedContainingSymbol.ContainingType is { Arity: > 0 } extension
+            if (constructedContainingSymbol.IsExtensionBlockMember() && constructedContainingSymbol.ContainingType is { Arity: > 0 } extension
                 && extension.TypeSubstitution is not null)
             {
                 succeeded &= CheckConstraints(extension, in args,
@@ -1616,7 +1614,7 @@ hasRelatedInterfaces:
             }
 
             Debug.Assert(method.ConstructedFrom != method
-                || (method.GetIsNewExtensionMember() && !method.ContainingType.IsDefinition));
+                || (method.IsExtensionBlockMember() && !method.ContainingType.IsDefinition));
             return true;
         }
 

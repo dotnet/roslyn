@@ -74,13 +74,13 @@ internal static class SerializationExtensions
         if (PathUtilities.IsAbsolute(info.FilePath))
         {
             // desktop strong name provider only knows how to deal with absolute path
-            builder.Add(PathUtilities.GetDirectoryName(info.FilePath)!);
+            builder.Add(PathUtilities.GetDirectoryName(info.FilePath));
         }
 
         if (PathUtilities.IsAbsolute(info.OutputFilePath))
         {
             // desktop strong name provider only knows how to deal with absolute path
-            builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath)!);
+            builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath));
         }
 
         return builder.ToImmutableAndFree();

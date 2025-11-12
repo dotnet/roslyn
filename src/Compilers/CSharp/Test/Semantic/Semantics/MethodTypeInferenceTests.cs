@@ -1206,5 +1206,33 @@ public class Test
             var authorResultType = model.GetTypeInfo(authorResult).Type;
             Assert.Equal("Author", authorResultType.Name);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49525")]
+        public void InterlockedExchangeWithNullableTypes()
+        {
+            var source = """
+                #nullable enable
+                using System.Threading;
+
+                namespace InterlockedExchangeNullProblem
+                {
+                    public class Class1
+                    {
+                        public void Method()
+                        {
+                            object? o = new object();
+                            var o1 = Interlocked.Exchange(ref o, null);
+
+                            class2? c = new class2();
+                            var c1 = Interlocked.Exchange(ref c, null);
+                            var c2 = Interlocked.Exchange<class2?>(ref c, null);
+                        }
+                    }
+                    public class class2 { }
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
     }
 }

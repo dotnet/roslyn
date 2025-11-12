@@ -5857,6 +5857,9 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (5,20): warning CS0649: Field 'var.o' is never assigned to, and will always have its default value null
+                //     internal other o;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "o").WithArguments("var.o", "null").WithLocation(5, 20),
                 // (11,11): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
                 //         F(var () => default);
                 Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(11, 11),

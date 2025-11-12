@@ -134,30 +134,24 @@ class Program
 ";
 
             ParseAndValidate(text, TestOptions.Regular9,
-                // (11,41): error CS1519: Invalid token 'operator' in class, record, struct, or interface member declaration
+                // (11,41): error CS1519: Invalid token 'operator' in a member declaration
                 //     public static ref readonly Program  operator  +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(11, 41),
-                // (11,41): error CS1519: Invalid token 'operator' in class, record, struct, or interface member declaration
+                // (11,41): error CS1519: Invalid token 'operator' in a member declaration
                 //     public static ref readonly Program  operator  +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(11, 41),
-                // (12,5): error CS1519: Invalid token '{' ref readonly class, struct, or interface member declaration
-                //     {
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(12, 5),
-                // (12,5): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-                //     {
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(12, 5),
-                // (17,5): error CS8803: Top-level statements must precede namespace and type declarations.
-                //     static async ref readonly Task M<T>()
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"static async ref readonly Task M<T>()
-    {
-        throw null;
-    }").WithLocation(17, 5),
+                // (11,74): error CS1001: Identifier expected
+                //     public static ref readonly Program  operator  +(Program x, Program y)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(11, 74),
+                // (13,9): error CS1014: A get or set accessor expected
+                //         throw null;
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "throw").WithLocation(13, 9),
+                // (13,19): error CS1014: A get or set accessor expected
+                //         throw null;
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(13, 19),
                 // (22,25): error CS1031: Type expected
                 //     public ref readonly virtual int* P1 => throw null;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "virtual").WithLocation(22, 25),
-                // (24,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(24, 1));
+                Diagnostic(ErrorCode.ERR_TypeExpected, "virtual").WithLocation(22, 25));
         }
 
         [Fact]

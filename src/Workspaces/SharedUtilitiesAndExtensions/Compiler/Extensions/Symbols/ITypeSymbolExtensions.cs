@@ -341,8 +341,14 @@ internal static partial class ITypeSymbolExtensions
                     type = arrayType.ElementType;
                     continue;
                 case IPointerTypeSymbol pointerType:
+                    // For normal pointers like Customer*, unwrap to get a meaningful name (customer)
+                    // rather than using a generic default
                     type = pointerType.PointedAtType;
                     continue;
+                case IFunctionPointerTypeSymbol:
+                    // Function pointer types like "delegate*<void>" don't have a meaningful underlying type
+                    // to generate a name from, so use the default parameter name
+                    return capitalize ? DefaultParameterName.ToPascalCase() : DefaultParameterName;
             }
 
             break;

@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property Name As String
                 Get
-                    Return "$"c & _syntax.Position.ToString()
+                    Return "$"c & _syntax.Position.ToString(Globalization.CultureInfo.InvariantCulture)
                 End Get
             End Property
 

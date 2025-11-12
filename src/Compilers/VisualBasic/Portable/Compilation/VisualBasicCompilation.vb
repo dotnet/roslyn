@@ -1596,7 +1596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Global code is the entry point, ignore all other Mains.
                     If ScriptClass IsNot Nothing Then
                         For Each main In entryPointCandidates
-                            diagnostics.Add(ERRID.WRN_MainIgnored, main.Locations.First(), main)
+                            diagnostics.Add(ERRID.WRN_MainIgnored, main.GetFirstLocation(), main)
                         Next
                         Return ScriptClass.GetScriptEntryPoint()
                     End If
@@ -2960,7 +2960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim descriptor = New AnonymousTypeDescriptor(
                 fields.ToImmutableAndFree(), Location.None, isImplicitlyDeclared:=False)
-            Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor)
+            Return Me.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor, BindingDiagnosticBag.Discarded)
         End Function
 
         Protected Overrides Function CommonCreateBuiltinOperator(
