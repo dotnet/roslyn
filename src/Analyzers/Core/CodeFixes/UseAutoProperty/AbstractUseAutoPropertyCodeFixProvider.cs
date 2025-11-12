@@ -140,9 +140,17 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         var propertyDeclaration = GetPropertyDeclaration(property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken));
 
         // First, create the updated property we want to replace the old property with
+        var nullabilityMismatch =
+            field.Type.NullableAnnotation is NullableAnnotation.Annotated &&
+            property.Type.NullableAnnotation is NullableAnnotation.NotAnnotated;
         var (isWrittenToOutsideOfConstructor, isWrittenNull) = await AnalyzeFieldWritesAsync(
             fieldDocument.GetRequiredLanguageService<ISyntaxFactsService>(),
-            field, fieldLocations, propertyDeclaration, cancellationToken).ConfigureAwait(false);
+            field, fieldLocations, propertyDeclaration,
+            // If there is no nullability mismatch, then just pass in 'true' here.  That will cause us to not actually
+            // analyze any of the writes since we won't need that data.  The return value will also be ignored below
+            // since we only use it if nullabilityMismatch=true.
+            isWrittenNull: !nullabilityMismatch,
+            cancellationToken).ConfigureAwait(false);
 
         if (!isTrivialGetAccessor ||
             (property.SetMethod != null && !isTrivialSetAccessor))
@@ -162,9 +170,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
         // We're replacing a nullable field with a non-nullable property.  If something nullable is ever written into
         // the field, then we need to add [AllowNull] to the property to allow that same code to continue to work.
-        if (isWrittenNull &&
-            field.Type.NullableAnnotation is NullableAnnotation.Annotated &&
-            property.Type.NullableAnnotation is NullableAnnotation.NotAnnotated)
+        if (isWrittenNull && nullabilityMismatch)
         {
             var allowNullAttribute = compilation.AllowNullAttribute();
             if (allowNullAttribute != null)
@@ -172,7 +178,9 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                 var generator = propertyDocument.GetRequiredLanguageService<SyntaxGenerator>();
                 updatedProperty = generator.AddAttributes(
                     updatedProperty,
-                    generator.Attribute(generator.TypeExpression(allowNullAttribute, addImport: true)));
+                    generator.Attribute(
+                        generator.TypeExpression(allowNullAttribute, addImport: true)
+                                 .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)));
             }
         }
 
@@ -464,10 +472,10 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         IFieldSymbol field,
         ImmutableArray<ReferencedSymbol> referencedSymbols,
         TPropertyDeclaration propertyDeclaration,
+        bool isWrittenNull,
         CancellationToken cancellationToken)
     {
         var isWrittenOutsideConstructor = false;
-        var isWrittenNull = false;
         var constructorSpans = field.ContainingType
             .GetMembers()
             .Where(m => m.IsConstructor())
