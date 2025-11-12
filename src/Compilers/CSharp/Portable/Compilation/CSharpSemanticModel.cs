@@ -4873,13 +4873,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(node);
 
-            if (node.Ancestors().Any(n => SyntaxFacts.IsPreprocessorDirective(n.Kind())))
+            if (isPossiblePreprocessingSymbolReference(node))
             {
                 bool isDefined = this.SyntaxTree.IsPreprocessorSymbolDefined(node.Identifier.ValueText, node.Identifier.SpanStart);
                 return new PreprocessingSymbolInfo(new Symbols.PublicModel.PreprocessingSymbol(node.Identifier.ValueText), isDefined);
             }
 
             return PreprocessingSymbolInfo.None;
+
+            bool isPossiblePreprocessingSymbolReference(IdentifierNameSyntax node)
+            {
+                var parentNode = node.Parent;
+                while (parentNode is not null)
+                {
+                    var kind = parentNode.Kind();
+                    switch (kind)
+                    {
+                        case SyntaxKind.IfDirectiveTrivia:
+                            {
+                                var parentIf = (IfDirectiveTriviaSyntax)parentNode;
+                                return parentIf.Condition.FullSpan.Contains(node.FullSpan);
+                            }
+                        case SyntaxKind.ElifDirectiveTrivia:
+                            {
+                                var parentElif = (ElifDirectiveTriviaSyntax)parentNode;
+                                return parentElif.Condition.FullSpan.Contains(node.FullSpan);
+                            }
+                    }
+
+                    if (SyntaxFacts.IsPreprocessorDirective(kind))
+                    {
+                        return false;
+                    }
+
+                    parentNode = parentNode.Parent;
+                }
+                return false;
+            }
         }
 
         /// <summary>

@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis
 #endif
 
         internal const string DotNetRootEnvironmentName = "DOTNET_ROOT";
-        private const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
-        private const string DotNetExperimentalHostPathEnvironmentName = "DOTNET_EXPERIMENTAL_HOST_PATH";
+        internal const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
+        internal const string DotNetExperimentalHostPathEnvironmentName = "DOTNET_EXPERIMENTAL_HOST_PATH";
 
         /// <summary>
         /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception ex)
             {
-                logger?.Invoke("Failed to resolve symbolic link for dotnet path '{0}': {1}", [dotNetPath, ex.Message]);
+                logger?.Invoke("Failed to resolve symbolic link for dotnet path '{0}': {1}", [dotNetPath, ex]);
                 return null;
             }
 

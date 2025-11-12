@@ -4158,4 +4158,69 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             LanguageVersion = LanguageVersion.Preview,
             CodeActionIndex = 1,
         }.RunAsync();
+
+    [Fact]
+    public Task TestRecord_Nullable1()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+
+            using System.Collections.Generic;
+
+            record Program
+            {
+                [|int a;|]
+            }
+            """,
+            FixedCode = """
+            #nullable enable
+
+            using System.Collections.Generic;
+
+            record Program
+            {
+                int a;
+
+                public virtual bool Equals(Program? program)
+                {
+                    return program is not null &&
+                           a == program.a;
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestRecord_Nullable2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+
+            using System.Collections.Generic;
+
+            record struct Program
+            {
+                [|int a;|]
+            }
+            """,
+            FixedCode = """
+            #nullable enable
+
+            using System.Collections.Generic;
+
+            record struct Program
+            {
+                int a;
+
+                public bool Equals(Program program)
+                {
+                    return a == program.a;
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
 }

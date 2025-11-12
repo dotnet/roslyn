@@ -109,7 +109,6 @@
   -->
   <Node Name="BoundCapturedReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Receiver" Type="BoundExpression"/>
-    <Field Name="LocalScopeDepth" Type="SafeContext"/>
   </Node>
 
   <!--

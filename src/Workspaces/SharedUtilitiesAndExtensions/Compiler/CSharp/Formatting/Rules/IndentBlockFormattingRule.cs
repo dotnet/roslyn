@@ -293,67 +293,26 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
     private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
         // increase indentation - embedded statement cases
-        if (node is IfStatementSyntax { Statement: not null } ifStatement && !(ifStatement.Statement is BlockSyntax))
+        var statement = node switch
         {
-            AddEmbeddedStatementsIndentationOperation(list, ifStatement.Statement);
+            // Basic cases that want to unilaterally indent their embedded statements (unless they are blocks) 
+            IfStatementSyntax ifStatement => ifStatement.Statement,
+            WhileStatementSyntax whileStatement => whileStatement.Statement,
+            ForStatementSyntax forStatement => forStatement.Statement,
+            CommonForEachStatementSyntax foreachStatement => foreachStatement.Statement,
+            DoStatementSyntax doStatement => doStatement.Statement,
+            LockStatementSyntax lockStatement => lockStatement.Statement,
+            // A few special cases where if we see certain nesting of statements, we don't want to double indent.
+            ElseClauseSyntax { Statement: not IfStatementSyntax } elseClause => elseClause.Statement,
+            UsingStatementSyntax { Statement: not UsingStatementSyntax } usingStatement => usingStatement.Statement,
+            FixedStatementSyntax { Statement: not FixedStatementSyntax } fixedStatement => fixedStatement.Statement,
+            _ => null,
+        };
+
+        // We never want to indent a block.  It is its own indentation region.
+        if (statement is null or BlockSyntax)
             return;
-        }
 
-        if (node is ElseClauseSyntax { Statement: not null } elseClause)
-        {
-            if (elseClause.Statement is not (BlockSyntax or IfStatementSyntax))
-            {
-                AddEmbeddedStatementsIndentationOperation(list, elseClause.Statement);
-            }
-
-            return;
-        }
-
-        if (node is WhileStatementSyntax { Statement: not null } whileStatement && !(whileStatement.Statement is BlockSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, whileStatement.Statement);
-            return;
-        }
-
-        if (node is ForStatementSyntax { Statement: not null } forStatement && !(forStatement.Statement is BlockSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, forStatement.Statement);
-            return;
-        }
-
-        if (node is CommonForEachStatementSyntax { Statement: not null } foreachStatement && !(foreachStatement.Statement is BlockSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, foreachStatement.Statement);
-            return;
-        }
-
-        if (node is UsingStatementSyntax { Statement: not null } usingStatement && !(usingStatement.Statement is BlockSyntax or UsingStatementSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, usingStatement.Statement);
-            return;
-        }
-
-        if (node is FixedStatementSyntax { Statement: not null } fixedStatement && !(fixedStatement.Statement is BlockSyntax or FixedStatementSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, fixedStatement.Statement);
-            return;
-        }
-
-        if (node is DoStatementSyntax { Statement: not null } doStatement && !(doStatement.Statement is BlockSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, doStatement.Statement);
-            return;
-        }
-
-        if (node is LockStatementSyntax { Statement: not null } lockStatement && !(lockStatement.Statement is BlockSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, lockStatement.Statement);
-            return;
-        }
-    }
-
-    private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, StatementSyntax statement)
-    {
         var firstToken = statement.GetFirstToken(includeZeroWidth: true);
         var lastToken = statement.GetLastToken(includeZeroWidth: true);
 
