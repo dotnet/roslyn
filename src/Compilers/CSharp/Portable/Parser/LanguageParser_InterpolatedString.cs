@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // from that.
 
             var originalText = originalToken.Text;
-            Debug.Assert(originalText[0] is '"');
-            Debug.Assert(originalText[1] is '"');
-            Debug.Assert(originalText[2] is '"');
+            Debug.Assert(originalText is ['"', '"', '"', ..]);
 
             var interpolatedString = ParseInterpolatedOrRawStringToken(
                 originalToken, originalText, originalText.AsSpan(), isInterpolatedString: false);
