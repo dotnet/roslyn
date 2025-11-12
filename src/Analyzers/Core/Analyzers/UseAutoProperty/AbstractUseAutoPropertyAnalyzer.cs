@@ -488,27 +488,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             propertyDeclaration, fieldDeclaration, variableDeclarator,
             notification,
             isTrivialGetAccessor,
-            isTrivialSetAccessor,
-            GetNeedsAllowNullAttribute()));
-
-        bool GetNeedsAllowNullAttribute()
-        {
-            if (getterField.Type.Equals(property.Type, SymbolEqualityComparer.IncludeNullability))
-                return false;
-
-
-            // Types have differing nullability.  If the property is written to, and null is written into it,
-            // we need to add [AllowNull] to it to make that ok.
-
-            // Determine if we need [AllowNull] attribute:
-            // - Field is nullable (annotated with ?)
-            // - Property is non-nullable (not annotated with ?)
-            // - There are writes to the field
-            var needsAllowNullAttribute =
-                getterField.Type.NullableAnnotation == NullableAnnotation.Annotated &&
-                property.Type.NullableAnnotation == NullableAnnotation.NotAnnotated &&
-                property.SetMethod != null;
-        }
+            isTrivialSetAccessor));
     }
 
     protected virtual bool CanConvert(IPropertySymbol property)
@@ -674,9 +654,6 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
             if (result.IsTrivialSetAccessor)
                 properties = properties.Add(IsTrivialSetAccessor, IsTrivialSetAccessor);
-
-            if (result.NeedsAllowNullAttribute)
-                properties = properties.Add(NeedsAllowNullAttribute, NeedsAllowNullAttribute);
 
             // Place the appropriate marker on the field depending on the user option.
             context.ReportDiagnostic(DiagnosticHelper.Create(
