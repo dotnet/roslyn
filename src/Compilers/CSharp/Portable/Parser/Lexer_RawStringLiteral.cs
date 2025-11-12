@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 ConsumeWhitespace();
 
-                // after the whitespace see if this the line that ends the multiline literal.  If so we're done scanning
+                // After the whitespace see if this is the line that ends the multiline literal.  If so we're done scanning
                 // lines.  Errors about this will be reported by the parser.
                 if (ConsumeQuoteSequence() >= startingQuoteCount)
                     return false;
