@@ -1001,6 +1001,30 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             expectedIndentation: 8);
 
     [WpfFact]
+    public void LabelAtColumn0WithIfStatement()
+        => AssertSmartIndent(
+            """
+            namespace ConsoleApp
+            {
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        int i = 0;
+            loop:
+                        if (i > 10)
+                            return;
+
+                    }
+                }
+            }
+
+
+            """,
+            indentationLine: 10,
+            expectedIndentation: 12);
+
+    [WpfFact]
     public void QueryExpression1()
         => AssertSmartIndent(
             """
