@@ -2552,51 +2552,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //
                 if (!haveAttributes || !IsScript)
                 {
-                    bool wasInAsync = IsInAsync;
-                    if (!IsScript)
+                    // We are implicitly in an async context in a non-script environment.
+                    using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: this.IsInAsync || !IsScript);
+
+                    switch (this.CurrentToken.Kind)
                     {
-                        IsInAsync = true; // We are implicitly in an async context
-                    }
+                        case SyntaxKind.UnsafeKeyword:
+                            if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes));
+                            }
+                            break;
 
-                    try
-                    {
-                        switch (this.CurrentToken.Kind)
-                        {
-                            case SyntaxKind.UnsafeKeyword:
-                                if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
-                                {
-                                    return _syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes));
-                                }
-                                break;
+                        case SyntaxKind.FixedKeyword:
+                            if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseFixedStatement(attributes));
+                            }
+                            break;
 
-                            case SyntaxKind.FixedKeyword:
-                                if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
-                                {
-                                    return _syntaxFactory.GlobalStatement(ParseFixedStatement(attributes));
-                                }
-                                break;
+                        case SyntaxKind.DelegateKeyword:
+                            // Check if this is an anonymous delegate expression or a delegate type declaration.
+                            // Anonymous delegate: delegate { } or delegate (params) { }
+                            // Delegate declaration: delegate Type Name(params);
+                            if (IsAnonymousDelegateExpression())
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
+                            }
+                            break;
 
-                            case SyntaxKind.DelegateKeyword:
-                                // Check if this is an anonymous delegate expression or a delegate type declaration.
-                                // Anonymous delegate: delegate { } or delegate (params) { }
-                                // Delegate declaration: delegate Type Name(params);
-                                if (IsAnonymousDelegateExpression())
-                                {
-                                    return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
-                                }
-                                break;
-
-                            case SyntaxKind.NewKeyword:
-                                if (IsPossibleNewExpression())
-                                {
-                                    return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
-                                }
-                                break;
-                        }
-                    }
-                    finally
-                    {
-                        IsInAsync = wasInAsync;
+                        case SyntaxKind.NewKeyword:
+                            if (IsPossibleNewExpression())
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
+                            }
+                            break;
                     }
                 }
 
@@ -2699,17 +2689,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             var saveTerm = _termState;
                             _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
-                            bool wasInAsync = IsInAsync;
-                            if (!IsScript)
-                            {
-                                IsInAsync = true; // We are implicitly in an async context
-                            }
+
+                            // We are implicitly in an async context in a non-script environment.
+                            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: this.IsInAsync || !IsScript);
+
                             // In Script we don't allow local declaration statements at the top level.  We want
                             // to fall out below and parse them instead as fields. For top-level statements, we allow
                             // them, but want to try properties , etc. first.
                             var statement = this.ParseStatementCore(attributes, isGlobal: true);
 
-                            IsInAsync = wasInAsync;
                             _termState = saveTerm;
 
                             if (isAcceptableNonDeclarationStatement(statement, IsScript))
@@ -2851,14 +2839,12 @@ parse_member_name:;
 
             bool tryParseLocalDeclarationStatement<DeclarationSyntax>(SyntaxList<AttributeListSyntax> attributes, out MemberDeclarationSyntax result) where DeclarationSyntax : StatementSyntax
             {
-                bool wasInAsync = IsInAsync;
-                IsInAsync = true; // We are implicitly in an async context
+                // We are implicitly in an async context
+                using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: true);
                 int lastTokenPosition = -1;
                 IsMakingProgress(ref lastTokenPosition);
 
                 var topLevelStatement = ParseLocalDeclarationStatement(attributes);
-                IsInAsync = wasInAsync;
-
                 if (topLevelStatement is DeclarationSyntax declaration && IsMakingProgress(ref lastTokenPosition, assertIfFalse: false))
                 {
                     result = _syntaxFactory.GlobalStatement(declaration);
@@ -2879,12 +2865,11 @@ parse_member_name:;
                 {
                     var saveTerm = _termState;
                     _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
-                    bool wasInAsync = IsInAsync;
-                    IsInAsync = true; // We are implicitly in an async context
 
+                    // We are implicitly in an async context
+                    using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: true);
                     var statement = this.ParseStatementCore(attributes, isGlobal: true);
 
-                    IsInAsync = wasInAsync;
                     _termState = saveTerm;
 
                     if (statement is not null)
@@ -3576,11 +3561,8 @@ parse_member_name:;
             // restored, just assumed to be false and reset accordingly after parsing the method body.
             Debug.Assert(!IsInAsync);
 
-            IsInAsync = modifiers.Any((int)SyntaxKind.AsyncKeyword);
-
+            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: modifiers.Any((int)SyntaxKind.AsyncKeyword));
             this.ParseBlockAndExpressionBodiesWithSemicolon(out var blockBody, out var expressionBody, out var semicolon);
-
-            IsInAsync = false;
 
             return _syntaxFactory.MethodDeclaration(
                 attributes,
@@ -4153,10 +4135,8 @@ parse_member_name:;
             // Check for expression body
             if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
             {
-                using (new FieldKeywordContext(this, isInFieldKeywordContext: true))
-                {
-                    expressionBody = this.ParseArrowExpressionClause();
-                }
+                using var _ = new ParserSyntaxContextResetter(this, isInFieldKeywordContext: true);
+                expressionBody = this.ParseArrowExpressionClause();
             }
             // Check if we have an initializer
             else if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
@@ -4188,39 +4168,52 @@ parse_member_name:;
                 semicolon);
         }
 
-        private readonly ref struct FieldKeywordContext : IDisposable
+        private readonly ref struct ParserSyntaxContextResetter : IDisposable
         {
-            private readonly LanguageParser _parser;
-            private readonly bool _previousInFieldKeywordContext;
-
-            public FieldKeywordContext(LanguageParser parser, bool isInFieldKeywordContext)
+            [Flags]
+            private enum LanguageParserState : byte
             {
+                IsInAsync = 1 << 0,
+                IsInQuery = 1 << 1,
+                IsInFieldKeywordContext = 1 << 2,
+                ForceConditionalAccessExpression = 1 << 3,
+            }
+
+            private readonly LanguageParser _parser;
+            private readonly LanguageParserState _previousState;
+
+            public ParserSyntaxContextResetter(
+                LanguageParser parser,
+                bool? isInAsyncContext = null,
+                bool? isInQueryContext = null,
+                bool? isInFieldKeywordContext = null,
+                bool? forceConditionalAccessExpression = null)
+            {
+                Debug.Assert(
+                    isInAsyncContext.HasValue ||
+                    isInQueryContext.HasValue ||
+                    isInFieldKeywordContext.HasValue ||
+                    forceConditionalAccessExpression.HasValue);
+
                 _parser = parser;
-                _previousInFieldKeywordContext = parser.IsInFieldKeywordContext;
-                _parser.IsInFieldKeywordContext = isInFieldKeywordContext;
+                _previousState =
+                    (parser.IsInAsync ? LanguageParserState.IsInAsync : 0) |
+                    (parser.IsInQuery ? LanguageParserState.IsInQuery : 0) |
+                    (parser.IsInFieldKeywordContext ? LanguageParserState.IsInFieldKeywordContext : 0) |
+                    (parser.ForceConditionalAccessExpression ? LanguageParserState.ForceConditionalAccessExpression : 0);
+
+                _parser.IsInAsync = isInAsyncContext ?? parser.IsInAsync;
+                _parser.IsInQuery = isInQueryContext ?? parser.IsInQuery;
+                _parser.IsInFieldKeywordContext = isInFieldKeywordContext ?? parser.IsInFieldKeywordContext;
+                _parser.ForceConditionalAccessExpression = forceConditionalAccessExpression ?? parser.ForceConditionalAccessExpression;
             }
 
             public void Dispose()
             {
-                _parser.IsInFieldKeywordContext = _previousInFieldKeywordContext;
-            }
-        }
-
-        private readonly ref struct AsyncContext : IDisposable
-        {
-            private readonly LanguageParser _parser;
-            private readonly bool _previousInAsync;
-
-            public AsyncContext(LanguageParser parser, bool isInAsync)
-            {
-                _parser = parser;
-                _previousInAsync = parser.IsInAsync;
-                _parser.IsInAsync = isInAsync;
-            }
-
-            public void Dispose()
-            {
-                _parser.IsInAsync = _previousInAsync;
+                _parser.IsInAsync = (_previousState & LanguageParserState.IsInAsync) != 0;
+                _parser.IsInQuery = (_previousState & LanguageParserState.IsInQuery) != 0;
+                _parser.IsInFieldKeywordContext = (_previousState & LanguageParserState.IsInFieldKeywordContext) != 0;
+                _parser.ForceConditionalAccessExpression = (_previousState & LanguageParserState.ForceConditionalAccessExpression) != 0;
             }
         }
 
@@ -4512,7 +4505,7 @@ parse_member_name:;
                 return (AccessorDeclarationSyntax)this.EatNode();
             }
 
-            using var __ = new FieldKeywordContext(this, isInFieldKeywordContext: declaringKind is AccessorDeclaringKind.Property);
+            using var _1 = new ParserSyntaxContextResetter(this, isInFieldKeywordContext: declaringKind is AccessorDeclaringKind.Property);
 
             var accMods = _pool.Allocate();
 
@@ -8233,9 +8226,8 @@ done:
                 // context.
                 this.Reset(ref resetPointBeforeStatement);
 
-                IsInAsync = true;
+                using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: true);
                 result = ParseExpressionStatement(attributes);
-                IsInAsync = false;
             }
 
             // Didn't want to retry as an `await expr`.  Just return what we actually
@@ -10703,7 +10695,7 @@ done:
             // Note that we could just check if we're in an async context, but that breaks some analyzers, because
             // "await f();" would be parsed as a local function statement when really we want a parse error so we can say
             // "did you mean to make this method be an async method?" (it's invalid either way, so the spec doesn't care)
-            var resetPoint = this.GetResetPoint();
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
             // Indicates this must be parsed as a local function, even if there's no body
             bool forceLocalFunc = true;
@@ -10713,8 +10705,6 @@ done:
                 forceLocalFunc = id.ContextualKind != SyntaxKind.AwaitKeyword;
             }
 
-            bool parentScopeIsInAsync = IsInAsync;
-            IsInAsync = false;
             SyntaxListBuilder badBuilder = null;
             for (int i = 0; i < modifiers.Count; i++)
             {
@@ -10722,7 +10712,6 @@ done:
                 switch (modifier.ContextualKind)
                 {
                     case SyntaxKind.AsyncKeyword:
-                        IsInAsync = true;
                         forceLocalFunc = true;
                         continue;
                     case SyntaxKind.UnsafeKeyword:
@@ -10755,6 +10744,8 @@ done:
                 _pool.Free(badBuilder);
             }
 
+            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: modifiers.Any((int)SyntaxKind.AsyncKeyword));
+
             TypeParameterListSyntax typeParameterListOpt = this.ParseTypeParameterList();
             // "await f<T>()" still makes sense, so don't force accept a local function if there's a type parameter list.
             ParameterListSyntax paramList = this.ParseParenthesizedParameterList(forExtension: false);
@@ -10784,15 +10775,11 @@ done:
             SyntaxToken semicolon;
             this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon, parseSemicolonAfterBlock: false);
 
-            IsInAsync = parentScopeIsInAsync;
-
             if (!forceLocalFunc && blockBody == null && expressionBody == null)
             {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
+                resetPoint.Reset();
                 return null;
             }
-            this.Release(ref resetPoint);
 
             return _syntaxFactory.LocalFunctionStatement(
                 attributes,
@@ -11429,9 +11416,12 @@ done:
                     afterQuestionToken.Reset();
 
                     // try reparsing with `?[` as a conditional access, not a ternary+collection
-                    this.ForceConditionalAccessExpression = true;
-                    var newWhenTrue = this.ParsePossibleRefExpression();
-                    this.ForceConditionalAccessExpression = false;
+                    ExpressionSyntax newWhenTrue;
+                    using (var _ = new ParserSyntaxContextResetter(this, forceConditionalAccessExpression: true))
+                    {
+                        // reparse the when-true portion
+                        newWhenTrue = this.ParsePossibleRefExpression();
+                    }
 
                     if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
@@ -13444,26 +13434,15 @@ done:
 
         private AnonymousMethodExpressionSyntax ParseAnonymousMethodExpression()
         {
-            var parentScopeIsInAsync = this.IsInAsync;
+            var modifiers = ParseAnonymousFunctionModifiers();
+            using var _ = new ParserSyntaxContextResetter(this,
+                isInAsyncContext: this.IsInAsync || modifiers.Any((int)SyntaxKind.AsyncKeyword),
+                forceConditionalAccessExpression: false);
 
-            var parentScopeForceConditionalAccess = this.ForceConditionalAccessExpression;
-            this.ForceConditionalAccessExpression = false;
-
-            var result = parseAnonymousMethodExpressionWorker();
-
-            this.ForceConditionalAccessExpression = parentScopeForceConditionalAccess;
-            this.IsInAsync = parentScopeIsInAsync;
-
-            return result;
+            return parseAnonymousMethodExpressionWorker();
 
             AnonymousMethodExpressionSyntax parseAnonymousMethodExpressionWorker()
             {
-                var modifiers = ParseAnonymousFunctionModifiers();
-                if (modifiers.Any((int)SyntaxKind.AsyncKeyword))
-                {
-                    this.IsInAsync = true;
-                }
-
                 var @delegate = this.EatToken(SyntaxKind.DelegateKeyword);
 
                 ParameterListSyntax parameterList = null;
@@ -13570,26 +13549,17 @@ done:
         private LambdaExpressionSyntax ParseLambdaExpression()
         {
             var attributes = ParseAttributeDeclarations(inExpressionContext: true);
-            var parentScopeIsInAsync = this.IsInAsync;
 
-            var parentScopeForceConditionalAccess = this.ForceConditionalAccessExpression;
-            this.ForceConditionalAccessExpression = false;
+            var modifiers = ParseAnonymousFunctionModifiers();
 
-            var result = parseLambdaExpressionWorker();
+            using var _ = new ParserSyntaxContextResetter(this,
+                isInAsyncContext: this.IsInAsync || modifiers.Any((int)SyntaxKind.AsyncKeyword),
+                forceConditionalAccessExpression: false);
 
-            this.ForceConditionalAccessExpression = parentScopeForceConditionalAccess;
-            this.IsInAsync = parentScopeIsInAsync;
-
-            return result;
+            return parseLambdaExpressionWorker();
 
             LambdaExpressionSyntax parseLambdaExpressionWorker()
             {
-                var modifiers = ParseAnonymousFunctionModifiers();
-                if (modifiers.Any((int)SyntaxKind.AsyncKeyword))
-                {
-                    this.IsInAsync = true;
-                }
-
                 TypeSyntax returnType;
                 using (var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false))
                 {
@@ -13869,17 +13839,14 @@ done:
 
         private QueryExpressionSyntax ParseQueryExpression(Precedence precedence)
         {
-            var previousIsInQuery = this.IsInQuery;
-            this.IsInQuery = true;
-            var fc = this.ParseFromClause();
-            if (precedence > Precedence.Assignment)
-            {
-                fc = this.AddError(fc, ErrorCode.WRN_PrecedenceInversion, SyntaxFacts.GetText(SyntaxKind.FromKeyword));
-            }
+            using var _ = new ParserSyntaxContextResetter(this, isInQueryContext: true);
+            var fromClause = this.ParseFromClause();
 
-            var body = this.ParseQueryBody();
-            this.IsInQuery = previousIsInQuery;
-            return _syntaxFactory.QueryExpression(fc, body);
+            return _syntaxFactory.QueryExpression(
+                precedence <= Precedence.Assignment
+                    ? fromClause
+                    : this.AddError(fromClause, ErrorCode.WRN_PrecedenceInversion, SyntaxFacts.GetText(SyntaxKind.FromKeyword)),
+                this.ParseQueryBody());
         }
 
         private QueryBodySyntax ParseQueryBody()
@@ -13892,8 +13859,7 @@ done:
                 switch (this.CurrentToken.ContextualKind)
                 {
                     case SyntaxKind.FromKeyword:
-                        var fc = this.ParseFromClause();
-                        clauses.Add(fc);
+                        clauses.Add(this.ParseFromClause());
                         continue;
                     case SyntaxKind.JoinKeyword:
                         clauses.Add(this.ParseJoinClause());

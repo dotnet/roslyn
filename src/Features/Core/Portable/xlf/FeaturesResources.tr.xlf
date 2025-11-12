@@ -885,6 +885,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Tek bütünleştirilmiş kod bulundu: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Equals">
+        <source>Generate Equals(...)</source>
+        <target state="new">Generate Equals(...)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Karşılaştırma işleçlerini oluştur</target>
@@ -3928,11 +3933,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Equals ve GetHashCode oluştur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Equals_object">
-        <source>Generate Equals(object)</source>
-        <target state="translated">Equals(object) oluştur</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_GetHashCode">

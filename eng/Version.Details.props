@@ -37,16 +37,16 @@ This file should be imported by eng/Versions.props
     <SystemTextJsonPackageVersion>9.0.0</SystemTextJsonPackageVersion>
     <SystemThreadingTasksDataflowPackageVersion>9.0.0</SystemThreadingTasksDataflowPackageVersion>
     <SystemWindowsExtensionsPackageVersion>9.0.0</SystemWindowsExtensionsPackageVersion>
+    <!-- dotnet/sdk dependencies -->
+    <MicrosoftDotNetFileBasedProgramsPackageVersion>10.0.200-preview.0.25556.104</MicrosoftDotNetFileBasedProgramsPackageVersion>
     <!-- dotnet/arcade dependencies -->
-    <MicrosoftDotNetArcadeSdkPackageVersion>11.0.0-beta.25556.3</MicrosoftDotNetArcadeSdkPackageVersion>
-    <MicrosoftDotNetHelixSdkPackageVersion>11.0.0-beta.25556.3</MicrosoftDotNetHelixSdkPackageVersion>
-    <MicrosoftDotNetXliffTasksPackageVersion>11.0.0-beta.25556.3</MicrosoftDotNetXliffTasksPackageVersion>
+    <MicrosoftDotNetArcadeSdkPackageVersion>11.0.0-beta.25560.1</MicrosoftDotNetArcadeSdkPackageVersion>
+    <MicrosoftDotNetHelixSdkPackageVersion>11.0.0-beta.25560.1</MicrosoftDotNetHelixSdkPackageVersion>
+    <MicrosoftDotNetXliffTasksPackageVersion>11.0.0-beta.25560.1</MicrosoftDotNetXliffTasksPackageVersion>
     <!-- dotnet/symreader dependencies -->
     <MicrosoftDiaSymReaderPackageVersion>2.0.0</MicrosoftDiaSymReaderPackageVersion>
     <!-- dotnet/arcade-services dependencies -->
     <MicrosoftDotNetDarcLibPackageVersion>1.1.0-beta.25503.1</MicrosoftDotNetDarcLibPackageVersion>
-    <!-- dotnet/sdk dependencies -->
-    <MicrosoftDotNetFileBasedProgramsPackageVersion>10.0.200-preview.0.25556.104</MicrosoftDotNetFileBasedProgramsPackageVersion>
     <!-- dotnet/roslyn-analyzers dependencies -->
     <MicrosoftCodeAnalysisAnalyzersPackageVersion>3.11.0</MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>3.3.0</MicrosoftCodeAnalysisAnalyzerUtilitiesPackageVersion>
@@ -86,6 +86,8 @@ This file should be imported by eng/Versions.props
     <SystemTextJsonVersion>$(SystemTextJsonPackageVersion)</SystemTextJsonVersion>
     <SystemThreadingTasksDataflowVersion>$(SystemThreadingTasksDataflowPackageVersion)</SystemThreadingTasksDataflowVersion>
     <SystemWindowsExtensionsVersion>$(SystemWindowsExtensionsPackageVersion)</SystemWindowsExtensionsVersion>
+    <!-- dotnet/sdk dependencies -->
+    <MicrosoftDotNetFileBasedProgramsVersion>$(MicrosoftDotNetFileBasedProgramsPackageVersion)</MicrosoftDotNetFileBasedProgramsVersion>
     <!-- dotnet/arcade dependencies -->
     <MicrosoftDotNetArcadeSdkVersion>$(MicrosoftDotNetArcadeSdkPackageVersion)</MicrosoftDotNetArcadeSdkVersion>
     <MicrosoftDotNetHelixSdkVersion>$(MicrosoftDotNetHelixSdkPackageVersion)</MicrosoftDotNetHelixSdkVersion>
