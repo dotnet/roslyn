@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -216,15 +217,11 @@ internal static class FormattingHelpers
             token.Parent.IsAnyArgumentList();
     }
 
-    public static bool IsParenInParenthesizedExpression(this SyntaxToken token)
-    {
-        if (token.Parent is not ParenthesizedExpressionSyntax parenthesizedExpression)
-        {
-            return false;
-        }
+    public static bool IsOpenParenOfParenthesizedExpression(this SyntaxToken token)
+        => token.Parent is ParenthesizedExpressionSyntax parenthesizedExpression && parenthesizedExpression.OpenParenToken.Equals(token);
 
-        return parenthesizedExpression.OpenParenToken.Equals(token) || parenthesizedExpression.CloseParenToken.Equals(token);
-    }
+    public static bool IsCloseParenOfParenthesizedExpression(this SyntaxToken token)
+        => token.Parent is ParenthesizedExpressionSyntax parenthesizedExpression && parenthesizedExpression.CloseParenToken.Equals(token);
 
     public static bool IsParenInArgumentList(this SyntaxToken token)
     {
@@ -535,4 +532,12 @@ internal static class FormattingHelpers
 
     public static bool IsCommaInCollectionExpression(this SyntaxToken token)
         => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.CollectionExpression);
+
+    public static bool AreOnSameLine(SyntaxToken previousToken, SyntaxToken currentToken)
+    {
+        Debug.Assert(previousToken != default);
+        Debug.Assert(currentToken != default);
+        Debug.Assert(previousToken.FullSpan.End == currentToken.FullSpan.Start);
+        return !previousToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) && !currentToken.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia);
+    }
 }

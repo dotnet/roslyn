@@ -292,80 +292,38 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
     private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
-        // increase indentation - embedded statement cases
-        if (node is IfStatementSyntax { Statement: not BlockSyntax } ifStatement)
+        // An else-if on the same line should not cause an extra indentation.  Instead, the indentation will be
+        // controlled entirely by the IfStatement.
+        if (node is ElseClauseSyntax { ElseKeyword: var elseKeyword, Statement: IfStatementSyntax { IfKeyword: var ifKeyword } } &&
+            FormattingHelpers.AreOnSameLine(elseKeyword, ifKeyword))
         {
-            AddEmbeddedStatementsIndentationOperation(list, ifStatement.Statement);
             return;
         }
 
-        if (node is ElseClauseSyntax elseClause)
+        // Handle common idiom in C# of nested usings (or nested fixed-statements) not getting extra indentation.
+        if (node is UsingStatementSyntax { Statement: UsingStatementSyntax } ||
+            node is FixedStatementSyntax { Statement: FixedStatementSyntax })
         {
-            // Special handling for else-if: only indent if they're on different lines
-            if (elseClause.Statement is IfStatementSyntax elseIfStatement)
-            {
-                // Check if there's a newline between the else and if tokens
-                var hasNewLine = elseClause.ElseKeyword.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) ||
-                                 elseIfStatement.IfKeyword.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia);
-
-                if (hasNewLine)
-                    AddEmbeddedStatementsIndentationOperation(list, elseClause.Statement);
-            }
-            else if (elseClause.Statement is not BlockSyntax)
-            {
-                AddEmbeddedStatementsIndentationOperation(list, elseClause.Statement);
-            }
-
             return;
         }
 
-        if (node is WhileStatementSyntax { Statement: not null } whileStatement && !(whileStatement.Statement is BlockSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, whileStatement.Statement);
+        // Labels don't increase indent.  Instead, the label itself is placed normally at a higher level and the content
+        // stays at the same level as the label's container.
+        if (node is LabeledStatementSyntax)
             return;
-        }
 
-        if (node is ForStatementSyntax { Statement: not null } forStatement && !(forStatement.Statement is BlockSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, forStatement.Statement);
+        var embeddedStatement = node.GetEmbeddedStatement();
+
+        // If it's not a construct that has embedded statements, we def don't want to increase the indent.
+        if (embeddedStatement is null)
             return;
-        }
 
-        if (node is CommonForEachStatementSyntax { Statement: not null } foreachStatement && !(foreachStatement.Statement is BlockSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, foreachStatement.Statement);
+        // We also never want to indent if the embedded statement is a block.  It is its own indentation region.
+        if (embeddedStatement is BlockSyntax)
             return;
-        }
 
-        if (node is UsingStatementSyntax { Statement: not null } usingStatement && !(usingStatement.Statement is BlockSyntax or UsingStatementSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, usingStatement.Statement);
-            return;
-        }
-
-        if (node is FixedStatementSyntax { Statement: not null } fixedStatement && !(fixedStatement.Statement is BlockSyntax or FixedStatementSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, fixedStatement.Statement);
-            return;
-        }
-
-        if (node is DoStatementSyntax { Statement: not null } doStatement && !(doStatement.Statement is BlockSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, doStatement.Statement);
-            return;
-        }
-
-        if (node is LockStatementSyntax { Statement: not null } lockStatement && !(lockStatement.Statement is BlockSyntax))
-        {
-            AddEmbeddedStatementsIndentationOperation(list, lockStatement.Statement);
-            return;
-        }
-    }
-
-    private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, StatementSyntax statement)
-    {
-        var firstToken = statement.GetFirstToken(includeZeroWidth: true);
-        var lastToken = statement.GetLastToken(includeZeroWidth: true);
+        var firstToken = embeddedStatement.GetFirstToken(includeZeroWidth: true);
+        var lastToken = embeddedStatement.GetLastToken(includeZeroWidth: true);
 
         if (lastToken.IsMissing)
         {
