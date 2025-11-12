@@ -5984,7 +5984,7 @@ parse_member_name:;
                 //
                 // Parsing a type parameter will see this and treat the 'where' appropriately if it is the start
                 // of a where-clause or not.  Similarly for 'partial' and if it is a keyword, or just an identifier.
-                if (this.PeekToken(1).ContextualKind is SyntaxKind.WhereKeyword or SyntaxKind.PartialKeyword)
+                if (nextKind is SyntaxKind.IdentifierToken && this.PeekToken(1).ContextualKind is SyntaxKind.WhereKeyword or SyntaxKind.PartialKeyword)
                     return true;
 
                 using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
