@@ -195,6 +195,28 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12286")]
+    public Task FormatElseIfOnSameLineWithExtraSpaces()
+        => AssertFormatAsync("""
+            class A
+            {
+                void Method()
+                {
+                    if (true) { }
+                    else if (false) { }
+                }
+            }
+            """, """
+            class A
+            {
+                void Method()
+                {
+                    if (true) { }
+                    else     if (false) { }
+                }
+            }
+            """);
+
     [Fact]
     public Task Format10()
         => AssertFormatAsync("""
