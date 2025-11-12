@@ -7,13 +7,14 @@ using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 
 namespace Microsoft.RoslynTools.CreateReleaseTags;
 
-internal sealed partial class SdkReleaseTagger
-    : AbstractReleaseTagger<SdkReleaseTagger.SdkReleaseInformation, SdkReleaseTagger.SdkBuildInformation>
+internal sealed partial class SdkReleaseTagger(ILogger logger)
+    : AbstractReleaseTagger<SdkReleaseTagger.SdkReleaseInformation, SdkReleaseTagger.SdkBuildInformation>(logger)
 {
     private const string SdkRepoBaseUrl = "https://api.github.com/repos/dotnet/sdk/";
 
@@ -123,7 +124,10 @@ internal sealed partial class SdkReleaseTagger
             sourceManifest = await connections.GitHubClient
                 .GetFromJsonAsync<VmrSourceManifest?>($"https://raw.githubusercontent.com/dotnet/dotnet/{vmrBuild.CommitSha}/src/source-manifest.json");
         }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error fetching VMR source manifest");
+        }
 
         if (sourceManifest is null)
         {
