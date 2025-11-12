@@ -141,6 +141,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
         // First, create the updated property we want to replace the old property with
         var (isWrittenToOutsideOfConstructor, isWrittenNull) = await AnalyzeFieldWritesAsync(
+            fieldDocument.GetRequiredLanguageService<ISyntaxFactsService>(),
             field, fieldLocations, propertyDeclaration, cancellationToken).ConfigureAwait(false);
 
         if (!isTrivialGetAccessor ||
@@ -459,6 +460,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 #pragma warning restore CA1822 // Mark members as static
 
     private static async ValueTask<(bool isWrittenOutsideConstructor, bool isWrittenNull)> AnalyzeFieldWritesAsync(
+        ISyntaxFactsService syntaxFacts,
         IFieldSymbol field,
         ImmutableArray<ReferencedSymbol> referencedSymbols,
         TPropertyDeclaration propertyDeclaration,
@@ -487,7 +489,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                 isWrittenOutsideConstructor = isWrittenOutsideConstructor ||
                     await IsWrittenToOutsideOfConstructorOrPropertyAsync(lazySemanticModel, location, propertyDeclaration, constructorSpans, cancellationToken).ConfigureAwait(false);
                 isWrittenNull = isWrittenNull ||
-                    await IsWrittenNullAsync(lazySemanticModel, location, cancellationToken).ConfigureAwait(false);
+                    await IsWrittenNullAsync(syntaxFacts, lazySemanticModel, location, cancellationToken).ConfigureAwait(false);
 
                 if (isWrittenOutsideConstructor && isWrittenNull)
                     return (true, true);
@@ -497,9 +499,34 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         return (isWrittenOutsideConstructor, isWrittenNull);
     }
 
-    private static async Task<bool> IsWrittenNullAsync(AsyncLazy<SemanticModel> lazySemanticModel, ReferenceLocation location, CancellationToken cancellationToken)
+    private static async ValueTask<bool> IsWrittenNullAsync(
+        ISyntaxFactsService syntaxFacts,
+        AsyncLazy<SemanticModel> lazySemanticModel,
+        ReferenceLocation location,
+        CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+#if !CODE_STYLE
+        if (!location.IsWrittenTo)
+            return false;
+#endif
+
+        if (location.IsImplicit)
+            return false;
+
+        var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+        if (syntaxFacts.IsNameOfAnyMemberAccessExpression(node))
+            node = node.GetRequiredParent();
+
+        if (!syntaxFacts.IsLeftSideOfAnyAssignment(node))
+            return false;
+
+        var assignment = node.GetRequiredParent();
+        var rightSide = syntaxFacts.GetRightHandSideOfAssignment(assignment);
+
+        var semanticModel = await lazySemanticModel.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        var typeInfo = semanticModel.GetTypeInfo(rightSide, cancellationToken);
+
+        return typeInfo.Nullability.FlowState == NullableFlowState.MaybeNull;
     }
 
     private static async ValueTask<bool> IsWrittenToOutsideOfConstructorOrPropertyAsync(

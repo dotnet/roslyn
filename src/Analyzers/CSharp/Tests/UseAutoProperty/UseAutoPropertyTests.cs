@@ -3088,7 +3088,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/81179")]
     public Task TestNullableFieldNonNullableProperty_WithAllowNullAttribute()
         => TestInRegularAndScriptAsync(
             """
@@ -3123,7 +3123,41 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/81179")]
+    public Task TestNullableFieldNonNullableProperty_NoNullWrites()
+        => TestInRegularAndScriptAsync(
+            """
+            #nullable enable
+            class C
+            {
+                [|private string? _foo = "";|]
+
+                public string Foo
+                {
+                    get { return _foo!; }
+                    set { _foo = value; }
+                }
+
+                public void Reset()
+                {
+                    _foo = "";
+                }
+            }
+            """,
+            """
+            #nullable enable
+            class C
+            {
+                public string Foo { get; set; } = "";
+
+                public void Reset()
+                {
+                    Foo = "";
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/81179")]
     public Task TestNullableFieldNonNullableProperty_ReadOnly_NoAllowNull()
         => TestInRegularAndScriptAsync(
             """
