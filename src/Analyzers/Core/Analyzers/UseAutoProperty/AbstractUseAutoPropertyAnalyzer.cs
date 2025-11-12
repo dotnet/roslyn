@@ -419,11 +419,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                 if (getterField.IsStatic != property.IsStatic)
                     return false;
 
-                // Property and field have to agree on type, ignoring nullability.
-                // We allow a nullable field with a non-nullable property, as we can add [AllowNull] attribute.
-                var fieldTypeWithoutNullability = getterField.Type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
-                var propertyTypeWithoutNullability = property.Type.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
-                if (!propertyTypeWithoutNullability.Equals(fieldTypeWithoutNullability))
+                if (!getterField.Type.Equals(property.Type))
                     return false;
 
                 if (!TryGetSyntax(getterField, out _, out var variableDeclarator, cancellationToken))
@@ -487,22 +483,32 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
         Contract.ThrowIfFalse(TryGetSyntax(getterField, out var fieldDeclaration, out var variableDeclarator, cancellationToken));
 
-        // Determine if we need [AllowNull] attribute:
-        // - Field is nullable (annotated with ?)
-        // - Property is non-nullable (not annotated with ?)
-        // - There are writes to the field
-        var needsAllowNullAttribute =
-            getterField.Type.NullableAnnotation == NullableAnnotation.Annotated &&
-            property.Type.NullableAnnotation == NullableAnnotation.NotAnnotated &&
-            property.SetMethod != null;
-
         analysisResults.Push(new AnalysisResult(
             property, getterField,
             propertyDeclaration, fieldDeclaration, variableDeclarator,
             notification,
             isTrivialGetAccessor,
             isTrivialSetAccessor,
-            needsAllowNullAttribute));
+            GetNeedsAllowNullAttribute()));
+
+        bool GetNeedsAllowNullAttribute()
+        {
+            if (getterField.Type.Equals(property.Type, SymbolEqualityComparer.IncludeNullability))
+                return false;
+
+
+            // Types have differing nullability.  If the property is written to, and null is written into it,
+            // we need to add [AllowNull] to it to make that ok.
+
+            // Determine if we need [AllowNull] attribute:
+            // - Field is nullable (annotated with ?)
+            // - Property is non-nullable (not annotated with ?)
+            // - There are writes to the field
+            var needsAllowNullAttribute =
+                getterField.Type.NullableAnnotation == NullableAnnotation.Annotated &&
+                property.Type.NullableAnnotation == NullableAnnotation.NotAnnotated &&
+                property.SetMethod != null;
+        }
     }
 
     protected virtual bool CanConvert(IPropertySymbol property)

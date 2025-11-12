@@ -78,7 +78,6 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         bool isWrittenOutsideConstructor,
         bool isTrivialGetAccessor,
         bool isTrivialSetAccessor,
-        bool needsAllowNullAttribute,
         CancellationToken cancellationToken);
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -157,7 +156,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
             propertyDocument, compilation,
             field, property,
             declarator, propertyDeclaration,
-            isWrittenToOutsideOfConstructor, isTrivialGetAccessor, isTrivialSetAccessor, needsAllowNullAttribute,
+            isWrittenToOutsideOfConstructor, isTrivialGetAccessor, isTrivialSetAccessor,
             cancellationToken).ConfigureAwait(false);
 
         // Note: rename will try to update all the references in linked files as well.  However, 
