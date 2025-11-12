@@ -87,6 +87,7 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
         bool isWrittenOutsideOfConstructor,
         bool isTrivialGetAccessor,
         bool isTrivialSetAccessor,
+        bool needsAllowNullAttribute,
         CancellationToken cancellationToken)
     {
         var project = propertyDocument.Project;
@@ -94,6 +95,12 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
 
         // Ensure that any attributes on the field are moved over to the property.
         propertyDeclaration = MoveAttributes(propertyDeclaration, GetFieldDeclaration(fieldDeclarator));
+
+        // Add [AllowNull] attribute if needed (when field is nullable but property is not)
+        if (needsAllowNullAttribute)
+        {
+            propertyDeclaration = AddAllowNullAttribute(propertyDeclaration);
+        }
 
         // We may need to add a setter if the field is written to outside of the constructor
         // of it's class.
@@ -179,6 +186,31 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
                 .WithAttributeLists([])
                 .WithLeadingTrivia(indentation)
                 .WithAttributeLists(List(finalAttributes));
+        }
+
+        static PropertyDeclarationSyntax AddAllowNullAttribute(PropertyDeclarationSyntax property)
+        {
+            // Create [System.Diagnostics.CodeAnalysis.AllowNull] attribute
+            var allowNullAttribute = Attribute(
+                QualifiedName(
+                    QualifiedName(
+                        QualifiedName(
+                            IdentifierName("System"),
+                            IdentifierName("Diagnostics")),
+                        IdentifierName("CodeAnalysis")),
+                    IdentifierName("AllowNull")));
+
+            var attributeList = AttributeList(SingletonSeparatedList(allowNullAttribute));
+
+            // Add the attribute to the property, preserving leading trivia
+            var leadingTrivia = property.GetLeadingTrivia();
+            var indentation = leadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia) whitespaceTrivia]
+                ? whitespaceTrivia
+                : default;
+
+            return property
+                .WithAttributeLists(property.AttributeLists.Insert(0, attributeList.WithLeadingTrivia(leadingTrivia)))
+                .WithLeadingTrivia(indentation);
         }
 
         static AttributeListSyntax ConvertAttributeList(AttributeListSyntax attributeList)

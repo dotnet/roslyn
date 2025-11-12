@@ -27,6 +27,8 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     /// <param name="IsTrivialSetAccessor">Same as <paramref name="IsTrivialSetAccessor"/>. Such an accessor is a simple
     /// 'write through to the field' accessor.  As such, writes of the field can be replaced with calls to this accessor
     /// as it will have the same semantics.</param>
+    /// <param name="NeedsAllowNullAttribute">True if the property needs an [AllowNull] attribute because the field is
+    /// nullable but the property is non-nullable, and there are writes to the field that may assign null values.</param>
     internal sealed record AnalysisResult(
         IPropertySymbol Property,
         IFieldSymbol Field,
@@ -35,5 +37,6 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         TVariableDeclarator VariableDeclarator,
         NotificationOption2 Notification,
         bool IsTrivialGetAccessor,
-        bool IsTrivialSetAccessor);
+        bool IsTrivialSetAccessor,
+        bool NeedsAllowNullAttribute);
 }

@@ -8,4 +8,5 @@ internal static class UseAutoPropertiesHelpers
 {
     public const string IsTrivialGetAccessor = nameof(IsTrivialGetAccessor);
     public const string IsTrivialSetAccessor = nameof(IsTrivialSetAccessor);
+    public const string NeedsAllowNullAttribute = nameof(NeedsAllowNullAttribute);
 }
