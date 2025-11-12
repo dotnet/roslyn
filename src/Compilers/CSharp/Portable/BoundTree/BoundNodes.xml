@@ -1525,6 +1525,7 @@
   <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+    <Field Name="HasUnionMatching" Type="bool"/>
     <Field Name="WhenClause" Type="BoundExpression?"/>
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
@@ -1681,6 +1682,7 @@
   <Node Name="BoundSwitchLabel" Base="BoundNode">
     <Field Name="Label" Type="LabelSymbol"/>
     <Field Name="Pattern" Type="BoundPattern"/>
+    <Field Name="HasUnionMatching" Type="bool"/>
     <Field Name="WhenClause" Type="BoundExpression?"/>
   </Node>
 
@@ -2400,21 +2402,60 @@
   <Node Name="BoundIsPatternExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+    <Field Name="HasUnionMatching" Type="bool"/>
     <Field Name="IsNegated" Type="bool"/>
     <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="WhenTrueLabel" Type="LabelSymbol" Null="disallow"/>
     <Field Name="WhenFalseLabel" Type="LabelSymbol" Null="disallow"/>
   </Node>
 
-  <AbstractNode Name="BoundPattern" Base="BoundNode">
+  <AbstractNode Name="BoundPattern" Base="BoundNode" HasValidate="true">
     <Field Name="InputType" Type="TypeSymbol" Null="disallow"/>
     <Field Name="NarrowedType" Type="TypeSymbol" Null="disallow"/>
   </AbstractNode>
 
-  <!-- NarrowedType is either the InputType, or the Value.Type -->
+  <!-- 
+    NarrowedType is either the Value.Type, or 'object' for Union matching, and the InputType otherwise.
+  -->
   <Node Name="BoundConstantPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
+  </Node>
+
+  <!--
+      This node is a transient node used by UnionMatchingRewriter.
+      It does not escape the rewriter. This node cannot be used as a child
+      of any bound node, except another BoundPatternWithUnionMatching node. In which case,
+      it must be the LeftOfPendingConjunction child.
+
+      The ValueProperty and ValuePattern represents a Union matching operation
+      pending a rewrite to a BoundRecursivePattern. 
+
+      The BoundPatternWithUnionMatching node represents either a standalone Union matching operation
+      (LeftOfPendingConjunction is null), or a conjunction with a Union matching operation
+      on the right hand side. The left hand side of the conjunction is then
+      represented by the LeftOfPendingConjunction child, and it is not applied
+      to the ValueProperty. It represents a pattern that is matched emmidiately
+      before ValueProperty is matched against ValuePattern. 
+
+      A Union matching operation corresponding to the top most BoundPatternWithUnionMatching node
+      represents the last Union matching operation in evaluation order in the entire hierarchy.
+      The preseeding union matching operation in evaluation order, if any, corresponds
+      to the BoundPatternWithUnionMatching node stored in the LeftOfPendingConjunction child.
+      Etc.
+
+      InputType is LeftOfPendingConjunction.InputType ?? UnionType 
+      NarrowedType is Pattern.NarrowedType
+  -->
+  <Node Name="BoundPatternWithUnionMatching" Base="BoundPattern" HasValidate="true">
+    <!-- The Union type matched -->
+    <Field Name="UnionType" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="LeftOfPendingConjunction" Type="BoundPattern?"/>
+    <!-- Info for the corresponding IUnion.Value property -->    
+    <Field Name="ValueProperty" Type="BoundPropertySubpatternMember"/>
+    <!-- The pattern to match against the IUnion.Value property -->
+    <Field Name="ValuePattern" Type="BoundPattern"/>
   </Node>
 
   <!-- NarrowedType is always the InputType -->
@@ -2433,6 +2474,7 @@
          https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression?"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </AbstractNode>
 
   <!-- NarrowedType is the DeclaredType if given, or an InputType -->
@@ -2441,7 +2483,10 @@
     <Field Name="IsVar" Type="bool"/>
   </Node>
 
-  <!-- NarrowedType is the DeclaredType if given, or an InputType, or its underlying type when the InputType is a Nullable of T -->
+  <!--
+      NarrowedType is the DeclaredType if given, or 'object' for Union matching,
+      and an InputType, or its underlying type when the InputType is a Nullable of T otherwise
+  -->
   <Node Name="BoundRecursivePattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression?"/>
     <Field Name="DeconstructMethod" Type="MethodSymbol?"/>
@@ -2450,7 +2495,10 @@
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
-  <!-- NarrowedType is always an InputType, or its underlying type when the InputType is a Nullable of T -->
+  <!--
+      NarrowedType is 'object' for Union matching, and it is always an InputType, or its underlying type 
+      when the InputType is a Nullable of T otherwise.
+  -->
   <Node Name="BoundListPattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
     <Field Name="HasSlice" Type="bool"/>
@@ -2491,9 +2539,10 @@
     <Field Name="GetLengthMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="GetItemMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="disallow"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
-  <AbstractNode Name="BoundSubpattern" Base="BoundNode">
+  <AbstractNode Name="BoundSubpattern" Base="BoundNode" HasValidate="true">
     <Field Name="Pattern" Type="BoundPattern"/>
   </AbstractNode>
   <Node Name="BoundPositionalSubpattern" Base="BoundSubpattern">
@@ -2515,6 +2564,7 @@
   <Node Name="BoundTypePattern" Base="BoundPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <!-- 
@@ -2536,16 +2586,20 @@
     <Field Name="Right" Type="BoundPattern"/>
   </Node>
 
-  <!-- NarrowedType is always the InputType -->
+  <!-- NarrowedType is 'object' for Union matching, and the InputType otherwise -->
   <Node Name="BoundNegatedPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Negated" Type="BoundPattern"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
-  <!-- NarrowedType is either the InputType, or the Value.Type -->
+  <!-- 
+    NarrowedType is either the Value.Type, or 'object' for Union matching, and the InputType otherwise.
+  -->
   <Node Name="BoundRelationalPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Relation" Type="BinaryOperatorKind"/>
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <Node Name="BoundDiscardExpression" Base="BoundExpression">

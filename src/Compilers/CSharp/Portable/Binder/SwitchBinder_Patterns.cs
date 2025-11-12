@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // We mark any subsumed sections as erroneous for the benefit of flow analysis
-                        newLabel = new BoundSwitchLabel(label.Syntax, label.Label, label.Pattern, label.WhenClause, hasErrors: true);
+                        newLabel = new BoundSwitchLabel(label.Syntax, label.Label, label.Pattern, label.HasUnionMatching, label.WhenClause, hasErrors: true);
                     }
 
                     anyPreviousErrors |= label.HasErrors;
@@ -248,11 +248,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                         bool hasErrors = node.HasErrors;
                         BoundPattern pattern = sectionBinder.BindConstantPatternWithFallbackToTypePattern(
-                            caseLabelSyntax.Value, caseLabelSyntax.Value, SwitchGoverningType, hasErrors, diagnostics);
+                            caseLabelSyntax.Value, caseLabelSyntax.Value, SwitchGoverningType, hasErrors, diagnostics, out bool hasUnionMatching);
                         pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
                         reportIfConstantNamedUnderscore(pattern, caseLabelSyntax.Value);
 
-                        return new BoundSwitchLabel(node, label, pattern, null, pattern.HasErrors);
+                        return new BoundSwitchLabel(node, label, pattern, hasUnionMatching, null, pattern.HasErrors);
                     }
 
                 case SyntaxKind.DefaultSwitchLabel:
@@ -263,13 +263,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, label.Name);
                             hasErrors = true;
-                            return new BoundSwitchLabel(node, label, pattern, null, hasErrors);
+                            return new BoundSwitchLabel(node, label, pattern, hasUnionMatching: false, null, hasErrors);
                         }
                         else
                         {
                             // Note that this is semantically last! The caller will place it in the decision dag
                             // in the final position.
-                            return defaultLabel = new BoundSwitchLabel(node, label, pattern, null, hasErrors);
+                            return defaultLabel = new BoundSwitchLabel(node, label, pattern, hasUnionMatching: false, null, hasErrors);
                         }
                     }
 
@@ -280,11 +280,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MessageID.IDS_FeaturePatternMatching.CheckFeatureAvailability(diagnostics, node.Keyword);
 
                         BoundPattern pattern = sectionBinder.BindPattern(
-                            matchLabelSyntax.Pattern, SwitchGoverningType, permitDesignations: true, node.HasErrors, diagnostics);
+                            matchLabelSyntax.Pattern, SwitchGoverningType, permitDesignations: true, node.HasErrors, diagnostics, out bool hasUnionMatching);
                         if (matchLabelSyntax.Pattern is ConstantPatternSyntax p)
                             reportIfConstantNamedUnderscore(pattern, p.Expression);
 
-                        return new BoundSwitchLabel(node, label, pattern,
+                        return new BoundSwitchLabel(node, label, pattern, hasUnionMatching,
                             matchLabelSyntax.WhenClause != null ? sectionBinder.BindBooleanExpression(matchLabelSyntax.WhenClause.Condition, diagnostics) : null,
                             node.HasErrors);
                     }

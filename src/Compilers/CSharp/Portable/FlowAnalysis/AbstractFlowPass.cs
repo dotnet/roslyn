@@ -930,6 +930,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool negated = node.Pattern.IsNegated(out var pattern);
             Debug.Assert(negated == node.IsNegated);
 
+            if (node.HasUnionMatching &&
+                pattern is BoundNegatedPattern { IsUnionMatching: true } &&
+                UnionMatchingRewriter.Rewrite(compilation, pattern) is BoundRecursivePattern
+                {
+                    WasCompilerGenerated: true,
+                    DeclaredType: null,
+                    InputType: NamedTypeSymbol { TypeKind: TypeKind.Struct, IsUnionTypeNoUseSiteDiagnostics: true } inputType,
+                    DeconstructMethod: null,
+                    Deconstruction: { IsDefault: true },
+                    Properties:
+                        [
+                        {
+                            Pattern: { } nestedPattern,
+                            Member:
+                            { Type.SpecialType: SpecialType.System_Object, Symbol: var symbol } and
+                            ({ Symbol: PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } } or { Symbol: null, HasErrors: true })
+                        } propertySubpattern
+                        ],
+                    Variable: null,
+                    VariableAccess: null,
+                    IsUnionMatching: false,
+                } rewritten &&
+                (symbol is null || (Binder.HasIUnionValueSignature((PropertySymbol)symbol) && symbol.ContainingType.IsWellKnownTypeIUnion())))
+            {
+                Debug.Assert(!inputType.IsNullableType());
+                Debug.Assert(!negated);
+
+                negated ^= nestedPattern.IsNegated(out var negatedNestedPattern);
+
+                if (nestedPattern != negatedNestedPattern)
+                {
+                    pattern = rewritten.Update(
+                        rewritten.DeclaredType, rewritten.DeconstructMethod, rewritten.Deconstruction,
+                        [propertySubpattern.Update(propertySubpattern.Member, propertySubpattern.IsLengthOrCount, negatedNestedPattern)],
+                        rewritten.IsExplicitNotNullTest, rewritten.Variable, rewritten.VariableAccess, rewritten.IsUnionMatching,
+                        rewritten.InputType, rewritten.NarrowedType);
+                }
+            }
+
             if (VisitPossibleConditionalAccess(node.Expression, out var stateWhenNotNull))
             {
                 Debug.Assert(!IsConditionalState);

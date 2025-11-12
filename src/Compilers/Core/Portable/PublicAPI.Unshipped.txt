@@ -50,3 +50,5 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDecrementAssignmentOper
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedIncrementAssignmentOperatorName = "op_CheckedIncrementAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DecrementAssignmentOperatorName = "op_DecrementAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.IncrementAssignmentOperatorName = "op_IncrementAssignment" -> string!
+
+const Microsoft.CodeAnalysis.WellKnownMemberNames.IUnionInterfaceName = "IUnion" -> string!
