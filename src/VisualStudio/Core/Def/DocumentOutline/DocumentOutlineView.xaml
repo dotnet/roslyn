@@ -90,7 +90,6 @@
                   SourceUpdated="SymbolTree_SourceUpdated"
                   TreeViewItem.Selected="SymbolTreeItem_Selected"
                   Visibility="{Binding Visibility, Mode=OneWayToSource}"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   ItemsSource="{Binding Source={StaticResource DocumentSymbolItems}}"> <!-- Binding to our CollectionViewSource -->
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolDataViewModel}">
