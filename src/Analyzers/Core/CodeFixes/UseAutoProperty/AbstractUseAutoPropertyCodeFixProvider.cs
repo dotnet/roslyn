@@ -139,50 +139,8 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
         var declarator = (TVariableDeclarator)field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
         var propertyDeclaration = GetPropertyDeclaration(property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken));
 
-        // First, create the updated property we want to replace the old property with
-        var nullabilityMismatch =
-            field.Type.NullableAnnotation is NullableAnnotation.Annotated &&
-            property.Type.NullableAnnotation is NullableAnnotation.NotAnnotated;
-        var (isWrittenToOutsideOfConstructor, isWrittenNull) = await AnalyzeFieldWritesAsync(
-            fieldDocument.GetRequiredLanguageService<ISyntaxFactsService>(),
-            field, fieldLocations, propertyDeclaration,
-            // If there is no nullability mismatch, then just pass in 'true' here.  That will cause us to not actually
-            // analyze any of the writes since we won't need that data.  The return value will also be ignored below
-            // since we only use it if nullabilityMismatch=true.
-            isWrittenNull: !nullabilityMismatch,
-            cancellationToken).ConfigureAwait(false);
-
-        if (!isTrivialGetAccessor ||
-            (property.SetMethod != null && !isTrivialSetAccessor))
-        {
-            // We have at least a non-trivial getter/setter.  Those will not be rewritten to `get;/set;`.  As such, we
-            // need to update the property to reference `field` or itself instead of the actual field.
-            propertyDeclaration = RewriteFieldReferencesInProperty(propertyDeclaration, fieldLocations, cancellationToken);
-        }
-
-        var updatedProperty = await UpdatePropertyAsync(
-            propertyDocument, compilation,
-            field, property,
-            declarator, propertyDeclaration,
-            isWrittenToOutsideOfConstructor,
-            isTrivialGetAccessor, isTrivialSetAccessor,
-            cancellationToken).ConfigureAwait(false);
-
-        // We're replacing a nullable field with a non-nullable property.  If something nullable is ever written into
-        // the field, then we need to add [AllowNull] to the property to allow that same code to continue to work.
-        if (isWrittenNull && nullabilityMismatch)
-        {
-            var allowNullAttribute = compilation.AllowNullAttribute();
-            if (allowNullAttribute != null)
-            {
-                var generator = propertyDocument.GetRequiredLanguageService<SyntaxGenerator>();
-                updatedProperty = generator.AddAttributes(
-                    updatedProperty,
-                    generator.Attribute(
-                        generator.TypeExpression(allowNullAttribute, addImport: true)
-                                 .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)));
-            }
-        }
+        // Rewrite the property declaration as needed.
+        var updatedProperty = await GetUpdatedPropertyDeclarationAsync().ConfigureAwait(false);
 
         // Note: rename will try to update all the references in linked files as well.  However, 
         // this can lead to some very bad behavior as we will change the references in linked files
@@ -300,6 +258,56 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
             updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
 
             return updatedSolution;
+        }
+
+        async ValueTask<SyntaxNode> GetUpdatedPropertyDeclarationAsync()
+        {
+            // First, create the updated property we want to replace the old property with
+            var nullabilityMismatch =
+                field.Type.NullableAnnotation is NullableAnnotation.Annotated &&
+                property.Type.NullableAnnotation is NullableAnnotation.NotAnnotated;
+            var (isWrittenToOutsideOfConstructor, isWrittenNull) = await AnalyzeFieldWritesAsync(
+                fieldDocument.GetRequiredLanguageService<ISyntaxFactsService>(),
+                field, fieldLocations, propertyDeclaration,
+                // If there is no nullability mismatch, then just pass in 'true' here.  That will cause us to not actually
+                // analyze any of the writes since we won't need that data.  The return value will also be ignored below
+                // since we only use it if nullabilityMismatch=true.
+                isWrittenNull: !nullabilityMismatch,
+                cancellationToken).ConfigureAwait(false);
+
+            if (!isTrivialGetAccessor ||
+                (property.SetMethod != null && !isTrivialSetAccessor))
+            {
+                // We have at least a non-trivial getter/setter.  Those will not be rewritten to `get;/set;`.  As such, we
+                // need to update the property to reference `field` or itself instead of the actual field.
+                propertyDeclaration = RewriteFieldReferencesInProperty(propertyDeclaration, fieldLocations, cancellationToken);
+            }
+
+            var updatedProperty = await UpdatePropertyAsync(
+                propertyDocument, compilation,
+                field, property,
+                declarator, propertyDeclaration,
+                isWrittenToOutsideOfConstructor,
+                isTrivialGetAccessor, isTrivialSetAccessor,
+                cancellationToken).ConfigureAwait(false);
+
+            // We're replacing a nullable field with a non-nullable property.  If something nullable is ever written into
+            // the field, then we need to add [AllowNull] to the property to allow that same code to continue to work.
+            if (isWrittenNull && nullabilityMismatch)
+            {
+                var allowNullAttribute = compilation.AllowNullAttribute();
+                if (allowNullAttribute != null)
+                {
+                    var generator = propertyDocument.GetRequiredLanguageService<SyntaxGenerator>();
+                    updatedProperty = generator.AddAttributes(
+                        updatedProperty,
+                        generator.Attribute(
+                            generator.TypeExpression(allowNullAttribute, addImport: true)
+                                     .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)));
+                }
+            }
+
+            return updatedProperty;
         }
     }
 
