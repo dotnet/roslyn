@@ -27,6 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return LambdaUtilities.IsLambdaBodyStatementOrExpression(node)
         End Function
 
+        Protected Overrides Function EnumerateSignificantLeadingTrivia(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
+            Return Array.Empty(Of SyntaxNode)()
+        End Function
+
 #Region "Labels"
 
         ' Assumptions:
@@ -904,6 +908,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Dim ignoreChildFunction As Func(Of SyntaxKind, Boolean)
 
             Select Case left.Kind()
+                ' CompulationUnit itself doesn't have value to compare (its constituent parts are compared separately)
+                Case SyntaxKind.CompilationUnit
+                    Return True
+
                 Case SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock,
                      SyntaxKind.ConstructorBlock,

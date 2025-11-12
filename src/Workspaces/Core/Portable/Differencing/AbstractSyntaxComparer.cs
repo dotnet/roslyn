@@ -56,6 +56,8 @@ internal abstract class AbstractSyntaxComparer : TreeComparer<SyntaxNode>
 
     protected abstract bool IsLambdaBodyStatementOrExpression(SyntaxNode node);
 
+    protected abstract IEnumerable<SyntaxNode> EnumerateSignificantLeadingTrivia(SyntaxNode node);
+
     protected internal override bool TryGetParent(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? parent)
     {
         if (node == _oldRoot || node == _newRoot)
@@ -90,6 +92,12 @@ internal abstract class AbstractSyntaxComparer : TreeComparer<SyntaxNode>
 
     private IEnumerable<SyntaxNode> EnumerateChildren(SyntaxNode node)
     {
+        foreach (var child in EnumerateSignificantLeadingTrivia(node))
+        {
+            Debug.Assert(HasLabel(child));
+            yield return child;
+        }
+
         foreach (var child in node.ChildNodes())
         {
             if (IsLambdaBodyStatementOrExpression(child))
@@ -113,6 +121,7 @@ internal abstract class AbstractSyntaxComparer : TreeComparer<SyntaxNode>
             }
         }
     }
+
     private bool DescendIntoChildren(SyntaxNode node)
         => !IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
 
@@ -143,6 +152,12 @@ internal abstract class AbstractSyntaxComparer : TreeComparer<SyntaxNode>
 
     private IEnumerable<SyntaxNode> EnumerateDescendants(SyntaxNode node)
     {
+        foreach (var child in EnumerateSignificantLeadingTrivia(node))
+        {
+            Debug.Assert(HasLabel(child));
+            yield return child;
+        }
+
         foreach (var descendant in node.DescendantNodesAndTokens(
             descendIntoChildren: ShouldEnumerateChildren,
             descendIntoTrivia: false))

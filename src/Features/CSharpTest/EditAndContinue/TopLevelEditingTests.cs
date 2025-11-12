@@ -30,24 +30,164 @@ public sealed class TopLevelEditingTests : EditingTestBase
 
         """;
 
-    #region Project setting directives
+    private static readonly CSharpParseOptions s_fileBasedProgramParseOptions = CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]);
 
     [Fact]
-    public void ProjectSettingDirective_Update()
+    public void Shebang_Insert()
     {
         var src1 = """
-            #:package System.CommandLine@2.0.0";
             Console.WriteLine();
             """;
 
         var src2 = """
-            #:package System.CommandLine@3.0.0";
+            #!/usr/bin/dotnet run
             Console.WriteLine();
             """;
 
-        var edits = GetTopEdits(src1, src2, options: CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]));
+        var edits = GetTopEdits(src1, src2, options: s_fileBasedProgramParseOptions);
+        edits.VerifyEdits();
+        edits.VerifySemanticDiagnostics();
+    }
+
+    [Fact]
+    public void Shebang_Update()
+    {
+        var src1 = """
+            #!/usr/bin/dotnet run
+            Console.WriteLine();
+            """;
+
+        var src2 = """
+            #!/usr/bin2/dotnet run
+            Console.WriteLine();
+            """;
+
+        var edits = GetTopEdits(src1, src2, options: s_fileBasedProgramParseOptions);
+        edits.VerifyEdits();
+        edits.VerifySemanticDiagnostics();
+    }
+
+    [Fact]
+    public void Shebang_Delete()
+    {
+        var src1 = """
+            #!/usr/bin/dotnet run
+            Console.WriteLine();
+            """;
+
+        var src2 = """
+            Console.WriteLine();
+            """;
+
+        var edits = GetTopEdits(src1, src2, options: s_fileBasedProgramParseOptions);
+        edits.VerifyEdits();
+        edits.VerifySemanticDiagnostics();
+    }
+
+    #region Project setting directives
+
+    [Fact]
+    public void ProjectSettingDirective_Update_SameKind()
+    {
+        var src1 = """
+            #!/usr/bin/dotnet run
+            #:package System.CommandLine@2.0.0
+            #if X
+            #endif
+            Console.WriteLine();
+            """;
+
+        var src2 = """
+            #!/usr/bin/dotnet run
+            #:package System.CommandLine@3.0.0
+            #if X
+            #endif
+            Console.WriteLine();
+            """;
+
+        var edits = GetTopEdits(src1, src2, options: s_fileBasedProgramParseOptions);
         edits.VerifyEdits(
-            "Update [#:package System.CommandLine@2.0.0]@0 -> [#:package System.CommandLine@3.0.0]@0");
+            "Update [#:package System.CommandLine@2.0.0]@23 -> [#:package System.CommandLine@3.0.0]@23");
+
+        edits.VerifySemanticDiagnostics();
+    }
+
+    [Fact]
+    public void ProjectSettingDirective_Update_DifferentKind()
+    {
+        var src1 = """
+            #:package System.CommandLine@2.0.0
+            Console.WriteLine();
+            """;
+
+        var src2 = """
+            #:property TargetFramework=net11.0
+            Console.WriteLine();
+            """;
+
+        var edits = GetTopEdits(src1, src2, options: s_fileBasedProgramParseOptions);
+        edits.VerifyEdits(
+            "Update [#:package System.CommandLine@2.0.0]@0 -> [#:property TargetFramework=net11.0]@0");
+
+        edits.VerifySemanticDiagnostics();
+    }
+
+    [Fact]
+    public void ProjectSettingDirective_Insert()
+    {
+        var src1 = """
+            Console.WriteLine();
+            """;
+
+        var src2 = """
+            #:package System.CommandLine@3.0.0
+            Console.WriteLine();
+            """;
+
+        var edits = GetTopEdits(src1, src2, options: s_fileBasedProgramParseOptions);
+        edits.VerifyEdits(
+            "Insert [#:package System.CommandLine@3.0.0]@0");
+
+        edits.VerifySemanticDiagnostics();
+    }
+
+    [Fact]
+    public void ProjectSettingDirective_Delete()
+    {
+        var src1 = """
+            #:package System.CommandLine@3.0.0
+            Console.WriteLine();
+            """;
+
+        var src2 = """
+            Console.WriteLine();
+            """;
+
+        var edits = GetTopEdits(src1, src2, options: s_fileBasedProgramParseOptions);
+        edits.VerifyEdits(
+            "Delete [#:package System.CommandLine@3.0.0]@0");
+
+        edits.VerifySemanticDiagnostics();
+    }
+
+    [Fact]
+    public void ProjectSettingDirective_Reorder()
+    {
+        var src1 = """
+            #:property TargetFramework=net11.0
+            #:package System.CommandLine@3.0.0
+            Console.WriteLine();
+            """;
+
+        var src2 = """
+            #:package System.CommandLine@3.0.0
+            #:property TargetFramework=net11.0
+            Console.WriteLine();
+            """;
+
+        var edits = GetTopEdits(src1, src2, options: s_fileBasedProgramParseOptions);
+        edits.VerifyEdits(
+            "Reorder [#:package System.CommandLine@3.0.0]@36 -> @0");
 
         edits.VerifySemanticDiagnostics();
     }

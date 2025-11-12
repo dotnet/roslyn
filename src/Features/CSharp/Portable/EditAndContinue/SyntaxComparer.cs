@@ -36,6 +36,27 @@ internal sealed class SyntaxComparer(
     protected override bool IsLambdaBodyStatementOrExpression(SyntaxNode node)
         => LambdaUtilities.IsLambdaBodyStatementOrExpression(node);
 
+    protected override IEnumerable<SyntaxNode> EnumerateSignificantLeadingTrivia(SyntaxNode node)
+    {
+        if (!node.IsKind(SyntaxKind.CompilationUnit))
+        {
+            return [];
+        }
+
+        return node.GetLeadingTrivia().Where(static t => t.IsKind(SyntaxKind.IgnoredDirectiveTrivia)).Select(static t => t.GetStructure()!);
+    }
+
+    protected internal override bool TryGetParent(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? parent)
+    {
+        if (node.IsKind(SyntaxKind.IgnoredDirectiveTrivia))
+        {
+            parent = node.SyntaxTree.GetRoot();
+            return true;
+        }
+
+        return base.TryGetParent(node, out parent);
+    }
+
     #region Labels
 
     /// <summary>
@@ -51,6 +72,7 @@ internal sealed class SyntaxComparer(
         // Top level syntax kinds
         CompilationUnit,
 
+        ProjectSettingDirective,            // tied to parent 
         GlobalStatement,
 
         NamespaceDeclaration,
@@ -170,6 +192,7 @@ internal sealed class SyntaxComparer(
         switch (label)
         {
             // Top level syntax
+            case Label.ProjectSettingDirective:
             case Label.ExternAliasDirective:
             case Label.UsingDirective:
             case Label.FieldDeclaration:
@@ -571,6 +594,10 @@ internal sealed class SyntaxComparer(
         // keep them separate so we can more easily discern was is shared, above.
         switch (kind)
         {
+            case SyntaxKind.IgnoredDirectiveTrivia:
+                isLeaf = true;
+                return Label.ProjectSettingDirective;
+
             case SyntaxKind.GlobalStatement:
                 isLeaf = true;
                 return Label.GlobalStatement;
