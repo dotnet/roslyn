@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static DiagnosticInfo[]? MoveDiagnostics(DiagnosticInfo[]? infos, int offset)
         {
-            if (infos is null || infos.Length == 0)
+            if (infos is null or [])
                 return null;
 
             var builder = ArrayBuilder<DiagnosticInfo>.GetInstance(infos.Length);
