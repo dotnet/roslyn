@@ -137,10 +137,12 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
         }
 
-        // else * except else if case
-        if (previousToken.Kind() == SyntaxKind.ElseKeyword && currentToken.Kind() != SyntaxKind.IfKeyword)
+        // else * except `else if` case on the same line.
+        if (previousToken.Kind() == SyntaxKind.ElseKeyword)
         {
-            return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+            var isElseIfOnSameLine = currentToken.Kind() == SyntaxKind.IfKeyword && FormattingHelpers.AreOnSameLine(previousToken, currentToken);
+            if (!isElseIfOnSameLine)
+                return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
         }
 
         // , * in enum declarations

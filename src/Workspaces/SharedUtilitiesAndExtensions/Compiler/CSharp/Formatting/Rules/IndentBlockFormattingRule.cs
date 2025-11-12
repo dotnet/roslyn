@@ -292,29 +292,38 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
     private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
-        // increase indentation - embedded statement cases
-        var statement = node switch
+        // An else-if on the same line should not cause an extra indentation.  Instead, the indentation will be
+        // controlled entirely by the IfStatement.
+        if (node is ElseClauseSyntax { ElseKeyword: var elseKeyword, Statement: IfStatementSyntax { IfKeyword: var ifKeyword } } &&
+            FormattingHelpers.AreOnSameLine(elseKeyword, ifKeyword))
         {
-            // Basic cases that want to unilaterally indent their embedded statements (unless they are blocks) 
-            IfStatementSyntax ifStatement => ifStatement.Statement,
-            WhileStatementSyntax whileStatement => whileStatement.Statement,
-            ForStatementSyntax forStatement => forStatement.Statement,
-            CommonForEachStatementSyntax foreachStatement => foreachStatement.Statement,
-            DoStatementSyntax doStatement => doStatement.Statement,
-            LockStatementSyntax lockStatement => lockStatement.Statement,
-            // A few special cases where if we see certain nesting of statements, we don't want to double indent.
-            ElseClauseSyntax { Statement: not IfStatementSyntax } elseClause => elseClause.Statement,
-            UsingStatementSyntax { Statement: not UsingStatementSyntax } usingStatement => usingStatement.Statement,
-            FixedStatementSyntax { Statement: not FixedStatementSyntax } fixedStatement => fixedStatement.Statement,
-            _ => null,
-        };
+            return;
+        }
 
-        // We never want to indent a block.  It is its own indentation region.
-        if (statement is null or BlockSyntax)
+        // Handle common idiom in C# of nested usings (or nested fixed-statements) not getting extra indentation.
+        if (node is UsingStatementSyntax { Statement: UsingStatementSyntax } ||
+            node is FixedStatementSyntax { Statement: FixedStatementSyntax })
+        {
+            return;
+        }
+
+        // Labels don't increase indent.  Instead, the label itself is placed normally at a higher level and the content
+        // stays at the same level as the label's container.
+        if (node is LabeledStatementSyntax)
             return;
 
-        var firstToken = statement.GetFirstToken(includeZeroWidth: true);
-        var lastToken = statement.GetLastToken(includeZeroWidth: true);
+        var embeddedStatement = node.GetEmbeddedStatement();
+
+        // If it's not a construct that has embedded statements, we def don't want to increase the indent.
+        if (embeddedStatement is null)
+            return;
+
+        // We also never want to indent if the embedded statement is a block.  It is its own indentation region.
+        if (embeddedStatement is BlockSyntax)
+            return;
+
+        var firstToken = embeddedStatement.GetFirstToken(includeZeroWidth: true);
+        var lastToken = embeddedStatement.GetLastToken(includeZeroWidth: true);
 
         if (lastToken.IsMissing)
         {

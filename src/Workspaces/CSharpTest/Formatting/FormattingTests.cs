@@ -171,6 +171,82 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16328")]
+    public Task FormatElseIfOnSeparateLines()
+        => AssertFormatAsync("""
+            void Method()
+            {
+                if (true) { }
+                else
+                    if (false) { }
+            }
+            """, """
+            void Method()
+            {
+                if (true) { }
+                else
+            if (false) { }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16328")]
+    public Task FormatElseReturnOnSeparateLines()
+        => AssertFormatAsync("""
+            void Method()
+            {
+                if (true) { }
+                else
+                    return;
+            }
+            """, """
+            void Method()
+            {
+                if (true) { }
+                else
+            return;
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16328")]
+    public Task FormatElseWhileOnSeparateLines()
+        => AssertFormatAsync("""
+            void Method()
+            {
+                if (true) { }
+                else
+                    while (true) { }
+            }
+            """, """
+            void Method()
+            {
+                if (true) { }
+                else
+            while (true) { }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16328")]
+    public Task FormatElseIfOnSameLineWithExtraSpaces()
+        => AssertFormatAsync("""
+            class A
+            {
+                void Method()
+                {
+                    if (true) { }
+                    else if (false) { }
+                }
+            }
+            """, """
+            class A
+            {
+                void Method()
+                {
+                    if (true) { }
+                    else     if (false) { }
+                }
+            }
+            """);
+
     [Fact]
     public Task Format10()
         => AssertFormatAsync("""
