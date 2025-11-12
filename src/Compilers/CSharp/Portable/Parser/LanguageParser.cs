@@ -5967,21 +5967,29 @@ parse_member_name:;
                 // We have `[]`.  Recover from a partially written attribute.
                 //
                 //  <[] ,
-                //  <[] Id
                 //  <[] >
                 //  <[] in/out
+                //  <[] { ...
                 if (nextKind is SyntaxKind.CommaToken
-                             or SyntaxKind.IdentifierToken
                              or SyntaxKind.GreaterThanToken
                              or SyntaxKind.InKeyword
-                             or SyntaxKind.OutKeyword)
+                             or SyntaxKind.OutKeyword
+                             or SyntaxKind.OpenBraceToken)
                 {
                     return true;
                 }
 
-                // Some other use of `[]` that doesn't look like a type parameter.  Bail out so normal error recovery
-                // can proceed.
-                return false;
+                // <[] where
+                // <[] partial
+                //
+                // Parsing a type parameter will see this and treat the 'where' appropriately if it is the start
+                // of a where-clause or not.  Similarly for 'partial' and if it is a keyword, or just an identifier.
+                if (this.PeekToken(1).ContextualKind is SyntaxKind.WhereKeyword or SyntaxKind.PartialKeyword)
+                    return true;
+
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                this.EatToken(); // eat '['
+                return IsTrueIdentifier();
             }
 
             // Variance.
@@ -6002,7 +6010,8 @@ parse_member_name:;
                 _termState = saveTerm;
             }
 
-            if (this.IsCurrentTokenWhereOfConstraintClause())
+            if (this.IsCurrentTokenWhereOfConstraintClause() ||
+                this.IsCurrentTokenPartialKeywordOfPartialMemberOrType())
             {
                 return _syntaxFactory.TypeParameter(
                     attrs,
