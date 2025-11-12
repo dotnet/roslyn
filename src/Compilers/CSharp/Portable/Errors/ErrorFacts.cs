@@ -570,6 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
                 case ErrorCode.WRN_AccessorDoesNotUseBackingField:
                 case ErrorCode.WRN_UnscopedRefAttributeOldRules:
+                case ErrorCode.WRN_RedundantPattern:
                     return 1;
                 default:
                     return 0;

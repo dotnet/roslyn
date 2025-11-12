@@ -23,10 +23,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!--
-      We specifically reference Microsoft.Build 17.11.48, since it's the oldest version still compatible $(NetRoslynBuildHostNetCoreVersion).
+      We specifically reference Microsoft.Build 17.11.31, since it's the oldest version still compatible $(NetRoslynBuildHostNetCoreVersion).
       The version targeted is only used for build time, since we use MSBuildLocator to discover the proper version at runtime.
     -->
-    <_MsbuildVersion>17.11.48</_MsbuildVersion>
+    <_MsbuildVersion>17.11.31</_MsbuildVersion>
   </PropertyGroup>
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
     <PackageReference Include="Microsoft.Build" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
