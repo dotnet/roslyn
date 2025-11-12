@@ -216,15 +216,11 @@ internal static class FormattingHelpers
             token.Parent.IsAnyArgumentList();
     }
 
-    public static bool IsParenInParenthesizedExpression(this SyntaxToken token)
-    {
-        if (token.Parent is not ParenthesizedExpressionSyntax parenthesizedExpression)
-        {
-            return false;
-        }
+    public static bool IsOpenParenOfParenthesizedExpression(this SyntaxToken token)
+        => token.Parent is ParenthesizedExpressionSyntax parenthesizedExpression && parenthesizedExpression.OpenParenToken.Equals(token);
 
-        return parenthesizedExpression.OpenParenToken.Equals(token) || parenthesizedExpression.CloseParenToken.Equals(token);
-    }
+    public static bool IsCloseParenOfParenthesizedExpression(this SyntaxToken token)
+        => token.Parent is ParenthesizedExpressionSyntax parenthesizedExpression && parenthesizedExpression.CloseParenToken.Equals(token);
 
     public static bool IsParenInArgumentList(this SyntaxToken token)
     {

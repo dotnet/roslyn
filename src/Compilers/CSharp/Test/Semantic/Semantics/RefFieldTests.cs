@@ -21993,22 +21993,12 @@ public ref struct R
                 // (3,18): error CS1002: ; expected
                 //     ref scoped R Property { get => throw null; }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Property").WithLocation(3, 18),
-                // (3,27): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                // (3,18): error CS0246: The type or namespace name 'Property' could not be found (are you missing a using directive or an assembly reference?)
                 //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 27),
-                // (3,27): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Property").WithArguments("Property").WithLocation(3, 18),
+                // (3,27): error CS1001: Identifier expected
                 //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 27),
-                // (3,33): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 33),
-                // (3,33): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
-                //     ref scoped R Property { get => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(3, 33),
-                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
-                );
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 27));
 
             source =
 @"ref struct R

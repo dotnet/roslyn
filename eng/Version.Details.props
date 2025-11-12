@@ -9,7 +9,8 @@ This file should be imported by eng/Versions.props
     <MicrosoftCodeAnalysisPackageVersion>3.11.0</MicrosoftCodeAnalysisPackageVersion>
     <MicrosoftNetCompilersToolsetPackageVersion>4.10.0-1.24061.4</MicrosoftNetCompilersToolsetPackageVersion>
     <!-- dotnet/dotnet dependencies -->
-    <SystemCommandLinePackageVersion>2.0.0-rc.1.25515.110</SystemCommandLinePackageVersion>
+    <MicrosoftDotNetFileBasedProgramsPackageVersion>10.0.200-preview.0.25556.104</MicrosoftDotNetFileBasedProgramsPackageVersion>
+    <SystemCommandLinePackageVersion>2.0.0-rc.3.25560.108</SystemCommandLinePackageVersion>
     <!-- dotnet/runtime dependencies -->
     <MicrosoftBclAsyncInterfacesPackageVersion>9.0.0</MicrosoftBclAsyncInterfacesPackageVersion>
     <MicrosoftExtensionsConfigurationPackageVersion>9.0.0</MicrosoftExtensionsConfigurationPackageVersion>
@@ -37,8 +38,6 @@ This file should be imported by eng/Versions.props
     <SystemTextJsonPackageVersion>9.0.0</SystemTextJsonPackageVersion>
     <SystemThreadingTasksDataflowPackageVersion>9.0.0</SystemThreadingTasksDataflowPackageVersion>
     <SystemWindowsExtensionsPackageVersion>9.0.0</SystemWindowsExtensionsPackageVersion>
-    <!-- dotnet/sdk dependencies -->
-    <MicrosoftDotNetFileBasedProgramsPackageVersion>10.0.200-preview.0.25556.104</MicrosoftDotNetFileBasedProgramsPackageVersion>
     <!-- dotnet/arcade dependencies -->
     <MicrosoftDotNetArcadeSdkPackageVersion>11.0.0-beta.25560.1</MicrosoftDotNetArcadeSdkPackageVersion>
     <MicrosoftDotNetHelixSdkPackageVersion>11.0.0-beta.25560.1</MicrosoftDotNetHelixSdkPackageVersion>
@@ -58,6 +57,7 @@ This file should be imported by eng/Versions.props
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisPackageVersion)</MicrosoftCodeAnalysisVersion>
     <MicrosoftNetCompilersToolsetVersion>$(MicrosoftNetCompilersToolsetPackageVersion)</MicrosoftNetCompilersToolsetVersion>
     <!-- dotnet/dotnet dependencies -->
+    <MicrosoftDotNetFileBasedProgramsVersion>$(MicrosoftDotNetFileBasedProgramsPackageVersion)</MicrosoftDotNetFileBasedProgramsVersion>
     <SystemCommandLineVersion>$(SystemCommandLinePackageVersion)</SystemCommandLineVersion>
     <!-- dotnet/runtime dependencies -->
     <MicrosoftBclAsyncInterfacesVersion>$(MicrosoftBclAsyncInterfacesPackageVersion)</MicrosoftBclAsyncInterfacesVersion>
@@ -86,8 +86,6 @@ This file should be imported by eng/Versions.props
     <SystemTextJsonVersion>$(SystemTextJsonPackageVersion)</SystemTextJsonVersion>
     <SystemThreadingTasksDataflowVersion>$(SystemThreadingTasksDataflowPackageVersion)</SystemThreadingTasksDataflowVersion>
     <SystemWindowsExtensionsVersion>$(SystemWindowsExtensionsPackageVersion)</SystemWindowsExtensionsVersion>
-    <!-- dotnet/sdk dependencies -->
-    <MicrosoftDotNetFileBasedProgramsVersion>$(MicrosoftDotNetFileBasedProgramsPackageVersion)</MicrosoftDotNetFileBasedProgramsVersion>
     <!-- dotnet/arcade dependencies -->
     <MicrosoftDotNetArcadeSdkVersion>$(MicrosoftDotNetArcadeSdkPackageVersion)</MicrosoftDotNetArcadeSdkVersion>
     <MicrosoftDotNetHelixSdkVersion>$(MicrosoftDotNetHelixSdkPackageVersion)</MicrosoftDotNetHelixSdkVersion>
