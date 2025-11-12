@@ -25,11 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // raw string as an interpolated string with no $'s and no holes, and then extract out the content token
             // from that.
 
-            var originalText = originalToken.Text;
-            Debug.Assert(originalText is ['"', '"', '"', ..]);
+            Debug.Assert(originalToken.Text is ['"', '"', '"', ..]);
 
-            var interpolatedString = ParseInterpolatedOrRawStringToken(
-                originalToken, originalText, originalText.AsSpan(), isInterpolatedString: false);
+            var interpolatedString = ParseInterpolatedOrRawStringToken(originalToken, isInterpolatedString: false);
 
             // Because there are no actual interpolations, we expect to only see a single text content node containing
             // the interpreted value of the raw string.
@@ -37,18 +35,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(interpolatedString.Contents is [InterpolatedStringTextSyntax]);
 
             var interpolatedText = (InterpolatedStringTextSyntax)interpolatedString.Contents[0]!;
-            var textToken = interpolatedText.TextToken;
 
             // Based on how ParseInterpolatedOrRawStringToken works we should never get a diagnostic on the actual
             // interpolated string text token (since we create it, and immediately add it to the InterpolatedStringText
-            // node).
-            Debug.Assert(!textToken.ContainsDiagnostics);
+            // node). Instead, 
+            Debug.Assert(!interpolatedText.TextToken.ContainsDiagnostics);
 
             var diagnosticsBuilder = ArrayBuilder<DiagnosticInfo>.GetInstance();
-            // Move any diagnostics on the original token to the new token.
-            // diagnosticsBuilder.AddRange(token.GetDiagnostics());
             // And any diagnostics from the interpolated string as a whole.
             diagnosticsBuilder.AddRange(interpolatedString.GetDiagnostics());
+
             // If there are any diagnostics on the interpolated text node, move those over too.  However, move them as
             // they are relative to the text token, and now need to be relative to the start of the token as a whole.
             var textTokenDiagnostics = MoveDiagnostics(interpolatedText.GetDiagnostics(), interpolatedString.StringStartToken.Width);
@@ -72,11 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             string getTokenValue()
             {
                 if (diagnosticsBuilder.Count == 0)
-                    return textToken.GetValueText();
+                    return interpolatedText.TextToken.GetValueText();
 
                 // Preserve what the lexer used to do here.  In the presence of any diagnostics, the text of the raw
                 // string minus the starting quotes is used as the value.
                 var startIndex = 0;
+                var originalText = originalToken.Text;
                 while (startIndex < originalText.Length && originalText[startIndex] is '"')
                     startIndex++;
 
@@ -84,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private ExpressionSyntax ParseInterpolatedStringToken()
+        private InterpolatedStringExpressionSyntax ParseInterpolatedStringToken()
         {
             // We don't want to make the scanner stateful (between tokens) if we can possibly avoid it.
             // The approach implemented here is
@@ -109,19 +106,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.InterpolatedStringToken);
             var originalToken = this.EatToken();
 
-            var originalText = originalToken.ValueText; // this is actually the source text
-            Debug.Assert(originalText[0] == '$' || originalText[0] == '@');
+            Debug.Assert(originalToken.Text[0] is '$' or '@');
 
-            return ParseInterpolatedOrRawStringToken(
-                originalToken, originalText, originalText.AsSpan(), isInterpolatedString: true);
+            return ParseInterpolatedOrRawStringToken(originalToken, isInterpolatedString: true);
         }
 
+        /// <summary>
+        /// Takes the token produced by the lexer for an (raw or regular) interpolated string or non-interpolated raw
+        /// string literal and creates an actual parsed <see cref="InterpolatedStringExpressionSyntax"/> for the syntax
+        /// tree.  For an interpolated string, this will now contain all the holes parsed out as well.  For a raw string
+        /// this will contain a single <see cref="InterpolatedStringTextSyntax"/> for the contents of the raw string.
+        /// </summary>
         private InterpolatedStringExpressionSyntax ParseInterpolatedOrRawStringToken(
             SyntaxToken originalToken,
-            string originalText,
-            ReadOnlySpan<char> originalTextSpan,
             bool isInterpolatedString)
         {
+            var originalText = originalToken.Text;
+            var originalTextSpan = originalText.AsSpan();
+
             // compute the positions of the interpolations in the original string literal, if there was an error or not,
             // and where the open and close quotes can be found.
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
@@ -133,12 +135,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var needsDedentation = kind == Lexer.InterpolatedStringKind.MultiLineRaw && error == null;
 
             var result = SyntaxFactory.InterpolatedStringExpression(getOpenQuote(), getContent(originalTextSpan), getCloseQuote());
+            Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
 
-            interpolations.Free();
+#if DEBUG
+            // None of the added text tokens should have diagnostics.  Any diagnostics should be on their containing
+            // InterpolatedStringTextSyntax node instead.
+            foreach (var content in result.Contents)
+            {
+                if (content is InterpolatedStringTextSyntax interpolatedText)
+                    Debug.Assert(!interpolatedText.TextToken.ContainsDiagnostics);
+            }
+#endif
+
             if (error != null)
                 result = result.WithDiagnosticsGreen([error]);
 
-            Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
+            interpolations.Free();
             return result;
 
             void rescanInterpolation(out Lexer.InterpolatedStringKind kind, out SyntaxDiagnosticInfo? error, out Range openQuoteRange, ArrayBuilder<Lexer.Interpolation> interpolations, out Range closeQuoteRange)
@@ -190,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // Make sure the interpolation starts at the right location.
                     var indentationError = getInterpolationIndentationError(indentationWhitespace, interpolation);
                     if (indentationError != null)
-                        interpolationNode = interpolationNode.WithDiagnosticsGreen(new[] { indentationError });
+                        interpolationNode = interpolationNode.WithDiagnosticsGreen([indentationError]);
 
                     builder.Add(interpolationNode);
                     currentContentStart = interpolation.CloseBraceRange.End;
@@ -312,11 +324,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var textString = text.ToString();
                 var valueString = indentationError != null ? textString : content.ToString();
 
+                // Note: we place errors on the InterpolatedStringText node itself, not on the token.  This is an
+                // invariant that higher up callers can depend on.
                 var node = SyntaxFactory.InterpolatedStringText(
                     SyntaxFactory.Literal(leading: null, textString, SyntaxKind.InterpolatedStringTextToken, valueString, trailing: null));
 
                 return indentationError != null
-                    ? node.WithDiagnosticsGreen(new[] { indentationError })
+                    ? node.WithDiagnosticsGreen([indentationError])
                     : node;
             }
 
