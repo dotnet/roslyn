@@ -293,13 +293,13 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
     private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
         // increase indentation - embedded statement cases
-        if (node is IfStatementSyntax { Statement: not null } ifStatement && !(ifStatement.Statement is BlockSyntax))
+        if (node is IfStatementSyntax { Statement: not BlockSyntax } ifStatement)
         {
             AddEmbeddedStatementsIndentationOperation(list, ifStatement.Statement);
             return;
         }
 
-        if (node is ElseClauseSyntax { Statement: not null } elseClause)
+        if (node is ElseClauseSyntax elseClause)
         {
             // Special handling for else-if: only indent if they're on different lines
             if (elseClause.Statement is IfStatementSyntax elseIfStatement)
