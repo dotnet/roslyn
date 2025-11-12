@@ -920,21 +920,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
-                    Select Case DeclarationKind
-                        Case LocalDeclarationKind.None, LocalDeclarationKind.FunctionValue
-                            Return ImmutableArray(Of SyntaxReference).Empty
-
-                        Case Else
-                            If _modifiedIdentifierOpt IsNot Nothing Then
-                                Return ImmutableArray.Create(Of SyntaxReference)(_modifiedIdentifierOpt.GetReference())
-                            Else
-                                ' Only catch variables should have Nothing for _modifiedIdentifierOpt
-                                Debug.Assert(DeclarationKind = LocalDeclarationKind.Catch)
-                                ' For catch variables, there is no ModifiedIdentifierSyntax.
-                                ' Fall back to using the identifier token's parent (IdentifierNameSyntax).
-                                Return ImmutableArray.Create(_identifierToken.Parent.GetReference())
-                            End If
-                    End Select
+                    If _modifiedIdentifierOpt IsNot Nothing Then
+                        Return ImmutableArray.Create(_modifiedIdentifierOpt.GetReference())
+                    Else
+                        Debug.Assert(DeclarationKind = LocalDeclarationKind.Catch, "Only catch variables should have Nothing for _modifiedIdentifierOpt")
+                        Return MyBase.DeclaringSyntaxReferences
+                    End If
                 End Get
             End Property
         End Class
