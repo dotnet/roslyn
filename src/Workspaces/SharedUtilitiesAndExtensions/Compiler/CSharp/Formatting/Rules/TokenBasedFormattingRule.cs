@@ -49,22 +49,16 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         {
             case SyntaxKind.OpenBraceToken:
                 if (currentToken.IsInterpolation())
-                {
                     return null;
-                }
 
-                if (!previousToken.IsParenInParenthesizedExpression())
-                {
+                if (!previousToken.IsOpenParenOfParenthesizedExpression())
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-                }
 
                 break;
 
             case SyntaxKind.CloseBraceToken:
                 if (currentToken.IsInterpolation())
-                {
                     return null;
-                }
 
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
         }
@@ -80,14 +74,12 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         {
             case SyntaxKind.CloseBraceToken:
                 if (previousToken.IsInterpolation())
-                {
                     return null;
-                }
 
                 if (!previousToken.IsCloseBraceOfExpression())
                 {
                     if (!currentToken.IsKind(SyntaxKind.SemicolonToken) &&
-                        !currentToken.IsParenInParenthesizedExpression() &&
+                        !currentToken.IsCloseParenOfParenthesizedExpression() && // Place ) after } in `(() => {})`
                         !currentToken.IsCommaInInitializerExpression() &&
                         !currentToken.IsCommaInAnyArgumentsList() &&
                         !currentToken.IsCommaInTupleExpression() &&
@@ -107,9 +99,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
 
             case SyntaxKind.OpenBraceToken:
                 if (previousToken.IsInterpolation())
-                {
                     return null;
-                }
 
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
         }

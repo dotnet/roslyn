@@ -31,17 +31,17 @@
   -->
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
-    <PackageVersion Include="Microsoft.Build" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' != 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'">
