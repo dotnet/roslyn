@@ -1966,7 +1966,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
             static void M()
             {
                 int x;
-                var i = (Int32)(&x);
+                var i = (Int32)(int*)&x;
             }
         }
         """);
