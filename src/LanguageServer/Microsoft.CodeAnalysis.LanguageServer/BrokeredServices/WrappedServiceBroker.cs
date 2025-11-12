@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 [Export(typeof(WrappedServiceBroker))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+#pragma warning disable VSMEF003 // Exported type not implemented by exporting class -- SVsFullAccessServiceBroker is just a contract type but isn't actually implemented
 internal sealed class WrappedServiceBroker() : IServiceBroker
+#pragma warning restore VSMEF003 // Exported type not implemented by exporting class
 {
     private readonly TaskCompletionSource<IServiceBroker> _serviceBrokerTask = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
