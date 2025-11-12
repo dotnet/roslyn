@@ -121,7 +121,7 @@
       <_Dependency Remove="Microsoft.MSXML"/>
       <_Dependency Remove="Microsoft.NET.StringTools"/>
       <_Dependency Remove="Microsoft.Win32.Registry"/>
-      <_Dependency Remove="Nerdbank.MessagePack"/
+      <_Dependency Remove="Nerdbank.MessagePack"/>
       <_Dependency Remove="Nerdbank.NetStandardBridge" />
       <_Dependency Remove="Nerdbank.Streams"/>
       <_Dependency Remove="Newtonsoft.Json"/>
