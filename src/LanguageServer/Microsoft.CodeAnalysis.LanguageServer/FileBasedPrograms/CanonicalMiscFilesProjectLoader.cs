@@ -29,6 +29,11 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
 {
     private readonly Lazy<string> _canonicalDocumentPath;
 
+    /// <summary>
+    /// Avoid showing restore notifications for misc files.
+    /// </summary>
+    protected override bool EnableProgressReporting => false;
+
     public CanonicalMiscFilesProjectLoader(
         LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
@@ -37,7 +42,8 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
-        IBinLogPathProvider binLogPathProvider)
+        IBinLogPathProvider binLogPathProvider,
+        DotnetCliHelper dotnetCliHelper)
             : base(
                 workspaceFactory,
                 fileChangeWatcher,
@@ -46,7 +52,8 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
                 listenerProvider,
                 projectLoadTelemetry,
                 serverConfigurationFactory,
-                binLogPathProvider)
+                binLogPathProvider,
+                dotnetCliHelper)
     {
         _canonicalDocumentPath = new Lazy<string>(() =>
         {

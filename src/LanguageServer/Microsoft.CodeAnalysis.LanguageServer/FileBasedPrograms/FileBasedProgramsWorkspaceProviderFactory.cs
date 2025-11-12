@@ -34,7 +34,8 @@ internal sealed class FileBasedProgramsWorkspaceProviderFactory(
     IAsynchronousOperationListenerProvider listenerProvider,
     ProjectLoadTelemetryReporter projectLoadTelemetry,
     ServerConfigurationFactory serverConfigurationFactory,
-    IBinLogPathProvider binLogPathProvider) : ILspMiscellaneousFilesWorkspaceProviderFactory
+    IBinLogPathProvider binLogPathProvider,
+    DotnetCliHelper dotnetCliHelper) : ILspMiscellaneousFilesWorkspaceProviderFactory
 {
     public ILspMiscellaneousFilesWorkspaceProvider CreateLspMiscellaneousFilesWorkspaceProvider(ILspServices lspServices, HostServices hostServices)
     {
@@ -48,6 +49,7 @@ internal sealed class FileBasedProgramsWorkspaceProviderFactory(
             listenerProvider,
             projectLoadTelemetry,
             serverConfigurationFactory,
-            binLogPathProvider);
+            binLogPathProvider,
+            dotnetCliHelper);
     }
 }

@@ -74,9 +74,8 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
             documents: files,
             locations: annotatedLocations);
 
-        // Perform restore and mock up project restore client handler
+        // Perform restore
         ProcessUtilities.Run("dotnet", $"restore --project {projectPath}");
-        lspClient.AddClientLocalRpcTarget(ProjectDependencyHelper.ProjectNeedsRestoreName, (string[] projectFilePaths) => { });
 
         // Listen for project initialization
         var projectInitialized = new TaskCompletionSource();

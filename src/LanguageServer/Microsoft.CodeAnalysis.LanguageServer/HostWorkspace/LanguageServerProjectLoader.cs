@@ -36,6 +36,7 @@ internal abstract class LanguageServerProjectLoader
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
     private readonly IBinLogPathProvider _binLogPathProvider;
+    private readonly DotnetCliHelper _dotnetCliHelper;
     protected readonly ImmutableDictionary<string, string> AdditionalProperties;
 
     /// <summary>
@@ -84,6 +85,8 @@ internal abstract class LanguageServerProjectLoader
         public sealed record LoadedTargets(ImmutableArray<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
     }
 
+    protected virtual bool EnableProgressReporting => true;
+
     protected LanguageServerProjectLoader(
         LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
@@ -92,7 +95,8 @@ internal abstract class LanguageServerProjectLoader
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
-        IBinLogPathProvider binLogPathProvider)
+        IBinLogPathProvider binLogPathProvider,
+        DotnetCliHelper dotnetCliHelper)
     {
         _workspaceFactory = workspaceFactory;
         _fileChangeWatcher = fileChangeWatcher;
@@ -101,6 +105,7 @@ internal abstract class LanguageServerProjectLoader
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
         _binLogPathProvider = binLogPathProvider;
+        _dotnetCliHelper = dotnetCliHelper;
 
         AdditionalProperties = BuildAdditionalProperties(serverConfigurationFactory.ServerConfiguration);
 
@@ -176,12 +181,8 @@ internal abstract class LanguageServerProjectLoader
 
             if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
-                // Tell the client to restore any projects with unresolved dependencies.
-                // This should eventually move entirely server side once we have a mechanism for reporting generic project load progress.
-                // Tracking: https://github.com/dotnet/vscode-csharp/issues/6675
-                //
-                // The request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.SendProjectNeedsRestoreRequestAsync(projectsThatNeedRestore, cancellationToken);
+                // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
+                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
             }
         }
         finally
