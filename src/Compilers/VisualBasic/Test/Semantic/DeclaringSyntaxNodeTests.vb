@@ -661,10 +661,8 @@ End Class
 
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
-            Dim code As String = tree.GetText().ToString()
-            Dim position As Integer = code.IndexOf("exc", StringComparison.Ordinal)
-            Dim token = tree.GetCompilationUnitRoot().FindToken(position)
-            Dim identifierName = token.Parent
+            Dim root = tree.GetRoot()
+            Dim identifierName = root.DescendantNodes().OfType(Of IdentifierNameSyntax).First(Function(i) i.Identifier.ValueText = "exc")
 
             Dim localSymbol As ISymbol = model.GetSymbolInfo(identifierName).Symbol
             Assert.NotNull(localSymbol)
