@@ -2552,51 +2552,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //
                 if (!haveAttributes || !IsScript)
                 {
-                    bool wasInAsync = IsInAsync;
-                    if (!IsScript)
+                    // We are implicitly in an async context in a non-script environment.
+                    using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: this.IsInAsync || !IsScript);
+
+                    switch (this.CurrentToken.Kind)
                     {
-                        IsInAsync = true; // We are implicitly in an async context
-                    }
+                        case SyntaxKind.UnsafeKeyword:
+                            if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes));
+                            }
+                            break;
 
-                    try
-                    {
-                        switch (this.CurrentToken.Kind)
-                        {
-                            case SyntaxKind.UnsafeKeyword:
-                                if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
-                                {
-                                    return _syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes));
-                                }
-                                break;
+                        case SyntaxKind.FixedKeyword:
+                            if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseFixedStatement(attributes));
+                            }
+                            break;
 
-                            case SyntaxKind.FixedKeyword:
-                                if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
-                                {
-                                    return _syntaxFactory.GlobalStatement(ParseFixedStatement(attributes));
-                                }
-                                break;
+                        case SyntaxKind.DelegateKeyword:
+                            // Check if this is an anonymous delegate expression or a delegate type declaration.
+                            // Anonymous delegate: delegate { } or delegate (params) { }
+                            // Delegate declaration: delegate Type Name(params);
+                            if (IsAnonymousDelegateExpression())
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
+                            }
+                            break;
 
-                            case SyntaxKind.DelegateKeyword:
-                                // Check if this is an anonymous delegate expression or a delegate type declaration.
-                                // Anonymous delegate: delegate { } or delegate (params) { }
-                                // Delegate declaration: delegate Type Name(params);
-                                if (IsAnonymousDelegateExpression())
-                                {
-                                    return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
-                                }
-                                break;
-
-                            case SyntaxKind.NewKeyword:
-                                if (IsPossibleNewExpression())
-                                {
-                                    return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
-                                }
-                                break;
-                        }
-                    }
-                    finally
-                    {
-                        IsInAsync = wasInAsync;
+                        case SyntaxKind.NewKeyword:
+                            if (IsPossibleNewExpression())
+                            {
+                                return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
+                            }
+                            break;
                     }
                 }
 
@@ -2699,17 +2689,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             var saveTerm = _termState;
                             _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
-                            bool wasInAsync = IsInAsync;
-                            if (!IsScript)
-                            {
-                                IsInAsync = true; // We are implicitly in an async context
-                            }
+
+                            // We are implicitly in an async context in a non-script environment.
+                            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: this.IsInAsync || !IsScript);
+
                             // In Script we don't allow local declaration statements at the top level.  We want
                             // to fall out below and parse them instead as fields. For top-level statements, we allow
                             // them, but want to try properties , etc. first.
                             var statement = this.ParseStatementCore(attributes, isGlobal: true);
 
-                            IsInAsync = wasInAsync;
                             _termState = saveTerm;
 
                             if (isAcceptableNonDeclarationStatement(statement, IsScript))
@@ -2811,7 +2799,8 @@ parse_member_name:;
                         goto parse_member_name;
                     }
 
-                    Debug.Assert(identifierOrThisOpt != null);
+                    // identifierOrThisOpt may be null if we're doing error recovery for a property with missing identifier
+                    Debug.Assert(identifierOrThisOpt != null || IsStartOfPropertyBody(index: 0));
 
                     if (TryParseIndexerOrPropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
@@ -2851,14 +2840,12 @@ parse_member_name:;
 
             bool tryParseLocalDeclarationStatement<DeclarationSyntax>(SyntaxList<AttributeListSyntax> attributes, out MemberDeclarationSyntax result) where DeclarationSyntax : StatementSyntax
             {
-                bool wasInAsync = IsInAsync;
-                IsInAsync = true; // We are implicitly in an async context
+                // We are implicitly in an async context
+                using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: true);
                 int lastTokenPosition = -1;
                 IsMakingProgress(ref lastTokenPosition);
 
                 var topLevelStatement = ParseLocalDeclarationStatement(attributes);
-                IsInAsync = wasInAsync;
-
                 if (topLevelStatement is DeclarationSyntax declaration && IsMakingProgress(ref lastTokenPosition, assertIfFalse: false))
                 {
                     result = _syntaxFactory.GlobalStatement(declaration);
@@ -2879,12 +2866,11 @@ parse_member_name:;
                 {
                     var saveTerm = _termState;
                     _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
-                    bool wasInAsync = IsInAsync;
-                    IsInAsync = true; // We are implicitly in an async context
 
+                    // We are implicitly in an async context
+                    using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: true);
                     var statement = this.ParseStatementCore(attributes, isGlobal: true);
 
-                    IsInAsync = wasInAsync;
                     _termState = saveTerm;
 
                     if (statement is not null)
@@ -2982,12 +2968,24 @@ parse_member_name:;
             return false;
         }
 
-        private bool IsNoneOrIncompleteMember(SyntaxKind parentKind, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, TypeSyntax type,
-                                              ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt, SyntaxToken identifierOrThisOpt, TypeParameterListSyntax typeParameterListOpt,
-                                              out MemberDeclarationSyntax result)
+        private bool IsNoneOrIncompleteMember(
+            SyntaxKind parentKind,
+            SyntaxList<AttributeListSyntax> attributes,
+            SyntaxListBuilder modifiers,
+            TypeSyntax type,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt,
+            SyntaxToken identifierOrThisOpt,
+            TypeParameterListSyntax typeParameterListOpt,
+            out MemberDeclarationSyntax result)
         {
             if (explicitInterfaceOpt == null && identifierOrThisOpt == null && typeParameterListOpt == null)
             {
+                if (looksLikeStartOfPropertyBody())
+                {
+                    result = null;
+                    return false;
+                }
+
                 if (attributes.Count == 0 && modifiers.Count == 0 && type.IsMissing && type.Kind != SyntaxKind.RefType)
                 {
                     // we haven't advanced, the caller needs to consume the tokens ahead
@@ -3025,6 +3023,53 @@ parse_member_name:;
 
             result = null;
             return false;
+
+            bool looksLikeStartOfPropertyBody()
+            {
+                // Need to see at least some modifiers, or something that strongly looks like a property type in order
+                // for us to at least consider this a property.  Otherwise, we end up in cases where errant `{` and `=>`
+                // tokens would lead us to think we're a property in inappropriate places.
+                if (modifiers.Count == 0 && !looksLikePropertyType())
+                    return false;
+
+                if (!IsStartOfPropertyBody(index: 0))
+                    return false;
+
+                return true;
+            }
+
+            bool looksLikePropertyType()
+            {
+                var propertyType = type;
+
+                // We really want to see at least `Type {` or `Type =>` to think of this as a property. And we want the
+                // parser to be confident it got a good return type for the property, not something it was confused
+                // about and already reported errors on.  Otherwise, we can too easily end up in cases where an error is
+                // next to a `{` and we don't want that to be a property.
+                if (propertyType.IsMissing || ContainsErrorDiagnostic(propertyType))
+                    return false;
+
+                if (propertyType is RefTypeSyntax refType)
+                    propertyType = refType.Type;
+
+                // Unlikely cases to actually be a property.  Likely some runaway error recovery case.  For example:
+                //
+                // with { }   (likely a with expression)
+                // extension { }  (likely an extension block being written)
+                // get { } (likely an accessor, not a property called 'get').  Same for set/add/remove/init.
+                //
+                // Properties are virtually always going to have a pascal cased identifier name.  So if we see one that
+                // is actually a contextual keyword, then it's unlikely to be a property.
+                if (propertyType is IdentifierNameSyntax { Identifier.ContextualKind: var contextualKind } &&
+                    SyntaxFacts.IsKeywordKind(contextualKind))
+                {
+                    return false;
+                }
+
+                // Can add more cases here if we find ourselves being too eager.
+
+                return true;
+            }
         }
 
         private bool ReconsideredTypeAsAsyncModifier(ref SyntaxListBuilder modifiers, ref TypeSyntax type, ref ResetPoint afterTypeResetPoint,
@@ -3050,21 +3095,26 @@ parse_member_name:;
             return false;
         }
 
-        private bool TryParseIndexerOrPropertyDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, TypeSyntax type,
-                                                          ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt, SyntaxToken identifierOrThisOpt,
-                                                          TypeParameterListSyntax typeParameterListOpt, out MemberDeclarationSyntax result)
+        private bool TryParseIndexerOrPropertyDeclaration(
+            SyntaxList<AttributeListSyntax> attributes,
+            SyntaxListBuilder modifiers,
+            TypeSyntax type,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt,
+            SyntaxToken identifierOrThisOpt,
+            TypeParameterListSyntax typeParameterListOpt,
+            out MemberDeclarationSyntax result)
         {
-            if (identifierOrThisOpt.Kind == SyntaxKind.ThisKeyword)
+            if (identifierOrThisOpt?.Kind == SyntaxKind.ThisKeyword)
             {
                 result = this.ParseIndexerDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
                 return true;
             }
 
-            // `{` or `=>` definitely start a property.  Also allow
-            // `; {` and `; =>` as error recovery for a misplaced semicolon.
-            if (IsStartOfPropertyBody(this.CurrentToken.Kind) ||
-                (this.CurrentToken.Kind is SyntaxKind.SemicolonToken && IsStartOfPropertyBody(this.PeekToken(1).Kind)))
+            if (IsStartOfPropertyBody(index: 0))
             {
+                // Error recovery: if we see a property body but no identifier, synthesize a missing identifier
+                identifierOrThisOpt ??= this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
+
                 result = this.ParsePropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
                 return true;
             }
@@ -3073,8 +3123,24 @@ parse_member_name:;
             return false;
         }
 
-        private static bool IsStartOfPropertyBody(SyntaxKind kind)
-            => kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken;
+        private bool IsStartOfPropertyBody(int index)
+        {
+            var kind = this.PeekToken(index).Kind;
+
+            // If we have `{` or `=>`, definitely a property body.
+            if (kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken)
+                return true;
+
+            // For error recovery, also consider `; {` and `; =>` as starting a property body.
+            if (kind is SyntaxKind.SemicolonToken)
+            {
+                kind = this.PeekToken(index + 1).Kind;
+                if (kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken)
+                    return true;
+            }
+
+            return false;
+        }
 
         // Returns null if we can't parse anything (even partially).
         internal MemberDeclarationSyntax ParseMemberDeclaration(SyntaxKind parentKind)
@@ -3227,7 +3293,8 @@ parse_member_name:;
                         goto parse_member_name;
                     }
 
-                    Debug.Assert(identifierOrThisOpt != null);
+                    // identifierOrThisOpt may be null if we're doing error recovery for a property with missing identifier
+                    Debug.Assert(identifierOrThisOpt != null || IsStartOfPropertyBody(index: 0));
 
                     if (TryParseIndexerOrPropertyDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt, out result))
                     {
@@ -3300,19 +3367,17 @@ parse_member_name:;
             //   b) generic
             //   c) a property
             //   d) a method (unless we already know we're parsing an event)
-            var kind = this.PeekToken(1).Kind;
 
             // Error recovery, don't allow a misplaced semicolon after the name in a property to throw off the entire parse.
             //
             // e.g. `public int MyProperty; { get; set; }` should still be parsed as a property with a skipped token.
             if (!isGlobalScriptLevel &&
-                kind == SyntaxKind.SemicolonToken &&
-                IsStartOfPropertyBody(this.PeekToken(2).Kind))
+                IsStartOfPropertyBody(index: 1))
             {
                 return false;
             }
 
-            switch (kind)
+            switch (this.PeekToken(1).Kind)
             {
                 case SyntaxKind.DotToken:                   // Goo.     explicit
                 case SyntaxKind.ColonColonToken:            // Goo::    explicit
@@ -3576,11 +3641,8 @@ parse_member_name:;
             // restored, just assumed to be false and reset accordingly after parsing the method body.
             Debug.Assert(!IsInAsync);
 
-            IsInAsync = modifiers.Any((int)SyntaxKind.AsyncKeyword);
-
+            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: modifiers.Any((int)SyntaxKind.AsyncKeyword));
             this.ParseBlockAndExpressionBodiesWithSemicolon(out var blockBody, out var expressionBody, out var semicolon);
-
-            IsInAsync = false;
 
             return _syntaxFactory.MethodDeclaration(
                 attributes,
@@ -4141,7 +4203,7 @@ parse_member_name:;
             }
 
             // We know we are parsing a property because we have seen either an open brace or an arrow token
-            Debug.Assert(IsStartOfPropertyBody(this.CurrentToken.Kind));
+            Debug.Assert(IsStartOfPropertyBody(index: 0));
 
             var accessorList = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                 ? this.ParseAccessorList(AccessorDeclaringKind.Property)
@@ -4153,10 +4215,8 @@ parse_member_name:;
             // Check for expression body
             if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
             {
-                using (new FieldKeywordContext(this, isInFieldKeywordContext: true))
-                {
-                    expressionBody = this.ParseArrowExpressionClause();
-                }
+                using var _ = new ParserSyntaxContextResetter(this, isInFieldKeywordContext: true);
+                expressionBody = this.ParseArrowExpressionClause();
             }
             // Check if we have an initializer
             else if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
@@ -4188,39 +4248,52 @@ parse_member_name:;
                 semicolon);
         }
 
-        private readonly ref struct FieldKeywordContext : IDisposable
+        private readonly ref struct ParserSyntaxContextResetter : IDisposable
         {
-            private readonly LanguageParser _parser;
-            private readonly bool _previousInFieldKeywordContext;
-
-            public FieldKeywordContext(LanguageParser parser, bool isInFieldKeywordContext)
+            [Flags]
+            private enum LanguageParserState : byte
             {
+                IsInAsync = 1 << 0,
+                IsInQuery = 1 << 1,
+                IsInFieldKeywordContext = 1 << 2,
+                ForceConditionalAccessExpression = 1 << 3,
+            }
+
+            private readonly LanguageParser _parser;
+            private readonly LanguageParserState _previousState;
+
+            public ParserSyntaxContextResetter(
+                LanguageParser parser,
+                bool? isInAsyncContext = null,
+                bool? isInQueryContext = null,
+                bool? isInFieldKeywordContext = null,
+                bool? forceConditionalAccessExpression = null)
+            {
+                Debug.Assert(
+                    isInAsyncContext.HasValue ||
+                    isInQueryContext.HasValue ||
+                    isInFieldKeywordContext.HasValue ||
+                    forceConditionalAccessExpression.HasValue);
+
                 _parser = parser;
-                _previousInFieldKeywordContext = parser.IsInFieldKeywordContext;
-                _parser.IsInFieldKeywordContext = isInFieldKeywordContext;
+                _previousState =
+                    (parser.IsInAsync ? LanguageParserState.IsInAsync : 0) |
+                    (parser.IsInQuery ? LanguageParserState.IsInQuery : 0) |
+                    (parser.IsInFieldKeywordContext ? LanguageParserState.IsInFieldKeywordContext : 0) |
+                    (parser.ForceConditionalAccessExpression ? LanguageParserState.ForceConditionalAccessExpression : 0);
+
+                _parser.IsInAsync = isInAsyncContext ?? parser.IsInAsync;
+                _parser.IsInQuery = isInQueryContext ?? parser.IsInQuery;
+                _parser.IsInFieldKeywordContext = isInFieldKeywordContext ?? parser.IsInFieldKeywordContext;
+                _parser.ForceConditionalAccessExpression = forceConditionalAccessExpression ?? parser.ForceConditionalAccessExpression;
             }
 
             public void Dispose()
             {
-                _parser.IsInFieldKeywordContext = _previousInFieldKeywordContext;
-            }
-        }
-
-        private readonly ref struct AsyncContext : IDisposable
-        {
-            private readonly LanguageParser _parser;
-            private readonly bool _previousInAsync;
-
-            public AsyncContext(LanguageParser parser, bool isInAsync)
-            {
-                _parser = parser;
-                _previousInAsync = parser.IsInAsync;
-                _parser.IsInAsync = isInAsync;
-            }
-
-            public void Dispose()
-            {
-                _parser.IsInAsync = _previousInAsync;
+                _parser.IsInAsync = (_previousState & LanguageParserState.IsInAsync) != 0;
+                _parser.IsInQuery = (_previousState & LanguageParserState.IsInQuery) != 0;
+                _parser.IsInFieldKeywordContext = (_previousState & LanguageParserState.IsInFieldKeywordContext) != 0;
+                _parser.ForceConditionalAccessExpression = (_previousState & LanguageParserState.ForceConditionalAccessExpression) != 0;
             }
         }
 
@@ -4512,7 +4585,7 @@ parse_member_name:;
                 return (AccessorDeclarationSyntax)this.EatNode();
             }
 
-            using var __ = new FieldKeywordContext(this, isInFieldKeywordContext: declaringKind is AccessorDeclaringKind.Property);
+            using var _1 = new ParserSyntaxContextResetter(this, isInFieldKeywordContext: declaringKind is AccessorDeclaringKind.Property);
 
             var accMods = _pool.Allocate();
 
@@ -8233,9 +8306,8 @@ done:
                 // context.
                 this.Reset(ref resetPointBeforeStatement);
 
-                IsInAsync = true;
+                using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: true);
                 result = ParseExpressionStatement(attributes);
-                IsInAsync = false;
             }
 
             // Didn't want to retry as an `await expr`.  Just return what we actually
@@ -10703,7 +10775,7 @@ done:
             // Note that we could just check if we're in an async context, but that breaks some analyzers, because
             // "await f();" would be parsed as a local function statement when really we want a parse error so we can say
             // "did you mean to make this method be an async method?" (it's invalid either way, so the spec doesn't care)
-            var resetPoint = this.GetResetPoint();
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
             // Indicates this must be parsed as a local function, even if there's no body
             bool forceLocalFunc = true;
@@ -10713,8 +10785,6 @@ done:
                 forceLocalFunc = id.ContextualKind != SyntaxKind.AwaitKeyword;
             }
 
-            bool parentScopeIsInAsync = IsInAsync;
-            IsInAsync = false;
             SyntaxListBuilder badBuilder = null;
             for (int i = 0; i < modifiers.Count; i++)
             {
@@ -10722,7 +10792,6 @@ done:
                 switch (modifier.ContextualKind)
                 {
                     case SyntaxKind.AsyncKeyword:
-                        IsInAsync = true;
                         forceLocalFunc = true;
                         continue;
                     case SyntaxKind.UnsafeKeyword:
@@ -10755,6 +10824,8 @@ done:
                 _pool.Free(badBuilder);
             }
 
+            using var _ = new ParserSyntaxContextResetter(this, isInAsyncContext: modifiers.Any((int)SyntaxKind.AsyncKeyword));
+
             TypeParameterListSyntax typeParameterListOpt = this.ParseTypeParameterList();
             // "await f<T>()" still makes sense, so don't force accept a local function if there's a type parameter list.
             ParameterListSyntax paramList = this.ParseParenthesizedParameterList(forExtension: false);
@@ -10784,15 +10855,11 @@ done:
             SyntaxToken semicolon;
             this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon, parseSemicolonAfterBlock: false);
 
-            IsInAsync = parentScopeIsInAsync;
-
             if (!forceLocalFunc && blockBody == null && expressionBody == null)
             {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
+                resetPoint.Reset();
                 return null;
             }
-            this.Release(ref resetPoint);
 
             return _syntaxFactory.LocalFunctionStatement(
                 attributes,
@@ -11429,9 +11496,12 @@ done:
                     afterQuestionToken.Reset();
 
                     // try reparsing with `?[` as a conditional access, not a ternary+collection
-                    this.ForceConditionalAccessExpression = true;
-                    var newWhenTrue = this.ParsePossibleRefExpression();
-                    this.ForceConditionalAccessExpression = false;
+                    ExpressionSyntax newWhenTrue;
+                    using (var _ = new ParserSyntaxContextResetter(this, forceConditionalAccessExpression: true))
+                    {
+                        // reparse the when-true portion
+                        newWhenTrue = this.ParsePossibleRefExpression();
+                    }
 
                     if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
@@ -13444,26 +13514,15 @@ done:
 
         private AnonymousMethodExpressionSyntax ParseAnonymousMethodExpression()
         {
-            var parentScopeIsInAsync = this.IsInAsync;
+            var modifiers = ParseAnonymousFunctionModifiers();
+            using var _ = new ParserSyntaxContextResetter(this,
+                isInAsyncContext: this.IsInAsync || modifiers.Any((int)SyntaxKind.AsyncKeyword),
+                forceConditionalAccessExpression: false);
 
-            var parentScopeForceConditionalAccess = this.ForceConditionalAccessExpression;
-            this.ForceConditionalAccessExpression = false;
-
-            var result = parseAnonymousMethodExpressionWorker();
-
-            this.ForceConditionalAccessExpression = parentScopeForceConditionalAccess;
-            this.IsInAsync = parentScopeIsInAsync;
-
-            return result;
+            return parseAnonymousMethodExpressionWorker();
 
             AnonymousMethodExpressionSyntax parseAnonymousMethodExpressionWorker()
             {
-                var modifiers = ParseAnonymousFunctionModifiers();
-                if (modifiers.Any((int)SyntaxKind.AsyncKeyword))
-                {
-                    this.IsInAsync = true;
-                }
-
                 var @delegate = this.EatToken(SyntaxKind.DelegateKeyword);
 
                 ParameterListSyntax parameterList = null;
@@ -13570,26 +13629,17 @@ done:
         private LambdaExpressionSyntax ParseLambdaExpression()
         {
             var attributes = ParseAttributeDeclarations(inExpressionContext: true);
-            var parentScopeIsInAsync = this.IsInAsync;
 
-            var parentScopeForceConditionalAccess = this.ForceConditionalAccessExpression;
-            this.ForceConditionalAccessExpression = false;
+            var modifiers = ParseAnonymousFunctionModifiers();
 
-            var result = parseLambdaExpressionWorker();
+            using var _ = new ParserSyntaxContextResetter(this,
+                isInAsyncContext: this.IsInAsync || modifiers.Any((int)SyntaxKind.AsyncKeyword),
+                forceConditionalAccessExpression: false);
 
-            this.ForceConditionalAccessExpression = parentScopeForceConditionalAccess;
-            this.IsInAsync = parentScopeIsInAsync;
-
-            return result;
+            return parseLambdaExpressionWorker();
 
             LambdaExpressionSyntax parseLambdaExpressionWorker()
             {
-                var modifiers = ParseAnonymousFunctionModifiers();
-                if (modifiers.Any((int)SyntaxKind.AsyncKeyword))
-                {
-                    this.IsInAsync = true;
-                }
-
                 TypeSyntax returnType;
                 using (var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false))
                 {
@@ -13869,17 +13919,14 @@ done:
 
         private QueryExpressionSyntax ParseQueryExpression(Precedence precedence)
         {
-            var previousIsInQuery = this.IsInQuery;
-            this.IsInQuery = true;
-            var fc = this.ParseFromClause();
-            if (precedence > Precedence.Assignment)
-            {
-                fc = this.AddError(fc, ErrorCode.WRN_PrecedenceInversion, SyntaxFacts.GetText(SyntaxKind.FromKeyword));
-            }
+            using var _ = new ParserSyntaxContextResetter(this, isInQueryContext: true);
+            var fromClause = this.ParseFromClause();
 
-            var body = this.ParseQueryBody();
-            this.IsInQuery = previousIsInQuery;
-            return _syntaxFactory.QueryExpression(fc, body);
+            return _syntaxFactory.QueryExpression(
+                precedence <= Precedence.Assignment
+                    ? fromClause
+                    : this.AddError(fromClause, ErrorCode.WRN_PrecedenceInversion, SyntaxFacts.GetText(SyntaxKind.FromKeyword)),
+                this.ParseQueryBody());
         }
 
         private QueryBodySyntax ParseQueryBody()
@@ -13892,8 +13939,7 @@ done:
                 switch (this.CurrentToken.ContextualKind)
                 {
                     case SyntaxKind.FromKeyword:
-                        var fc = this.ParseFromClause();
-                        clauses.Add(fc);
+                        clauses.Add(this.ParseFromClause());
                         continue;
                     case SyntaxKind.JoinKeyword:
                         clauses.Add(this.ParseJoinClause());
