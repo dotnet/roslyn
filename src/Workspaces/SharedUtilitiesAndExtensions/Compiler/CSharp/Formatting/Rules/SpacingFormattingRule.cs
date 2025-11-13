@@ -281,6 +281,9 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         if ((previousToken.IsCommaInArgumentOrParameterList() && currentKind != SyntaxKind.OmittedTypeArgumentToken)
             || previousToken.IsCommaInInitializerExpression()
             || previousToken.IsCommaInCollectionExpression()
+            || previousToken.IsCommaInTupleExpression()
+            || previousToken.IsCommaInTupleType()
+            || previousToken.IsCommaInParenthesizedVariableDesignation()
             || (previousKind == SyntaxKind.CommaToken
                 && currentKind != SyntaxKind.OmittedArraySizeExpressionToken
                 && HasFormattableBracketParent(previousToken)))
@@ -292,6 +295,9 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         if ((currentToken.IsCommaInArgumentOrParameterList() && previousKind != SyntaxKind.OmittedTypeArgumentToken)
             || currentToken.IsCommaInInitializerExpression()
             || previousToken.IsCommaInCollectionExpression()
+            || currentToken.IsCommaInTupleExpression()
+            || currentToken.IsCommaInTupleType()
+            || currentToken.IsCommaInParenthesizedVariableDesignation()
             || (currentKind == SyntaxKind.CommaToken
                 && previousKind != SyntaxKind.OmittedArraySizeExpressionToken
                 && HasFormattableBracketParent(currentToken)))
