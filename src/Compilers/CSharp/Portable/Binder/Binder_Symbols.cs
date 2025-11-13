@@ -600,7 +600,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = (PointerTypeSyntax)syntax;
                 var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
-                ReportUnsafeIfNotAllowed(node, diagnostics);
+
+                if (!this.Compilation.Options.HasEvolvedMemorySafetyRules)
+                {
+                    ReportUnsafeIfNotAllowed(node, diagnostics);
+                }
 
                 if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
                 {
