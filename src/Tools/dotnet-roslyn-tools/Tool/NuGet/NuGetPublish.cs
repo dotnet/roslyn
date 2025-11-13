@@ -23,7 +23,6 @@ internal class NuGetPublish
         "Microsoft.CodeAnalysis.CSharp.Features",
         "Microsoft.CodeAnalysis.CSharp.Scripting",
         "Microsoft.CodeAnalysis.CSharp.Workspaces",
-        "Microsoft.CodeAnalysis.EditorFeatures.Text",
         "Microsoft.CodeAnalysis.Features",
         "Microsoft.CodeAnalysis.Scripting",
         "Microsoft.CodeAnalysis.Scripting.Common",
@@ -35,7 +34,10 @@ internal class NuGetPublish
         "Microsoft.CodeAnalysis.Workspaces.MSBuild",
         "Microsoft.Net.Compilers.Toolset",
         "Microsoft.Net.Compilers.Toolset.Framework",
-        "Microsoft.VisualStudio.LanguageServices",
+
+        // These rely on Visual Studio packages and should not be published at this time.
+        //"Microsoft.CodeAnalysis.EditorFeatures.Text",
+        //"Microsoft.VisualStudio.LanguageServices",
 
         // These are the RoslynAnalyzer packages. We should not publish them at this time.
         // "Microsoft.CodeAnalysis.Analyzers",
