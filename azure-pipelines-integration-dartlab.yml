@@ -87,6 +87,7 @@ stages:
     - checkout: RoslynMirror
       fetchDepth: 1
       fetchTags: false
+      persistCredentials: true
     - powershell: |
         git fetch origin ${{ parameters.testsCommitHash }}
         git checkout FETCH_HEAD
