@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
@@ -424,7 +425,7 @@ public sealed class FormattingAnalyzerTests
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public async Task TestSeparateImportDirectiveGroups_WithGroupedButNotGloballySortedUsings()
     {
         // Test that usings that are grouped correctly (each group sorted) but not globally sorted
@@ -468,7 +469,7 @@ public sealed class FormattingAnalyzerTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public async Task TestSeparateImportDirectiveGroups_WithAlphabeticallySortedUsings()
     {
         // Test that usings that are alphabetically sorted trigger the separator
@@ -511,7 +512,7 @@ public sealed class FormattingAnalyzerTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public async Task TestSeparateImportDirectiveGroups_WithUnsortedGroupsNoSeparator()
     {
         // Test that usings with unsorted groups don't trigger separator (existing behavior preserved)
