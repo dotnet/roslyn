@@ -278,9 +278,11 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             // attached to.  So ask to be relative to the start of the line the prior token is on if we're on the
             // same line as it.
             var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
+
             var firstToken = node.GetFirstToken(includeZeroWidth: true);
             var lastToken = node.GetLastToken(includeZeroWidth: true);
             var baseToken = firstToken.GetPreviousToken(includeZeroWidth: true);
+
             SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
         }
     }
@@ -296,8 +298,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         var endToken = parenthesizedPattern.CloseParenToken.GetPreviousToken(includeZeroWidth: true);
         AddIndentBlockOperation(
             list, startToken, endToken,
-            TextSpan.FromBounds(parenthesizedPattern.OpenParenToken.Span.Start, parenthesizedPattern.CloseParenToken.Span.End));
-
+            TextSpan.FromBounds(parenthesizedPattern.OpenParenToken.Span.End, parenthesizedPattern.CloseParenToken.Span.End));
     }
 
     private static void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
