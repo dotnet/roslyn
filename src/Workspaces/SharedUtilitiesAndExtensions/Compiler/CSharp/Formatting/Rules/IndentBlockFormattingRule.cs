@@ -253,7 +253,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
     {
         // Indentation inside the pattern of a switch statement is handled by AddBlockIndentationOperation. This continue ensures that bracket-specific
         // operations are skipped for switch patterns, as they are not formatted like blocks.
-        if (node.Parent is SwitchExpressionArmSyntax arm && arm.Pattern == node)
+        if (IsWithinSwitchExpressionArmPattern(node))
         {
             return;
         }
@@ -335,5 +335,26 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             // embedded statement is done
             AddIndentBlockOperation(list, firstToken, lastToken, TextSpan.FromBounds(firstToken.FullSpan.Start, lastToken.FullSpan.End));
         }
+    }
+
+    private static bool IsWithinSwitchExpressionArmPattern(SyntaxNode node)
+    {
+        // Walk up the parent chain to see if this node is within the pattern of a switch expression arm.
+        // This handles cases like ['a'] or "b" where the list pattern is inside a binary pattern.
+        for (var current = node; current != null; current = current.Parent)
+        {
+            if (current.Parent is SwitchExpressionArmSyntax arm && arm.Pattern == current)
+            {
+                return true;
+            }
+
+            // Stop walking if we've left the pattern context
+            if (current is SwitchExpressionArmSyntax)
+            {
+                return false;
+            }
+        }
+
+        return false;
     }
 }
