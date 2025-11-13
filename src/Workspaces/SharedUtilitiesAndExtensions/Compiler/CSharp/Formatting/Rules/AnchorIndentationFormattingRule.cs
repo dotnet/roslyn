@@ -49,38 +49,6 @@ internal sealed class AnchorIndentationFormattingRule : BaseFormattingRule
 
         switch (node)
         {
-            case LabeledStatementSyntax labeledStatement:
-                // If a labeled statement follows an embedded statement (like an if without braces),
-                // it should be anchored to the containing block, not the embedded statement.
-                // This prevents the label from being incorrectly indented.
-                var previousToken = labeledStatement.GetFirstToken(includeZeroWidth: true).GetPreviousToken(includeZeroWidth: true);
-                if (previousToken.Parent is StatementSyntax previousStatement &&
-                    previousStatement.Parent != null &&
-                    previousStatement.IsEmbeddedStatement())
-                {
-                    // Walk up through all levels of embedded statements (e.g., if (...) if (...) if (...) x();)
-                    // to find the top-most statement owner that isn't itself an embedded statement.
-                    var embeddedStatementOwner = previousStatement.Parent;
-                    while (embeddedStatementOwner.IsEmbeddedStatement())
-                    {
-                        if (embeddedStatementOwner.Parent == null)
-                            break;
-
-                        embeddedStatementOwner = embeddedStatementOwner.Parent;
-                    }
-
-                    // Get the previous token before the top-most embedded statement owner to use as anchor
-                    var anchorToken = embeddedStatementOwner.GetFirstToken(includeZeroWidth: true).GetPreviousToken(includeZeroWidth: true);
-                    if (!anchorToken.IsKind(SyntaxKind.None))
-                    {
-                        AddAnchorIndentationOperation(list, anchorToken, labeledStatement.GetLastToken(includeZeroWidth: true));
-                        return;
-                    }
-                }
-
-                AddAnchorIndentationOperation(list, labeledStatement);
-                return;
-
             case StatementSyntax statement:
                 AddAnchorIndentationOperation(list, statement);
                 return;

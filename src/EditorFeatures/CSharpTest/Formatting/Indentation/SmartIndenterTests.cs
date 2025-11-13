@@ -1072,54 +1072,6 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             indentationLine: 10,
             expectedIndentation: 12);
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35105")]
-    public void LabelAfterIfStatementWithoutBraces()
-        => AssertSmartIndent(
-            """
-            class Test
-            {
-                static void Test()
-                {
-                    Test();
-
-                label1:
-                    Test();
-                    if (true)
-                        Test();
-
-            label2:
-                    
-                }
-            }
-
-
-            """,
-            indentationLine: 11,
-            expectedIndentation: 8);
-
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35105")]
-    public void LabelAfterNestedIfStatementsWithoutBraces()
-        => AssertSmartIndent(
-            """
-            class Test
-            {
-                static void Test()
-                {
-                    if (true)
-                        if (true)
-                            if (true)
-                                Test();
-
-            label:
-                    
-                }
-            }
-
-
-            """,
-            indentationLine: 11,
-            expectedIndentation: 8);
-
     [WpfFact]
     public void QueryExpression1()
         => AssertSmartIndent(
