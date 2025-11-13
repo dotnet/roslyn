@@ -11627,7 +11627,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     {
                         var a = 1;
 
-                        // bellow
+                        // comment
                         var b = 2;
                     };
                 }
@@ -11643,7 +11643,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                                 {
                                     var a = 1;
 
-                                    // bellow
+                                    // comment
                                     var b = 2;
                                 };
                 }
