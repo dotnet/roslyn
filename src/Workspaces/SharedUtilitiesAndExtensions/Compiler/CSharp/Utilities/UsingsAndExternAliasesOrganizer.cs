@@ -91,6 +91,7 @@ internal static partial class UsingsAndExternAliasesOrganizer
         {
             // Both normal usings.  Place them in groups if their first namespace
             // component differs.
+            // LanguageParser.ParseUsingDirective guarantees that if there is no alias, Name is always present
             Contract.ThrowIfNull(using1.Name);
             Contract.ThrowIfNull(using2.Name);
             var name1 = using1.Name.GetFirstToken().ValueText;

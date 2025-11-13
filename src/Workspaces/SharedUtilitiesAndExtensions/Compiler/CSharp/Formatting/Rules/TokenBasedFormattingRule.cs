@@ -301,13 +301,10 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             return "static";
 
         // Regular namespace using - group by first token
-        if (usingDirective.Name != null)
-        {
-            var firstToken = usingDirective.Name.GetFirstToken().ValueText;
-            return $"namespace:{firstToken}";
-        }
-
-        return "other";
+        // LanguageParser.ParseUsingDirective guarantees that if there is no alias, Name is always present
+        Contract.ThrowIfNull(usingDirective.Name);
+        var firstToken = usingDirective.Name.GetFirstToken().ValueText;
+        return $"namespace:{firstToken}";
     }
 
     public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
