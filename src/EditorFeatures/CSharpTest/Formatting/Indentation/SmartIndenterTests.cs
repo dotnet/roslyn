@@ -1087,13 +1087,14 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                     if (true)
                         Test();
 
-
+            label2:
+                    
                 }
             }
 
 
             """,
-            indentationLine: 10,
+            indentationLine: 11,
             expectedIndentation: 8);
 
     [WpfFact]
