@@ -53,6 +53,8 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
         AddBracketIndentationOperation(list, node);
 
+        AddParenthesizedPatternIndentationOperation(list, node);
+
         AddLabelIndentationOperation(list, node);
 
         AddSwitchIndentationOperation(list, node);
@@ -282,6 +284,18 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
             SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
         }
+    }
+
+    private static void AddParenthesizedPatternIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+    {
+        if (node is not ParenthesizedPatternSyntax parenthesizedPattern)
+        {
+            return;
+        }
+
+        // Add indentation for the content inside the parentheses.
+        // This indents the pattern content between the opening and closing parens.
+        AddIndentBlockOperation(list, parenthesizedPattern.OpenParenToken.GetNextToken(includeZeroWidth: true), parenthesizedPattern.CloseParenToken.GetPreviousToken(includeZeroWidth: true));
     }
 
     private static void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
