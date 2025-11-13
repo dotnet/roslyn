@@ -3316,6 +3316,90 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
 
     [Fact]
+    public Task QueryExpressionWithCommentAfterFromClause()
+        => AssertFormatAsync("""
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in args
+                        // Test
+                        select item.Length;
+                }
+            }
+            """, """
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in args
+                            // Test
+                        select item.Length;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task QueryExpressionWithCommentBeforeWhereClause()
+        => AssertFormatAsync("""
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in args
+                        // Filter
+                        where item.Length > 0
+                        select item.Length;
+                }
+            }
+            """, """
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in args
+                            // Filter
+                        where item.Length > 0
+                        select item.Length;
+                }
+            }
+            """);
+
+    [Fact]
+    public Task QueryExpressionWithMultipleComments()
+        => AssertFormatAsync("""
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in args
+                        // Comment 1
+                        where item.Length > 0
+                        // Comment 2
+                        select item.Length;
+                }
+            }
+            """, """
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in args
+                            // Comment 1
+                        where item.Length > 0
+                            // Comment 2
+                        select item.Length;
+                }
+            }
+            """);
+
+    [Fact]
     public Task Label1()
         => AssertFormatAsync("""
             class C

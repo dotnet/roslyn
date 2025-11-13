@@ -101,7 +101,10 @@ internal sealed class QueryExpressionFormattingRule : BaseFormattingRule
             var endToken = queryExpression.GetLastToken(includeZeroWidth: true);
             if (!baseToken.IsMissing && !baseToken.Equals(endToken))
             {
-                var startToken = baseToken.GetNextToken(includeZeroWidth: true);
+                // Start the alignment from the first clause in the query body, not from the token
+                // immediately after 'from'. This ensures that comments between the from clause and
+                // the first query body clause are aligned with the clauses, not indented.
+                var startToken = queryExpression.Body.GetFirstToken(includeZeroWidth: true);
                 SetAlignmentBlockOperation(list, baseToken, startToken, endToken);
             }
         }
