@@ -1537,6 +1537,58 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76168")]
+    public Task EndRegionFollowedByLabel()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    int i = 0;
+
+                    #region region one
+                    if (i == 0)
+                    {
+                        goto label0;
+                    }
+                    else if (i == 1)
+                    {
+                        goto label1;
+                    }
+                    #endregion
+
+                label0:
+                    return;
+                label1:
+                    return;
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    int i = 0;
+
+                    #region region one
+                    if (i == 0)
+                    {
+                        goto label0;
+                    }
+                    else if (i == 1)
+                    {
+                        goto label1;
+                    }
+            #endregion
+
+            label0:
+                    return;
+            label1:
+                    return;
+                }
+            }
+            """);
+
     [Fact]
     public Task RefKeywords()
         => AssertFormatAsync("""
