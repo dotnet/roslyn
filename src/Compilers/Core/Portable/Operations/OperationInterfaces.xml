@@ -3669,7 +3669,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ICollectionExpressionOperation" Base="IOperation"  HasType="true" ChildrenOrder="ConstructArguments,Elements">
+  <Node Name="ICollectionExpressionOperation" Base="IOperation" HasType="true" ChildrenOrder="ConstructArguments,Elements">
     <Comments>
       <summary>
         Represents a collection expression.

@@ -16,6 +16,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(this.CollectionBuilderMethod is not null);
                 Debug.Assert(this.CollectionBuilderElementsPlaceholder is not null);
             }
+
+#if DEBUG
+            var collectionCreation = this.CollectionCreation;
+            while (collectionCreation is BoundConversion conversion)
+                collectionCreation = conversion.Operand;
+
+            Debug.Assert(collectionCreation
+                            is null
+                            or BoundObjectCreationExpression
+                            or BoundCall
+                            or BoundNewT
+                            or BoundBadExpression);
+#endif
         }
     }
 
