@@ -296,6 +296,15 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         // Add indentation for the content inside the parentheses.
         // This indents the pattern content between the opening and closing parens.
         AddIndentBlockOperation(list, parenthesizedPattern.OpenParenToken.GetNextToken(includeZeroWidth: true), parenthesizedPattern.CloseParenToken.GetPreviousToken(includeZeroWidth: true));
+
+        // Set alignment for the opening and closing parens to align with the first token on the line.
+        // Similar to collection expressions, use the previous token as the base.
+        var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
+        var firstToken = parenthesizedPattern.GetFirstToken(includeZeroWidth: true);
+        var lastToken = parenthesizedPattern.GetLastToken(includeZeroWidth: true);
+        var baseToken = firstToken.GetPreviousToken(includeZeroWidth: true);
+
+        SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
     }
 
     private static void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
