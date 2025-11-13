@@ -106,11 +106,11 @@
                     </StackPanel>
                 </HierarchicalDataTemplate>
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
-                     Color="{StaticResource {x:Static vsshell:VsColors.NewProjectItemInactiveBorderKey}}" />
+                     Color="{StaticResource {x:Static vsshell:VsColors.ToolboxSelectedHeadingBeginKey}}" />
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
                      Color="{DynamicResource {x:Static vsshell:VsColors.ButtonTextKey}}"/>
                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
-                     Color="{StaticResource {x:Static vsshell:VsColors.NewProjectItemInactiveBorderKey}}" />
+                     Color="{StaticResource {x:Static vsshell:VsColors.ToolboxSelectedHeadingBeginKey}}" />
                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
                      Color="{DynamicResource {x:Static vsshell:VsColors.ButtonTextKey}}"/>
             </TreeView.Resources>
