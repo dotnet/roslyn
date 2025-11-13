@@ -63,6 +63,7 @@ internal static partial class UsingsAndExternAliasesOrganizer
         }
     }
 
+    // NOTE: Stay in sync with TokenBasedFormattingRule.GetGroupIdentifier
     public static bool NeedsGrouping(
         UsingDirectiveSyntax using1,
         UsingDirectiveSyntax using2)

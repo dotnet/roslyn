@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -267,7 +268,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             return true;
 
         // Track which group identifiers we've seen
-        var seenGroups = new HashSet<string>();
+        using var _ = PooledHashSet<string>.GetInstance(out var seenGroups);
         string? currentGroup = null;
 
         for (var i = 0; i < usings.Count; i++)
@@ -278,13 +279,13 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             if (groupId != currentGroup)
             {
                 // Check if we've seen this group before
-                if (seenGroups.Contains(groupId))
+                // HashSet.Add returns false if the item was already in the set
+                if (!seenGroups.Add(groupId))
                 {
                     // We've seen this group already, so groups are not contiguous
                     return false;
                 }
 
-                seenGroups.Add(groupId);
                 currentGroup = groupId;
             }
         }
@@ -296,14 +297,12 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
     {
         // Get a unique identifier for the group this using belongs to
         // Based on the logic in UsingsAndExternAliasesOrganizer.NeedsGrouping
+        // NOTE: Stay in sync with UsingsAndExternAliasesOrganizer.NeedsGrouping
 
-        var isUsingStatic = usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);
-        var isAlias = usingDirective.Alias != null;
-
-        if (isAlias)
+        if (usingDirective.Alias != null)
             return "alias";
 
-        if (isUsingStatic)
+        if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
             return "static";
 
         // Regular namespace using - group by first token

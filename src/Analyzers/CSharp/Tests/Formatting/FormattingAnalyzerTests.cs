@@ -605,4 +605,211 @@ public sealed class FormattingAnalyzerTests
             FixedState = { Sources = { testCode } },
         }.RunAsync();
     }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TestSeparateImportDirectiveGroups_WithGroupedAliases(bool sortSystemDirectivesFirst)
+    {
+        // Test that aliases are properly grouped
+        var testCode = """
+            namespace TestNamespace;
+
+            using A = System.String;
+            using B = System.Int32;[||]
+            using System.Collections.Generic;
+
+            class TestClass { }
+            """;
+        var fixedCode = """
+            namespace TestNamespace;
+
+            using A = System.String;
+            using B = System.Int32;
+
+            using System.Collections.Generic;
+
+            class TestClass { }
+            """;
+        await new Verify.Test
+        {
+            TestState =
+            {
+                Sources = { testCode },
+                AnalyzerConfigFiles =
+                {
+                    ("/.editorconfig", $$"""
+                    root = true
+                    [*.cs]
+                    dotnet_separate_import_directive_groups = true
+                    dotnet_sort_system_directives_first = {{sortSystemDirectivesFirst}}
+                    """),
+                },
+            },
+            FixedState = { Sources = { fixedCode } },
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TestSeparateImportDirectiveGroups_WithUngroupedAliases(bool sortSystemDirectivesFirst)
+    {
+        // Test that ungrouped aliases (aliases appearing in multiple places) don't trigger separators
+        var testCode = """
+            namespace TestNamespace;
+
+            using A = System.String;
+            using System.Collections.Generic;
+            using B = System.Int32;
+
+            class TestClass { }
+            """;
+        await new Verify.Test
+        {
+            TestState =
+            {
+                Sources = { testCode },
+                AnalyzerConfigFiles =
+                {
+                    ("/.editorconfig", $$"""
+                    root = true
+                    [*.cs]
+                    dotnet_separate_import_directive_groups = true
+                    dotnet_sort_system_directives_first = {{sortSystemDirectivesFirst}}
+                    """),
+                },
+            },
+            FixedState = { Sources = { testCode } },
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TestSeparateImportDirectiveGroups_WithGroupedStaticUsings(bool sortSystemDirectivesFirst)
+    {
+        // Test that static usings are properly grouped
+        var testCode = """
+            namespace TestNamespace;
+
+            using static System.Math;
+            using static System.Console;[||]
+            using System.Collections.Generic;
+
+            class TestClass { }
+            """;
+        var fixedCode = """
+            namespace TestNamespace;
+
+            using static System.Math;
+            using static System.Console;
+
+            using System.Collections.Generic;
+
+            class TestClass { }
+            """;
+        await new Verify.Test
+        {
+            TestState =
+            {
+                Sources = { testCode },
+                AnalyzerConfigFiles =
+                {
+                    ("/.editorconfig", $$"""
+                    root = true
+                    [*.cs]
+                    dotnet_separate_import_directive_groups = true
+                    dotnet_sort_system_directives_first = {{sortSystemDirectivesFirst}}
+                    """),
+                },
+            },
+            FixedState = { Sources = { fixedCode } },
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TestSeparateImportDirectiveGroups_WithUngroupedStaticUsings(bool sortSystemDirectivesFirst)
+    {
+        // Test that ungrouped static usings don't trigger separators
+        var testCode = """
+            namespace TestNamespace;
+
+            using static System.Math;
+            using System.Collections.Generic;
+            using static System.Console;
+
+            class TestClass { }
+            """;
+        await new Verify.Test
+        {
+            TestState =
+            {
+                Sources = { testCode },
+                AnalyzerConfigFiles =
+                {
+                    ("/.editorconfig", $$"""
+                    root = true
+                    [*.cs]
+                    dotnet_separate_import_directive_groups = true
+                    dotnet_sort_system_directives_first = {{sortSystemDirectivesFirst}}
+                    """),
+                },
+            },
+            FixedState = { Sources = { testCode } },
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TestSeparateImportDirectiveGroups_WithMixedAliasesStaticsAndNamespaces(bool sortSystemDirectivesFirst)
+    {
+        // Test combinations of aliases, static usings, and regular namespaces
+        var testCode = """
+            namespace TestNamespace;
+
+            using A = System.String;
+            using B = System.Int32;[||]
+            using static System.Math;
+            using static System.Console;[||]
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class TestClass { }
+            """;
+        var fixedCode = """
+            namespace TestNamespace;
+
+            using A = System.String;
+            using B = System.Int32;
+
+            using static System.Math;
+            using static System.Console;
+
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class TestClass { }
+            """;
+        await new Verify.Test
+        {
+            TestState =
+            {
+                Sources = { testCode },
+                AnalyzerConfigFiles =
+                {
+                    ("/.editorconfig", $$"""
+                    root = true
+                    [*.cs]
+                    dotnet_separate_import_directive_groups = true
+                    dotnet_sort_system_directives_first = {{sortSystemDirectivesFirst}}
+                    """),
+                },
+            },
+            FixedState = { Sources = { fixedCode } },
+        }.RunAsync();
+    }
 }
