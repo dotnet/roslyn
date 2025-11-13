@@ -11580,7 +11580,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
     public Task NestedEmbeddedStatementsOnSameLine_IfIf()
         => AssertFormatAsync("""
             class C
@@ -11606,7 +11606,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
     public Task NestedEmbeddedStatementsOnDifferentLines_IfIf()
         => AssertFormatAsync("""
             class C
@@ -11634,7 +11634,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
     public Task NestedEmbeddedStatementsOnSameLine_IfUsing()
         => AssertFormatAsync("""
             class C
@@ -11660,7 +11660,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
     public Task NestedEmbeddedStatementsOnDifferentLines_IfUsing()
         => AssertFormatAsync("""
             class C
@@ -11688,7 +11688,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
     public Task NestedEmbeddedStatementsOnSameLine_WhileFor()
         => AssertFormatAsync("""
             class C
@@ -11714,7 +11714,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
     public Task NestedEmbeddedStatementsOnDifferentLines_WhileFor()
         => AssertFormatAsync("""
             class C
@@ -11742,7 +11742,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
     public Task NestedEmbeddedStatementsOnSameLine_LockForeach()
         => AssertFormatAsync("""
             class C
@@ -11768,7 +11768,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
     public Task NestedEmbeddedStatementsOnDifferentLines_LockForeach()
         => AssertFormatAsync("""
             class C
@@ -11796,7 +11796,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
     public Task NestedEmbeddedStatementsOnSameLine_FixedDo()
         => AssertFormatAsync("""
             class C
@@ -11828,7 +11828,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
     public Task NestedEmbeddedStatementsOnDifferentLines_FixedDo()
         => AssertFormatAsync("""
             class C
