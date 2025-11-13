@@ -625,7 +625,7 @@ public sealed class FormattingTests_Patterns : CSharpFormattingTestBase
                     if (input is not (
             { InnerException: null } or
             { Data: not null }
-            ))
+                    ))
                     {
                         return false;
                     }

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -276,35 +277,26 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             // Then we want to compute the indentation relative to the construct that the collection expression is
             // attached to.  So ask to be relative to the start of the line the prior token is on if we're on the
             // same line as it.
-            var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
-
-            var firstToken = node.GetFirstToken(includeZeroWidth: true);
-            var lastToken = node.GetLastToken(includeZeroWidth: true);
-            var baseToken = firstToken.GetPreviousToken(includeZeroWidth: true);
-
-            SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
+            SetAlignmentBlockOperation(
+                list, bracketPair.openBracket.GetPreviousToken(includeZeroWidth: true),
+                bracketPair.openBracket, bracketPair.closeBracket,
+                IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
         }
     }
 
     private static void AddParenthesizedPatternIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
         if (node is not ParenthesizedPatternSyntax parenthesizedPattern)
-        {
             return;
-        }
 
         // Add indentation for the content inside the parentheses.
         // This indents the pattern content between the opening and closing parens.
-        AddIndentBlockOperation(list, parenthesizedPattern.OpenParenToken.GetNextToken(includeZeroWidth: true), parenthesizedPattern.CloseParenToken.GetPreviousToken(includeZeroWidth: true));
+        var startToken = parenthesizedPattern.OpenParenToken.GetNextToken(includeZeroWidth: true);
+        var endToken = parenthesizedPattern.CloseParenToken.GetPreviousToken(includeZeroWidth: true);
+        AddIndentBlockOperation(
+            list, startToken, endToken,
+            TextSpan.FromBounds(parenthesizedPattern.OpenParenToken.Span.Start, parenthesizedPattern.CloseParenToken.Span.End));
 
-        // Set alignment for the opening and closing parens to align with the first token on the line.
-        // Similar to collection expressions, use the previous token as the base.
-        var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
-        var firstToken = parenthesizedPattern.GetFirstToken(includeZeroWidth: true);
-        var lastToken = parenthesizedPattern.GetLastToken(includeZeroWidth: true);
-        var baseToken = firstToken.GetPreviousToken(includeZeroWidth: true);
-
-        SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
     }
 
     private static void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
