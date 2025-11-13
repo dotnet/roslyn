@@ -5939,6 +5939,36 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76757")]
+    public Task FormatSwitchExpression_ListPatternInAndPattern()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    var x = new object() switch
+                    {
+                        [var a] and [> 0] => 1,
+                        [1, 2] and [.., var b] => 2,
+                        _ => 0,
+                    };
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    var x = new object() switch
+                    {
+            [var a] and [> 0] => 1,
+            [1, 2] and [.., var b] => 2,
+                        _ => 0,
+                    };
+                }
+            }
+            """);
+
     [Fact]
     public Task FormatSwitchWithPropertyPattern()
         => AssertFormatAsync("""
