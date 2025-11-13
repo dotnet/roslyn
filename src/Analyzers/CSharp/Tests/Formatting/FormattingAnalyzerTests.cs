@@ -515,7 +515,8 @@ public sealed class FormattingAnalyzerTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public async Task TestSeparateImportDirectiveGroups_WithUnsortedGroupsNoSeparator()
     {
-        // Test that usings with unsorted groups don't trigger separator (existing behavior preserved)
+        // Test that usings with unsorted groups don't trigger separator
+        // Azure group is not sorted (Sas before Blobs)
         var testCode = """
             namespace TestNamespace;
 
@@ -523,6 +524,51 @@ public sealed class FormattingAnalyzerTests
             using Azure.Storage.Blobs;
             using System.Diagnostics;
             using NuGet.Versioning;
+
+            class TestClass { }
+            """;
+        var fixedCode = """
+            namespace TestNamespace;
+
+            using Azure.Storage.Sas;
+            using Azure.Storage.Blobs;
+
+            using System.Diagnostics;
+
+            using NuGet.Versioning;
+
+            class TestClass { }
+            """;
+        await new Verify.Test
+        {
+            TestState =
+            {
+                Sources = { testCode },
+                AnalyzerConfigFiles =
+                {
+                    ("/.editorconfig", """
+                    root = true
+                    [*.cs]
+                    dotnet_separate_import_directive_groups = true
+                    """),
+                },
+            },
+            FixedState = { Sources = { fixedCode } },
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    public async Task TestSeparateImportDirectiveGroups_WithUngroupedUsingsNoSeparator()
+    {
+        // Test that usings that are not grouped don't trigger separator
+        // Azure usings at start and end means they're not properly grouped
+        var testCode = """
+            namespace TestNamespace;
+
+            using Azure.Storage.Blobs;
+            using System.Diagnostics;
+            using NuGet.Versioning;
+            using Azure.Storage.Sas;
 
             class TestClass { }
             """;

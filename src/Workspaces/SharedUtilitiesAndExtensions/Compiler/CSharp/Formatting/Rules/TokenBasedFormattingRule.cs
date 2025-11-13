@@ -281,7 +281,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             if (UsingsAndExternAliasesOrganizer.NeedsGrouping(usings[i - 1], usings[i]))
             {
                 // End of a group - check if this group is sorted
-                if (!IsRangeSorted(usings, currentGroupStart, i - 1, comparer))
+                if (!IsRangeSorted(usings, startInclusive: currentGroupStart, endExclusive: i, comparer))
                     return false;
 
                 currentGroupStart = i;
@@ -289,12 +289,12 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         }
 
         // Check the last group
-        return IsRangeSorted(usings, currentGroupStart, usings.Count - 1, comparer);
+        return IsRangeSorted(usings, startInclusive: currentGroupStart, endExclusive: usings.Count, comparer);
     }
 
-    private static bool IsRangeSorted(SyntaxList<UsingDirectiveSyntax> usings, int start, int end, IComparer<SyntaxNode> comparer)
+    private static bool IsRangeSorted(SyntaxList<UsingDirectiveSyntax> usings, int startInclusive, int endExclusive, IComparer<SyntaxNode> comparer)
     {
-        for (var i = start; i < end; i++)
+        for (var i = startInclusive; i < endExclusive - 1; i++)
         {
             if (comparer.Compare(usings[i], usings[i + 1]) > 0)
                 return false;
