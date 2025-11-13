@@ -425,9 +425,7 @@ public sealed class FormattingAnalyzerTests
             }
             """);
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public async Task TestSeparateImportDirectiveGroups_WithGroupedButNotGloballySortedUsings(bool sortSystemDirectivesFirst)
     {
         // Test that usings that are grouped correctly (each group sorted) but not globally sorted
@@ -473,9 +471,7 @@ public sealed class FormattingAnalyzerTests
         }.RunAsync();
     }
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public async Task TestSeparateImportDirectiveGroups_WithAlphabeticallySortedUsings(bool sortSystemDirectivesFirst)
     {
         // Test that usings that are alphabetically sorted trigger the separator
@@ -520,9 +516,7 @@ public sealed class FormattingAnalyzerTests
         }.RunAsync();
     }
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public async Task TestSeparateImportDirectiveGroups_WithUnsortedButGroupedUsings(bool sortSystemDirectivesFirst)
     {
         // Test that usings are properly grouped even if not sorted within groups
@@ -569,9 +563,7 @@ public sealed class FormattingAnalyzerTests
         }.RunAsync();
     }
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public async Task TestSeparateImportDirectiveGroups_WithUngroupedUsingsNoSeparator(bool sortSystemDirectivesFirst)
     {
         // Test that usings that are not grouped don't trigger separator
@@ -606,9 +598,7 @@ public sealed class FormattingAnalyzerTests
         }.RunAsync();
     }
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public async Task TestSeparateImportDirectiveGroups_WithGroupedAliases(bool sortSystemDirectivesFirst)
     {
         // Test that aliases are properly grouped
@@ -650,9 +640,7 @@ public sealed class FormattingAnalyzerTests
         }.RunAsync();
     }
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public async Task TestSeparateImportDirectiveGroups_WithUngroupedAliases(bool sortSystemDirectivesFirst)
     {
         // Test that ungrouped aliases (aliases appearing in multiple places) don't trigger separators
@@ -684,9 +672,7 @@ public sealed class FormattingAnalyzerTests
         }.RunAsync();
     }
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public async Task TestSeparateImportDirectiveGroups_WithGroupedStaticUsings(bool sortSystemDirectivesFirst)
     {
         // Test that static usings are properly grouped
@@ -728,9 +714,7 @@ public sealed class FormattingAnalyzerTests
         }.RunAsync();
     }
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public async Task TestSeparateImportDirectiveGroups_WithUngroupedStaticUsings(bool sortSystemDirectivesFirst)
     {
         // Test that ungrouped static usings don't trigger separators
@@ -762,9 +746,7 @@ public sealed class FormattingAnalyzerTests
         }.RunAsync();
     }
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public async Task TestSeparateImportDirectiveGroups_WithMixedAliasesStaticsAndNamespaces(bool sortSystemDirectivesFirst)
     {
         // Test combinations of aliases, static usings, and regular namespaces
