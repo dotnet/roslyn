@@ -442,6 +442,22 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10526")]
+    public Task ExpressionLambdaListWithComma()
+        => AssertNoFormattingChangesAsync("""
+            using System;
+
+            class Test
+            {
+                void M()
+                {
+                    int x = 1, y = 2;
+                    Func<int> a = () => x,
+                              b = () => y;
+                }
+            }
+            """);
+
     [Fact]
     public Task Scen1()
         => AssertFormatAsync("""
