@@ -425,11 +425,14 @@ public sealed class FormattingAnalyzerTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
-    public async Task TestSeparateImportDirectiveGroups_WithGroupedButNotGloballySortedUsings()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TestSeparateImportDirectiveGroups_WithGroupedButNotGloballySortedUsings(bool sortSystemDirectivesFirst)
     {
         // Test that usings that are grouped correctly (each group sorted) but not globally sorted
         // still trigger the separator when dotnet_separate_import_directive_groups is true
+        // This should work the same regardless of dotnet_sort_system_directives_first setting
         var testCode = """
             namespace TestNamespace;
 
@@ -458,10 +461,11 @@ public sealed class FormattingAnalyzerTests
                 Sources = { testCode },
                 AnalyzerConfigFiles =
                 {
-                    ("/.editorconfig", """
+                    ("/.editorconfig", $$"""
                     root = true
                     [*.cs]
                     dotnet_separate_import_directive_groups = true
+                    dotnet_sort_system_directives_first = {{sortSystemDirectivesFirst}}
                     """),
                 },
             },
@@ -469,10 +473,13 @@ public sealed class FormattingAnalyzerTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
-    public async Task TestSeparateImportDirectiveGroups_WithAlphabeticallySortedUsings()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TestSeparateImportDirectiveGroups_WithAlphabeticallySortedUsings(bool sortSystemDirectivesFirst)
     {
         // Test that usings that are alphabetically sorted trigger the separator
+        // This should work the same regardless of dotnet_sort_system_directives_first setting
         var testCode = """
             namespace TestNamespace;
 
@@ -501,10 +508,11 @@ public sealed class FormattingAnalyzerTests
                 Sources = { testCode },
                 AnalyzerConfigFiles =
                 {
-                    ("/.editorconfig", """
+                    ("/.editorconfig", $$"""
                     root = true
                     [*.cs]
                     dotnet_separate_import_directive_groups = true
+                    dotnet_sort_system_directives_first = {{sortSystemDirectivesFirst}}
                     """),
                 },
             },
@@ -512,11 +520,14 @@ public sealed class FormattingAnalyzerTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
-    public async Task TestSeparateImportDirectiveGroups_WithUnsortedButGroupedUsings()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TestSeparateImportDirectiveGroups_WithUnsortedButGroupedUsings(bool sortSystemDirectivesFirst)
     {
         // Test that usings are properly grouped even if not sorted within groups
         // Azure group is not sorted (Sas before Blobs), but still properly grouped
+        // This should work the same regardless of dotnet_sort_system_directives_first setting
         var testCode = """
             namespace TestNamespace;
 
@@ -546,10 +557,11 @@ public sealed class FormattingAnalyzerTests
                 Sources = { testCode },
                 AnalyzerConfigFiles =
                 {
-                    ("/.editorconfig", """
+                    ("/.editorconfig", $$"""
                     root = true
                     [*.cs]
                     dotnet_separate_import_directive_groups = true
+                    dotnet_sort_system_directives_first = {{sortSystemDirectivesFirst}}
                     """),
                 },
             },
@@ -557,11 +569,14 @@ public sealed class FormattingAnalyzerTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
-    public async Task TestSeparateImportDirectiveGroups_WithUngroupedUsingsNoSeparator()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TestSeparateImportDirectiveGroups_WithUngroupedUsingsNoSeparator(bool sortSystemDirectivesFirst)
     {
         // Test that usings that are not grouped don't trigger separator
         // Azure usings at start and end means they're not properly grouped
+        // This should work the same regardless of dotnet_sort_system_directives_first setting
         var testCode = """
             namespace TestNamespace;
 
@@ -579,10 +594,11 @@ public sealed class FormattingAnalyzerTests
                 Sources = { testCode },
                 AnalyzerConfigFiles =
                 {
-                    ("/.editorconfig", """
+                    ("/.editorconfig", $$"""
                     root = true
                     [*.cs]
                     dotnet_separate_import_directive_groups = true
+                    dotnet_sort_system_directives_first = {{sortSystemDirectivesFirst}}
                     """),
                 },
             },
