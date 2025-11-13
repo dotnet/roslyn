@@ -216,20 +216,6 @@ internal partial class CSharpIndentationService
         if (token.IsSemicolonOfEmbeddedStatement() ||
             token.IsCloseBraceOfEmbeddedBlock())
         {
-            // However, if the line being indented starts with a label, we should not use the embedded
-            // statement indentation logic. Instead, fall through to use the default indentation logic
-            // which will correctly handle the label case.
-            var firstNonWhitespacePosition = indenter.LineToBeIndented.GetFirstNonWhitespacePosition();
-            if (firstNonWhitespacePosition.HasValue)
-            {
-                var firstToken = indenter.Root.FindToken(firstNonWhitespacePosition.Value);
-                if (firstToken.IsIdentifierInLabeledStatement())
-                {
-                    // Don't use embedded statement indentation logic for labels
-                    return GetDefaultIndentationFromToken(indenter, token);
-                }
-            }
-
             RoslynDebug.Assert(
                 token.Parent?.Parent is StatementSyntax or ElseClauseSyntax);
 
