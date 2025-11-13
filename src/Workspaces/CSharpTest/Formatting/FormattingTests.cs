@@ -396,6 +396,68 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10526")]
+    public Task LambdaListWithComma()
+        => AssertNoFormattingChangesAsync("""
+            using System;
+
+            class Test
+            {
+                void M()
+                {
+                    Action a = () => { },
+                           b = () => { };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10526")]
+    public Task LambdaListWithCommaMultipleVariables()
+        => AssertNoFormattingChangesAsync("""
+            using System;
+
+            class Test
+            {
+                void M()
+                {
+                    Action a = () => { },
+                           b = () => { },
+                           c = () => { };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10526")]
+    public Task AnonymousMethodListWithComma()
+        => AssertNoFormattingChangesAsync("""
+            using System;
+
+            class Test
+            {
+                void M()
+                {
+                    Action a = delegate { },
+                           b = delegate { };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10526")]
+    public Task ExpressionLambdaListWithComma()
+        => AssertNoFormattingChangesAsync("""
+            using System;
+
+            class Test
+            {
+                void M()
+                {
+                    int x = 1, y = 2;
+                    Func<int> a = () => x,
+                              b = () => y;
+                }
+            }
+            """);
+
     [Fact]
     public Task Scen1()
         => AssertFormatAsync("""
@@ -3253,6 +3315,176 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }           
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8100")]
+    public Task QueryExpressionWithCommentAfterFromClause()
+        => AssertFormatAsync("""
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in args
+                        // Test
+                        select item.Length;
+                }
+            }
+            """, """
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in args
+                            // Test
+                        select item.Length;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8100")]
+    public Task QueryExpressionWithCommentBeforeWhereClause()
+        => AssertFormatAsync("""
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in args
+                        // Filter
+                        where item.Length > 0
+                        select item.Length;
+                }
+            }
+            """, """
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in args
+                            // Filter
+                        where item.Length > 0
+                        select item.Length;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8100")]
+    public Task QueryExpressionWithMultipleComments()
+        => AssertFormatAsync("""
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in args
+                        // Comment 1
+                        where item.Length > 0
+                        // Comment 2
+                        select item.Length;
+                }
+            }
+            """, """
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in args
+                            // Comment 1
+                        where item.Length > 0
+                            // Comment 2
+                        select item.Length;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8100")]
+    public Task QueryExpressionWithCommentAfterMultiLineCollection()
+        => AssertFormatAsync("""
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in GetCollection(
+                            args,
+                            moreArgs)
+                        // Test
+                        select item.Length;
+                }
+            }
+            """, """
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in GetCollection(
+                            args,
+                            moreArgs)
+                            // Test
+                        select item.Length;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8100")]
+    public Task QueryExpressionWithCommentAfterMultiLineNestedQuery()
+        => AssertFormatAsync("""
+            class C
+            {
+                void Method(string[] args, string[] otherArgs)
+                {
+                    var items =
+                        from item in from x in args
+                                     from y in otherArgs
+                                     select x + y
+                        // Test
+                        select item.Length;
+                }
+            }
+            """, """
+            class C
+            {
+                void Method(string[] args, string[] otherArgs)
+                {
+                    var items =
+                        from item in from x in args
+                                     from y in otherArgs
+                                     select x + y
+                            // Test
+                        select item.Length;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8100")]
+    public Task QueryExpressionWithCommentAfterCompleteExpressionWithErrors()
+        => AssertFormatAsync("""
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in (args.)
+                        // Test
+                        select item.Length;
+                }
+            }
+            """, """
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in (args.)
+                            // Test
+                        select item.Length;
+                }
+            }
+            """);
+
     [Fact]
     public Task Label1()
         => AssertFormatAsync("""
@@ -5903,6 +6135,72 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81203")]
+    public Task FormatSwitchExpression_ListPatternInOrAndPattern()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    var x = "y" switch
+                    {
+                        ['a'] or "b" => 1,
+                        ['c'] or ['d'] => 2,
+                        ['e'] => 3,
+                        "f" or ['g'] => 4,
+                        "h" or "i" => 5,
+                        _ => 0,
+                    };
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    var x = "y" switch
+                    {
+            ['a'] or "b" => 1,
+            ['c'] or ['d'] => 2,
+                        ['e'] => 3,
+                        "f" or ['g'] => 4,
+                        "h" or "i" => 5,
+                        _ => 0,
+                    };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81203")]
+    public Task FormatSwitchExpression_ListPatternInAndPattern()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    var x = new object() switch
+                    {
+                        [var a] and [> 0] => 1,
+                        [1, 2] and [.., var b] => 2,
+                        _ => 0,
+                    };
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    var x = new object() switch
+                    {
+            [var a] and [> 0] => 1,
+            [1, 2] and [.., var b] => 2,
+                        _ => 0,
+                    };
+                }
+            }
+            """);
+
     [Fact]
     public Task FormatSwitchWithPropertyPattern()
         => AssertFormatAsync("""
@@ -6018,6 +6316,160 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
+    public Task TupleExpression_SpaceAfterComma_False()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    var x = (1,2,3);
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    var x = (1, 2, 3);
+                }
+            }
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceAfterComma, false } });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
+    public Task TupleExpression_SpaceAfterComma_True()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    var x = (1, 2, 3);
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    var x = (1,2,3);
+                }
+            }
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceAfterComma, true } });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
+    public Task TupleType_SpaceAfterComma_False()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M((int,string,bool) tuple)
+                {
+                }
+            }
+            """, """
+            class C
+            {
+                void M((int, string, bool) tuple)
+                {
+                }
+            }
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceAfterComma, false } });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
+    public Task TupleType_SpaceAfterComma_True()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M((int, string, bool) tuple)
+                {
+                }
+            }
+            """, """
+            class C
+            {
+                void M((int,string,bool) tuple)
+                {
+                }
+            }
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceAfterComma, true } });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
+    public Task NestedTuples_SpaceAfterComma_False()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    var x = (1,(2,3),4);
+                    (int,(string,bool)) y;
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    var x = (1, (2, 3), 4);
+                    (int, (string, bool)) y;
+                }
+            }
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceAfterComma, false } });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
+    public Task Deconstruction_SpaceAfterComma_False()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    (int x,string y) = (1,"hello");
+                    var (a,b) = (1,2);
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    (int x, string y) = (1, "hello");
+                    var (a, b) = (1, 2);
+                }
+            }
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceAfterComma, false } });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
+    public Task CollectionExpression_SpaceBeforeComma()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    int[] x = [1 , 2 , 3];
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    int[] x = [1, 2, 3];
+                }
+            }
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceBeforeComma, true } });
 
     [Fact]
     public Task SpacingInSuppressNullableWarningExpression()
@@ -10718,7 +11170,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
 
             class C
             {
-                void M((int[], int[]) a)
+                void M((int[],int[]) a)
                 {
                     _ = a is ([1,2,>= 3],[1,2]);
                 }
@@ -10738,7 +11190,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
 
             class C
             {
-                void M((int[ ], int[ ]) a)
+                void M((int[ ] , int[ ]) a)
                 {
                     _ = a is ([ 1 , 2 , >= 3 ], [ 1 , 2 ]);
                 }
@@ -11576,6 +12028,394 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 {
                     { }
                      ((IDisposable)null).Dispose();
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25010")]
+    public Task LambdaWithCommentAndStatement()
+        => AssertFormatAsync("""
+            using System;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                    Action x = () =>
+                    {
+                        // Comment
+                        var a = 1;
+                        var b = 2;
+                    };
+                }
+            }
+            """, """
+            using System;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                        Action x = () =>
+                        {
+                            // Comment
+                            var a = 1;
+                            var b = 2;
+                        };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25010")]
+    public Task LambdaWithMultipleCommentsAndStatements()
+        => AssertFormatAsync("""
+            using System;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                    Action x = () =>
+                    {
+                        var a = 1;
+
+                        // comment
+                        var b = 2;
+                    };
+                }
+            }
+            """, """
+            using System;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                                Action x = () =>
+                                {
+                                    var a = 1;
+
+                                    // comment
+                                    var b = 2;
+                                };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25010")]
+    public Task IfStatementWithCommentNotAffected()
+        => AssertFormatAsync("""
+            using System;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                    if (true)
+                    {
+                        var a = 1;
+
+                        // comment
+                        var b = 2;
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                                if (true)
+                                {
+                                    var a = 1;
+
+                                    // comment
+                                    var b = 2;
+                                }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
+    public Task NestedEmbeddedStatementsOnSameLine_IfIf()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    if (true) if (true)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    if (true) if (true)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
+    public Task NestedEmbeddedStatementsOnDifferentLines_IfIf()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    if (true)
+                        if (true)
+                        {
+                            /* ... */
+                        }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    if (true)
+                if (true)
+                {
+                    /* ... */
+                }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
+    public Task NestedEmbeddedStatementsOnSameLine_IfUsing()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    if (true) using (null)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    if (true) using (null)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
+    public Task NestedEmbeddedStatementsOnDifferentLines_IfUsing()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    if (true)
+                        using (null)
+                        {
+                            /* ... */
+                        }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    if (true)
+                using (null)
+                {
+                    /* ... */
+                }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
+    public Task NestedEmbeddedStatementsOnSameLine_WhileFor()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    while (true) for (; ; )
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    while (true) for (;;)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
+    public Task NestedEmbeddedStatementsOnDifferentLines_WhileFor()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    while (true)
+                        for (; ; )
+                        {
+                            /* ... */
+                        }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    while (true)
+                for (;;)
+                {
+                    /* ... */
+                }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
+    public Task NestedEmbeddedStatementsOnSameLine_LockForeach()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    lock (null) foreach (var x in y)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    lock (null) foreach (var x in y)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
+    public Task NestedEmbeddedStatementsOnDifferentLines_LockForeach()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    lock (null)
+                        foreach (var x in y)
+                        {
+                            /* ... */
+                        }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    lock (null)
+                foreach (var x in y)
+                {
+                    /* ... */
+                }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
+    public Task NestedEmbeddedStatementsOnSameLine_FixedDo()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    unsafe
+                    {
+                        fixed (int* p = &i) do
+                        {
+                            /* ... */
+                        } while (true);
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    unsafe
+                    {
+                        fixed (int* p = &i) do
+                        {
+                            /* ... */
+                        } while (true);
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
+    public Task NestedEmbeddedStatementsOnDifferentLines_FixedDo()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    unsafe
+                    {
+                        fixed (int* p = &i)
+                            do
+                            {
+                                /* ... */
+                            } while (true);
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    unsafe
+                    {
+                        fixed (int* p = &i)
+                do
+                {
+                    /* ... */
+                } while (true);
+                    }
                 }
             }
             """);

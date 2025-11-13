@@ -278,25 +278,32 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         }
 
         // For spacing delimiters - after comma
-        if ((previousToken.IsCommaInArgumentOrParameterList() && currentKind != SyntaxKind.OmittedTypeArgumentToken)
-            || previousToken.IsCommaInInitializerExpression()
-            || previousToken.IsCommaInCollectionExpression()
-            || (previousKind == SyntaxKind.CommaToken
-                && currentKind != SyntaxKind.OmittedArraySizeExpressionToken
-                && HasFormattableBracketParent(previousToken)))
+        if (IsCommaWithCustomSpacing(previousToken, currentToken, currentKind, previousKind, checkPreviousToken: true))
         {
             return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.AfterComma));
         }
 
         // For spacing delimiters - before comma
-        if ((currentToken.IsCommaInArgumentOrParameterList() && previousKind != SyntaxKind.OmittedTypeArgumentToken)
-            || currentToken.IsCommaInInitializerExpression()
-            || previousToken.IsCommaInCollectionExpression()
-            || (currentKind == SyntaxKind.CommaToken
-                && previousKind != SyntaxKind.OmittedArraySizeExpressionToken
-                && HasFormattableBracketParent(currentToken)))
+        if (IsCommaWithCustomSpacing(previousToken, currentToken, currentKind, previousKind, checkPreviousToken: false))
         {
             return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.BeforeComma));
+        }
+
+        bool IsCommaWithCustomSpacing(SyntaxToken previousToken, SyntaxToken currentToken, SyntaxKind currentKind, SyntaxKind previousKind, bool checkPreviousToken)
+        {
+            var token = checkPreviousToken ? previousToken : currentToken;
+            var tokenKind = checkPreviousToken ? previousKind : currentKind;
+            var otherKind = checkPreviousToken ? currentKind : previousKind;
+
+            return (token.IsCommaInArgumentOrParameterList() && otherKind != SyntaxKind.OmittedTypeArgumentToken)
+                || token.IsCommaInInitializerExpression()
+                || token.IsCommaInCollectionExpression()
+                || token.IsCommaInTupleExpression()
+                || token.IsCommaInTupleType()
+                || token.IsCommaInParenthesizedVariableDesignation()
+                || (tokenKind == SyntaxKind.CommaToken
+                    && otherKind != SyntaxKind.OmittedArraySizeExpressionToken
+                    && HasFormattableBracketParent(token));
         }
 
         // For Spacing delimiters - after Dot
