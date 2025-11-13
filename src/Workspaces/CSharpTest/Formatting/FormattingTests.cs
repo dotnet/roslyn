@@ -3459,6 +3459,32 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8100")]
+    public Task QueryExpressionWithCommentAfterCompleteExpressionWithErrors()
+        => AssertFormatAsync("""
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in (args.)
+                        // Test
+                        select item.Length;
+                }
+            }
+            """, """
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in (args.)
+                            // Test
+                        select item.Length;
+                }
+            }
+            """);
+
     [Fact]
     public Task Label1()
         => AssertFormatAsync("""
