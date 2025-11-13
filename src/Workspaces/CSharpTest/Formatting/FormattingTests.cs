@@ -6020,24 +6020,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
-    public async Task TupleExpression_SpaceAfterComma_False()
-    {
-        var code = """
-            class C
-            {
-                void M()
-                {
-                    var x = (1, 2, 3);
-                }
-            }
-            """;
-
-        var options = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { SpaceAfterComma, false },
-        };
-
-        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
+    public Task TupleExpression_SpaceAfterComma_False()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -6045,28 +6029,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     var x = (1,2,3);
                 }
             }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
-    public async Task TupleExpression_SpaceAfterComma_True()
-    {
-        var code = """
-            class C
-            {
-                void M()
-                {
-                    var x = (1,2,3);
-                }
-            }
-            """;
-
-        var options = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { SpaceAfterComma, true },
-        };
-
-        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
+            """, """
             class C
             {
                 void M()
@@ -6074,83 +6037,75 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     var x = (1, 2, 3);
                 }
             }
-            """);
-    }
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceAfterComma, false } });
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
-    public async Task TupleType_SpaceAfterComma_False()
-    {
-        var code = """
-            class C
-            {
-                void M((int, string, bool) tuple)
-                {
-                }
-            }
-            """;
-
-        var options = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { SpaceAfterComma, false },
-        };
-
-        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
-            class C
-            {
-                void M((int,string,bool) tuple)
-                {
-                }
-            }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
-    public async Task TupleType_SpaceAfterComma_True()
-    {
-        var code = """
-            class C
-            {
-                void M((int,string,bool) tuple)
-                {
-                }
-            }
-            """;
-
-        var options = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { SpaceAfterComma, true },
-        };
-
-        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
-            class C
-            {
-                void M((int, string, bool) tuple)
-                {
-                }
-            }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
-    public async Task NestedTuples_SpaceAfterComma_False()
-    {
-        var code = """
+    public Task TupleExpression_SpaceAfterComma_True()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
                 {
-                    var x = (1, (2, 3), 4);
-                    (int, (string, bool)) y;
+                    var x = (1, 2, 3);
                 }
             }
-            """;
+            """, """
+            class C
+            {
+                void M()
+                {
+                    var x = (1,2,3);
+                }
+            }
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceAfterComma, true } });
 
-        var options = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { SpaceAfterComma, false },
-        };
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
+    public Task TupleType_SpaceAfterComma_False()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M((int,string,bool) tuple)
+                {
+                }
+            }
+            """, """
+            class C
+            {
+                void M((int, string, bool) tuple)
+                {
+                }
+            }
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceAfterComma, false } });
 
-        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
+    public Task TupleType_SpaceAfterComma_True()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M((int, string, bool) tuple)
+                {
+                }
+            }
+            """, """
+            class C
+            {
+                void M((int,string,bool) tuple)
+                {
+                }
+            }
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceAfterComma, true } });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
+    public Task NestedTuples_SpaceAfterComma_False()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -6159,29 +6114,22 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     (int,(string,bool)) y;
                 }
             }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
-    public async Task Deconstruction_SpaceAfterComma_False()
-    {
-        var code = """
+            """, """
             class C
             {
                 void M()
                 {
-                    (int x, string y) = (1, "hello");
-                    var (a, b) = (1, 2);
+                    var x = (1, (2, 3), 4);
+                    (int, (string, bool)) y;
                 }
             }
-            """;
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceAfterComma, false } });
 
-        var options = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { SpaceAfterComma, false },
-        };
-
-        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
+    public Task Deconstruction_SpaceAfterComma_False()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -6190,28 +6138,22 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     var (a,b) = (1,2);
                 }
             }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
-    public async Task CollectionExpression_SpaceBeforeComma()
-    {
-        var code = """
+            """, """
             class C
             {
                 void M()
                 {
-                    int[] x = [1, 2, 3];
+                    (int x, string y) = (1, "hello");
+                    var (a, b) = (1, 2);
                 }
             }
-            """;
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceAfterComma, false } });
 
-        var options = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { SpaceBeforeComma, true },
-        };
-
-        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
+    public Task CollectionExpression_SpaceBeforeComma()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -6219,8 +6161,17 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     int[] x = [1 , 2 , 3];
                 }
             }
-            """);
-    }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    int[] x = [1, 2, 3];
+                }
+            }
+            """,
+            LanguageNames.CSharp,
+            new(LanguageNames.CSharp) { { SpaceBeforeComma, true } });
 
     [Fact]
     public Task SpacingInSuppressNullableWarningExpression()
