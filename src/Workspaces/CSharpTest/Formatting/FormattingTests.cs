@@ -11579,4 +11579,195 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public Task SpaceAfterCast_Option(bool spaceAfterCast)
+    {
+        var expected = spaceAfterCast
+            ? """
+            class Program
+            {
+                void M()
+                {
+                    var a = (int) 1;
+                    var b = (string) null;
+                    var c = (double) 3.14;
+                }
+            }
+            """
+            : """
+            class Program
+            {
+                void M()
+                {
+                    var a = (int)1;
+                    var b = (string)null;
+                    var c = (double)3.14;
+                }
+            }
+            """;
+
+        var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.SpaceAfterCast, spaceAfterCast }
+        };
+
+        return AssertFormatAsync(expected, """
+            class Program
+            {
+                void M()
+                {
+                    var a = (int)  1;
+                    var b = (string)  null;
+                    var c = (double)  3.14;
+                }
+            }
+            """, changedOptionSet: changingOptions);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public Task SpaceWithinExpressionParentheses_Option(bool spaceWithinExpressionParentheses)
+    {
+        var expected = spaceWithinExpressionParentheses
+            ? """
+            class Program
+            {
+                void M()
+                {
+                    var a = ( 1 + 2 );
+                    var b = ( x );
+                }
+            }
+            """
+            : """
+            class Program
+            {
+                void M()
+                {
+                    var a = (1 + 2);
+                    var b = (x);
+                }
+            }
+            """;
+
+        var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.Expressions, spaceWithinExpressionParentheses) }
+        };
+
+        return AssertFormatAsync(expected, """
+            class Program
+            {
+                void M()
+                {
+                    var a = (  1 + 2  );
+                    var b = (  x  );
+                }
+            }
+            """, changedOptionSet: changingOptions);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public Task SpaceWithinCastParentheses_Option(bool spaceWithinCastParentheses)
+    {
+        var expected = spaceWithinCastParentheses
+            ? """
+            class Program
+            {
+                void M()
+                {
+                    var a = ( int )1;
+                    var b = ( string )null;
+                }
+            }
+            """
+            : """
+            class Program
+            {
+                void M()
+                {
+                    var a = (int)1;
+                    var b = (string)null;
+                }
+            }
+            """;
+
+        var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.TypeCasts, spaceWithinCastParentheses) }
+        };
+
+        return AssertFormatAsync(expected, """
+            class Program
+            {
+                void M()
+                {
+                    var a = (  int  )1;
+                    var b = (  string  )null;
+                }
+            }
+            """, changedOptionSet: changingOptions);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public Task SpaceWithinControlFlowParentheses_Option(bool spaceWithinControlFlowParentheses)
+    {
+        var expected = spaceWithinControlFlowParentheses
+            ? """
+            class Program
+            {
+                void M()
+                {
+                    if ( true )
+                    {
+                    }
+                    while ( false )
+                    {
+                    }
+                }
+            }
+            """
+            : """
+            class Program
+            {
+                void M()
+                {
+                    if (true)
+                    {
+                    }
+                    while (false)
+                    {
+                    }
+                }
+            }
+            """;
+
+        var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.ControlFlowStatements, spaceWithinControlFlowParentheses) }
+        };
+
+        return AssertFormatAsync(expected, """
+            class Program
+            {
+                void M()
+                {
+                    if (  true  )
+                    {
+                    }
+                    while (  false  )
+                    {
+                    }
+                }
+            }
+            """, changedOptionSet: changingOptions);
+    }
 }
