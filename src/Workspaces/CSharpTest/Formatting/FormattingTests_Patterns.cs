@@ -601,7 +601,7 @@ public sealed class FormattingTests_Patterns : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76554")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78449")]
     public Task FormatParenthesizedPatternWithMultiplePatterns()
         => AssertFormatAsync("""
             public class Goo
