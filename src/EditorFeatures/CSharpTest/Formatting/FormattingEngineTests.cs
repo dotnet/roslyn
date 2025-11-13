@@ -1988,13 +1988,13 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 $$
                 using System.B;
                 using System.A;
+
                 using MS.B;
                 using MS.A;
                 """, """
                 $$
                 using System.B;
                 using System.A;
-
                 using MS.B;
                 using MS.A;
                 """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
@@ -2043,6 +2043,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using Azure.Storage.Sas;
 
                 using System.Diagnostics;
+
                 using NuGet.Versioning;
 
                 class TestClass { }
@@ -2068,6 +2069,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using Azure.Storage.Sas;
 
                 using NuGet.Versioning;
+
                 using System.Diagnostics;
 
                 class TestClass { }
