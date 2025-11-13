@@ -16,6 +16,9 @@
     <!-- TODO: https://github.com/dotnet/roslyn/issues/71667 -->
     <NoWarn>$(NoWarn);NU1507</NoWarn>
 
+    <!-- This branch builds against net6.0 and net7.0 so we expect EOL TFMs -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
     <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
 
