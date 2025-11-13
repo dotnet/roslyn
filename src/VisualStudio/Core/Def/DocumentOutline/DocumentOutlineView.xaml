@@ -76,7 +76,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <ContentControl Grid.Row="0" Name="Commands" Focusable="True" />
-        <Grid Grid.Row="1" x:Name="SearchHost" />
+        <Grid Grid.Row="1" x:Name="SearchHost" Focusable="False" KeyboardNavigation.TabNavigation="Continue" />
         <!-- Note: we register TreeViewItem.SourceUpdated and set `NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False`
              for the item `IsSelected` event.  This is important for a reentrancy issue we would otherwise have.  Specifically,
              As the user moves around, we want to expand/select the correct item of interest in the tree.  However, we do not 
