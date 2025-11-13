@@ -259,48 +259,61 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
 
     private static bool AreUsingsProperlyGrouped(SyntaxList<UsingDirectiveSyntax> usings)
     {
-        // Check if usings are organized into properly sorted groups.
-        // We accept usings if each group (as defined by NeedsGrouping) is internally sorted,
-        // regardless of whether the groups themselves are in sorted order.
+        // Check if usings are properly grouped (contiguous).
+        // Usings are grouped if all usings with the same first namespace token are together.
+        // We don't care about sorting - only that groups are contiguous.
 
         if (usings.Count <= 1)
             return true;
 
-        // Try both comparers (SystemFirst and Normal) to see if groups are sorted
-        return AreGroupsSorted(usings, UsingsAndExternAliasesDirectiveComparer.SystemFirstInstance) ||
-               AreGroupsSorted(usings, UsingsAndExternAliasesDirectiveComparer.NormalInstance);
-    }
+        // Track which group identifiers we've seen
+        var seenGroups = new HashSet<string>();
+        string? currentGroup = null;
 
-    private static bool AreGroupsSorted(SyntaxList<UsingDirectiveSyntax> usings, IComparer<SyntaxNode> comparer)
-    {
-        // Split usings into groups and check if each group is sorted
-        var currentGroupStart = 0;
-
-        for (var i = 1; i < usings.Count; i++)
+        for (var i = 0; i < usings.Count; i++)
         {
-            if (UsingsAndExternAliasesOrganizer.NeedsGrouping(usings[i - 1], usings[i]))
-            {
-                // End of a group - check if this group is sorted
-                if (!IsRangeSorted(usings, startInclusive: currentGroupStart, endExclusive: i, comparer))
-                    return false;
+            var groupId = GetGroupIdentifier(usings[i]);
 
-                currentGroupStart = i;
+            // If we're starting a new group
+            if (groupId != currentGroup)
+            {
+                // Check if we've seen this group before
+                if (seenGroups.Contains(groupId))
+                {
+                    // We've seen this group already, so groups are not contiguous
+                    return false;
+                }
+
+                seenGroups.Add(groupId);
+                currentGroup = groupId;
             }
         }
 
-        // Check the last group
-        return IsRangeSorted(usings, startInclusive: currentGroupStart, endExclusive: usings.Count, comparer);
+        return true;
     }
 
-    private static bool IsRangeSorted(SyntaxList<UsingDirectiveSyntax> usings, int startInclusive, int endExclusive, IComparer<SyntaxNode> comparer)
+    private static string GetGroupIdentifier(UsingDirectiveSyntax usingDirective)
     {
-        for (var i = startInclusive; i < endExclusive - 1; i++)
+        // Get a unique identifier for the group this using belongs to
+        // Based on the logic in UsingsAndExternAliasesOrganizer.NeedsGrouping
+
+        var isUsingStatic = usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);
+        var isAlias = usingDirective.Alias != null;
+
+        if (isAlias)
+            return "alias";
+
+        if (isUsingStatic)
+            return "static";
+
+        // Regular namespace using - group by first token
+        if (usingDirective.Name != null)
         {
-            if (comparer.Compare(usings[i], usings[i + 1]) > 0)
-                return false;
+            var firstToken = usingDirective.Name.GetFirstToken().ValueText;
+            return $"namespace:{firstToken}";
         }
 
-        return true;
+        return "other";
     }
 
     public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
