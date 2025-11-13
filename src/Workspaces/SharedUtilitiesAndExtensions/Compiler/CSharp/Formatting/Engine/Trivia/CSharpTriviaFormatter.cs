@@ -142,10 +142,10 @@ internal sealed partial class CSharpTriviaFormatter : AbstractTriviaFormatter
                     {
                         // Get the indentation of the matching #region
                         var regionIndentation = this.Context.GetBaseIndentation(matchingRegion.SpanStart);
-                        
+
                         // Get the default indentation where the #endregion appears
                         var defaultIndentation = this.Context.GetBaseIndentation(trivia2.SpanStart);
-                        
+
                         // Use the maximum to handle cases where #endregion is in a deeper scope than #region
                         var indentation = Math.Max(regionIndentation, defaultIndentation);
                         return LineColumnRule.PreserveLinesWithAbsoluteIndentation(lines, indentation);
