@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 [CompilerTrait(CompilerFeature.CollectionExpressions)]
-public sealed class CollectionExpressionTests_WithElement_IOperation : CSharpTestBase
+public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestBase
 {
     private const string s_collectionBuilderType = """
         using System;
