@@ -926,7 +926,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If _modifiedIdentifierOpt IsNot Nothing Then
                         Return ImmutableArray.Create(_modifiedIdentifierOpt.GetReference())
                     Else
-                        Debug.Assert(DeclarationKind = LocalDeclarationKind.Catch, "Only catch variables should have Nothing for _modifiedIdentifierOpt")
                         Return MyBase.DeclaringSyntaxReferences
                     End If
                 End Get
