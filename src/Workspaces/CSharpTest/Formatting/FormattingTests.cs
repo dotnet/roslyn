@@ -6019,7 +6019,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
     public async Task TupleExpression_SpaceAfterComma_False()
     {
         var code = """
@@ -6048,7 +6048,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
     public async Task TupleExpression_SpaceAfterComma_True()
     {
         var code = """
@@ -6077,7 +6077,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
     public async Task TupleType_SpaceAfterComma_False()
     {
         var code = """
@@ -6104,7 +6104,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
     public async Task TupleType_SpaceAfterComma_True()
     {
         var code = """
@@ -6131,7 +6131,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
     public async Task NestedTuples_SpaceAfterComma_False()
     {
         var code = """
@@ -6162,7 +6162,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
     public async Task Deconstruction_SpaceAfterComma_False()
     {
         var code = """
