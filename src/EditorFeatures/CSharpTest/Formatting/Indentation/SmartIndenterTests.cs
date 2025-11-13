@@ -669,13 +669,11 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             indentationLine: 6,
             expectedIndentation: 8);
 
-    [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/50063")]
+    [WpfTheory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/50063")]
     [InlineData("do")]
     [InlineData("for (;;)")]
     [InlineData("if (true)")]
-    [InlineData("void localFunction()")]
-    [InlineData("static void localFunction()")]
     public void EmbeddedStatement2(string statement)
         => AssertSmartIndent(
             $$"""
@@ -684,6 +682,99 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
                 static void Main(string[] args)
                 {
             {{statement}}
+
+                }
+            }
+
+
+            """,
+            indentationLine: 5,
+            expectedIndentation: 4);
+
+    [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/50063")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/50063")]
+    [InlineData("void localFunction()")]
+    [InlineData("static void localFunction()")]
+    public void EmbeddedStatement2_LocalFunction(string statement)
+        => AssertSmartIndent(
+            $$"""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            {{statement}}
+
+                }
+            }
+
+
+            """,
+            indentationLine: 5,
+            expectedIndentation: 4);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/50063")]
+    public void DoStatement_IndentAfterDoKeyword()
+        => AssertSmartIndent(
+            """
+            class Test
+            {
+                void Method()
+                {
+            do
+
+                }
+            }
+
+
+            """,
+            indentationLine: 5,
+            expectedIndentation: 4);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/50063")]
+    public void DoStatement_IndentAfterDoKeyword_ProperlyIndented()
+        => AssertSmartIndent(
+            """
+            class Test
+            {
+                void Method()
+                {
+                    do
+
+                }
+            }
+
+
+            """,
+            indentationLine: 5,
+            expectedIndentation: 12);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/50063")]
+    public void WhileStatement_IndentAfterWhileKeyword()
+        => AssertSmartIndent(
+            """
+            class Test
+            {
+                void Method()
+                {
+            while (true)
+
+                }
+            }
+
+
+            """,
+            indentationLine: 5,
+            expectedIndentation: 4);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/50063")]
+    public void ForStatement_IndentAfterForKeyword()
+        => AssertSmartIndent(
+            """
+            class Test
+            {
+                void Method()
+                {
+            for (;;)
 
                 }
             }

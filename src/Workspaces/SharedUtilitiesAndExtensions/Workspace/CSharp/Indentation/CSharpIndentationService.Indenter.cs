@@ -202,6 +202,27 @@ internal partial class CSharpIndentationService
 
         // if we couldn't determine indentation from the service, use heuristic to find indentation.
 
+        // If the token is the first token of an embedded statement owner (like 'do', 'for', 'if', 'while', etc.),
+        // and the token is the first token on its line, then indent relative to the actual position of that
+        // token, not the computed/formatted position. This ensures that when typing "do<Enter>", the cursor
+        // aligns with where 'do' actually is in the source, not where it would be after formatting.
+        //
+        // cases:
+        //   do
+        //     |      <- cursor should be here (relative to 'do'), not relative to where 'do' would be after formatting
+        //
+        //   for (;;)
+        //     |      <- cursor should be here
+        if (token.Parent.IsEmbeddedStatementOwner())
+        {
+            var embeddedStatementOwnerFirstToken = token.Parent.GetFirstToken(includeZeroWidth: true);
+            if (embeddedStatementOwnerFirstToken == token && token.IsFirstTokenOnLine(sourceText))
+            {
+                var tokenLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
+                return indenter.GetIndentationOfLine(tokenLine, indenter.Options.FormattingOptions.IndentationSize);
+            }
+        }
+
         // If this is the last token of an embedded statement, walk up to the top-most parenting embedded
         // statement owner and use its indentation.
         //
