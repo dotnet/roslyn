@@ -784,6 +784,26 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             indentationLine: 5,
             expectedIndentation: 4);
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/50063")]
+    public void ElseClause_IndentAfterElseKeyword()
+        => AssertSmartIndent(
+            """
+            class Test
+            {
+                void Method()
+                {
+                    if (true)
+                        Console.WriteLine();
+            else
+
+                }
+            }
+
+
+            """,
+            indentationLine: 6,
+            expectedIndentation: 4);
+
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537883")]
     public void EnterAfterComment()
         => AssertSmartIndent(
