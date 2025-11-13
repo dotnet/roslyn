@@ -58,10 +58,18 @@ internal sealed class AnchorIndentationFormattingRule : BaseFormattingRule
                     previousStatement.Parent != null &&
                     previousStatement.IsEmbeddedStatement())
                 {
-                    // Find the statement that contains the embedded statement (e.g., the IfStatementSyntax)
+                    // Walk up through all levels of embedded statements (e.g., if (...) if (...) if (...) x();)
+                    // to find the top-most statement owner that isn't itself an embedded statement.
                     var embeddedStatementOwner = previousStatement.Parent;
+                    while (embeddedStatementOwner.IsEmbeddedStatement())
+                    {
+                        if (embeddedStatementOwner.Parent == null)
+                            break;
+                        
+                        embeddedStatementOwner = embeddedStatementOwner.Parent;
+                    }
                     
-                    // Get the previous token before the embedded statement owner to use as anchor
+                    // Get the previous token before the top-most embedded statement owner to use as anchor
                     var anchorToken = embeddedStatementOwner.GetFirstToken(includeZeroWidth: true).GetPreviousToken(includeZeroWidth: true);
                     if (!anchorToken.IsKind(SyntaxKind.None))
                     {
