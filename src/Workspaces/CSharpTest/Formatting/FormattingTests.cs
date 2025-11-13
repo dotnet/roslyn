@@ -11708,6 +11708,112 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25010")]
+    public Task LambdaWithCommentAndStatement()
+        => AssertFormatAsync("""
+            using System;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                    Action x = () =>
+                    {
+                        // Comment
+                        var a = 1;
+                        var b = 2;
+                    };
+                }
+            }
+            """, """
+            using System;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                        Action x = () =>
+                        {
+                            // Comment
+                            var a = 1;
+                            var b = 2;
+                        };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25010")]
+    public Task LambdaWithMultipleCommentsAndStatements()
+        => AssertFormatAsync("""
+            using System;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                    Action x = () =>
+                    {
+                        var a = 1;
+
+                        // comment
+                        var b = 2;
+                    };
+                }
+            }
+            """, """
+            using System;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                                Action x = () =>
+                                {
+                                    var a = 1;
+
+                                    // comment
+                                    var b = 2;
+                                };
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25010")]
+    public Task IfStatementWithCommentNotAffected()
+        => AssertFormatAsync("""
+            using System;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                    if (true)
+                    {
+                        var a = 1;
+
+                        // comment
+                        var b = 2;
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            public static class Program
+            {
+                public static void Main()
+                {
+                                if (true)
+                                {
+                                    var a = 1;
+
+                                    // comment
+                                    var b = 2;
+                                }
+                }
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10500")]
     public Task NestedEmbeddedStatementsOnSameLine_IfIf()
         => AssertFormatAsync("""
