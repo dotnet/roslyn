@@ -229,8 +229,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             {
                 RoslynDebug.AssertNotNull(currentUsing.Parent);
 
-                var usings = GetUsings(currentUsing.Parent);
-                if (AreUsingsProperlyGrouped(usings))
+                if (AreUsingsProperlyGrouped(GetUsings(currentUsing.Parent)))
                 {
                     // Force at least one blank line here.
                     return CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.PreserveLines);
