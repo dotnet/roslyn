@@ -3337,6 +3337,66 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8100")]
+    public Task QueryExpressionWithCommentAfterMultiLineCollection()
+        => AssertFormatAsync("""
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in GetCollection(
+                            args,
+                            moreArgs)
+                        // Test
+                        select item.Length;
+                }
+            }
+            """, """
+            class C
+            {
+                void Method(string[] args)
+                {
+                    var items =
+                        from item in GetCollection(
+                            args,
+                            moreArgs)
+                            // Test
+                        select item.Length;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8100")]
+    public Task QueryExpressionWithCommentAfterMultiLineNestedQuery()
+        => AssertFormatAsync("""
+            class C
+            {
+                void Method(string[] args, string[] otherArgs)
+                {
+                    var items =
+                        from item in from x in args
+                                     from y in otherArgs
+                                     select x + y
+                        // Test
+                        select item.Length;
+                }
+            }
+            """, """
+            class C
+            {
+                void Method(string[] args, string[] otherArgs)
+                {
+                    var items =
+                        from item in from x in args
+                                     from y in otherArgs
+                                     select x + y
+                            // Test
+                        select item.Length;
+                }
+            }
+            """);
+
     [Fact]
     public Task Label1()
         => AssertFormatAsync("""

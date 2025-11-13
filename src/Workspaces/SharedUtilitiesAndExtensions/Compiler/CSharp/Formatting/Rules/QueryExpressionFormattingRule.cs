@@ -103,24 +103,19 @@ internal sealed class QueryExpressionFormattingRule : BaseFormattingRule
             {
                 SyntaxToken startToken;
                 
-                // Determine if the from clause's collection expression spans multiple lines or is incomplete.
-                // If so, use the old logic to properly indent the continuation. Otherwise, start alignment
-                // from the query body to avoid incorrectly indenting comments between the from clause and
-                // subsequent query clauses.
-                var expressionFirstToken = queryExpression.FromClause.Expression.GetFirstToken(includeZeroWidth: true);
-                var expressionLastToken = queryExpression.FromClause.Expression.GetLastToken(includeZeroWidth: true);
-                var expressionFirstLine = expressionFirstToken.GetLocation().GetLineSpan().StartLinePosition.Line;
-                var expressionLastLine = expressionLastToken.GetLocation().GetLineSpan().EndLinePosition.Line;
-                
+                // Determine if the from clause's collection expression is incomplete (missing or has errors).
+                // If incomplete, use the old logic to properly indent the continuation. If complete, start 
+                // alignment from the query body to avoid incorrectly indenting comments between the from 
+                // clause and subsequent query clauses. A complete expression can span multiple lines.
                 if (queryExpression.FromClause.Expression.IsMissing ||
-                    expressionFirstLine != expressionLastLine)
+                    queryExpression.FromClause.Expression.ContainsDiagnostics)
                 {
-                    // Old behavior: collection expression is missing or spans multiple lines (incomplete)
+                    // Old behavior: collection expression is incomplete
                     startToken = baseToken.GetNextToken(includeZeroWidth: true);
                 }
                 else
                 {
-                    // New behavior: collection expression is complete on a single line
+                    // New behavior: collection expression is complete (even if multi-line)
                     startToken = queryExpression.Body.GetFirstToken(includeZeroWidth: true);
                 }
                 
