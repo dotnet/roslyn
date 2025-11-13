@@ -970,10 +970,6 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2224")]
     public void DoNotSmartFormatBracesOnSmartIndentNone()
     {
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { IndentationOptionsStorage.SmartIndent, FormattingOptions2.IndentStyle.None }
-        };
         AssertFormatAfterTypeChar("""
                 class Program<T>
                 {
@@ -986,17 +982,16 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     class C1<U>
                 {
                 }
-                """, globalOptions);
+                """, new(LanguageNames.CSharp)
+                {
+                    { IndentationOptionsStorage.SmartIndent, FormattingOptions2.IndentStyle.None }
+                });
     }
 
     [WpfFact]
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public void StillAutoIndentCloseBraceWhenFormatOnCloseBraceIsOff()
     {
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { AutoFormattingOptionsStorage.FormatOnCloseBrace, false }
-        };
 
         AssertFormatAfterTypeChar("""
                 namespace N
@@ -1016,18 +1011,16 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                              int x = 10;
                     }
                 }
-                """, globalOptions);
+                """, new(LanguageNames.CSharp)
+                {
+                    { AutoFormattingOptionsStorage.FormatOnCloseBrace, false }
+                });
     }
 
     [WpfFact]
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public void AutoIndentCloseBraceWhenFormatOnTypingIsOff()
     {
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { AutoFormattingOptionsStorage.FormatOnTyping, false }
-        };
-
         AssertFormatAfterTypeChar("""
                 namespace N
                 {
@@ -1046,18 +1039,16 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                              int x = 10;
                     }
                 }
-                """, globalOptions);
+                """, new(LanguageNames.CSharp)
+                {
+                    { AutoFormattingOptionsStorage.FormatOnTyping, false }
+                });
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/5873")]
     public void KeepTabsInCommentsWhenFormattingIsOff()
     {
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { AutoFormattingOptionsStorage.FormatOnTyping, false }
-        };
-
         AssertFormatAfterTypeChar("""
                 class Program
                 {
@@ -1074,7 +1065,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                         return;		/* Comment preceded by tabs */		// This one too
                     }
                 }
-                """, globalOptions);
+                """, new(LanguageNames.CSharp)
+                {
+                    { AutoFormattingOptionsStorage.FormatOnTyping, false }
+                });
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
@@ -1102,11 +1096,6 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public void DoNotFormatStatementIfSemicolonOptionIsOff()
     {
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { AutoFormattingOptionsStorage.FormatOnSemicolon, false }
-        };
-
         AssertFormatAfterTypeChar("""
                 namespace N
                 {
@@ -1123,18 +1112,16 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                         int x   =   10     ;
                     }
                 }
-                """, globalOptions);
+                """, new(LanguageNames.CSharp)
+                {
+                    { AutoFormattingOptionsStorage.FormatOnSemicolon, false }
+                });
     }
 
     [WpfFact]
     [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
     public void DoNotFormatStatementIfTypingOptionIsOff()
     {
-        var globalOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { AutoFormattingOptionsStorage.FormatOnTyping, false }
-        };
-
         AssertFormatAfterTypeChar("""
                 namespace N
                 {
@@ -1151,7 +1138,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                         int x   =   10     ;
                     }
                 }
-                """, globalOptions);
+                """, new(LanguageNames.CSharp)
+                {
+                    { AutoFormattingOptionsStorage.FormatOnTyping, false }
+                });
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4435")]
@@ -1966,7 +1956,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
 
                 using MS.A;
                 using MS.B;
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_KeepMultipleLinesBetweenGroups_FileScopedNamespace()
@@ -1990,14 +1980,15 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
 
                 using MS.A;
                 using MS.B;
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
-    public void SeparateGroups_DoNotGroupIfNotSorted()
+    public void SeparateGroups_DoSeparateGroupIfNotSorted()
         => AssertFormatWithView("""
                 $$
                 using System.B;
                 using System.A;
+
                 using MS.B;
                 using MS.A;
                 """, """
@@ -2006,7 +1997,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using System.A;
                 using MS.B;
                 using MS.A;
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_GroupIfSorted()
@@ -2023,7 +2014,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using System.B;
                 using MS.A;
                 using MS.B;
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_GroupIfSorted_RecognizeSystemNotFirst()
@@ -2040,7 +2031,255 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using MS.B;
                 using System.A;
                 using System.B;
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    public void SeparateGroups_GroupedButNotGloballySorted(bool sortSystemDirectivesFirst)
+        => AssertFormatWithView("""
+                $$
+                namespace TestNamespace;
+
+                using Azure.Storage.Blobs;
+                using Azure.Storage.Sas;
+
+                using System.Diagnostics;
+
+                using NuGet.Versioning;
+
+                class TestClass { }
+                """, """
+                $$
+                namespace TestNamespace;
+
+                using Azure.Storage.Blobs;
+                using Azure.Storage.Sas;
+                using System.Diagnostics;
+                using NuGet.Versioning;
+
+                class TestClass { }
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
+
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    public void SeparateGroups_AlphabeticallySorted(bool sortSystemDirectivesFirst)
+        => AssertFormatWithView("""
+                $$
+                namespace TestNamespace;
+
+                using Azure.Storage.Blobs;
+                using Azure.Storage.Sas;
+
+                using NuGet.Versioning;
+
+                using System.Diagnostics;
+
+                class TestClass { }
+                """, """
+                $$
+                namespace TestNamespace;
+
+                using Azure.Storage.Blobs;
+                using Azure.Storage.Sas;
+                using NuGet.Versioning;
+                using System.Diagnostics;
+
+                class TestClass { }
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
+
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    public void SeparateGroups_UnsortedWithinGroupsButGrouped(bool sortSystemDirectivesFirst)
+        => AssertFormatWithView("""
+                $$
+                namespace TestNamespace;
+
+                using Azure.Storage.Sas;
+                using Azure.Storage.Blobs;
+
+                using System.Diagnostics;
+
+                using NuGet.Versioning;
+
+                class TestClass { }
+                """, """
+                $$
+                namespace TestNamespace;
+
+                using Azure.Storage.Sas;
+                using Azure.Storage.Blobs;
+                using System.Diagnostics;
+                using NuGet.Versioning;
+
+                class TestClass { }
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
+
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    public void SeparateGroups_UngroupedUsingsNoSeparator(bool sortSystemDirectivesFirst)
+        => AssertFormatWithView("""
+                $$
+                namespace TestNamespace;
+
+                using Azure.Storage.Blobs;
+                using System.Diagnostics;
+                using NuGet.Versioning;
+                using Azure.Storage.Sas;
+
+                class TestClass { }
+                """, """
+                $$
+                namespace TestNamespace;
+
+                using Azure.Storage.Blobs;
+                using System.Diagnostics;
+                using NuGet.Versioning;
+                using Azure.Storage.Sas;
+
+                class TestClass { }
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
+
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    public void SeparateGroups_GroupedAliases(bool sortSystemDirectivesFirst)
+        => AssertFormatWithView("""
+                $$
+                namespace TestNamespace;
+
+                using A = System.String;
+                using B = System.Int32;
+
+                using System.Collections.Generic;
+
+                class TestClass { }
+                """, """
+                $$
+                namespace TestNamespace;
+
+                using A = System.String;
+                using B = System.Int32;
+                using System.Collections.Generic;
+
+                class TestClass { }
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
+
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    public void SeparateGroups_UngroupedAliases(bool sortSystemDirectivesFirst)
+        => AssertFormatWithView("""
+                $$
+                namespace TestNamespace;
+
+                using A = System.String;
+                using System.Collections.Generic;
+                using B = System.Int32;
+
+                class TestClass { }
+                """, """
+                $$
+                namespace TestNamespace;
+
+                using A = System.String;
+                using System.Collections.Generic;
+                using B = System.Int32;
+
+                class TestClass { }
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
+
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    public void SeparateGroups_GroupedStaticUsings(bool sortSystemDirectivesFirst)
+        => AssertFormatWithView("""
+                $$
+                namespace TestNamespace;
+
+                using static System.Math;
+                using static System.Console;
+
+                using System.Collections.Generic;
+
+                class TestClass { }
+                """, """
+                $$
+                namespace TestNamespace;
+
+                using static System.Math;
+                using static System.Console;
+                using System.Collections.Generic;
+
+                class TestClass { }
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
+
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    public void SeparateGroups_UngroupedStaticUsings(bool sortSystemDirectivesFirst)
+        => AssertFormatWithView("""
+                $$
+                namespace TestNamespace;
+
+                using static System.Math;
+                using System.Collections.Generic;
+                using static System.Console;
+
+                class TestClass { }
+                """, """
+                $$
+                namespace TestNamespace;
+
+                using static System.Math;
+                using System.Collections.Generic;
+                using static System.Console;
+
+                class TestClass { }
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
+
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    public void SeparateGroups_MixedAliasesStaticsAndNamespaces(bool sortSystemDirectivesFirst)
+        => AssertFormatWithView("""
+                $$
+                namespace TestNamespace;
+
+                using A = System.String;
+                using B = System.Int32;
+
+                using static System.Math;
+                using static System.Console;
+
+                using System.Collections.Generic;
+                using System.Linq;
+
+                class TestClass { }
+                """, """
+                $$
+                namespace TestNamespace;
+
+                using A = System.String;
+                using B = System.Int32;
+                using static System.Math;
+                using static System.Console;
+                using System.Collections.Generic;
+                using System.Linq;
+
+                class TestClass { }
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
+
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    public void SeparateGroups_UngroupedAliasesAndStatics(bool sortSystemDirectivesFirst)
+        => AssertFormatWithView("""
+                $$
+                namespace TestNamespace;
+
+                using A = System.String;
+                using static System.Math;
+                using System.Collections.Generic;
+                using B = System.Int32;
+                using static System.Console;
+
+                class TestClass { }
+                """, """
+                $$
+                namespace TestNamespace;
+
+                using A = System.String;
+                using static System.Math;
+                using System.Collections.Generic;
+                using B = System.Int32;
+                using static System.Console;
+
+                class TestClass { }
+                """, new(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/58157")]
     public void FormatImplicitObjectCollection()
