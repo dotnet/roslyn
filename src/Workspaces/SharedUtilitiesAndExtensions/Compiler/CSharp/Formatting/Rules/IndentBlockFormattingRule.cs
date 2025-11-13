@@ -298,7 +298,9 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         var endToken = parenthesizedPattern.CloseParenToken.GetPreviousToken(includeZeroWidth: true);
         AddIndentBlockOperation(
             list, startToken, endToken,
-            TextSpan.FromBounds(parenthesizedPattern.OpenParenToken.Span.End, parenthesizedPattern.CloseParenToken.Span.End));
+            TextSpan.FromBounds(
+                parenthesizedPattern.OpenParenToken.Span.End,
+                parenthesizedPattern.CloseParenToken.Span.Start));
     }
 
     private static void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
