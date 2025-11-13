@@ -12032,6 +12032,276 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26996")]
+    public Task SpaceAfterCast_OptionTrue()
+        => AssertFormatAsync("""
+            class Program
+            {
+                void M()
+                {
+                    var a = (int) 1;
+                    var b = (string) null;
+                    var c = (double) 3.14;
+                }
+            }
+            """, """
+            class Program
+            {
+                void M()
+                {
+                    var a = (int)  1;
+                    var b = (string)  null;
+                    var c = (double)  3.14;
+                }
+            }
+            """, changedOptionSet: new(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceAfterCast, true }
+            });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26996")]
+    public Task SpaceAfterCast_OptionFalse()
+        => AssertFormatAsync("""
+            class Program
+            {
+                void M()
+                {
+                    var a = (int)1;
+                    var b = (string)null;
+                    var c = (double)3.14;
+                }
+            }
+            """, """
+            class Program
+            {
+                void M()
+                {
+                    var a = (int)  1;
+                    var b = (string)  null;
+                    var c = (double)  3.14;
+                }
+            }
+            """, changedOptionSet: new(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceAfterCast, false }
+            });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26996")]
+    public Task SpaceWithinExpressionParentheses_OptionTrue()
+        => AssertFormatAsync("""
+            class Program
+            {
+                void M()
+                {
+                    var a = ( 1 + 2 );
+                    var b = ( x );
+                }
+            }
+            """, """
+            class Program
+            {
+                void M()
+                {
+                    var a = (  1 + 2  );
+                    var b = (  x  );
+                }
+            }
+            """, changedOptionSet: new(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.Expressions, true) }
+            });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26996")]
+    public Task SpaceWithinExpressionParentheses_OptionFalse()
+        => AssertFormatAsync("""
+            class Program
+            {
+                void M()
+                {
+                    var a = (1 + 2);
+                    var b = (x);
+                }
+            }
+            """, """
+            class Program
+            {
+                void M()
+                {
+                    var a = (  1 + 2  );
+                    var b = (  x  );
+                }
+            }
+            """, changedOptionSet: new(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.Expressions, false) }
+            });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26996")]
+    public Task SpaceWithinCastParentheses_OptionTrue()
+        => AssertFormatAsync("""
+            class Program
+            {
+                void M()
+                {
+                    var a = ( int )1;
+                    var b = ( string )null;
+                }
+            }
+            """, """
+            class Program
+            {
+                void M()
+                {
+                    var a = (  int  )1;
+                    var b = (  string  )null;
+                }
+            }
+            """, changedOptionSet: new(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.TypeCasts, true) }
+            });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26996")]
+    public Task SpaceWithinCastParentheses_OptionFalse()
+        => AssertFormatAsync("""
+            class Program
+            {
+                void M()
+                {
+                    var a = (int)1;
+                    var b = (string)null;
+                }
+            }
+            """, """
+            class Program
+            {
+                void M()
+                {
+                    var a = (  int  )1;
+                    var b = (  string  )null;
+                }
+            }
+            """, changedOptionSet: new(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.TypeCasts, false) }
+            });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26996")]
+    public Task SpaceWithinControlFlowParentheses_OptionTrue()
+        => AssertFormatAsync("""
+            class Program
+            {
+                void M()
+                {
+                    if ( true )
+                    {
+                    }
+                    while ( false )
+                    {
+                    }
+                }
+            }
+            """, """
+            class Program
+            {
+                void M()
+                {
+                    if (  true  )
+                    {
+                    }
+                    while (  false  )
+                    {
+                    }
+                }
+            }
+            """, changedOptionSet: new(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.ControlFlowStatements, true) }
+            });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26996")]
+    public Task SpaceWithinControlFlowParentheses_OptionFalse()
+        => AssertFormatAsync("""
+            class Program
+            {
+                void M()
+                {
+                    if (true)
+                    {
+                    }
+                    while (false)
+                    {
+                    }
+                }
+            }
+            """, """
+            class Program
+            {
+                void M()
+                {
+                    if (  true  )
+                    {
+                    }
+                    while (  false  )
+                    {
+                    }
+                }
+            }
+            """, changedOptionSet: new(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.ControlFlowStatements, false) }
+            });
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26996")]
+    public Task SpaceAfterCast_PreviewTest()
+    {
+        // This test mimics the preview code used in SpacingViewModel
+        const string previewCode = """
+            class C{
+                void Goo(object x) {
+            //[
+                    int y = (int)x;
+            //]
+                }
+            }
+            """;
+
+        const string expectedFalse = """
+            class C
+            {
+                void Goo(object x)
+                {
+                    //[
+                    int y = (int)x;
+                    //]
+                }
+            }
+            """;
+
+        const string expectedTrue = """
+            class C
+            {
+                void Goo(object x)
+                {
+                    //[
+                    int y = (int) x;
+                    //]
+                }
+            }
+            """;
+
+        return Task.WhenAll(
+            AssertFormatAsync(expectedFalse, previewCode, changedOptionSet: new(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceAfterCast, false }
+            }),
+            AssertFormatAsync(expectedTrue, previewCode, changedOptionSet: new(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceAfterCast, true }
+            })
+        );
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25010")]
     public Task LambdaWithCommentAndStatement()
         => AssertFormatAsync("""
