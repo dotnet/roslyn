@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
@@ -48,6 +49,30 @@ internal sealed class AnchorIndentationFormattingRule : BaseFormattingRule
 
         switch (node)
         {
+            case LabeledStatementSyntax labeledStatement:
+                // If a labeled statement follows an embedded statement (like an if without braces),
+                // it should be anchored to the containing block, not the embedded statement.
+                // This prevents the label from being incorrectly indented.
+                var previousToken = labeledStatement.GetFirstToken(includeZeroWidth: true).GetPreviousToken(includeZeroWidth: true);
+                if (previousToken.Parent is StatementSyntax previousStatement &&
+                    previousStatement.Parent != null &&
+                    previousStatement.IsEmbeddedStatement())
+                {
+                    // Find the statement that contains the embedded statement (e.g., the IfStatementSyntax)
+                    var embeddedStatementOwner = previousStatement.Parent;
+                    
+                    // Get the previous token before the embedded statement owner to use as anchor
+                    var anchorToken = embeddedStatementOwner.GetFirstToken(includeZeroWidth: true).GetPreviousToken(includeZeroWidth: true);
+                    if (!anchorToken.IsKind(SyntaxKind.None))
+                    {
+                        AddAnchorIndentationOperation(list, anchorToken, labeledStatement.GetLastToken(includeZeroWidth: true));
+                        return;
+                    }
+                }
+
+                AddAnchorIndentationOperation(list, labeledStatement);
+                return;
+
             case StatementSyntax statement:
                 AddAnchorIndentationOperation(list, statement);
                 return;
