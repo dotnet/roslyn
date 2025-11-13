@@ -450,6 +450,7 @@ public sealed class FormattingAnalyzerTests
             using Azure.Storage.Sas;
 
             using System.Diagnostics;
+
             using NuGet.Versioning;
 
             class TestClass { }
@@ -471,6 +472,7 @@ public sealed class FormattingAnalyzerTests
             },
             FixedState = { Sources = { fixedCode } },
             LanguageVersion = LanguageVersion.CSharp14,
+            CompilerDiagnostics = CompilerDiagnostics.None,
         }.RunAsync();
     }
 
@@ -519,7 +521,6 @@ public sealed class FormattingAnalyzerTests
             FixedState = { Sources = { fixedCode } },
             LanguageVersion = LanguageVersion.CSharp14,
             CompilerDiagnostics = CompilerDiagnostics.None,
-            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
         }.RunAsync();
     }
 
@@ -777,7 +778,7 @@ public sealed class FormattingAnalyzerTests
             namespace TestNamespace;
 
             using A = System.String;
-            using B = System.Int32;[||]
+            using B = System.Int32;
             [||]using static System.Math;
             using static System.Console;
             [||]using System.Collections.Generic;
@@ -817,7 +818,6 @@ public sealed class FormattingAnalyzerTests
             FixedState = { Sources = { fixedCode } },
             LanguageVersion = LanguageVersion.CSharp14,
             CompilerDiagnostics = CompilerDiagnostics.None,
-            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
         }.RunAsync();
     }
 }

@@ -1993,7 +1993,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
-    public void SeparateGroups_DoNotGroupIfNotSorted()
+    public void SeparateGroups_DoSeparateGroupIfNotSorted()
         => AssertFormatWithView("""
                 $$
                 using System.B;
@@ -2004,6 +2004,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 $$
                 using System.B;
                 using System.A;
+
                 using MS.B;
                 using MS.A;
                 """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
