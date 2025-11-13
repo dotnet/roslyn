@@ -1192,7 +1192,7 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
 
                 void Method()
                 {
-                    #endregion
+                #endregion
                     int i = 10;
                 }
             }
