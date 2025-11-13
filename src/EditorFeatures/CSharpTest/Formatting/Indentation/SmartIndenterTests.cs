@@ -1073,6 +1073,30 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
             expectedIndentation: 12);
 
     [WpfFact]
+    public void LabelAfterIfStatementWithoutBraces()
+        => AssertSmartIndent(
+            """
+            class Test
+            {
+                static void Test()
+                {
+                    Test();
+
+                label1:
+                    Test();
+                    if (true)
+                        Test();
+
+
+                }
+            }
+
+
+            """,
+            indentationLine: 10,
+            expectedIndentation: 8);
+
+    [WpfFact]
     public void QueryExpression1()
         => AssertSmartIndent(
             """
