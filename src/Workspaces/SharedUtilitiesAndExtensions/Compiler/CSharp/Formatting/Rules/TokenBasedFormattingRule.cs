@@ -278,13 +278,10 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
             // If we're starting a new group
             if (groupId != currentGroup)
             {
-                // Check if we've seen this group before
-                // HashSet.Add returns false if the item was already in the set
+                // Check if we've seen this group before.  If so, then the groups are not contiguous
+                // and should not be separated.
                 if (!seenGroups.Add(groupId))
-                {
-                    // We've seen this group already, so groups are not contiguous
                     return false;
-                }
 
                 currentGroup = groupId;
             }
