@@ -4239,7 +4239,7 @@ public class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81113")]
-        public void TestGetSymbolInfo_Parethesized()
+        public void TestGetSymbolInfo_Parenthesized()
         {
             var source = """
                 unsafe class C
