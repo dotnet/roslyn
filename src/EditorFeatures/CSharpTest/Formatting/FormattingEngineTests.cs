@@ -2066,7 +2066,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using NuGet.Versioning;
 
                 class TestClass { }
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
 
     [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public void SeparateGroups_AlphabeticallySorted(bool sortSystemDirectivesFirst)
@@ -2091,7 +2091,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using System.Diagnostics;
 
                 class TestClass { }
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
 
     [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public void SeparateGroups_UnsortedWithinGroupsButGrouped(bool sortSystemDirectivesFirst)
@@ -2117,7 +2117,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using NuGet.Versioning;
 
                 class TestClass { }
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
 
     [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public void SeparateGroups_UngroupedUsingsNoSeparator(bool sortSystemDirectivesFirst)
@@ -2141,7 +2141,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using Azure.Storage.Sas;
 
                 class TestClass { }
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
 
     [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public void SeparateGroups_GroupedAliases(bool sortSystemDirectivesFirst)
@@ -2164,7 +2164,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using System.Collections.Generic;
 
                 class TestClass { }
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
 
     [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public void SeparateGroups_UngroupedAliases(bool sortSystemDirectivesFirst)
@@ -2186,7 +2186,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using B = System.Int32;
 
                 class TestClass { }
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
 
     [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public void SeparateGroups_GroupedStaticUsings(bool sortSystemDirectivesFirst)
@@ -2209,7 +2209,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using System.Collections.Generic;
 
                 class TestClass { }
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
 
     [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public void SeparateGroups_UngroupedStaticUsings(bool sortSystemDirectivesFirst)
@@ -2231,7 +2231,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using static System.Console;
 
                 class TestClass { }
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
 
     [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public void SeparateGroups_MixedAliasesStaticsAndNamespaces(bool sortSystemDirectivesFirst)
@@ -2261,7 +2261,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using System.Linq;
 
                 class TestClass { }
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
 
     [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
     public void SeparateGroups_UngroupedAliasesAndStatics(bool sortSystemDirectivesFirst)
@@ -2287,7 +2287,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 using static System.Console;
 
                 class TestClass { }
-                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
+                """, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true }, { GenerationOptions.PlaceSystemNamespaceFirst, sortSystemDirectivesFirst } });
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/58157")]
     public void FormatImplicitObjectCollection()
