@@ -11020,7 +11020,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
 
             class C
             {
-                void M((int[], int[]) a)
+                void M((int[],int[]) a)
                 {
                     _ = a is ([1,2,>= 3],[1,2]);
                 }
@@ -11040,7 +11040,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
 
             class C
             {
-                void M((int[ ], int[ ]) a)
+                void M((int[ ] , int[ ]) a)
                 {
                     _ = a is ([ 1 , 2 , >= 3 ], [ 1 , 2 ]);
                 }
