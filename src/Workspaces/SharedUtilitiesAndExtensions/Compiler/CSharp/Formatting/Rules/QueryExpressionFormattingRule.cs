@@ -101,10 +101,29 @@ internal sealed class QueryExpressionFormattingRule : BaseFormattingRule
             var endToken = queryExpression.GetLastToken(includeZeroWidth: true);
             if (!baseToken.IsMissing && !baseToken.Equals(endToken))
             {
-                // Start the alignment from the first clause in the query body, not from the token
-                // immediately after 'from'. This ensures that comments between the from clause and
-                // the first query body clause are aligned with the clauses, not indented.
-                var startToken = queryExpression.Body.GetFirstToken(includeZeroWidth: true);
+                SyntaxToken startToken;
+                
+                // Determine if the from clause's collection expression spans multiple lines or is incomplete.
+                // If so, use the old logic to properly indent the continuation. Otherwise, start alignment
+                // from the query body to avoid incorrectly indenting comments between the from clause and
+                // subsequent query clauses.
+                var expressionFirstToken = queryExpression.FromClause.Expression.GetFirstToken(includeZeroWidth: true);
+                var expressionLastToken = queryExpression.FromClause.Expression.GetLastToken(includeZeroWidth: true);
+                var expressionFirstLine = expressionFirstToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+                var expressionLastLine = expressionLastToken.GetLocation().GetLineSpan().EndLinePosition.Line;
+                
+                if (queryExpression.FromClause.Expression.IsMissing ||
+                    expressionFirstLine != expressionLastLine)
+                {
+                    // Old behavior: collection expression is missing or spans multiple lines (incomplete)
+                    startToken = baseToken.GetNextToken(includeZeroWidth: true);
+                }
+                else
+                {
+                    // New behavior: collection expression is complete on a single line
+                    startToken = queryExpression.Body.GetFirstToken(includeZeroWidth: true);
+                }
+                
                 SetAlignmentBlockOperation(list, baseToken, startToken, endToken);
             }
         }
