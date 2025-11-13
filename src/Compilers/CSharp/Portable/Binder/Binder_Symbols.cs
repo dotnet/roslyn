@@ -601,7 +601,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var node = (PointerTypeSyntax)syntax;
                 var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
 
-                if (!this.Compilation.Options.HasEvolvedMemorySafetyRules)
+                if (this.Compilation.Options.HasEvolvedMemorySafetyRules)
+                {
+                    MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, node.AsteriskToken);
+                }
+                else
                 {
                     ReportUnsafeIfNotAllowed(node, diagnostics);
                 }

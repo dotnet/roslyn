@@ -18,12 +18,32 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             int* x = null;
             """;
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe)).VerifyDiagnostics(
+        var expectedDiagnostics = new[]
+        {
             // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // int* x = null;
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 1),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe)).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe)).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithMemorySafetyRules(MemorySafetyRulesVersion)).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithMemorySafetyRules(MemorySafetyRulesVersion)).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithMemorySafetyRules(MemorySafetyRulesVersion))
+            .VerifyDiagnostics(
+            // (1,4): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* x = null;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "*").WithArguments("evolved memory safety rules").WithLocation(1, 4));
     }
 
     [Fact]

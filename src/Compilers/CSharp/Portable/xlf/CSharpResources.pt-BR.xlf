@@ -2957,6 +2957,11 @@
         <target state="translated">tipos genéricos não associados no operador nameof</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnsafeEvolution">
+        <source>evolved memory safety rules</source>
+        <target state="new">evolved memory safety rules</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">deslocamento direito não atribuído</target>

@@ -2957,6 +2957,11 @@
         <target state="translated">niepowiązane typy ogólne w operatorze nameof</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnsafeEvolution">
+        <source>evolved memory safety rules</source>
+        <target state="new">evolved memory safety rules</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">niepodpisane przesunięcie w prawo</target>

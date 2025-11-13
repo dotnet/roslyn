@@ -2957,6 +2957,11 @@
         <target state="translated">nameof 연산자의 바인딩되지 않은 제네릭 형식</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnsafeEvolution">
+        <source>evolved memory safety rules</source>
+        <target state="new">evolved memory safety rules</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">부호 없는 오른쪽 시프트</target>

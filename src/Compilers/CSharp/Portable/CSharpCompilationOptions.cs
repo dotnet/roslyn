@@ -740,6 +740,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(MetadataImportOptions), MetadataImportOptions.ToString()));
             }
 
+            // PROTOTYPE: validate the value of MemorySafetyRules?
+
             // TODO: add check for 
             //          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
             //          (version >= "6.2")
