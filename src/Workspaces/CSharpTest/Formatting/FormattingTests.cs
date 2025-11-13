@@ -11770,4 +11770,63 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """, changedOptionSet: changingOptions);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16527")]
+    public Task SpaceAfterCast_PreviewTest()
+    {
+        // This test mimics the preview code used in SpacingViewModel
+        const string previewCode = """
+            class C{
+                void Goo(object x) {
+            //[
+                    int y = (int)x;
+            //]
+                }
+            }
+            """;
+
+        // Format with SpaceAfterCast = false (default)
+        var optionsFalse = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.SpaceAfterCast, false }
+        };
+
+        // Format with SpaceAfterCast = true
+        var optionsTrue = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.SpaceAfterCast, true }
+        };
+
+        // Expected result with SpaceAfterCast = false
+        const string expectedFalse = """
+            class C
+            {
+                void Goo(object x)
+                {
+                    //[
+                    int y = (int)x;
+                    //]
+                }
+            }
+            """;
+
+        // Expected result with SpaceAfterCast = true
+        const string expectedTrue = """
+            class C
+            {
+                void Goo(object x)
+                {
+                    //[
+                    int y = (int) x;
+                    //]
+                }
+            }
+            """;
+
+        // Test both options produce different results
+        return Task.WhenAll(
+            AssertFormatAsync(expectedFalse, previewCode, changedOptionSet: optionsFalse),
+            AssertFormatAsync(expectedTrue, previewCode, changedOptionSet: optionsTrue)
+        );
+    }
 }
