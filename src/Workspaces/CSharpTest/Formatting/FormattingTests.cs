@@ -6321,6 +6321,35 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32207")]
+    public async Task CollectionExpression_SpaceBeforeComma()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    int[] x = [1, 2, 3];
+                }
+            }
+            """;
+
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceBeforeComma, true },
+        };
+
+        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
+            class C
+            {
+                void M()
+                {
+                    int[] x = [1 , 2 , 3];
+                }
+            }
+            """);
+    }
+
     [Fact]
     public Task SpacingInSuppressNullableWarningExpression()
         => AssertFormatAsync("""
