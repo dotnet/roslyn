@@ -135,9 +135,7 @@ internal sealed partial class CSharpTriviaFormatter : AbstractTriviaFormatter
 
                 // For #endregion, try to match the indentation of the corresponding #region, but use
                 // the default indentation if it's greater (e.g., when #endregion is in a deeper scope)
-                if (trivia2.IsKind(SyntaxKind.EndRegionDirectiveTrivia) &&
-                    trivia2.HasStructure &&
-                    trivia2.GetStructure() is EndRegionDirectiveTriviaSyntax endRegionDirective)
+                if (trivia2.GetStructure() is EndRegionDirectiveTriviaSyntax endRegionDirective)
                 {
                     var matchingRegion = endRegionDirective.GetMatchingDirective(cancellationToken);
                     if (matchingRegion is RegionDirectiveTriviaSyntax)
