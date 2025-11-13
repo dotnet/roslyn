@@ -277,10 +277,11 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             // Then we want to compute the indentation relative to the construct that the collection expression is
             // attached to.  So ask to be relative to the start of the line the prior token is on if we're on the
             // same line as it.
-            SetAlignmentBlockOperation(
-                list, bracketPair.openBracket.GetPreviousToken(includeZeroWidth: true),
-                bracketPair.openBracket, bracketPair.closeBracket,
-                IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+            var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
+            var firstToken = node.GetFirstToken(includeZeroWidth: true);
+            var lastToken = node.GetLastToken(includeZeroWidth: true);
+            var baseToken = firstToken.GetPreviousToken(includeZeroWidth: true);
+            SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
         }
     }
 
