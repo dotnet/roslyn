@@ -10163,6 +10163,8 @@ class C { }
         public void TestEventFieldInFileScopedNamespace()
         {
             var source = """
+using System;
+
 namespace N;
 
 Console.WriteLine();
@@ -10172,25 +10174,37 @@ class C { }
 """;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,9): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // Console.WriteLine();
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(5, 9),
+                // (5,19): error CS8124: Tuple must contain at least two elements.
+                // Console.WriteLine();
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 19),
+                // (5,20): error CS1022: Type or namespace definition, or end-of-file expected
+                // Console.WriteLine();
+                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(5, 20),
+                // (7,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // event Action E;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(7, 14)
+                );
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81141")]
         public void TestEventFieldInNamespace()
         {
             var source = """
+using System;
+
 event Action E;
 class C { }
 """;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (1,7): error CS0246: The type or namespace name 'Action' could not be found (are you missing a using directive or an assembly reference?)
+                // (3,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // event Action E;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Action").WithArguments("Action").WithLocation(1, 7),
-                // (1,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // event Action E;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(3, 14)
                 );
         }
 
@@ -10243,6 +10257,8 @@ class C { }
         public void TestEventDeclarationInFileScopedNamespace()
         {
             var source = """
+using System;
+
 namespace N;
 
 Console.WriteLine();
@@ -10253,21 +10269,18 @@ class C { }
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (3,9): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (5,9): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(3, 9),
-                // (3,19): error CS8124: Tuple must contain at least two elements.
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(5, 9),
+                // (5,19): error CS8124: Tuple must contain at least two elements.
                 // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 19),
-                // (3,20): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 19),
+                // (5,20): error CS1022: Type or namespace definition, or end-of-file expected
                 // Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(3, 20),
-                // (5,7): error CS0246: The type or namespace name 'Action' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(5, 20),
+                // (7,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // event Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Action").WithArguments("Action").WithLocation(5, 7),
-                // (5,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // event Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(5, 14)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(7, 14)
                 );
         }
 
@@ -10275,18 +10288,17 @@ class C { }
         public void TestEventDeclarationInNamespace()
         {
             var source = """
+using System;
+
 event Action E { add { } remove { } }
 class C { }
 """;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (1,7): error CS0246: The type or namespace name 'Action' could not be found (are you missing a using directive or an assembly reference?)
+                // (3,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // event Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Action").WithArguments("Action").WithLocation(1, 7),
-                // (1,14): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // event Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "E").WithLocation(3, 14)
                 );
         }
 
@@ -10407,21 +10419,18 @@ using System;
 
 Console.WriteLine();
 
-static implicit operator int(int d) => 0;
+public static implicit operator int(int d) => 0;
 class C { }
 """;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (5,17): error CS9343: Members, such as properties, fields or events, are not allowed as top level statements 
-                // static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "operator").WithLocation(5, 17),
-                // (5,26): error CS0558: User-defined operator '<invalid-global-code>.implicit operator int(int)' must be declared static and public
-                // static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "int").WithArguments("<invalid-global-code>.implicit operator int(int)").WithLocation(5, 26),
-                // (5,26): error CS0556: User-defined conversion must convert to or from the enclosing type
-                // static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(5, 26)
+                // (5,24): error CS9343: Members, such as properties, fields or events, are not allowed as top level statements 
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_MemberIsNoTopLevelSatement, "operator").WithLocation(5, 24),
+                // (5,33): error CS0556: User-defined conversion must convert to or from the enclosing type
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(5, 33)
                 );
         }
 
@@ -10433,7 +10442,7 @@ namespace N;
 
 Console.WriteLine();
 
-static implicit operator int(int d) => 0;
+public static implicit operator int(int d) => 0;
 class C { }
 """;
 
@@ -10448,15 +10457,12 @@ class C { }
                 // (3,20): error CS1022: Type or namespace definition, or end-of-file expected
                 // Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(3, 20),
-                // (5,17): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "operator").WithLocation(5, 17),
-                // (5,26): error CS0558: User-defined operator '<invalid-global-code>.implicit operator int(int)' must be declared static and public
-                // static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "int").WithArguments("N.<invalid-global-code>.implicit operator int(int)").WithLocation(5, 26),
-                // (5,26): error CS0556: User-defined conversion must convert to or from the enclosing type
-                // static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(5, 26)
+                // (5,24): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "operator").WithLocation(5, 24),
+                // (5,33): error CS0556: User-defined conversion must convert to or from the enclosing type
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(5, 33)
                 );
         }
 
@@ -10464,21 +10470,18 @@ class C { }
         public void TestConversionOperatorInNamespace()
         {
             var source = """
-static implicit operator int(int d) => 0;
+public static implicit operator int(int d) => 0;
 class C { }
 """;
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
-                // (1,17): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "operator").WithLocation(1, 17),
-                // (1,26): error CS0558: User-defined operator '<invalid-global-code>.implicit operator int(int)' must be declared static and public
-                // static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "int").WithArguments("<invalid-global-code>.implicit operator int(int)").WithLocation(1, 26),
-                // (1,26): error CS0556: User-defined conversion must convert to or from the enclosing type
-                // static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(1, 26)
+                // (1,24): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "operator").WithLocation(1, 24),
+                // (1,33): error CS0556: User-defined conversion must convert to or from the enclosing type
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(1, 33)
                 );
         }
 
@@ -10491,22 +10494,19 @@ using System;
 Console.WriteLine();
 
 class C { }
-static implicit operator int(int d) => 0;
+public static implicit operator int(int d) => 0;
 """;
             var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
                 // (5,11): error CS1519: Invalid token '}' in a member declaration
                 // class C { }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 11),
-                // (6,26): error CS0558: User-defined operator 'C.implicit operator int(int)' must be declared static and public
-                // static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "int").WithArguments("C.implicit operator int(int)").WithLocation(6, 26),
-                // (6,26): error CS0556: User-defined conversion must convert to or from the enclosing type
-                // static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(6, 26),
-                // (6,42): error CS1513: } expected
-                // static implicit operator int(int d) => 0;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 42)
+                // (6,33): error CS0556: User-defined conversion must convert to or from the enclosing type
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(6, 33),
+                // (6,49): error CS1513: } expected
+                // public static implicit operator int(int d) => 0;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 49)
                 );
         }
 
