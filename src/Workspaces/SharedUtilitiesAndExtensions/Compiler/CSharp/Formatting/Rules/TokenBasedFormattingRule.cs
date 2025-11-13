@@ -296,7 +296,6 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
     private static string GetGroupIdentifier(UsingDirectiveSyntax usingDirective)
     {
         // Get a unique identifier for the group this using belongs to
-        // Based on the logic in UsingsAndExternAliasesOrganizer.NeedsGrouping
         // NOTE: Stay in sync with UsingsAndExternAliasesOrganizer.NeedsGrouping
 
         if (usingDirective.Alias != null)
