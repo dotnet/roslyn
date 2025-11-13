@@ -396,7 +396,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10526")]
     public Task LambdaListWithComma()
         => AssertNoFormattingChangesAsync("""
             using System;
@@ -411,7 +411,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10526")]
     public Task LambdaListWithCommaMultipleVariables()
         => AssertNoFormattingChangesAsync("""
             using System;
@@ -427,7 +427,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10526")]
     public Task AnonymousMethodListWithComma()
         => AssertNoFormattingChangesAsync("""
             using System;
