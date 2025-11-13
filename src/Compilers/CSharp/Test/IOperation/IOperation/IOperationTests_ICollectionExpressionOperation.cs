@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -61,6 +60,9 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
             """);
+        var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+        var operation = semanticModel.GetOperation(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.WithElement).AsNode()!);
+        Assert.Null(operation);
     }
 
     [Fact]
@@ -88,6 +90,9 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
             """);
+        var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+        var operation = semanticModel.GetOperation(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.WithElement).AsNode()!);
+        Assert.Null(operation);
     }
 
     [Fact]
@@ -115,6 +120,9 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
             """);
+        var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+        var operation = semanticModel.GetOperation(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.WithElement).AsNode()!);
+        Assert.Null(operation);
     }
 
     [Fact]
@@ -141,6 +149,9 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
             """);
+        var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+        var operation = semanticModel.GetOperation(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.WithElement).AsNode()!);
+        Assert.Null(operation);
     }
 
     [Fact]
@@ -169,6 +180,9 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
             """);
+        var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+        var operation = semanticModel.GetOperation(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.WithElement).AsNode()!);
+        Assert.Null(operation);
     }
 
     [Fact]
@@ -197,6 +211,9 @@ public sealed class IOperationTests_ICollectionExpressionOperation : CSharpTestB
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
             """);
+        var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+        var operation = semanticModel.GetOperation(comp.SyntaxTrees.Single().FindNodeOrTokenByKind(SyntaxKind.WithElement).AsNode()!);
+        Assert.Null(operation);
     }
 
     [Theory]
