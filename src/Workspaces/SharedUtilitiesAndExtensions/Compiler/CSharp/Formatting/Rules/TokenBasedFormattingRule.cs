@@ -82,6 +82,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
                         !currentToken.IsCloseParenOfParenthesizedExpression() && // Place ) after } in `(() => {})`
                         !currentToken.IsCommaInInitializerExpression() &&
                         !currentToken.IsCommaInAnyArgumentsList() &&
+                        !currentToken.IsCommaInVariableDeclaration() &&
                         !currentToken.IsCommaInTupleExpression() &&
                         !currentToken.IsCommaInCollectionExpression() &&
                         !currentToken.IsParenInArgumentList() &&

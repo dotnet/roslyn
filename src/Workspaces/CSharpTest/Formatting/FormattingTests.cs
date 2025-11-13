@@ -397,6 +397,52 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
 
     [Fact]
+    public Task LambdaListWithComma()
+        => AssertNoFormattingChangesAsync("""
+            using System;
+
+            class Test
+            {
+                void M()
+                {
+                    Action a = () => { },
+                           b = () => { };
+                }
+            }
+            """);
+
+    [Fact]
+    public Task LambdaListWithCommaMultipleVariables()
+        => AssertNoFormattingChangesAsync("""
+            using System;
+
+            class Test
+            {
+                void M()
+                {
+                    Action a = () => { },
+                           b = () => { },
+                           c = () => { };
+                }
+            }
+            """);
+
+    [Fact]
+    public Task AnonymousMethodListWithComma()
+        => AssertNoFormattingChangesAsync("""
+            using System;
+
+            class Test
+            {
+                void M()
+                {
+                    Action a = delegate { },
+                           b = delegate { };
+                }
+            }
+            """);
+
+    [Fact]
     public Task Scen1()
         => AssertFormatAsync("""
             namespace Namespace1

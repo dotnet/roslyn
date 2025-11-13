@@ -217,6 +217,12 @@ internal static class FormattingHelpers
             token.Parent.IsAnyArgumentList();
     }
 
+    public static bool IsCommaInVariableDeclaration(this SyntaxToken token)
+    {
+        return token.Kind() == SyntaxKind.CommaToken &&
+            token.Parent.IsKind(SyntaxKind.VariableDeclaration);
+    }
+
     public static bool IsOpenParenOfParenthesizedExpression(this SyntaxToken token)
         => token.Parent is ParenthesizedExpressionSyntax parenthesizedExpression && parenthesizedExpression.OpenParenToken.Equals(token);
 
