@@ -597,13 +597,13 @@ function Deploy-VsixViaTool() {
     $script:vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
     $displayVersion = $vsInfo.catalog.productDisplayVersion
 
-    $script:hive = "RoslynDev"
+    $script:hive = ""
 
     Write-Host "Using VS Instance $vsId ($displayVersion) at `"$vsDir`""
 
     # InstanceIds is required here to ensure it installs the vsixes only into the specified VS instance.
     # The default installer behavior without it is to install into every installed VS instance.
-    $baseArgs = "/rootSuffix:$hive /quiet /shutdownprocesses /instanceIds:$vsId /logFile:$logFileName"
+    $baseArgs = "/quiet /shutdownprocesses /instanceIds:$vsId /logFile:$logFileName"
 
     # Write the file location out to a variable so we can upload it later.
     $fullLogPath = Join-Path $env:TEMP $logFileName
