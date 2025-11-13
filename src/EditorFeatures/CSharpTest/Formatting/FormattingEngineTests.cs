@@ -2521,6 +2521,60 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
             }
             """);
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35105")]
+    public void FormatLabelAfterIfStatementWithoutBraces()
+        => AssertFormatWithView("""
+            class Test
+            {
+                static void Test()
+                {
+                    Test();
+
+                label1:
+                    Test();
+                    if (true)
+                        Test();
+
+                        label2:$$
+                    Test();
+
+                label3:
+                    if (true)
+                    {
+                        Test();
+                    }
+
+                label4:
+                    Test();
+                }
+            }
+            """, """
+            class Test
+            {
+                static void Test()
+                {
+                    Test();
+
+                label1:
+                    Test();
+                    if (true)
+                        Test();
+
+                        label2:$$
+                    Test();
+
+                label3:
+                    if (true)
+                    {
+                        Test();
+                    }
+
+                label4:
+                    Test();
+                }
+            }
+            """);
+
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/67011")]
     public void FormatClassAfterSemicolon()
         => AssertFormatAfterTypeChar("""
