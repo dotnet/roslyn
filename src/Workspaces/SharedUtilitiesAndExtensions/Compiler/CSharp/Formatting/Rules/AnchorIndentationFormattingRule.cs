@@ -65,10 +65,10 @@ internal sealed class AnchorIndentationFormattingRule : BaseFormattingRule
                     {
                         if (embeddedStatementOwner.Parent == null)
                             break;
-                        
+
                         embeddedStatementOwner = embeddedStatementOwner.Parent;
                     }
-                    
+
                     // Get the previous token before the top-most embedded statement owner to use as anchor
                     var anchorToken = embeddedStatementOwner.GetFirstToken(includeZeroWidth: true).GetPreviousToken(includeZeroWidth: true);
                     if (!anchorToken.IsKind(SyntaxKind.None))

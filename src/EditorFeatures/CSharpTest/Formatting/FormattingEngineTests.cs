@@ -2774,7 +2774,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     if (true)
                         Test();
 
-                        label2:$$
+                label2:$$
                     Test();
 
                 label3:
@@ -2799,7 +2799,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     if (true)
                         Test();
 
-                label2:$$
+                        label2:$$
                     Test();
 
                 label3:
@@ -2826,7 +2826,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                             if (true)
                                 Test();
 
-                        label:$$
+                label:$$
                     Test();
                 }
             }
@@ -2840,7 +2840,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                             if (true)
                                 Test();
 
-                label:$$
+                        label:$$
                     Test();
                 }
             }
