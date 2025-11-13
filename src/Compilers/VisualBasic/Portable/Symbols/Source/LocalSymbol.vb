@@ -836,6 +836,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 MyBase.New(container, binder, declaringIdentifier, declarationKind, Nothing)
 
+                Debug.Assert(modifiedIdentifierOpt IsNot Nothing OrElse declarationKind = LocalDeclarationKind.Catch,
+                             "Only catch variables should have Nothing for modifiedIdentifierOpt")
+
                 _modifiedIdentifierOpt = modifiedIdentifierOpt
                 _asClauseOpt = asClauseOpt
                 _initializerOpt = initializerOpt
