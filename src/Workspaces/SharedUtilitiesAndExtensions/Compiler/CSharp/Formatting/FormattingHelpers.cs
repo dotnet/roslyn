@@ -530,18 +530,12 @@ internal static class FormattingHelpers
             currentToken.Parent.IsKind(SyntaxKind.TupleExpression);
     }
 
-    /// <summary>
-    /// Check whether the currentToken is a comma and is a delimiter between elements inside a tuple type.
-    /// </summary>
     public static bool IsCommaInTupleType(this SyntaxToken currentToken)
     {
         return currentToken.IsKind(SyntaxKind.CommaToken) &&
             currentToken.Parent.IsKind(SyntaxKind.TupleType);
     }
 
-    /// <summary>
-    /// Check whether the currentToken is a comma and is a delimiter in a parenthesized variable designation (deconstruction).
-    /// </summary>
     public static bool IsCommaInParenthesizedVariableDesignation(this SyntaxToken currentToken)
     {
         return currentToken.IsKind(SyntaxKind.CommaToken) &&
