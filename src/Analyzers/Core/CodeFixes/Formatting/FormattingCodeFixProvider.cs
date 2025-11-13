@@ -75,11 +75,8 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
         // The span to format is the full line(s) containing the diagnostic
         var diagnosticSpan = diagnostic.Location.SourceSpan;
         var diagnosticLinePositionSpan = text.Lines.GetLinePositionSpan(diagnosticSpan);
-        var token = root.FindToken(text.Lines[diagnosticLinePositionSpan.Start.Line].Start);
-        var previousToken = token.GetPreviousToken();
-
         var spanToFormat = TextSpan.FromBounds(
-            previousToken == default ? text.Lines[diagnosticLinePositionSpan.Start.Line].Start : previousToken.SpanStart,
+            text.Lines[diagnosticLinePositionSpan.Start.Line].Start,
             text.Lines[diagnosticLinePositionSpan.End.Line].End);
 
         var formattingOptions = await context.Document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
