@@ -3253,7 +3253,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }           
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8100")]
     public Task QueryExpressionWithCommentAfterFromClause()
         => AssertFormatAsync("""
             class C
@@ -3279,7 +3279,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8100")]
     public Task QueryExpressionWithCommentBeforeWhereClause()
         => AssertFormatAsync("""
             class C
@@ -3307,7 +3307,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8100")]
     public Task QueryExpressionWithMultipleComments()
         => AssertFormatAsync("""
             class C
