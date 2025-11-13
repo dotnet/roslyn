@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -10,13 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private partial void Validate()
         {
-            if (this.CollectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
-            {
-                Debug.Assert(this.CollectionCreation is not null);
-                Debug.Assert(this.CollectionBuilderMethod is not null);
-                Debug.Assert(this.CollectionBuilderElementsPlaceholder is not null);
-            }
-
 #if DEBUG
             var collectionCreation = this.CollectionCreation;
             while (collectionCreation is BoundConversion conversion)
@@ -28,6 +22,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                             or BoundCall
                             or BoundNewT
                             or BoundBadExpression);
+
+            if (collectionCreation != null &&
+                this.HasWithElement)
+            {
+                Debug.Assert(collectionCreation.Syntax is WithElementSyntax);
+            }
+
+            if (this.CollectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
+            {
+                Debug.Assert(this.CollectionCreation is not null);
+                Debug.Assert(this.CollectionBuilderMethod is not null);
+                Debug.Assert(this.CollectionBuilderElementsPlaceholder is not null);
+
+                Debug.Assert(
+                    collectionCreation is BoundCall
+                    {
+                        Arguments: [.., BoundValuePlaceholder { Kind: BoundKind.ValuePlaceholder } placeHolder],
+                    } boundCall && boundCall.Syntax == placeHolder.Syntax);
+            }
 #endif
         }
     }
