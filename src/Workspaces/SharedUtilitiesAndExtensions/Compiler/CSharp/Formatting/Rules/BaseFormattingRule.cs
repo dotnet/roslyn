@@ -32,26 +32,14 @@ internal abstract class BaseFormattingRule : AbstractFormattingRule
     protected static void AddUnindentBlockOperation(
         List<IndentBlockOperation> list,
         SyntaxToken startToken,
-        SyntaxToken endToken,
-        bool includeTriviaAtEnd = false,
-        IndentBlockOption option = IndentBlockOption.RelativePosition)
+        SyntaxToken endToken)
     {
         if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
-        {
             return;
-        }
 
-        if (includeTriviaAtEnd)
-        {
-            list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, indentationDelta: -1, option: option));
-        }
-        else
-        {
-            var startPosition = CommonFormattingHelpers.GetStartPositionOfSpan(startToken);
-            var endPosition = endToken.Span.End;
-
-            list.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, TextSpan.FromBounds(startPosition, endPosition), indentationDelta: -1, option: option));
-        }
+        list.Add(FormattingOperations.CreateIndentBlockOperation(
+            startToken, endToken, TextSpan.FromBounds(startToken.Span.Start, endToken.Span.End),
+            indentationDelta: -1, IndentBlockOption.RelativePosition));
     }
 
     protected static void AddAbsoluteZeroIndentBlockOperation(
