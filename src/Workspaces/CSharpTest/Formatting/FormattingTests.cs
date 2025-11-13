@@ -11579,4 +11579,286 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    public Task NestedEmbeddedStatementsOnSameLine_IfIf()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    if (true) if (true)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    if (true) if (true)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    public Task NestedEmbeddedStatementsOnDifferentLines_IfIf()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    if (true)
+                        if (true)
+                        {
+                            /* ... */
+                        }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    if (true)
+                if (true)
+                {
+                    /* ... */
+                }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    public Task NestedEmbeddedStatementsOnSameLine_IfUsing()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    if (true) using (null)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    if (true) using (null)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    public Task NestedEmbeddedStatementsOnDifferentLines_IfUsing()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    if (true)
+                        using (null)
+                        {
+                            /* ... */
+                        }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    if (true)
+                using (null)
+                {
+                    /* ... */
+                }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    public Task NestedEmbeddedStatementsOnSameLine_WhileFor()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    while (true) for (; ; )
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    while (true) for (;;)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    public Task NestedEmbeddedStatementsOnDifferentLines_WhileFor()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    while (true)
+                        for (; ; )
+                        {
+                            /* ... */
+                        }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    while (true)
+                for (;;)
+                {
+                    /* ... */
+                }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    public Task NestedEmbeddedStatementsOnSameLine_LockForeach()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    lock (null) foreach (var x in y)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    lock (null) foreach (var x in y)
+                    {
+                        /* ... */
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    public Task NestedEmbeddedStatementsOnDifferentLines_LockForeach()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    lock (null)
+                        foreach (var x in y)
+                        {
+                            /* ... */
+                        }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    lock (null)
+                foreach (var x in y)
+                {
+                    /* ... */
+                }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    public Task NestedEmbeddedStatementsOnSameLine_FixedDo()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    unsafe
+                    {
+                        fixed (int* p = &i) do
+                        {
+                            /* ... */
+                        } while (true);
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    unsafe
+                    {
+                        fixed (int* p = &i) do
+                        {
+                            /* ... */
+                        } while (true);
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3326")]
+    public Task NestedEmbeddedStatementsOnDifferentLines_FixedDo()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    unsafe
+                    {
+                        fixed (int* p = &i)
+                            do
+                            {
+                                /* ... */
+                            } while (true);
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    unsafe
+                    {
+                        fixed (int* p = &i)
+                do
+                {
+                    /* ... */
+                } while (true);
+                    }
+                }
+            }
+            """);
 }
