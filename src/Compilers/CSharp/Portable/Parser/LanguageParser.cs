@@ -11872,10 +11872,6 @@ done:
                     case SyntaxKind.NumericLiteralToken:
                     case SyntaxKind.StringLiteralToken:
                     case SyntaxKind.Utf8StringLiteralToken:
-                    case SyntaxKind.SingleLineRawStringLiteralToken:
-                    case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
-                    case SyntaxKind.MultiLineRawStringLiteralToken:
-                    case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                     case SyntaxKind.CharacterLiteralToken:
                         return _syntaxFactory.LiteralExpression(SyntaxFacts.GetLiteralExpression(tk), this.EatToken());
                     case SyntaxKind.InterpolatedStringStartToken:
@@ -11885,6 +11881,11 @@ done:
                         throw new NotImplementedException(); // this should not occur because these tokens are produced and parsed immediately
                     case SyntaxKind.InterpolatedStringToken:
                         return this.ParseInterpolatedStringToken();
+                    case SyntaxKind.SingleLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
+                    case SyntaxKind.MultiLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
+                        return this.ParseRawStringToken();
                     case SyntaxKind.OpenParenToken:
                         {
                             return IsPossibleLambdaExpression(precedence) && this.TryParseLambdaExpression() is { } lambda
