@@ -11,43 +11,6 @@ internal class NuGetPrepare
 {
     private const string NotPublishedDirectoryName = "NotPublished";
 
-    internal static readonly string[] RoslynPackageIds =
-    [
-        "Microsoft.CodeAnalysis",
-        "Microsoft.CodeAnalysis.Common",
-        "Microsoft.CodeAnalysis.Compilers",
-        "Microsoft.CodeAnalysis.CSharp",
-        "Microsoft.CodeAnalysis.CSharp.CodeStyle",
-        "Microsoft.CodeAnalysis.CSharp.Features",
-        "Microsoft.CodeAnalysis.CSharp.Scripting",
-        "Microsoft.CodeAnalysis.CSharp.Workspaces",
-        "Microsoft.CodeAnalysis.EditorFeatures.Text",
-        "Microsoft.CodeAnalysis.Features",
-        "Microsoft.CodeAnalysis.Scripting",
-        "Microsoft.CodeAnalysis.Scripting.Common",
-        "Microsoft.CodeAnalysis.VisualBasic",
-        "Microsoft.CodeAnalysis.VisualBasic.CodeStyle",
-        "Microsoft.CodeAnalysis.VisualBasic.Features",
-        "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
-        "Microsoft.CodeAnalysis.Workspaces.Common",
-        "Microsoft.CodeAnalysis.Workspaces.MSBuild",
-        "Microsoft.Net.Compilers.Toolset",
-        "Microsoft.Net.Compilers.Toolset.Framework",
-        "Microsoft.VisualStudio.LanguageServices",
-
-        // These are the RoslynAnalyzer packages. We should not publish them at this time.
-        //"Microsoft.CodeAnalysis.Analyzers",
-        //"Microsoft.CodeAnalysis.AnalyzerUtilities",
-        //"Microsoft.CodeAnalysis.BannedApiAnalyzers",
-        //"Microsoft.CodeAnalysis.Metrics",
-        //"Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers",
-        //"Microsoft.CodeAnalysis.PublicApiAnalyzers",
-        //"Microsoft.CodeAnalysis.ResxSourceGenerator",
-        //"Microsoft.CodeAnalysis.RulesetToEditorconfigConverter",
-        //"Roslyn.Diagnostics.Analyzers",
-        //"Text.Analyzers"
-    ];
-
     internal static async Task<int> PrepareAsync(ILogger logger)
     {
         try
@@ -62,7 +25,7 @@ internal class NuGetPrepare
 
             logger.LogInformation("Moving {Version} packages...", version);
 
-            var publishedPackages = RoslynPackageIds
+            var publishedPackages = NuGetPublish.RoslynPackageIds
                 .Select(packageId => $"{packageId}.{version}.nupkg")
                 .ToHashSet();
 
