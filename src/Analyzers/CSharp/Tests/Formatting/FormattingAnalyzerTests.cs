@@ -423,4 +423,123 @@ public sealed class FormattingAnalyzerTests
             #endif
             }
             """);
+
+    [Fact]
+    public async Task TestSeparateImportDirectiveGroups_WithGroupedButNotGloballySortedUsings()
+    {
+        // Test that usings that are grouped correctly (each group sorted) but not globally sorted
+        // still trigger the separator when dotnet_separate_import_directive_groups is true
+        var testCode = """
+            namespace TestNamespace;
+
+            using Azure.Storage.Blobs;
+            using Azure.Storage.Sas;[||]
+            using System.Diagnostics;
+            using NuGet.Versioning;
+
+            class TestClass { }
+            """;
+        var fixedCode = """
+            namespace TestNamespace;
+
+            using Azure.Storage.Blobs;
+            using Azure.Storage.Sas;
+
+            using System.Diagnostics;
+            using NuGet.Versioning;
+
+            class TestClass { }
+            """;
+        await new Verify.Test
+        {
+            TestState =
+            {
+                Sources = { testCode },
+                AnalyzerConfigFiles =
+                {
+                    ("/.editorconfig", """
+                    root = true
+                    [*.cs]
+                    dotnet_separate_import_directive_groups = true
+                    """),
+                },
+            },
+            FixedState = { Sources = { fixedCode } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSeparateImportDirectiveGroups_WithAlphabeticallySortedUsings()
+    {
+        // Test that usings that are alphabetically sorted trigger the separator
+        var testCode = """
+            namespace TestNamespace;
+
+            using Azure.Storage.Blobs;
+            using Azure.Storage.Sas;[||]
+            using NuGet.Versioning;
+            using System.Diagnostics;
+
+            class TestClass { }
+            """;
+        var fixedCode = """
+            namespace TestNamespace;
+
+            using Azure.Storage.Blobs;
+            using Azure.Storage.Sas;
+
+            using NuGet.Versioning;
+            using System.Diagnostics;
+
+            class TestClass { }
+            """;
+        await new Verify.Test
+        {
+            TestState =
+            {
+                Sources = { testCode },
+                AnalyzerConfigFiles =
+                {
+                    ("/.editorconfig", """
+                    root = true
+                    [*.cs]
+                    dotnet_separate_import_directive_groups = true
+                    """),
+                },
+            },
+            FixedState = { Sources = { fixedCode } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSeparateImportDirectiveGroups_WithUnsortedGroupsNoSeparator()
+    {
+        // Test that usings with unsorted groups don't trigger separator (existing behavior preserved)
+        var testCode = """
+            namespace TestNamespace;
+
+            using Azure.Storage.Sas;
+            using Azure.Storage.Blobs;
+            using System.Diagnostics;
+            using NuGet.Versioning;
+
+            class TestClass { }
+            """;
+        await new Verify.Test
+        {
+            TestState =
+            {
+                Sources = { testCode },
+                AnalyzerConfigFiles =
+                {
+                    ("/.editorconfig", """
+                    root = true
+                    [*.cs]
+                    dotnet_separate_import_directive_groups = true
+                    """),
+                },
+            },
+            FixedState = { Sources = { testCode } },
+        }.RunAsync();
+    }
 }
