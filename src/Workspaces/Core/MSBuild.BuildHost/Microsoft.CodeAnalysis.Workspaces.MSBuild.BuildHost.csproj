@@ -43,10 +43,11 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
-    <PackageReference Include="System.CommandLine" />
-    <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Text.Json" VersionOverride="8.0.5" PrivateAssets="All" Condition="'$(DotnetBuildFromSource)' != 'true'"/>
+    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="System.Text.Json" VersionOverride="8.0.5" PrivateAssets="All" Condition="'$(DotnetBuildFromSource)' != 'true'"/>
     <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
   <ItemGroup>
