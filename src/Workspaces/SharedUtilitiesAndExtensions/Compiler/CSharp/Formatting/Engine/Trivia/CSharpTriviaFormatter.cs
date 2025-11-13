@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -129,6 +130,27 @@ internal sealed partial class CSharpTriviaFormatter : AbstractTriviaFormatter
                         {
                             break;
                         }
+                    }
+                }
+
+                // For #endregion, try to match the indentation of the corresponding #region, but use
+                // the default indentation if it's greater (e.g., when #endregion is in a deeper scope)
+                if (trivia2.IsKind(SyntaxKind.EndRegionDirectiveTrivia) &&
+                    trivia2.HasStructure &&
+                    trivia2.GetStructure() is EndRegionDirectiveTriviaSyntax endRegionDirective)
+                {
+                    var matchingRegion = endRegionDirective.GetMatchingDirective(cancellationToken);
+                    if (matchingRegion is RegionDirectiveTriviaSyntax)
+                    {
+                        // Get the indentation of the matching #region
+                        var regionIndentation = this.Context.GetBaseIndentation(matchingRegion.SpanStart);
+                        
+                        // Get the default indentation where the #endregion appears
+                        var defaultIndentation = this.Context.GetBaseIndentation(trivia2.SpanStart);
+                        
+                        // Use the maximum to handle cases where #endregion is in a deeper scope than #region
+                        var indentation = Math.Max(regionIndentation, defaultIndentation);
+                        return LineColumnRule.PreserveLinesWithAbsoluteIndentation(lines, indentation);
                     }
                 }
 
