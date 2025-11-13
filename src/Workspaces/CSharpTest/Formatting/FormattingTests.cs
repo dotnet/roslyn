@@ -5903,7 +5903,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76757")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/81204")]
     public Task FormatSwitchExpression_ListPatternInOrAndPattern()
         => AssertFormatAsync("""
             class C
@@ -5939,7 +5939,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76757")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/81204")]
     public Task FormatSwitchExpression_ListPatternInAndPattern()
         => AssertFormatAsync("""
             class C
