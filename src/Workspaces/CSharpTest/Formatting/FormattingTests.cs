@@ -11580,7 +11580,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22713")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25010")]
     public Task LambdaWithCommentAndStatement()
         => AssertFormatAsync("""
             using System;
@@ -11614,7 +11614,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22713")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25010")]
     public Task LambdaWithMultipleCommentsAndStatements()
         => AssertFormatAsync("""
             using System;
@@ -11650,7 +11650,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22713")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25010")]
     public Task IfStatementWithCommentNotAffected()
         => AssertFormatAsync("""
             using System;
