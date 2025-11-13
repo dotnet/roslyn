@@ -43,6 +43,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.Text.Json" VersionOverride="8.0.5" PrivateAssets="All" Condition="'$(DotnetBuildFromSource)' != 'true'"/>
