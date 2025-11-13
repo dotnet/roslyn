@@ -1537,7 +1537,7 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76168")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75919")]
     public Task EndRegionFollowedByLabel()
         => AssertFormatAsync("""
             class C
