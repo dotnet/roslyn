@@ -325,6 +325,18 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         var firstToken = embeddedStatement.GetFirstToken(includeZeroWidth: true);
         var lastToken = embeddedStatement.GetLastToken(includeZeroWidth: true);
 
+        // If the embedded statement is itself an embedded statement owner (e.g., if, using, while, for, etc.)
+        // and it's on the same line as the outer statement, don't add extra indentation. This generalizes
+        // the else-if logic to all nested embedded statements (e.g., if-if, if-using, while-for, etc.)
+        if (embeddedStatement.IsEmbeddedStatementOwner())
+        {
+            var tokenBeforeEmbedded = firstToken.GetPreviousToken(includeZeroWidth: true);
+            if (tokenBeforeEmbedded != default && FormattingHelpers.AreOnSameLine(tokenBeforeEmbedded, firstToken))
+            {
+                return;
+            }
+        }
+
         if (lastToken.IsMissing)
         {
             // embedded statement is not done, consider following as part of embedded statement
