@@ -6148,6 +6148,180 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """);
 
     [Fact]
+    public async Task TupleExpression_SpaceAfterComma_False()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    var x = (1, 2, 3);
+                }
+            }
+            """;
+
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceAfterComma, false },
+        };
+
+        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
+            class C
+            {
+                void M()
+                {
+                    var x = (1,2,3);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TupleExpression_SpaceAfterComma_True()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    var x = (1,2,3);
+                }
+            }
+            """;
+
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceAfterComma, true },
+        };
+
+        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
+            class C
+            {
+                void M()
+                {
+                    var x = (1, 2, 3);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TupleType_SpaceAfterComma_False()
+    {
+        var code = """
+            class C
+            {
+                void M((int, string, bool) tuple)
+                {
+                }
+            }
+            """;
+
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceAfterComma, false },
+        };
+
+        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
+            class C
+            {
+                void M((int,string,bool) tuple)
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TupleType_SpaceAfterComma_True()
+    {
+        var code = """
+            class C
+            {
+                void M((int,string,bool) tuple)
+                {
+                }
+            }
+            """;
+
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceAfterComma, true },
+        };
+
+        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
+            class C
+            {
+                void M((int, string, bool) tuple)
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NestedTuples_SpaceAfterComma_False()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    var x = (1, (2, 3), 4);
+                    (int, (string, bool)) y;
+                }
+            }
+            """;
+
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceAfterComma, false },
+        };
+
+        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
+            class C
+            {
+                void M()
+                {
+                    var x = (1,(2,3),4);
+                    (int,(string,bool)) y;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Deconstruction_SpaceAfterComma_False()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    (int x, string y) = (1, "hello");
+                    var (a, b) = (1, 2);
+                }
+            }
+            """;
+
+        var options = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { SpaceAfterComma, false },
+        };
+
+        await AssertFormatAsync(code: code, changedOptionSet: options, expected: """
+            class C
+            {
+                void M()
+                {
+                    (int x,string y) = (1,"hello");
+                    var (a,b) = (1,2);
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public Task SpacingInSuppressNullableWarningExpression()
         => AssertFormatAsync("""
             class C
