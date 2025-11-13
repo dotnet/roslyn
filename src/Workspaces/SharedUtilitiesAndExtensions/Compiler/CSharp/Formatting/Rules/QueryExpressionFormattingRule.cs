@@ -102,7 +102,7 @@ internal sealed class QueryExpressionFormattingRule : BaseFormattingRule
             if (!baseToken.IsMissing && !baseToken.Equals(endToken))
             {
                 SyntaxToken startToken;
-                
+
                 // Determine if the from clause's collection expression is incomplete by checking if the
                 // last token is missing. If incomplete, use the old logic to properly indent the continuation.
                 // If complete, start alignment from the query body to avoid incorrectly indenting comments
@@ -120,7 +120,7 @@ internal sealed class QueryExpressionFormattingRule : BaseFormattingRule
                     // New behavior: collection expression is complete (even if multi-line or has errors)
                     startToken = queryExpression.Body.GetFirstToken(includeZeroWidth: true);
                 }
-                
+
                 SetAlignmentBlockOperation(list, baseToken, startToken, endToken);
             }
         }
