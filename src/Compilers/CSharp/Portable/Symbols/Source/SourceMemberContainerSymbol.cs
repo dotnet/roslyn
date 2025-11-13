@@ -5601,9 +5601,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var constructorSyntax = (ConstructorDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
-                                    new SourceLocation(constructorSyntax.Identifier));
-
                                 var parnetSyntax = constructorSyntax.Parent;
                                 if (parnetSyntax.IsKind(SyntaxKind.CompilationUnit)
                                     && parnetSyntax.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement)))
