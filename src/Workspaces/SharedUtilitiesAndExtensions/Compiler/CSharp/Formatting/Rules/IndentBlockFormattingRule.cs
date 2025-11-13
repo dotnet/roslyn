@@ -356,15 +356,11 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         for (var current = node; current != null; current = current.Parent)
         {
             if (current.Parent is SwitchExpressionArmSyntax arm && arm.Pattern == current)
-            {
                 return true;
-            }
 
             // Stop walking if we've left the pattern context
             if (current is SwitchExpressionArmSyntax)
-            {
                 return false;
-            }
         }
 
         return false;
