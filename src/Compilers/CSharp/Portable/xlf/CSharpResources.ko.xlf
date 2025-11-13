@@ -1543,8 +1543,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberIsNoTopLevelSatement">
-        <source>Member is no valid top level statement</source>
-        <target state="new">Member is no valid top level statement</target>
+        <source>Members, such as properties, fields or events, are not allowed as top level statements </source>
+        <target state="new">Members, such as properties, fields or events, are not allowed as top level statements </target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsExtendedType">
