@@ -794,4 +794,39 @@ public sealed class FormattingAnalyzerTests
             FixedState = { Sources = { fixedCode } },
         }.RunAsync();
     }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77831")]
+    public async Task TestSeparateImportDirectiveGroups_WithUngroupedAliasesAndStatics(bool sortSystemDirectivesFirst)
+    {
+        // Test that ungrouped aliases and statics don't trigger separator
+        // Aliases at start and end, statics at start and end - not properly grouped
+        var testCode = """
+            namespace TestNamespace;
+
+            using A = System.String;
+            using static System.Math;
+            using System.Collections.Generic;
+            using B = System.Int32;
+            using static System.Console;
+
+            class TestClass { }
+            """;
+        await new Verify.Test
+        {
+            TestState =
+            {
+                Sources = { testCode },
+                AnalyzerConfigFiles =
+                {
+                    ("/.editorconfig", $$"""
+                    root = true
+                    [*.cs]
+                    dotnet_separate_import_directive_groups = true
+                    dotnet_sort_system_directives_first = {{sortSystemDirectivesFirst}}
+                    """),
+                },
+            },
+            FixedState = { Sources = { testCode } },
+        }.RunAsync();
+    }
 }
