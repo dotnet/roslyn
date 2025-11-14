@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
-    public ExtensionMethodImportCompletionProviderTests()
+    public ExtensionMemberImportCompletionProviderTests()
     {
         ShowImportCompletionItemsOptionValue = true;
         ForceExpandedCompletionIndexCreation = true;
@@ -2325,4 +2325,46 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
              displayTextSuffix: "",
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
+
+    [Theory, MemberData(nameof(BuiltInTypesWithReferenceTypeData))]
+    public async Task TestPredefinedType_ModernExtensionMethod(string type1, string type2, ReferenceType refType)
+    {
+        var file1 = $$"""
+            using System;
+
+            namespace Goo
+            {
+                public static class ExtensionClass
+                {
+                    extension({{type1}} x)
+                    {
+                        public bool ExtensionMethod()
+                            => true;
+                    }
+                }
+            }
+            """;
+        var file2 = $$"""
+            using System;
+
+            namespace Goo
+            {
+                public class Bat
+                {
+                    public void M({{type2}} x)
+                    {
+                        x.$$
+                    }
+                }
+            }
+            """;
+
+        var markup = GetMarkup(file2, file1, refType);
+
+        await VerifyImportItemExistsAsync(
+             markup,
+             "ExtensionMethod",
+             glyph: Glyph.ExtensionMethodPublic,
+             inlineDescription: "Foo");
+    }
 }
