@@ -166,16 +166,16 @@ internal static partial class ExtensionMemberImportCompletionHelper
             var assembly = compilation.Assembly;
             var internalsVisible = originatingAssembly.IsSameAssemblyOrHasFriendAccessTo(assembly);
 
-            var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
+            var matchingMemberSymbols = GetPotentialMatchingSymbolsFromAssembly(
                 compilation.Assembly, filter, internalsVisible, cancellationToken);
 
             if (project == _originatingDocument.Project)
             {
-                GetExtensionMembersForSymbolsFromSameCompilation(matchingMethodSymbols, callback, cancellationToken);
+                GetExtensionMembersForSymbolsFromSameCompilation(matchingMemberSymbols, callback, cancellationToken);
             }
             else
             {
-                GetExtensionMethodsForSymbolsFromDifferentCompilation(matchingMethodSymbols, callback, cancellationToken);
+                GetExtensionMethodsForSymbolsFromDifferentCompilation(matchingMemberSymbols, callback, cancellationToken);
             }
         }
 
@@ -223,12 +223,12 @@ internal static partial class ExtensionMemberImportCompletionHelper
         }
 
         private void GetExtensionMethodsForSymbolsFromDifferentCompilation(
-            MultiDictionary<ITypeSymbol, IMethodSymbol> matchingMethodSymbols,
-            Action<IMethodSymbol?> callback,
+            MultiDictionary<ITypeSymbol, ISymbol> matchingMemberSymbols,
+            Action<ISymbol?> callback,
             CancellationToken cancellationToken)
         {
             // Matching extension method symbols are grouped based on their receiver type.
-            foreach (var (declaredReceiverType, methodSymbols) in matchingMethodSymbols)
+            foreach (var (declaredReceiverType, memberSymbols) in matchingMemberSymbols)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -255,23 +255,23 @@ internal static partial class ExtensionMemberImportCompletionHelper
 
                 // This is also affected by the symbol resolving issue mentioned above, which means in case referenced projects
                 // are targeting different framework, we will miss extension methods with any framework type in their signature from those projects.
-                var isFirstMethod = true;
-                foreach (var methodInOriginatingCompilation in methodSymbols.Select(s => SymbolFinder.FindSimilarSymbols(s, _originatingSemanticModel.Compilation).FirstOrDefault()).WhereNotNull())
+                var isFirstMember = true;
+                foreach (var memberInOriginatingCompilation in memberSymbols.Select(s => SymbolFinder.FindSimilarSymbols(s, _originatingSemanticModel.Compilation).FirstOrDefault()).WhereNotNull())
                 {
-                    if (isFirstMethod)
+                    if (isFirstMember)
                     {
-                        isFirstMethod = false;
+                        isFirstMember = false;
 
-                        // We haven't seen this receiver type yet. Try to check by reducing one extension method
-                        // to the given receiver type and save the result.
+                        // We haven't seen this receiver type yet. Try to check by reducing one extension method to the
+                        // given receiver type and save the result.
                         if (!cachedResult)
                         {
-                            // If this is the first symbol we retrived from originating compilation,
-                            // try to check if we can apply it to given receiver type, and save result to our cache.
-                            // Since method symbols are grouped by their declared receiver type, they are either all matches to the receiver type
-                            // or all mismatches. So we only need to call ReduceExtensionMethod on one of them.
-                            var reducedMethodSymbol = methodInOriginatingCompilation.ReduceExtensionMethod(_receiverTypeSymbol);
-                            cachedResult = reducedMethodSymbol != null;
+                            // If this is the first symbol we retrieved from originating compilation, try to check if we
+                            // can apply it to given receiver type, and save result to our cache. Since method symbols
+                            // are grouped by their declared receiver type, they are either all matches to the receiver
+                            // type or all mismatches. So we only need to call ReduceExtensionMethod on one of them.
+                            var reducedMemberSymbol = TryReduceExtensionMember(memberInOriginatingCompilation);
+                            cachedResult = reducedMemberSymbol != null;
                             _checkedReceiverTypes[declaredReceiverTypeInOriginatingCompilation] = cachedResult;
 
                             // Now, cachedResult being false means method doesn't match the receiver type,
@@ -283,10 +283,15 @@ internal static partial class ExtensionMemberImportCompletionHelper
                         }
                     }
 
-                    if (_originatingSemanticModel.IsAccessible(_position, methodInOriginatingCompilation))
-                        callback(methodInOriginatingCompilation);
+                    if (_originatingSemanticModel.IsAccessible(_position, memberInOriginatingCompilation))
+                        callback(memberInOriginatingCompilation);
                 }
             }
+
+            ISymbol? TryReduceExtensionMember(ISymbol memberSymbol)
+                => (memberSymbol as IPropertySymbol)?.ReduceExtensionMember(_receiverTypeSymbol) ??
+                   (memberSymbol as IMethodSymbol)?.ReduceExtensionMember(_receiverTypeSymbol) ??
+                   (ISymbol?)(memberSymbol as IMethodSymbol)?.ReduceExtensionMethod(_receiverTypeSymbol);
         }
 
         private void GetExtensionMembersForSymbolsFromSameCompilation(

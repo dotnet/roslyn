@@ -50,7 +50,7 @@ internal abstract class AbstractExtensionMemberImportCompletionProvider : Abstra
 
                 var totalTime = SharedStopwatch.StartNew();
 
-                var completionItems = await ExtensionMemberImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
+                var completionItems = await ExtensionMemberImportCompletionHelper.GetUnimportedExtensionMembersAsync(
                     syntaxContext,
                     receiverTypeSymbol,
                     namespaceInScope,
