@@ -600,4 +600,36 @@ public sealed class FormattingTests_Patterns : CSharpFormattingTestBase
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78449")]
+    public Task FormatParenthesizedPatternWithMultiplePatterns()
+        => AssertFormatAsync("""
+            public class Goo
+            {
+                public bool DoThing(Exception input)
+                {
+                    if (input is not (
+                        { InnerException: null } or
+                        { Data: not null }
+                    ))
+                    {
+                        return false;
+                    }
+                }
+            }
+            """, """
+            public class Goo
+            {
+                public bool DoThing(Exception input)
+                {
+                    if (input is not (
+            { InnerException: null } or
+            { Data: not null }
+                    ))
+                    {
+                        return false;
+                    }
+                }
+            }
+            """);
 }
