@@ -285,6 +285,76 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Pointer_ElementAccess_SafeContext_ArrayOfPointers()
+    {
+        var source = """
+            int*[] x = [];
+            x[0] = null;
+            _ = x[1];
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int*[] x = [];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 1),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // x[0] = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 1),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // x[0] = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0]").WithLocation(2, 1),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // x[0] = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0] = null").WithLocation(2, 1),
+            // (3,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = x[1];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(3, 5),
+            // (3,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = x[1];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[1]").WithLocation(3, 5),
+            // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = x[1];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = x[1]").WithLocation(3, 1));
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Pointer_ElementAccess_SafeContext_FunctionPointer()
+    {
+        var source = """
+            delegate*<void> x = null;
+            x[0] = null;
+            _ = x[1];
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // delegate*<void> x = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // x[0] = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 1),
+            // (2,1): error CS0021: Cannot apply indexing with [] to an expression of type 'delegate*<void>'
+            // x[0] = null;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[0]").WithArguments("delegate*<void>").WithLocation(2, 1),
+            // (3,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = x[1];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(3, 5),
+            // (3,5): error CS0021: Cannot apply indexing with [] to an expression of type 'delegate*<void>'
+            // _ = x[1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[1]").WithArguments("delegate*<void>").WithLocation(3, 5));
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
+            // (2,1): error CS0021: Cannot apply indexing with [] to an expression of type 'delegate*<void>'
+            // x[0] = null;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[0]").WithArguments("delegate*<void>").WithLocation(2, 1),
+            // (3,5): error CS0021: Cannot apply indexing with [] to an expression of type 'delegate*<void>'
+            // _ = x[1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[1]").WithArguments("delegate*<void>").WithLocation(3, 5));
+    }
+
+    [Fact]
     public void Pointer_ElementAccess_UnsafeContext()
     {
         var source = """

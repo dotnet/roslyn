@@ -9380,8 +9380,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiver = BindExpression(node.Expression, diagnostics: diagnostics, invoked: false, indexed: true);
             var result = BindElementAccess(node, receiver, node.ArgumentList, allowInlineArrayElementAccess: true, diagnostics);
 
-            if (!result.HasAnyErrors && receiver.Type?.ContainsPointerOrFunctionPointer() == true)
+            if (!result.HasAnyErrors && receiver.Type?.IsPointerOrFunctionPointer() == true)
             {
+                Debug.Assert(receiver.Type?.IsFunctionPointer() != true, "There should have been an error reported for indexing into a function pointer.");
                 ReportUnsafeIfNotAllowed(node.ArgumentList.OpenBracketToken.GetLocation(), diagnostics, MemorySafetyRules.Evolved);
             }
 
