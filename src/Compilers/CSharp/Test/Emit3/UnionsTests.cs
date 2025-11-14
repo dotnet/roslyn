@@ -256,6 +256,11 @@ sealed class C4 : C3, System.Runtime.CompilerServices.IUnion
     public C4(string x) : base(0) {}
     public object Value => null;
 }
+
+sealed class C5 : C1
+{
+    public C5(string x) : base(0) {}
+}
 ";
             var comp = CreateCompilation([src, IUnionSource]);
             comp.VerifyEmitDiagnostics();
@@ -263,6 +268,11 @@ sealed class C4 : C3, System.Runtime.CompilerServices.IUnion
             VerifyCaseTypes(comp, "C1", ["System.Int32"]);
             VerifyCaseTypes(comp, "C2", ["System.String"]);
             VerifyCaseTypes(comp, "C4", ["System.String"]);
+
+            // PROTOTYPE: This looks strange. C5 simply inherits from C1 and because of that it is treated as a union type.
+            //            It doesn't change what IUnion.Value returns, but its constructors are treated as though they
+            //            define possible types returned by IUnion.Value.
+            VerifyCaseTypes(comp, "C5", ["System.String"]);
         }
 
         [Fact]
