@@ -85,9 +85,6 @@ internal static partial class ExtensionMemberImportCompletionHelper
         {
             try
             {
-                foreach (var reference in GetAllRelevantPeReferences(_originatingDocument.Project))
-                    await this.GetExtensionMemberSymbolsFromPeReferenceAsync(reference, _ => { }, forceCacheCreation, cancellationToken).ConfigureAwait(false);
-
                 // Find applicable symbols in parallel
                 var peReferenceMethodSymbolsTask = ProducerConsumer<ISymbol?>.RunParallelAsync(
                     source: GetAllRelevantPeReferences(_originatingDocument.Project),
