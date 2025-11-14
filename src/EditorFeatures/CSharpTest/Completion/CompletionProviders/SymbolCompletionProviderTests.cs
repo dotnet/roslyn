@@ -14333,4 +14333,32 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             }
             """, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78766")]
+    public async Task ExtensionMethodAndPropertyWithSameName()
+    {
+        await VerifyExpectedItemsAsync("""
+            using NS1;
+
+            var x = new MyClass();
+            x.$$
+
+            namespace NS1
+            {
+                public class MyClass
+                {
+                    public int MyMember { get; set; }
+                }
+
+                public static class Extensions
+                {
+                    public static MyClass MyMember(this MyClass c)
+                        => c;
+                }
+            }
+            """, [
+            ItemExpectation.Exists("MyMember"),
+            ItemExpectation.Exists("MyMember")
+        ]);
+    }
 }
