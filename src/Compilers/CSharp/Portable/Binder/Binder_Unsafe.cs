@@ -78,8 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (this.Compilation.Options.HasEvolvedMemorySafetyRules)
                 {
                     // PROTOTYPE: Handle ERR_SizeofUnsafe.
-                    // PROTOTYPE: Use a different error.
-                    return new CSDiagnosticInfo(ErrorCode.ERR_UnsafeNeeded);
+                    return new CSDiagnosticInfo(ErrorCode.ERR_UnsafeOperation);
                 }
 
                 return null;

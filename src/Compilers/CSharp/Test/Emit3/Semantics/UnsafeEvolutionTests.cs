@@ -105,9 +105,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 10));
 
         CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
-            // (2,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (2,9): error CS9500: This operation may only be used in an unsafe context
             // int y = *x;
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "*").WithLocation(2, 9));
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(2, 9));
     }
 
     [Fact]

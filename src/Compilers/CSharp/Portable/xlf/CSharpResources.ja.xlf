@@ -2582,6 +2582,11 @@
         <target state="translated">'{0}' は、認識されない RefSafetyRulesAttribute バージョンを持つモジュールで定義され、'11' が必要です。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsafeOperation">
+        <source>This operation may only be used in an unsafe context</source>
+        <target state="new">This operation may only be used in an unsafe context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
         <target state="translated">実装されたメンバー '{0}' には UnscopedRefAttribute が含まれていないため、この属性をインターフェイスの実装に適用することはできません。</target>

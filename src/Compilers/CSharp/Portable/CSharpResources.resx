@@ -8183,4 +8183,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUnsafeEvolution" xml:space="preserve">
     <value>evolved memory safety rules</value>
   </data>
+  <data name="ERR_UnsafeOperation" xml:space="preserve">
+    <value>This operation may only be used in an unsafe context</value>
+  </data>
 </root>
