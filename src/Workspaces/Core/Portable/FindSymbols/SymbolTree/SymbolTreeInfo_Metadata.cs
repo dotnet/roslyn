@@ -924,6 +924,8 @@ internal sealed partial class SymbolTreeInfo
                             (false, false) => parameterTypeInfo.Name                                          // simple non-array nestedType, e.g. "int"
                         };
 
+                        // Symbol index expects modern extensions to be of the form `NS.StaticClass.extension(...)`.
+                        // So we mimic that here so modern members can be properly found.
                         var containerName = isModernExtension
                             ? fullyQualifiedContainerName + ".extension()"
                             : fullyQualifiedContainerName;
