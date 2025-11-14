@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionCreation is BoundCall
                     {
                         Arguments: [.., BoundValuePlaceholder { Kind: BoundKind.ValuePlaceholder } placeHolder],
-                    } boundCall && boundCall.Syntax == placeHolder.Syntax);
+                    } && placeHolder == this.CollectionBuilderElementsPlaceholder);
             }
 #endif
         }
