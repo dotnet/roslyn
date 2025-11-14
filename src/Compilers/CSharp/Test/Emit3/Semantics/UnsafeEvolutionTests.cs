@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 public sealed class UnsafeEvolutionTests : CompilingTestBase
 {
-    private const int MemorySafetyRulesVersion = 2;
-
     [Theory, CombinatorialData]
     public void Pointer_Variable_SafeContext(bool allowUnsafe)
     {
@@ -31,15 +29,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe)).VerifyDiagnostics(expectedDiagnostics);
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithMemorySafetyRules(MemorySafetyRulesVersion)).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.RegularNext,
-            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithMemorySafetyRules(MemorySafetyRulesVersion)).VerifyEmitDiagnostics();
+            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
-            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithMemorySafetyRules(MemorySafetyRulesVersion))
+            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithEvolvedMemorySafetyRules())
             .VerifyDiagnostics(
             // (1,4): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
@@ -60,12 +58,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithMemorySafetyRules(MemorySafetyRulesVersion)).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
             // (1,1): error CS0227: Unsafe code may only appear if compiling with /unsafe
             // unsafe { int* x = null; }
             Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 1));
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithMemorySafetyRules(MemorySafetyRulesVersion)).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -84,7 +82,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // int y = *x;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 10));
 
-        CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithMemorySafetyRules(MemorySafetyRulesVersion)).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
             // (2,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // int y = *x;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 10));
@@ -97,6 +95,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             int* x = null;
             unsafe { int y = *x; }
             """;
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithMemorySafetyRules(MemorySafetyRulesVersion)).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
     }
 }

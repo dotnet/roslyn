@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // PROTOTYPE: public API
         internal int MemorySafetyRules { get; private set; }
 
-        internal bool HasEvolvedMemorySafetyRules => MemorySafetyRules >= 2;
-
         /// <summary>
         /// Global namespace usings.
         /// </summary>
@@ -437,6 +435,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new CSharpCompilationOptions(this) { MemorySafetyRules = version };
         }
+
+        internal CSharpCompilationOptions WithEvolvedMemorySafetyRules() => WithMemorySafetyRules(2);
+
+        internal bool HasEvolvedMemorySafetyRules => MemorySafetyRules >= 2;
 
         public new CSharpCompilationOptions WithPlatform(Platform platform)
         {
