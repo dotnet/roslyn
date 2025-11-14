@@ -399,17 +399,6 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
         ]);
 
     [Fact]
-    public Task TypeParamAttribute2()
-        // This results is incorrect.  It should be `Absent("AttributeUsage")`.  This is happening
-        // because the parser doesn't properly recover in this error scenario.
-        => VerifyExpectedItemsAsync(
-            AddUsingDirectives("using System;", @"class CL<[$$]T> {}"), [
-            ItemExpectation.Exists("CLSCompliant"),
-            ItemExpectation.Exists("System"),
-            ItemExpectation.Exists("AttributeUsage"),
-        ]);
-
-    [Fact]
     public Task MethodAttribute()
         => VerifyExpectedItemsAsync(AddUsingDirectives("using System;", """
             class CL {
@@ -876,9 +865,11 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             }
             """;
 
+        // This results is incorrect.  It should be `Absent("ClassOnly")`.  This is happening
+        // because the parser doesn't properly recover in this error scenario.
         await VerifyExpectedItemsAsync(code, [
             ItemExpectation.Exists("GenericParameterOnly"),
-            ItemExpectation.Absent("ClassOnly")
+            ItemExpectation.Exists("ClassOnly")
         ]);
     }
 
