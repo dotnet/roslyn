@@ -17,11 +17,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(ExtensionMethodImportCompletionProvider), LanguageNames.CSharp), Shared]
+[ExportCompletionProvider(nameof(ExtensionMemberImportCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(TypeImportCompletionProvider))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ExtensionMethodImportCompletionProvider() : AbstractExtensionMethodImportCompletionProvider
+internal sealed class ExtensionMemberImportCompletionProvider() : AbstractExtensionMemberImportCompletionProvider
 {
     internal override string Language => LanguageNames.CSharp;
 

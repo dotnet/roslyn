@@ -14,17 +14,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal sealed class RemoteExtensionMethodImportCompletionService(
+internal sealed class RemoteExtensionMemberImportCompletionService(
     in BrokeredServiceBase.ServiceConstructionArguments arguments)
-    : BrokeredServiceBase(arguments), IRemoteExtensionMethodImportCompletionService
+    : BrokeredServiceBase(arguments), IRemoteExtensionMemberImportCompletionService
 {
-    internal sealed class Factory : FactoryBase<IRemoteExtensionMethodImportCompletionService>
+    internal sealed class Factory : FactoryBase<IRemoteExtensionMemberImportCompletionService>
     {
-        protected override IRemoteExtensionMethodImportCompletionService CreateService(in ServiceConstructionArguments arguments)
-            => new RemoteExtensionMethodImportCompletionService(arguments);
+        protected override IRemoteExtensionMemberImportCompletionService CreateService(in ServiceConstructionArguments arguments)
+            => new RemoteExtensionMemberImportCompletionService(arguments);
     }
 
-    public ValueTask<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
+    public ValueTask<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMembersAsync(
         Checksum solutionChecksum,
         DocumentId documentId,
         int position,
@@ -47,10 +47,10 @@ internal sealed class RemoteExtensionMethodImportCompletionService(
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var namespaceInScopeSet = new HashSet<string>(namespaceInScope, syntaxFacts.StringComparer);
                 var targetTypes = targetTypesSymbolKeyData
-                        .Select(symbolKey => SymbolKey.ResolveString(symbolKey, compilation, cancellationToken: cancellationToken).GetAnySymbol() as ITypeSymbol)
-                        .WhereNotNull().ToImmutableArray();
+                    .Select(symbolKey => SymbolKey.ResolveString(symbolKey, compilation, cancellationToken: cancellationToken).GetAnySymbol() as ITypeSymbol)
+                    .WhereNotNull().ToImmutableArray();
 
-                return await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
+                return await ExtensionMemberImportCompletionHelper.GetUnimportedExtensionMembersInCurrentProcessAsync(
                     document, semanticModel: null, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
             }
 
@@ -63,7 +63,7 @@ internal sealed class RemoteExtensionMethodImportCompletionService(
         return RunServiceAsync(solutionChecksum, solution =>
         {
             var project = solution.GetRequiredProject(projectId);
-            ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcess(project);
+            ExtensionMemberImportCompletionHelper.WarmUpCacheInCurrentProcess(project);
             return ValueTask.CompletedTask;
         }, cancellationToken);
     }
