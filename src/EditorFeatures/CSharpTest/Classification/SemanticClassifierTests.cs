@@ -124,8 +124,8 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             }
             """,
             testHost,
-            Array("IntArray"),
-            Array("IntArray"));
+            ArrayType("IntArray"),
+            ArrayType("IntArray"));
 
     [Theory, CombinatorialData]
     public Task PointerTypeAlias(TestHost testHost)
@@ -142,8 +142,8 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             }
             """,
             testHost,
-            Pointer("IntPointer"),
-            Pointer("IntPointer"));
+            PointerType("IntPointer"),
+            PointerType("IntPointer"));
 
     [Theory, CombinatorialData]
     public Task FunctionPointerTypeAlias(TestHost testHost)

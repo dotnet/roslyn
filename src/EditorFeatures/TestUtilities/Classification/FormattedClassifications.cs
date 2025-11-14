@@ -47,11 +47,11 @@ public static partial class FormattedClassifications
         => New(text, ClassificationTypeNames.TypeParameterName);
 
     [DebuggerStepThrough]
-    public static FormattedClassification Array(string text)
+    public static FormattedClassification ArrayType(string text)
         => New(text, ClassificationTypeNames.ArrayName);
 
     [DebuggerStepThrough]
-    public static FormattedClassification Pointer(string text)
+    public static FormattedClassification PointerType(string text)
         => New(text, ClassificationTypeNames.PointerName);
 
     [DebuggerStepThrough]
