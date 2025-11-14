@@ -1073,4 +1073,121 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             """, InsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     #endregion
+
+    #region Preprocessor Directives
+
+    /// <summary>
+    /// Verifies that preprocessor directives surrounding using statements are moved correctly.
+    /// This tests the scenario from https://github.com/dotnet/roslyn/issues/31249
+    /// </summary>
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31249")]
+    public Task WhenOutsidePreferred_UsingsWithPreprocessorDirectives_DirectivesMovedCorrectly()
+        => TestInRegularAndScriptAsync("""
+            using System;
+
+            namespace MyNamespace
+            {
+            #if !FOO
+                [|using System.Runtime.CompilerServices;|]
+            #endif
+
+                class Program
+                {
+                    static void Main() { }
+                }
+            }
+            """, """
+            using System;
+            #if !FOO
+            {|Warning:using System.Runtime.CompilerServices;|}
+            #endif
+
+            namespace MyNamespace
+            {
+                class Program
+                {
+                    static void Main() { }
+                }
+            }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+
+    /// <summary>
+    /// Verifies that preprocessor directives at the start of a namespace are handled correctly.
+    /// This tests the scenario from https://github.com/dotnet/roslyn/issues/31249
+    /// </summary>
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31249")]
+    public Task WhenOutsidePreferred_NamespaceWithPreprocessorDirectives_DirectivesMovedCorrectly()
+        => TestInRegularAndScriptAsync("""
+            #if NET6_0
+
+            namespace ConsoleApp
+            {
+                [|using System;|]
+
+                internal class Class1
+                {
+                    public void M()
+                    {
+                        Console.WriteLine("");
+                    }
+                }
+            }
+
+            #endif
+            """, """
+            #if NET6_0
+
+            {|Warning:using System;|}
+
+            namespace ConsoleApp
+            {
+                internal class Class1
+                {
+                    public void M()
+                    {
+                        Console.WriteLine("");
+                    }
+                }
+            }
+
+            #endif
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+
+    /// <summary>
+    /// Verifies that multiple using statements wrapped in preprocessor directives are handled correctly.
+    /// </summary>
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31249")]
+    public Task WhenOutsidePreferred_MultipleUsingsWithPreprocessorDirectives_DirectivesMovedCorrectly()
+        => TestInRegularAndScriptAsync("""
+            using System;
+
+            namespace MyNamespace
+            {
+            #if DEBUG
+                [|using System.Diagnostics;
+                using System.Runtime.CompilerServices;|]
+            #endif
+
+                class Program
+                {
+                    static void Main() { }
+                }
+            }
+            """, """
+            using System;
+            #if DEBUG
+            {|Warning:using System.Diagnostics;|}
+            {|Warning:using System.Runtime.CompilerServices;|}
+            #endif
+
+            namespace MyNamespace
+            {
+                class Program
+                {
+                    static void Main() { }
+                }
+            }
+            """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+
+    #endregion
 }
