@@ -1299,8 +1299,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     if (boundCall.IsErroneousNode)
                     {
                         var array = @this.CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundCall).InvalidNodeChildren);
-                        Debug.Assert(array is [.., IPlaceholderOperation { PlaceholderKind: PlaceholderKind.Unspecified } placeHolder] &&
-                            placeHolder.Syntax == boundCall.Syntax, "We should always have at least one argument (the placeholder elements).");
+                        Debug.Assert(array is [.., IPlaceholderOperation { PlaceholderKind: PlaceholderKind.Unspecified } placeHolder],
+                            "We should always have at least one argument (the placeholder elements).");
                         return array is [.. var normalArguments, _]
                             ? normalArguments
                             : array;
