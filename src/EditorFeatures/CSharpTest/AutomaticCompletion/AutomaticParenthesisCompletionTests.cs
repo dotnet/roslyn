@@ -209,7 +209,7 @@ public sealed class AutomaticParenthesisCompletionTests : AbstractAutomaticBrace
         CheckBackspace(session.Session);
     }
 
-    [WpfFact]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61680")]
     public void NestedParenthesisInIfStatement()
     {
         var code = """
