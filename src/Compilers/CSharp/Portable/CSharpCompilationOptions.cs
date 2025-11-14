@@ -18,6 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// whether to emit an executable or a library, whether to optimize
     /// generated code, and so on.
     /// </summary>
+    /// <remarks>
+    /// When adding new fields/properties, you will need to update:
+    /// <list type="bullet">
+    /// <item><c>CSharpCompilationOptionsTests.TestFieldsForEqualsAndGetHashCode</c></item>
+    /// <item><c>CSharpDeterministicKeyBuilderTests.VerifyUpToDate</c></item>
+    /// </list>
+    /// </remarks>
 #pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode().
     public sealed class CSharpCompilationOptions : CompilationOptions, IEquatable<CSharpCompilationOptions>
 #pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode().
