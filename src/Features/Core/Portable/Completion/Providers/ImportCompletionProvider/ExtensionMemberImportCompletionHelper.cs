@@ -30,7 +30,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
     /// methods in a project, this should not be too bad.  It's only really a leak if the project is truly 
     /// unloaded, and not too bad in that case.
     /// </summary>
-    private static readonly ConcurrentDictionary<ProjectId, ExtensionMethodImportCompletionCacheEntry> s_projectItemsCache = new();
+    private static readonly ConcurrentDictionary<ProjectId, ExtensionMemberImportCompletionCacheEntry> s_projectItemsCache = new();
 
     public static async Task WarmUpCacheAsync(Project project, CancellationToken cancellationToken)
     {
@@ -75,7 +75,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
             // project cone.
             var remoteResult = await client.TryInvokeAsync<IRemoteExtensionMemberImportCompletionService, ImmutableArray<SerializableImportCompletionItem>>(
                  project,
-                 (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
+                 (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMembersAsync(
                      solutionInfo, document.Id, position, receiverTypeSymbolKeyData, [.. namespaceInScope],
                      targetTypesSymbolKeyData, forceCacheCreation, hideAdvancedMembers, cancellationToken),
                  cancellationToken).ConfigureAwait(false);
@@ -106,10 +106,10 @@ internal static partial class ExtensionMemberImportCompletionHelper
         semanticModel ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var symbolComputer = new SymbolComputer(
             document, semanticModel, receiverTypeSymbol, position, namespaceInScope);
-        var extensionMethodSymbols = await symbolComputer.GetExtensionMethodSymbolsAsync(forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+        var extensionMemberSymbols = await symbolComputer.GetExtensionMemberSymbolsAsync(forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
 
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-        var items = ConvertSymbolsToCompletionItems(compilation, extensionMethodSymbols, targetTypes, cancellationToken);
+        var items = ConvertSymbolsToCompletionItems(compilation, extensionMemberSymbols, targetTypes, cancellationToken);
 
         return items;
     }
@@ -124,31 +124,32 @@ internal static partial class ExtensionMemberImportCompletionHelper
     }
 
     private static ImmutableArray<SerializableImportCompletionItem> ConvertSymbolsToCompletionItems(
-        Compilation compilation, ImmutableArray<IMethodSymbol> extentsionMethodSymbols, ImmutableArray<ITypeSymbol> targetTypeSymbols, CancellationToken cancellationToken)
+        Compilation compilation, ImmutableArray<ISymbol> extensionMemberSymbols, ImmutableArray<ITypeSymbol> targetTypeSymbols, CancellationToken cancellationToken)
     {
         Dictionary<ITypeSymbol, bool> typeConvertibilityCache = [];
         using var _1 = PooledDictionary<INamespaceSymbol, string>.GetInstance(out var namespaceNameCache);
-        using var _2 = PooledDictionary<(string containingNamespace, string methodName, bool isGeneric), (IMethodSymbol bestSymbol, int overloadCount, bool includeInTargetTypedCompletion)>
-            .GetInstance(out var overloadMap);
+        using var _2 = PooledDictionary<
+            (string containingNamespace, string methodName, bool isGeneric),
+            (ISymbol bestSymbol, int overloadCount, bool includeInTargetTypedCompletion)>.GetInstance(out var overloadMap);
 
         // Aggregate overloads
-        foreach (var symbol in extentsionMethodSymbols)
+        foreach (var symbol in extensionMemberSymbols)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            IMethodSymbol bestSymbol;
+            ISymbol bestSymbol;
             int overloadCount;
             var includeInTargetTypedCompletion = ShouldIncludeInTargetTypedCompletion(compilation, symbol, targetTypeSymbols, typeConvertibilityCache);
 
             var containingNamespacename = GetFullyQualifiedNamespaceName(symbol.ContainingNamespace, namespaceNameCache);
-            var overloadKey = (containingNamespacename, symbol.Name, isGeneric: symbol.Arity > 0);
+            var overloadKey = (containingNamespacename, symbol.Name, isGeneric: symbol.GetArity() > 0);
 
             // Select the overload convertible to any targeted type (if any) and with minimum number of parameters to display
             if (overloadMap.TryGetValue(overloadKey, out var currentValue))
             {
                 if (currentValue.includeInTargetTypedCompletion == includeInTargetTypedCompletion)
                 {
-                    bestSymbol = currentValue.bestSymbol.Parameters.Length > symbol.Parameters.Length ? symbol : currentValue.bestSymbol;
+                    bestSymbol = currentValue.bestSymbol.GetParameters().Length > symbol.GetParameters().Length ? symbol : currentValue.bestSymbol;
                 }
                 else if (currentValue.includeInTargetTypedCompletion)
                 {
@@ -180,10 +181,10 @@ internal static partial class ExtensionMemberImportCompletionHelper
             var item = new SerializableImportCompletionItem(
                 SymbolKey.CreateString(bestSymbol, cancellationToken),
                 bestSymbol.Name,
-                bestSymbol.Arity,
+                bestSymbol.GetArity(),
                 bestSymbol.GetGlyph(),
                 containingNamespace,
-                additionalOverloadCount: overloadCount - 1,
+                AdditionalOverloadCount: overloadCount - 1,
                 includeInTargetTypedCompletion);
 
             itemsBuilder.Add(item);
@@ -193,21 +194,18 @@ internal static partial class ExtensionMemberImportCompletionHelper
     }
 
     private static bool ShouldIncludeInTargetTypedCompletion(
-        Compilation compilation, IMethodSymbol methodSymbol, ImmutableArray<ITypeSymbol> targetTypeSymbols,
+        Compilation compilation, ISymbol extensionSymbol, ImmutableArray<ITypeSymbol> targetTypeSymbols,
         Dictionary<ITypeSymbol, bool> typeConvertibilityCache)
     {
-        if (methodSymbol.ReturnsVoid || methodSymbol.ReturnType == null || targetTypeSymbols.IsEmpty)
-        {
+        var returnType = extensionSymbol.GetMemberType();
+        if (returnType.IsSystemVoid() || returnType == null || targetTypeSymbols.IsEmpty)
             return false;
-        }
 
-        if (typeConvertibilityCache.TryGetValue(methodSymbol.ReturnType, out var isConvertible))
-        {
+        if (typeConvertibilityCache.TryGetValue(returnType, out var isConvertible))
             return isConvertible;
-        }
 
-        isConvertible = CompletionUtilities.IsTypeImplicitlyConvertible(compilation, methodSymbol.ReturnType, targetTypeSymbols);
-        typeConvertibilityCache[methodSymbol.ReturnType] = isConvertible;
+        isConvertible = CompletionUtilities.IsTypeImplicitlyConvertible(compilation, returnType, targetTypeSymbols);
+        typeConvertibilityCache[returnType] = isConvertible;
 
         return isConvertible;
     }
@@ -229,7 +227,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
         return name;
     }
 
-    private static async Task<ExtensionMethodImportCompletionCacheEntry> GetUpToDateCacheEntryAsync(
+    private static async Task<ExtensionMemberImportCompletionCacheEntry> GetUpToDateCacheEntryAsync(
         Project project,
         CancellationToken cancellationToken)
     {
@@ -245,7 +243,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
             cacheEntry.Language != project.Language)
         {
             var syntaxFacts = project.Services.GetRequiredService<ISyntaxFactsService>();
-            var builder = new ExtensionMethodImportCompletionCacheEntry.Builder(checksum, project.Language, syntaxFacts.StringComparer);
+            var builder = new ExtensionMemberImportCompletionCacheEntry.Builder(checksum, project.Language, syntaxFacts.StringComparer);
 
             foreach (var document in project.Documents)
             {
@@ -256,10 +254,8 @@ internal static partial class ExtensionMemberImportCompletionHelper
                 }
 
                 var info = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
-                if (info.ContainsExtensionMethod)
-                {
+                if (info.ContainsExtensionMember)
                     builder.AddItem(info);
-                }
             }
 
             cacheEntry = builder.ToCacheEntry();
