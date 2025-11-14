@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 /// Provides completion items for extension methods from unimported namespace.
 /// </summary>
 /// <remarks>It runs out-of-proc if it's enabled</remarks>
-internal static partial class ExtensionMethodImportCompletionHelper
+internal static partial class ExtensionMemberImportCompletionHelper
 {
     /// <summary>
     /// Technically never gets cleared out.  However, as we're only really storing information about extension
@@ -37,7 +37,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
         var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
-            var result = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService>(
+            var result = await client.TryInvokeAsync<IRemoteExtensionMemberImportCompletionService>(
                 project,
                 (service, solutionInfo, cancellationToken) => service.WarmUpCacheAsync(
                     solutionInfo, project.Id, cancellationToken),
@@ -52,7 +52,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
     public static void WarmUpCacheInCurrentProcess(Project project)
         => SymbolComputer.QueueCacheWarmUpTask(project);
 
-    public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
+    public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMembersAsync(
         SyntaxContext syntaxContext,
         ITypeSymbol receiverTypeSymbol,
         ISet<string> namespaceInScope,
@@ -73,7 +73,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
 
             // Call the project overload.  Add-import-for-extension-method doesn't search outside of the current
             // project cone.
-            var remoteResult = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, ImmutableArray<SerializableImportCompletionItem>>(
+            var remoteResult = await client.TryInvokeAsync<IRemoteExtensionMemberImportCompletionService, ImmutableArray<SerializableImportCompletionItem>>(
                  project,
                  (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
                      solutionInfo, document.Id, position, receiverTypeSymbolKeyData, [.. namespaceInScope],
@@ -84,13 +84,13 @@ internal static partial class ExtensionMethodImportCompletionHelper
         }
         else
         {
-            return await GetUnimportedExtensionMethodsInCurrentProcessAsync(
+            return await GetUnimportedExtensionMembersInCurrentProcessAsync(
                 document, syntaxContext.SemanticModel, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceCacheCreation, hideAdvancedMembers, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
 
-    public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsInCurrentProcessAsync(
+    public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMembersInCurrentProcessAsync(
         Document document,
         SemanticModel? semanticModel,
         int position,

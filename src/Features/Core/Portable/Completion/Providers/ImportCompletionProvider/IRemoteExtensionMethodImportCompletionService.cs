@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal interface IRemoteExtensionMethodImportCompletionService
+internal interface IRemoteExtensionMemberImportCompletionService
 {
-    ValueTask<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
+    ValueTask<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMembersAsync(
         Checksum solutionChecksum,
         DocumentId documentId,
         int position,

@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal sealed class ExtensionMethodImportCompletionCacheEntry
+internal sealed class ExtensionMemberImportCompletionCacheEntry
 {
     public Checksum Checksum { get; }
     public string Language { get; }
@@ -18,9 +18,9 @@ internal sealed class ExtensionMethodImportCompletionCacheEntry
     /// </summary>
     public MultiDictionary<string, DeclaredSymbolInfo> ReceiverTypeNameToExtensionMethodMap { get; }
 
-    public bool ContainsExtensionMethod => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
+    public bool ContainsExtensionMember => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
 
-    private ExtensionMethodImportCompletionCacheEntry(
+    private ExtensionMemberImportCompletionCacheEntry(
         Checksum checksum,
         string language,
         MultiDictionary<string, DeclaredSymbolInfo> receiverTypeNameToExtensionMethodMap)
@@ -37,22 +37,15 @@ internal sealed class ExtensionMethodImportCompletionCacheEntry
 
         private readonly MultiDictionary<string, DeclaredSymbolInfo> _mapBuilder = new(comparer);
 
-        public ExtensionMethodImportCompletionCacheEntry ToCacheEntry()
-        {
-            return new ExtensionMethodImportCompletionCacheEntry(
-                _checksum,
-                _language,
-                _mapBuilder);
-        }
+        public ExtensionMemberImportCompletionCacheEntry ToCacheEntry()
+            => new(_checksum, _language, _mapBuilder);
 
         public void AddItem(TopLevelSyntaxTreeIndex syntaxIndex)
         {
             foreach (var (receiverType, symbolInfoIndices) in syntaxIndex.ReceiverTypeNameToExtensionMethodMap)
             {
                 foreach (var index in symbolInfoIndices)
-                {
                     _mapBuilder.Add(receiverType, syntaxIndex.DeclaredSymbolInfos[index]);
-                }
             }
         }
     }

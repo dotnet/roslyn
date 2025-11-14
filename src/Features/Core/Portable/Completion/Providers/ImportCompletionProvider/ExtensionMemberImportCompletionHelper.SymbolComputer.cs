@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal static partial class ExtensionMethodImportCompletionHelper
+internal static partial class ExtensionMemberImportCompletionHelper
 {
     private sealed partial class SymbolComputer
     {
@@ -78,28 +78,29 @@ internal static partial class ExtensionMethodImportCompletionHelper
                 await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, checksum: null, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<ImmutableArray<IMethodSymbol>> GetExtensionMethodSymbolsAsync(bool forceCacheCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ISymbol>> GetExtensionMemberSymbolsAsync(
+            bool forceCacheCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
         {
             try
             {
                 // Find applicable symbols in parallel
-                var peReferenceMethodSymbolsTask = ProducerConsumer<IMethodSymbol?>.RunParallelAsync(
+                var peReferenceMethodSymbolsTask = ProducerConsumer<ISymbol?>.RunParallelAsync(
                     source: GetAllRelevantPeReferences(_originatingDocument.Project),
                     produceItems: static (peReference, callback, args, cancellationToken) =>
-                        args.@this.GetExtensionMethodSymbolsFromPeReferenceAsync(peReference, callback, args.forceCacheCreation, cancellationToken),
+                        args.@this.GetExtensionMemberSymbolsFromPeReferenceAsync(peReference, callback, args.forceCacheCreation, cancellationToken),
                     args: (@this: this, forceCacheCreation),
                     cancellationToken);
 
-                var projectMethodSymbolsTask = ProducerConsumer<IMethodSymbol?>.RunParallelAsync(
+                var projectMethodSymbolsTask = ProducerConsumer<ISymbol?>.RunParallelAsync(
                     source: GetAllRelevantProjects(_originatingDocument.Project),
                     produceItems: static (project, callback, args, cancellationToken) =>
-                        args.@this.GetExtensionMethodSymbolsFromProjectAsync(project, callback, args.forceCacheCreation, cancellationToken),
+                        args.@this.GetExtensionMemberSymbolsFromProjectAsync(project, callback, args.forceCacheCreation, cancellationToken),
                     args: (@this: this, forceCacheCreation),
                     cancellationToken);
 
                 var results = await Task.WhenAll(peReferenceMethodSymbolsTask, projectMethodSymbolsTask).ConfigureAwait(false);
 
-                using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(results[0].Length + results[1].Length, out var symbols);
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(results[0].Length + results[1].Length, out var symbols);
                 foreach (var methodArray in results)
                 {
                     foreach (var method in methodArray)
@@ -132,9 +133,9 @@ internal static partial class ExtensionMethodImportCompletionHelper
         private static ImmutableArray<PortableExecutableReference> GetAllRelevantPeReferences(Project project)
             => [.. project.MetadataReferences.OfType<PortableExecutableReference>()];
 
-        private async Task GetExtensionMethodSymbolsFromProjectAsync(
+        private async Task GetExtensionMemberSymbolsFromProjectAsync(
             Project project,
-            Action<IMethodSymbol?> callback,
+            Action<ISymbol?> callback,
             bool forceCacheCreation,
             CancellationToken cancellationToken)
         {
