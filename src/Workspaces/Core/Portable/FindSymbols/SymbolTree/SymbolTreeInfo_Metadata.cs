@@ -266,7 +266,7 @@ internal sealed partial class SymbolTreeInfo
         //      public static bool AnotherExtensionMethod1(this int x);
         //      public static bool AnotherExtensionMethod1(this bool x);
         //
-        private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMemberToParameterTypeInfo = [];
+        private readonly MultiDictionary<MetadataNode, (ParameterTypeInfo typeInfo, bool isModernExtension)> _extensionMemberToParameterTypeInfo = [];
         private bool _containsExtensionMembers = false;
 
         private static ImmutableArray<ModuleMetadata> GetModuleMetadata(Metadata? metadata)
@@ -383,7 +383,7 @@ internal sealed partial class SymbolTreeInfo
                     if (definition.Kind == MetadataDefinitionKind.Member)
                     {
                         // We need to support having multiple methods with same name but different receiver nestedType.
-                        _extensionMemberToParameterTypeInfo.Add(childNode, definition.ReceiverTypeInfo);
+                        _extensionMemberToParameterTypeInfo.Add(childNode, (definition.ReceiverTypeInfo, definition.IsModernExtension));
                     }
 
                     LookupMetadataDefinitions(metadataReader, definition, definitionMap);
@@ -450,11 +450,11 @@ internal sealed partial class SymbolTreeInfo
                 }
             }
 
-            bool HasSpecialName(TypeDefinition typeDefinition)
+            static bool HasSpecialName(TypeDefinition typeDefinition)
                 => (typeDefinition.Attributes & TypeAttributes.SpecialName) != 0 ||
                    (typeDefinition.Attributes & TypeAttributes.RTSpecialName) != 0;
 
-            bool IsStaticClass(TypeDefinition typeDefinition)
+            static bool IsStaticClass(TypeDefinition typeDefinition)
                 => (typeDefinition.Attributes & TypeAttributes.Abstract) != 0 &&
                    (typeDefinition.Attributes & TypeAttributes.Sealed) != 0 &&
                    typeDefinition.GetGenericParameters().Count == 0;
@@ -501,7 +501,11 @@ internal sealed partial class SymbolTreeInfo
 
                     containsExtensionMembers = true;
                     var firstParameterTypeInfo = signature.ParameterTypes[0];
-                    var definition = new MetadataDefinition(MetadataDefinitionKind.Member, metadataReader.GetString(method.Name), firstParameterTypeInfo);
+                    var definition = new MetadataDefinition(
+                        MetadataDefinitionKind.Member,
+                        metadataReader.GetString(method.Name),
+                        isModernExtension: false,
+                        firstParameterTypeInfo);
                     definitionMap.Add(definition.Name, definition);
                 }
 
@@ -515,7 +519,7 @@ internal sealed partial class SymbolTreeInfo
                 if (extensionParameterTypeInfo is not null)
                 {
                     // Ok, this is definitely an extension block.  Load all the extension members from within it.
-                    foreach (var childMethod in typeDefinition.GetMethods())
+                    foreach (var childMethod in nestedType.GetMethods())
                     {
                         var method = metadataReader.GetMethodDefinition(childMethod);
                         // Don't bother loading instance extension methods from modern extension blocks. We'll have
@@ -528,11 +532,15 @@ internal sealed partial class SymbolTreeInfo
                             continue;
                         }
 
-                        var definition = new MetadataDefinition(MetadataDefinitionKind.Member, metadataReader.GetString(method.Name), extensionParameterTypeInfo.Value);
+                        var definition = new MetadataDefinition(
+                            MetadataDefinitionKind.Member,
+                            metadataReader.GetString(method.Name),
+                            isModernExtension: true,
+                            extensionParameterTypeInfo.Value);
                         definitionMap.Add(definition.Name, definition);
                     }
 
-                    foreach (var childProperty in typeDefinition.GetProperties())
+                    foreach (var childProperty in nestedType.GetProperties())
                     {
                         var property = metadataReader.GetPropertyDefinition(childProperty);
                         if ((property.Attributes & PropertyAttributes.SpecialName) != 0 ||
@@ -547,7 +555,11 @@ internal sealed partial class SymbolTreeInfo
                             continue;
 
                         containsExtensionMembers = true;
-                        var definition = new MetadataDefinition(MetadataDefinitionKind.Member, metadataReader.GetString(property.Name), extensionParameterTypeInfo.Value);
+                        var definition = new MetadataDefinition(
+                            MetadataDefinitionKind.Member,
+                            metadataReader.GetString(property.Name),
+                            isModernExtension: true,
+                            extensionParameterTypeInfo.Value);
                         definitionMap.Add(definition.Name, definition);
                     }
                 }
@@ -893,13 +905,13 @@ internal sealed partial class SymbolTreeInfo
         {
             foreach (var child in _parentToChildren[parentNode])
             {
-                var childNode = new BuilderNode(child.Name, parentIndex, _extensionMemberToParameterTypeInfo[child]);
+                var childNode = new BuilderNode(child.Name, parentIndex);//, _extensionMemberToParameterTypeInfo[child].parameterTypeInfo);
                 var childIndex = unsortedNodes.Count;
                 unsortedNodes.Add(childNode);
 
                 if (fullyQualifiedContainerName != null)
                 {
-                    foreach (var parameterTypeInfo in _extensionMemberToParameterTypeInfo[child])
+                    foreach (var (parameterTypeInfo, isModernExtension) in _extensionMemberToParameterTypeInfo[child])
                     {
                         // We do not differentiate array of different kinds for simplicity.
                         // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
@@ -912,7 +924,13 @@ internal sealed partial class SymbolTreeInfo
                             (false, false) => parameterTypeInfo.Name                                          // simple non-array nestedType, e.g. "int"
                         };
 
-                        receiverTypeNameToMethodMap.Add(parameterTypeName, new ExtensionMemberInfo(fullyQualifiedContainerName, child.Name));
+                        var containerName = isModernExtension
+                            ? fullyQualifiedContainerName + ".extension()"
+                            : fullyQualifiedContainerName;
+
+                        receiverTypeNameToMethodMap.Add(
+                            parameterTypeName,
+                            new ExtensionMemberInfo(containerName, child.Name));
                     }
                 }
 
@@ -973,6 +991,7 @@ internal sealed partial class SymbolTreeInfo
     private readonly struct MetadataDefinition(
         MetadataDefinitionKind kind,
         string name,
+        bool isModernExtension = false,
         ParameterTypeInfo receiverTypeInfo = default,
         NamespaceDefinition @namespace = default,
         TypeDefinition type = default)
@@ -984,6 +1003,7 @@ internal sealed partial class SymbolTreeInfo
         /// Only applies to member kind. Represents the nestedType info of the first parameter.
         /// </summary>
         public ParameterTypeInfo ReceiverTypeInfo { get; } = receiverTypeInfo;
+        public bool IsModernExtension { get; } = isModernExtension;
 
         public NamespaceDefinition Namespace { get; } = @namespace;
         public TypeDefinition Type { get; } = type;
