@@ -31,24 +31,24 @@
   -->
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
-    <PackageVersion Include="Microsoft.Build" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' != 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.31" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.31" />
+    <PackageVersion Include="Microsoft.Build" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.11.48" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="17.15.0-preview-25353-11" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.15.0-preview-25353-11" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.15.0-preview-25353-11" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.15.0-preview-25353-11" />
+    <PackageVersion Include="Microsoft.Build" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.0.2" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.0.2" />
   </ItemGroup>
 
   <ItemGroup>
