@@ -905,7 +905,7 @@ internal sealed partial class SymbolTreeInfo
         {
             foreach (var child in _parentToChildren[parentNode])
             {
-                var childNode = new BuilderNode(child.Name, parentIndex);//, _extensionMemberToParameterTypeInfo[child].parameterTypeInfo);
+                var childNode = new BuilderNode(child.Name, parentIndex);
                 var childIndex = unsortedNodes.Count;
                 unsortedNodes.Add(childNode);
 
