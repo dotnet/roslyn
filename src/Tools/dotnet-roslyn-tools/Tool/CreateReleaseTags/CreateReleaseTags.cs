@@ -27,8 +27,8 @@ internal static partial class CreateReleaseTags
 
         var existingTags = repository.Tags.Select(t => t.FriendlyName).ToImmutableHashSet();
 
-        await new SdkReleaseTagger().CreateReleaseTagsAsync(connections, product, repository, existingTags, logger);
-        await new VsReleaseTagger().CreateReleaseTagsAsync(connections, product, repository, existingTags, logger);
+        await new SdkReleaseTagger(logger).CreateReleaseTagsAsync(connections, product, repository, existingTags);
+        await new VsReleaseTagger(logger).CreateReleaseTagsAsync(connections, product, repository, existingTags);
 
         logger.LogInformation("Tagging complete.");
 

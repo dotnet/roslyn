@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
@@ -13,8 +14,8 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.RoslynTools.CreateReleaseTags;
 
-internal sealed partial class VsReleaseTagger
-    : AbstractReleaseTagger<VsReleaseTagger.VsReleaseInformation, VsReleaseTagger.VsBuildInformation>
+internal sealed partial class VsReleaseTagger(ILogger logger)
+    : AbstractReleaseTagger<VsReleaseTagger.VsReleaseInformation, VsReleaseTagger.VsBuildInformation>(logger)
 {
     public override string Name => "VS";
 
@@ -28,6 +29,7 @@ internal sealed partial class VsReleaseTagger
         { "17.12.", "2022" },
         { "17.13.", "2022" },
         { "17.14.", "2022" },
+        { "18.", "2026" },
     }.ToImmutableDictionary();
 
     public override async Task<ImmutableArray<VsReleaseInformation>> GetReleasesAsync(RemoteConnections connections)
@@ -135,6 +137,13 @@ internal sealed partial class VsReleaseTagger
         }
 
         return build;
+    }
+
+    public override Task<VsBuildInformation?> TryGetBuildAsync(RemoteConnections connections, IProduct product, VsBuildInformation vmrBuild)
+    {
+        // This is used when the SHA returned from the Release build does not exist in the target repo. In SDK scenarios it
+        // gives us a chance to query the dotnet VMR and identify the SHA for our repo.
+        return Task.FromResult<VsBuildInformation?>(null);
     }
 
     private static async Task<VsBuildInformation?> TryGetBuildInfoForReleaseAsync(IProduct product, VsReleaseInformation release, AzDOConnection vsConnection, AzDOConnection connection)
