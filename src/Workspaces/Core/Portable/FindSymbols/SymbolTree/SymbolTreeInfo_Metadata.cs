@@ -320,11 +320,11 @@ internal sealed partial class SymbolTreeInfo
                 }
             }
 
-            var receiverTypeNameToExtensionMethodMap = new MultiDictionary<string, ExtensionMethodInfo>();
-            var unsortedNodes = GenerateUnsortedNodes(receiverTypeNameToExtensionMethodMap);
+            var receiverTypeNameToExtensionMemberMap = new MultiDictionary<string, ExtensionMemberInfo>();
+            var unsortedNodes = GenerateUnsortedNodes(receiverTypeNameToExtensionMemberMap);
 
             return CreateSymbolTreeInfo(
-                checksum, unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                checksum, unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMemberMap);
         }
 
         public readonly void Dispose()
@@ -724,17 +724,17 @@ internal sealed partial class SymbolTreeInfo
             return newChildNode;
         }
 
-        private readonly ImmutableArray<BuilderNode> GenerateUnsortedNodes(MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap)
+        private readonly ImmutableArray<BuilderNode> GenerateUnsortedNodes(MultiDictionary<string, ExtensionMemberInfo> receiverTypeNameToMemberMap)
         {
             var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
             unsortedNodes.Add(BuilderNode.RootNode);
 
-            AddUnsortedNodes(unsortedNodes, receiverTypeNameToMethodMap, parentNode: _rootNode, parentIndex: 0, fullyQualifiedContainerName: _containsExtensionsMethod ? "" : null);
+            AddUnsortedNodes(unsortedNodes, receiverTypeNameToMemberMap, parentNode: _rootNode, parentIndex: 0, fullyQualifiedContainerName: _containsExtensionsMethod ? "" : null);
             return unsortedNodes.ToImmutableAndFree();
         }
 
         private readonly void AddUnsortedNodes(ArrayBuilder<BuilderNode> unsortedNodes,
-            MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap,
+            MultiDictionary<string, ExtensionMemberInfo> receiverTypeNameToMethodMap,
             MetadataNode parentNode,
             int parentIndex,
             string? fullyQualifiedContainerName)

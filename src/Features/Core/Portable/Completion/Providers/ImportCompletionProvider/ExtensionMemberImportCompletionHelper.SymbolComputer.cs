@@ -56,8 +56,8 @@ internal static partial class ExtensionMemberImportCompletionHelper
             _receiverTypeNames = AddComplexTypes(receiverTypeNames);
         }
 
-        private static IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> GetCacheService(Project project)
-            => project.Solution.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>>();
+        private static IImportCompletionCacheService<ExtensionMemberImportCompletionCacheEntry, object> GetCacheService(Project project)
+            => project.Solution.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMemberImportCompletionCacheEntry, object>>();
 
         /// <summary>
         /// Force create/update all relevant indices
@@ -178,9 +178,9 @@ internal static partial class ExtensionMemberImportCompletionHelper
             }
         }
 
-        private async Task GetExtensionMethodSymbolsFromPeReferenceAsync(
+        private async Task GetExtensionMemberSymbolsFromPeReferenceAsync(
             PortableExecutableReference peReference,
-            Action<IMethodSymbol?> callback,
+            Action<ISymbol?> callback,
             bool forceCacheCreation,
             CancellationToken cancellationToken)
         {
@@ -207,7 +207,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
             }
 
             if (symbolInfo is null ||
-                !symbolInfo.ContainsExtensionMethod ||
+                !symbolInfo.ContainsExtensionMember ||
                 _originatingSemanticModel.Compilation.GetAssemblyOrModuleSymbol(peReference) is not IAssemblySymbol assembly)
             {
                 return;
@@ -218,7 +218,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
 
             var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(assembly, filter, internalsVisible, cancellationToken);
 
-            GetExtensionMethodsForSymbolsFromSameCompilation(matchingMethodSymbols, callback, cancellationToken);
+            GetExtensionMembersForSymbolsFromSameCompilation(matchingMethodSymbols, callback, cancellationToken);
         }
 
         private void GetExtensionMethodsForSymbolsFromDifferentCompilation(
@@ -288,13 +288,13 @@ internal static partial class ExtensionMemberImportCompletionHelper
             }
         }
 
-        private void GetExtensionMethodsForSymbolsFromSameCompilation(
-            MultiDictionary<ITypeSymbol, IMethodSymbol> matchingMethodSymbols,
-            Action<IMethodSymbol?> callback,
+        private void GetExtensionMembersForSymbolsFromSameCompilation(
+            MultiDictionary<ITypeSymbol, ISymbol> matchingMemberSymbols,
+            Action<ISymbol?> callback,
             CancellationToken cancellationToken)
         {
             // Matching extension method symbols are grouped based on their receiver type.
-            foreach (var (receiverType, methodSymbols) in matchingMethodSymbols)
+            foreach (var (receiverType, memberSymbols) in matchingMemberSymbols)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -307,7 +307,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
                 // to the given receiver type and save the result.
                 if (!cachedResult)
                 {
-                    var reducedMethodSymbol = TryReduceExtensionMethod(methodSymbols.First(), _receiverTypeSymbol);
+                    var reducedMethodSymbol = TryReduceExtensionMethod(memberSymbols.First(), _receiverTypeSymbol);
                     cachedResult = reducedMethodSymbol != null;
                     _checkedReceiverTypes[receiverType] = cachedResult;
                 }
@@ -325,23 +325,37 @@ internal static partial class ExtensionMemberImportCompletionHelper
             }
         }
 
-        private static IMethodSymbol? TryReduceExtensionMethod(IMethodSymbol methodSymbol, ITypeSymbol receiverTypeSymbol)
+        private static ISymbol? TryReduceExtensionMember(ISymbol memberSymbol, ITypeSymbol receiverTypeSymbol)
         {
-            // First defer to compiler to try to reduce this.
-            var reduced = methodSymbol.ReduceExtensionMethod(receiverTypeSymbol);
-            if (reduced is null)
-                return null;
+            if (memberSymbol is IPropertySymbol propertySymbol)
+                return propertySymbol.ReduceExtensionMember(receiverTypeSymbol);
 
-            // Compiler is sometimes lenient with reduction, especially in cases of generic.  Do another pass ourselves
-            // to see if we should filter this out.
-            if (methodSymbol.Parameters is [var extensionParameter, ..] &&
-                extensionParameter.Type is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method } typeParameter)
+            if (memberSymbol is IMethodSymbol methodSymbol)
             {
-                if (!CheckConstraints(receiverTypeSymbol, typeParameter))
+                // Try modern extension method first.
+                if (methodSymbol.ReduceExtensionMember(receiverTypeSymbol) is IMethodSymbol reducedMember)
+                    return reducedMember;
+
+                // Then fall back to classic extension method reduction.
+
+                // First defer to compiler to try to reduce this.
+                var reduced = methodSymbol.ReduceExtensionMethod(receiverTypeSymbol);
+                if (reduced is null)
                     return null;
+
+                // Compiler is sometimes lenient with reduction, especially in cases of generic.  Do another pass ourselves
+                // to see if we should filter this out.
+                if (methodSymbol.Parameters is [var extensionParameter, ..] &&
+                    extensionParameter.Type is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method } typeParameter)
+                {
+                    if (!CheckConstraints(receiverTypeSymbol, typeParameter))
+                        return null;
+                }
+
+                return reduced;
             }
 
-            return reduced;
+            return null;
         }
 
         private MultiDictionary<ITypeSymbol, IMethodSymbol> GetPotentialMatchingSymbolsFromAssembly(
@@ -453,7 +467,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
         /// Create filter for extension methods from metadata
         /// The filter is a map from fully qualified type name to info of extension methods it contains.
         /// </summary>
-        private MultiDictionary<string, (string methodName, string receiverTypeName)> CreateAggregatedFilter(SymbolTreeInfo symbolInfo)
+        private MultiDictionary<string, (string memberName, string receiverTypeName)> CreateAggregatedFilter(SymbolTreeInfo symbolInfo)
         {
             var results = new MultiDictionary<string, (string, string)>();
 

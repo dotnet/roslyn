@@ -92,7 +92,7 @@ internal sealed partial class SymbolTreeInfo
     /// Name of the extension method. 
     /// This can be used to retrieve corresponding symbols via <see cref="INamespaceOrTypeSymbol.GetMembers(string)"/>
     /// </param>
-    public readonly record struct ExtensionMethodInfo(string FullyQualifiedContainerName, string Name);
+    public readonly record struct ExtensionMemberInfo(string FullyQualifiedContainerName, string Name);
 
     private sealed class ParameterTypeInfoProvider : ISignatureTypeProvider<ParameterTypeInfo, object?>
     {
