@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
 [ExportCompletionProvider(nameof(AggregateEmbeddedLanguageCompletionProvider), LanguageNames.CSharp)]
-[ExtensionOrder(After = nameof(ExtensionMethodImportCompletionProvider))]
+[ExtensionOrder(After = nameof(ExtensionMemberImportCompletionProvider))]
 [Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
