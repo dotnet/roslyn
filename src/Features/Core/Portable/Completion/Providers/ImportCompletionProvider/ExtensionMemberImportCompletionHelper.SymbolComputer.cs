@@ -313,7 +313,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
                 // to the given receiver type and save the result.
                 if (!cachedResult)
                 {
-                    var reducedMethodSymbol = TryReduceExtensionMethod(memberSymbols.First(), _receiverTypeSymbol);
+                    var reducedMethodSymbol = TryReduceExtensionMember(memberSymbols.First(), _receiverTypeSymbol);
                     cachedResult = reducedMethodSymbol != null;
                     _checkedReceiverTypes[receiverType] = cachedResult;
                 }
@@ -322,10 +322,10 @@ internal static partial class ExtensionMemberImportCompletionHelper
                 // We can add accessible ones to the item builder.
                 if (cachedResult)
                 {
-                    foreach (var methodSymbol in methodSymbols)
+                    foreach (var memberSymbol in memberSymbols)
                     {
-                        if (_originatingSemanticModel.IsAccessible(_position, methodSymbol))
-                            callback(methodSymbol);
+                        if (_originatingSemanticModel.IsAccessible(_position, memberSymbol))
+                            callback(memberSymbol);
                     }
                 }
             }
@@ -494,16 +494,12 @@ internal static partial class ExtensionMemberImportCompletionHelper
 
             foreach (var receiverTypeName in _receiverTypeNames)
             {
-                var methodInfos = symbolInfo.GetExtensionMethodInfoForReceiverType(receiverTypeName);
-                if (methodInfos.Count == 0)
-                {
+                var memberInfos = symbolInfo.GetExtensionMemberInfoForReceiverType(receiverTypeName);
+                if (memberInfos.Count == 0)
                     continue;
-                }
 
-                foreach (var methodInfo in methodInfos)
-                {
-                    results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, receiverTypeName));
-                }
+                foreach (var memberInfo in memberInfos)
+                    results.Add(memberInfo.FullyQualifiedContainerName, (memberInfo.Name, receiverTypeName));
             }
 
             return results;
