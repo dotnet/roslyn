@@ -75,13 +75,14 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
 
         var baseNames = NameGenerator.GetBaseNames(type, plural);
 
-        // Check if the original type is a Func<..., T> and add "Factory" suffix
+        // Check if the original type is a Func<..., T> and add "Factory" and "Selector" suffixes
         if (IsFuncType(originalType, compilation))
         {
             using var _ = ArrayBuilder<ImmutableArray<string>>.GetInstance(out var result);
 
-            // Add "factory" as a standalone suggestion
+            // Add standalone suggestions
             result.Add(["Factory"]);
+            result.Add(["Selector"]);
 
             // Add all the original base names with "Factory" suffix
             foreach (var baseName in baseNames)
@@ -123,7 +124,7 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
     }
 
     private static bool IsFuncType(ITypeSymbol type, Compilation compilation)
-    => namedType is { Name: "Func", ContainingNamespace.Name: "System", TypeArguments.Length: > 0 };
+        => type is INamedTypeSymbol { Name: "Func", ContainingNamespace.Name: "System", TypeArguments.Length: > 0 };
 
     private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural, HashSet<ITypeSymbol> seenTypes)
     {

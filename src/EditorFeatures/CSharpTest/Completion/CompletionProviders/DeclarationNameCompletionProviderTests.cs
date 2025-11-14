@@ -862,8 +862,14 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 Func<string> $$
             }
             """;
+        // Verify original suggestions still work
+        await VerifyItemExistsAsync(markup, "String");
+        await VerifyItemExistsAsync(markup, "@string");
+        await VerifyItemExistsAsync(markup, "GetString");
+        // Verify new Func-specific suggestions
         await VerifyItemExistsAsync(markup, "factory");
         await VerifyItemExistsAsync(markup, "stringFactory");
+        await VerifyItemExistsAsync(markup, "selector");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
@@ -877,8 +883,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 Func<int, string> $$
             }
             """;
+        // Verify original suggestions still work
+        await VerifyItemExistsAsync(markup, "String");
+        await VerifyItemExistsAsync(markup, "@string");
+        // Verify new Func-specific suggestions
         await VerifyItemExistsAsync(markup, "factory");
         await VerifyItemExistsAsync(markup, "stringFactory");
+        await VerifyItemExistsAsync(markup, "selector");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
@@ -894,8 +905,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             public class Customer { }
             """;
+        // Verify original suggestions still work
+        await VerifyItemExistsAsync(markup, "Customer");
+        await VerifyItemExistsAsync(markup, "customer");
+        // Verify new Func-specific suggestions
         await VerifyItemExistsAsync(markup, "factory");
         await VerifyItemExistsAsync(markup, "customerFactory");
+        await VerifyItemExistsAsync(markup, "selector");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
@@ -911,8 +927,12 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             public class Item { }
             """;
+        // Verify original suggestions still work
+        await VerifyItemExistsAsync(markup, "item", glyph: Glyph.Parameter);
+        // Verify new Func-specific suggestions
         await VerifyItemExistsAsync(markup, "factory", glyph: Glyph.Parameter);
         await VerifyItemExistsAsync(markup, "itemFactory", glyph: Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "selector", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
@@ -931,8 +951,12 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             public class Result { }
             """;
+        // Verify original suggestions still work
+        await VerifyItemExistsAsync(markup, "result");
+        // Verify new Func-specific suggestions
         await VerifyItemExistsAsync(markup, "factory");
         await VerifyItemExistsAsync(markup, "resultFactory");
+        await VerifyItemExistsAsync(markup, "selector");
     }
 
     [Fact]
