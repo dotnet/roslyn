@@ -377,39 +377,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
                 var extensionDotIndex = Math.Max(
                     fullyQualifiedContainerName.LastIndexOf(".extension<"),
                     fullyQualifiedContainerName.LastIndexOf(".extension("));
-                if (extensionDotIndex > 0)
-                {
-                    // Modern extension member.
-
-                    var staticClassName = fullyQualifiedContainerName[..extensionDotIndex];
-                    var indexOfLastDot = staticClassName.LastIndexOf('.');
-                    var qualifiedNamespaceName = indexOfLastDot > 0 ? staticClassName[..indexOfLastDot] : string.Empty;
-                    if (_namespaceInScope.Contains(qualifiedNamespaceName))
-                        continue;
-
-                    var containerSymbol = assembly.GetTypeByMetadataName(staticClassName);
-
-                    if (containerSymbol == null || !IsAccessible(containerSymbol, internalsVisible))
-                        continue;
-
-                    // Now we have the container symbol, first try to get member extension method symbols that matches our syntactic filter,
-                    // then further check if those symbols matches semantically.
-                    var extensionTypes = containerSymbol.GetTypeMembers().WhereAsArray(m => m.IsExtension);
-                    foreach (var (memberName, receiverTypeName) in memberInfo)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        foreach (var extensionType in extensionTypes)
-                        {
-                            foreach (var memberSymbol in extensionType.GetMembers(memberName))
-                            {
-                                if (MatchExtensionMember(memberSymbol, receiverTypeName, internalsVisible, out var receiverType))
-                                    builder.Add(receiverType, memberSymbol);
-                            }
-                        }
-                    }
-                }
-                else
+                if (extensionDotIndex == 0)
                 {
                     // Classic extension method. 
 
@@ -440,6 +408,38 @@ internal static partial class ExtensionMemberImportCompletionHelper
                         {
                             if (MatchExtensionMember(memberSymbol, receiverTypeName, internalsVisible, out var receiverType))
                                 builder.Add(receiverType, memberSymbol);
+                        }
+                    }
+                }
+                else
+                {
+                    // Modern extension member.
+
+                    var staticClassName = fullyQualifiedContainerName[..extensionDotIndex];
+                    var indexOfLastDot = staticClassName.LastIndexOf('.');
+                    var qualifiedNamespaceName = indexOfLastDot > 0 ? staticClassName[..indexOfLastDot] : string.Empty;
+                    if (_namespaceInScope.Contains(qualifiedNamespaceName))
+                        continue;
+
+                    var containerSymbol = assembly.GetTypeByMetadataName(staticClassName);
+
+                    if (containerSymbol == null || !IsAccessible(containerSymbol, internalsVisible))
+                        continue;
+
+                    // Now we have the container symbol, first try to get member extension method symbols that matches our syntactic filter,
+                    // then further check if those symbols matches semantically.
+                    var extensionTypes = containerSymbol.GetTypeMembers().WhereAsArray(m => m.IsExtension);
+                    foreach (var (memberName, receiverTypeName) in memberInfo)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        foreach (var extensionType in extensionTypes)
+                        {
+                            foreach (var memberSymbol in extensionType.GetMembers(memberName))
+                            {
+                                if (MatchExtensionMember(memberSymbol, receiverTypeName, internalsVisible, out var receiverType))
+                                    builder.Add(receiverType, memberSymbol);
+                            }
                         }
                     }
                 }
