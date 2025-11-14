@@ -372,41 +372,76 @@ internal static partial class ExtensionMemberImportCompletionHelper
         {
             var builder = new MultiDictionary<ITypeSymbol, ISymbol>();
 
-            // The filter contains all the extension methods that potentially match the receiver type.
-            // We use it as a guide to selectively retrive container and member symbols from the assembly.
+            // The filter contains all the extension members that potentially match the receiver type.
+            // We use it as a guide to selectively retrieve container and member symbols from the assembly.
             foreach (var (fullyQualifiedContainerName, memberInfo) in extensionMemberFilter)
             {
-                // First try to filter out types from already imported namespaces
-                var indexOfLastDot = fullyQualifiedContainerName.LastIndexOf('.');
-                var qualifiedNamespaceName = indexOfLastDot > 0 ? fullyQualifiedContainerName[..indexOfLastDot] : string.Empty;
-
-                if (_namespaceInScope.Contains(qualifiedNamespaceName))
+                var extensionDotIndex = Math.Max(
+                    fullyQualifiedContainerName.LastIndexOf(".extension<"),
+                    fullyQualifiedContainerName.LastIndexOf(".extension("));
+                if (extensionDotIndex > 0)
                 {
-                    continue;
-                }
+                    // Modern extension member.
 
-                // Container of extension method (static class in C# and Module in VB) can't be generic or nested.
-                var containerSymbol = assembly.GetTypeByMetadataName(fullyQualifiedContainerName);
+                    var staticClassName = fullyQualifiedContainerName[..extensionDotIndex];
+                    var indexOfLastDot = staticClassName.LastIndexOf('.');
+                    var qualifiedNamespaceName = indexOfLastDot > 0 ? staticClassName[..indexOfLastDot] : string.Empty;
+                    if (_namespaceInScope.Contains(qualifiedNamespaceName))
+                        continue;
 
-                if (containerSymbol == null
-                    || !containerSymbol.MightContainExtensionMethods
-                    || !IsAccessible(containerSymbol, internalsVisible))
-                {
-                    continue;
-                }
+                    var containerSymbol = assembly.GetTypeByMetadataName(staticClassName);
 
-                // Now we have the container symbol, first try to get member extension method symbols that matches our syntactic filter,
-                // then further check if those symbols matches semantically.
-                foreach (var (memberName, receiverTypeName) in memberInfo)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    if (containerSymbol == null || !IsAccessible(containerSymbol, internalsVisible))
+                        continue;
 
-                    foreach (var memberSymbol in containerSymbol.GetMembers(memberName))
+                    // Now we have the container symbol, first try to get member extension method symbols that matches our syntactic filter,
+                    // then further check if those symbols matches semantically.
+                    var extensionTypes = containerSymbol.GetTypeMembers().WhereAsArray(m => m.IsExtension);
+                    foreach (var (memberName, receiverTypeName) in memberInfo)
                     {
-                        if (MatchExtensionMember(memberSymbol, receiverTypeName, internalsVisible, out var receiverType))
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        foreach (var extensionType in extensionTypes)
                         {
-                            // Find a potential match.
-                            builder.Add(receiverType!, memberSymbol);
+                            foreach (var memberSymbol in extensionType.GetMembers(memberName))
+                            {
+                                if (MatchExtensionMember(memberSymbol, receiverTypeName, internalsVisible, out var receiverType))
+                                    builder.Add(receiverType, memberSymbol);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Classic extension method. 
+
+                    // First try to filter out types from already imported namespaces
+                    var indexOfLastDot = fullyQualifiedContainerName.LastIndexOf('.');
+                    var qualifiedNamespaceName = indexOfLastDot > 0 ? fullyQualifiedContainerName[..indexOfLastDot] : string.Empty;
+
+                    if (_namespaceInScope.Contains(qualifiedNamespaceName))
+                        continue;
+
+                    // Container of extension method (static class in C# and Module in VB) can't be generic or nested.
+                    var containerSymbol = assembly.GetTypeByMetadataName(fullyQualifiedContainerName);
+
+                    if (containerSymbol == null
+                        || !containerSymbol.MightContainExtensionMethods
+                        || !IsAccessible(containerSymbol, internalsVisible))
+                    {
+                        continue;
+                    }
+
+                    // Now we have the container symbol, first try to get member extension method symbols that matches our syntactic filter,
+                    // then further check if those symbols matches semantically.
+                    foreach (var (memberName, receiverTypeName) in memberInfo)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        foreach (var memberSymbol in containerSymbol.GetMembers(memberName))
+                        {
+                            if (MatchExtensionMember(memberSymbol, receiverTypeName, internalsVisible, out var receiverType))
+                                builder.Add(receiverType, memberSymbol);
                         }
                     }
                 }

@@ -2347,7 +2347,7 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
         var file2 = $$"""
             using System;
 
-            namespace Goo
+            namespace Baz
             {
                 public class Bat
                 {
@@ -2365,6 +2365,6 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
              markup,
              "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 }
