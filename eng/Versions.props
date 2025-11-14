@@ -120,8 +120,7 @@
     <MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>15.8.27812-alpha</MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>
     <MicrosoftInternalVisualStudioInteropVersion>17.7.37349</MicrosoftInternalVisualStudioInteropVersion>
     <MicrosoftInternalVisualStudioShellFrameworkVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftInternalVisualStudioShellFrameworkVersion>
-    <MicrosoftIORedistVersion>6.0.0</MicrosoftIORedistVersion>
-    <MicrosoftIORedistVersion>6.0.0</MicrosoftIORedistVersion>
+    <MicrosoftIORedistVersion>6.0.1</MicrosoftIORedistVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta3.21075.2</MicrosoftMetadataVisualizerVersion>
     <MicrosoftNETBuildExtensionsVersion>2.2.101</MicrosoftNETBuildExtensionsVersion>
     <MicrosoftNETCorePlatformsVersion>5.0.0</MicrosoftNETCorePlatformsVersion>
@@ -322,7 +321,7 @@
     <!--
       Temporary, servicing branch only version for use with build boss.
       MSBuildLocator must be updated to work with updated VS on CI machines, but it requires
-      at least SCI version 8.0.0.  We cannot update the 
+      at least SCI version 8.0.0.  We cannot update the
     -->
     <RefOnlySystemCollectionsImmutableVersion>8.0.0</RefOnlySystemCollectionsImmutableVersion>
   </PropertyGroup>

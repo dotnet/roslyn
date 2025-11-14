@@ -10,21 +10,47 @@
     <UseAppHost>false</UseAppHost>
     <!-- Set to false since it's also set in Microsoft.CodeAnalysis.LanguageServer -->
     <SelfContained>false</SelfContained>
+
+    <!--
+      We specifically reference Microsoft.Build 17.3.4, since it's the oldest version still compatible $(NetRoslynBuildHostNetCoreVersion).
+      The version targeted is only used for build time, since we use MSBuildLocator to discover the proper version at runtime.
+    -->
+    <_MsbuildVersion>17.3.4</_MsbuildVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
   </ItemGroup>
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+    <PackageReference Include="Microsoft.Build" Version="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="$(_MsbuildVersion)" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">
+    <!-- Reference MSBuild directly to avoid redistributing its package closure and including the dependencies in deps.json file. -->
+    <PackageDownloadAndReference Include="Microsoft.Build" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Framework" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Tasks.Core" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Utilities.Core" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
+  </ItemGroup>
+  <!-- For net6.0 and net7.0 builds of the BuildHost we will reference the ref/net6.0 folder -->
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true' AND '$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+    <!-- Reference MSBuild directly to avoid redistributing its package closure and including the dependencies in deps.json file. -->
+    <PackageDownloadAndReference Include="Microsoft.Build" Version="$(_MsbuildVersion)" Folder="ref/net6.0" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Framework" Version="$(_MsbuildVersion)" Folder="ref/net6.0" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Tasks.Core" Version="$(_MsbuildVersion)" Folder="ref/net6.0" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Utilities.Core" Version="$(_MsbuildVersion)" Folder="ref/net6.0" />
+  </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" PrivateAssets="All" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonFixedVersion)" PrivateAssets="All" Condition="'$(DotnetBuildFromSource)' != 'true'"/>
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
+    <PackageReference Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistVersion)" PrivateAssets="All" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
     <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonFixedVersion)" PrivateAssets="All" Condition="'$(DotNetBuildFromSource)' != 'true'"/>
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -45,4 +71,5 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
+  <Import Project="$(RepositoryEngineeringDir)targets\PackageDownloadAndReference.targets"/>
 </Project>

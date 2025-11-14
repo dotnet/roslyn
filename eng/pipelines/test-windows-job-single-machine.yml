@@ -15,18 +15,10 @@ parameters:
 - name: testArguments
   type: string
   default: ''
-- name: poolName
-  type: string
-  default: ''
-- name: queueName
-  type: string
-  default: 'windows.vs2022.amd64.open'
 
 jobs:
 - job: ${{ parameters.jobName }}
-  pool:
-    name: ${{ parameters.poolName }}
-    demands: ImageOverride -equals ${{ parameters.queueName }}
+  pool: ${{ parameters.poolParameters }}
   timeoutInMinutes: 120
   variables:
     DOTNET_ROLL_FORWARD: LatestMajor
