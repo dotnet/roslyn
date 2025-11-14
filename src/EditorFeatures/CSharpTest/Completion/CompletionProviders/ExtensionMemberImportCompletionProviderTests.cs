@@ -2327,6 +2327,7 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
              sourceCodeKind: SourceCodeKind.Regular);
 
     [Theory, MemberData(nameof(BuiltInTypesWithReferenceTypeData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80561")]
     public async Task TestPredefinedType_ModernExtensionMethod(string type1, string type2, ReferenceType refType)
     {
         var file1 = $$"""
@@ -2365,6 +2366,48 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
              markup,
              "ExtensionMethod",
              glyph: Glyph.ExtensionMethodPublic,
+             inlineDescription: "Goo");
+    }
+
+    [Theory, MemberData(nameof(BuiltInTypesWithReferenceTypeData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80561")]
+    public async Task TestPredefinedType_ModernExtensionProperty(string type1, string type2, ReferenceType refType)
+    {
+        var file1 = $$"""
+            using System;
+
+            namespace Goo
+            {
+                public static class ExtensionClass
+                {
+                    extension({{type1}} x)
+                    {
+                        public bool ExtensionProp => true;
+                    }
+                }
+            }
+            """;
+        var file2 = $$"""
+            using System;
+
+            namespace Baz
+            {
+                public class Bat
+                {
+                    public void M({{type2}} x)
+                    {
+                        x.$$
+                    }
+                }
+            }
+            """;
+
+        var markup = GetMarkup(file2, file1, refType);
+
+        await VerifyImportItemExistsAsync(
+             markup,
+             "ExtensionProp",
+             glyph: Glyph.PropertyPublic,
              inlineDescription: "Goo");
     }
 }
