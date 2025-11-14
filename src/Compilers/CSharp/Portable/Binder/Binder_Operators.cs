@@ -4068,6 +4068,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors;
             BindPointerIndirectionExpressionInternal(node, operand, diagnostics, out pointedAtType, out hasErrors);
 
+            ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, rules: MemorySafetyRules.Evolved);
+
             return new BoundPointerIndirectionOperator(node, operand, refersToLocation: false, pointedAtType ?? CreateErrorType(), hasErrors);
         }
 

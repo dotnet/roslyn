@@ -39,9 +39,31 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithEvolvedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (1,4): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "*").WithArguments("evolved memory safety rules").WithLocation(1, 4));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void Pointer_Variable_SafeContext_Var()
+    {
+        var source = """
+            var x = GetPointer();
+            int* GetPointer() => null;
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (1,9): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // var x = GetPointer();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "GetPointer()").WithArguments("evolved memory safety rules").WithLocation(1, 9),
+            // (2,1): error CS8652: The feature 'evolved memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // int* GetPointer() => null;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("evolved memory safety rules").WithLocation(2, 1));
     }
 
     [Fact]
@@ -83,9 +105,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 10));
 
         CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
-            // (2,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (2,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // int y = *x;
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 10));
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "*").WithLocation(2, 9));
     }
 
     [Fact]
