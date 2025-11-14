@@ -22,13 +22,11 @@ internal sealed partial class SymbolTreeInfo
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     private readonly struct BuilderNode(string name, int parentIndex)
-        //, MultiDictionary<MetadataNode, ParameterTypeInfo>.ValueSet parameterTypeInfos = default)
     {
         public static readonly BuilderNode RootNode = new("", RootNodeParentIndex);
 
         public readonly string Name = name;
         public readonly int ParentIndex = parentIndex;
-        // public readonly MultiDictionary<MetadataNode, ParameterTypeInfo>.ValueSet ParameterTypeInfos = parameterTypeInfos;
 
         public bool IsRoot => ParentIndex == RootNodeParentIndex;
 
