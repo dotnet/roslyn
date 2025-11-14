@@ -30,7 +30,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
     }
 
     internal override Type GetCompletionProviderType()
-        => typeof(ExtensionMethodImportCompletionProvider);
+        => typeof(ExtensionMemberImportCompletionProvider);
 
     public enum ReferenceType
     {
