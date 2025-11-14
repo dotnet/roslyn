@@ -13627,5 +13627,120 @@ I1(x);";
             }
             EOF();
         }
+
+        [Fact]
+        public void ParseEmptyTypeParameterAttributeLists12()
+        {
+            UsingTree("""
+                class C<T[] { }
+                """,
+                // (1,10): error CS1003: Syntax error, ',' expected
+                // class C<T[] { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 10),
+                // (1,11): error CS1001: Identifier expected
+                // class C<T[] { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 11),
+                // (1,13): error CS1001: Identifier expected
+                // class C<T[] { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 13),
+                // (1,13): error CS1003: Syntax error, '>' expected
+                // class C<T[] { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(">").WithLocation(1, 13));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                M(SyntaxKind.Attribute);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseEmptyTypeParameterAttributeLists13()
+        {
+            UsingTree("""
+                class C<T[]> { }
+                """,
+                // (1,10): error CS1003: Syntax error, ',' expected
+                // class C<T[]> { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 10),
+                // (1,11): error CS1001: Identifier expected
+                // class C<T[]> { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 11),
+                // (1,12): error CS1001: Identifier expected
+                // class C<T[]> { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 12));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                M(SyntaxKind.Attribute);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }
