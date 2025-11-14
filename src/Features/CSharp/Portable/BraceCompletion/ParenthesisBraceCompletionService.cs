@@ -49,21 +49,17 @@ internal sealed class ParenthesisBraceCompletionService() : AbstractCSharpBraceC
         // Walk up parent nodes to see if any ancestor has a missing close paren positioned
         // right after our current close paren. This handles cases like: if (a.Where(
         // where the parser "borrows" the ArgumentList's close paren for the if statement.
-        var currentNode = token.Parent.Parent;
-        while (currentNode != null)
+        for (var currentNode = token.Parent.Parent; currentNode != null; currentNode = currentNode.Parent)
         {
-            var (ancestorOpenParen, ancestorCloseParen) = currentNode.GetParentheses();
+            var ancestorCloseParen = currentNode.GetParentheses().closeParen;
 
             // Check if this ancestor has a missing close paren that's positioned right after
             // our current close paren (meaning the parser reused our close paren for the ancestor)
-            if (ancestorOpenParen != default &&
-                ancestorCloseParen.IsMissing &&
+            if (ancestorCloseParen.IsMissing &&
                 ancestorCloseParen.FullSpan.Start == closeParen.FullSpan.End)
             {
                 return true;
             }
-
-            currentNode = currentNode.Parent;
         }
 
         // If the completed pair is on the same line, then the closing parenthesis must belong to a different
