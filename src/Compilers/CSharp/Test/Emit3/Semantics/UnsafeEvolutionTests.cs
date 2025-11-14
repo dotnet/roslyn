@@ -183,4 +183,47 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
     }
+
+    [Fact]
+    public void Pointer_ElementAccess_SafeContext()
+    {
+        var source = """
+            int* x = null;
+            x[0] = 1;
+            int y = x[1];
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* x = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 1),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // x[0] = 1;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 1),
+            // (3,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int y = x[1];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(3, 9));
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
+            // (2,2): error CS9500: This operation may only be used in an unsafe context
+            // x[0] = 1;
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(2, 2),
+            // (3,10): error CS9500: This operation may only be used in an unsafe context
+            // int y = x[1];
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(3, 10));
+    }
+
+    [Fact]
+    public void Pointer_ElementAccess_UnsafeContext()
+    {
+        var source = """
+            int* x = null;
+            unsafe
+            {
+                x[0] = 1;
+                int y = x[1];
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+    }
 }
