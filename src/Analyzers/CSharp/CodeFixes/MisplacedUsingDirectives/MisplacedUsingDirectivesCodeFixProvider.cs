@@ -276,7 +276,7 @@ internal sealed class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvide
 
         var firstMember = members[0];
         var firstMemberLeadingTrivia = firstMember.GetLeadingTrivia();
-        
+
         // Find the first #endif directive in the member's leading trivia
         var endIfIndex = -1;
         for (int i = 0; i < firstMemberLeadingTrivia.Count; i++)
@@ -294,7 +294,7 @@ internal sealed class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvide
         // Extract the #endif and any trivia up to and including the first newline after it
         var endIfTrivia = firstMemberLeadingTrivia[endIfIndex];
         var triviaToMove = new List<SyntaxTrivia> { endIfTrivia };
-        
+
         // Include the newline after the #endif
         if (endIfIndex + 1 < firstMemberLeadingTrivia.Count &&
             firstMemberLeadingTrivia[endIfIndex + 1].IsKind(SyntaxKind.EndOfLineTrivia))
@@ -334,7 +334,7 @@ internal sealed class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvide
 
         // Get the using directives from the namespaces.
         var usingsFromNamespaces = namespaceDeclarationMap.Values.SelectMany(result => result.usingsFromNamespace);
-        
+
         // Get usings from the current container level only
         var localUsings = ignoringAliases
             ? usingContainer.Usings.Where(u => u.Alias is null)
