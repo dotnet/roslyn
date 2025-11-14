@@ -256,18 +256,18 @@ internal sealed partial class SymbolTreeInfo
         private readonly OrderPreservingMultiDictionary<MetadataNode, MetadataNode> _parentToChildren = OrderPreservingMultiDictionary<MetadataNode, MetadataNode>.GetInstance();
         private readonly MetadataNode _rootNode = MetadataNode.Allocate(name: "");
 
-        // The set of type definitions we've read out of the current metadata reader.
+        // The set of nestedType definitions we've read out of the current metadata reader.
         private readonly List<MetadataDefinition> _allTypeDefinitions = [];
 
-        // Map from node represents extension method to list of possible parameter type info.
-        // We can have more than one if there's multiple methods with same name but different receiver type.
+        // Map from node represents extension method to list of possible parameter nestedType info.
+        // We can have more than one if there's multiple methods with same name but different receiver nestedType.
         // e.g.
         //
         //      public static bool AnotherExtensionMethod1(this int x);
         //      public static bool AnotherExtensionMethod1(this bool x);
         //
         private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMemberToParameterTypeInfo = [];
-        private bool _containsExtensionsMethod = false;
+        private bool _containsExtensionMembers = false;
 
         private static ImmutableArray<ModuleMetadata> GetModuleMetadata(Metadata? metadata)
         {
@@ -310,7 +310,7 @@ internal sealed partial class SymbolTreeInfo
                     // map accordingly.
                     PopulateInheritanceMap(metadataReader);
 
-                    // Clear the set of type definitions we read out of this piece of metadata.
+                    // Clear the set of nestedType definitions we read out of this piece of metadata.
                     _allTypeDefinitions.Clear();
                 }
                 catch (BadImageFormatException)
@@ -382,7 +382,7 @@ internal sealed partial class SymbolTreeInfo
                 {
                     if (definition.Kind == MetadataDefinitionKind.Member)
                     {
-                        // We need to support having multiple methods with same name but different receiver type.
+                        // We need to support having multiple methods with same name but different receiver nestedType.
                         _extensionMemberToParameterTypeInfo.Add(childNode, definition.ReceiverTypeInfo);
                     }
 
@@ -419,64 +419,177 @@ internal sealed partial class SymbolTreeInfo
             TypeDefinition typeDefinition,
             OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
         {
-            // Only bother looking for extension methods in static types.
-            // Note this check means we would ignore extension methods declared in assemblies
-            // compiled from VB code, since a module in VB is compiled into class with 
-            // "sealed" attribute but not "abstract". 
-            // Although this can be addressed by checking custom attributes,
-            // we believe this is not a common scenario to warrant potential perf impact.
-            if ((typeDefinition.Attributes & TypeAttributes.Abstract) != 0 &&
-                (typeDefinition.Attributes & TypeAttributes.Sealed) != 0)
+            var currentTypeIsStaticClass =
+                (typeDefinition.Attributes & TypeAttributes.Abstract) != 0 &&
+                (typeDefinition.Attributes & TypeAttributes.Sealed) != 0 &&
+                typeDefinition.GetGenericParameters().Count == 0;
+
+            // Only bother looking for extension methods in static types. Note this check means we would ignore
+            // extension methods declared in assemblies compiled from VB code, since a module in VB is compiled into
+            // class with "sealed" attribute but not "abstract". Although this can be addressed by checking custom
+            // attributes, we believe this is not a common scenario to warrant potential perf impact.
+            if (currentTypeIsStaticClass)
             {
-                foreach (var child in typeDefinition.GetMethods())
-                {
-                    var method = metadataReader.GetMethodDefinition(child);
-                    if ((method.Attributes & MethodAttributes.SpecialName) != 0 ||
-                        (method.Attributes & MethodAttributes.RTSpecialName) != 0)
-                    {
-                        continue;
-                    }
-
-                    // SymbolTreeInfo is only searched for types and extension methods.
-                    // So we don't want to pull in all methods here.  As a simple approximation
-                    // we just pull in methods that have attributes on them.
-                    if ((method.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public &&
-                        (method.Attributes & MethodAttributes.Static) != 0 &&
-                        method.GetParameters().Count > 0 &&
-                        method.GetCustomAttributes().Count > 0)
-                    {
-                        // Decode method signature to get the receiver type name (i.e. type name for the first parameter)
-                        var blob = metadataReader.GetBlobReader(method.Signature);
-                        var decoder = new SignatureDecoder<ParameterTypeInfo, object?>(ParameterTypeInfoProvider.Instance, metadataReader, genericContext: null);
-                        var signature = decoder.DecodeMethodSignature(ref blob);
-
-                        // It'd be good if we don't need to go through all parameters and make unnecessary allocations.
-                        // However, this is not possible with meatadata reader API right now (although it's possible by copying code from meatadata reader implementaion)
-                        if (signature.ParameterTypes.Length > 0)
-                        {
-                            _containsExtensionsMethod = true;
-                            var firstParameterTypeInfo = signature.ParameterTypes[0];
-                            var definition = new MetadataDefinition(MetadataDefinitionKind.Member, metadataReader.GetString(method.Name), firstParameterTypeInfo);
-                            definitionMap.Add(definition.Name, definition);
-                        }
-                    }
-                }
+                // Handle classic extension methods.
+                _containsExtensionMembers = LoadClassicExtensionMethods() || _containsExtensionMembers;
             }
 
             foreach (var child in typeDefinition.GetNestedTypes())
             {
-                var type = metadataReader.GetTypeDefinition(child);
+                var nestedType = metadataReader.GetTypeDefinition(child);
 
-                // We don't include internals from metadata assemblies.  It's less likely that
-                // a project would have IVT to it and so it helps us save on memory.  It also
-                // means we can avoid loading lots and lots of obfuscated code in the case the
-                // dll was obfuscated.
-                if (IsPublic(type.Attributes))
+                // We don't include internals from metadata assemblies.  It's less likely that a project would have IVT
+                // to it and so it helps us save on memory.  It also means we can avoid loading lots and lots of
+                // obfuscated code in the case the dll was obfuscated.
+                if (IsPublic(nestedType.Attributes))
                 {
-                    var definition = MetadataDefinition.Create(metadataReader, type);
+                    var definition = MetadataDefinition.Create(metadataReader, nestedType);
                     definitionMap.Add(definition.Name, definition);
                     _allTypeDefinitions.Add(definition);
+
+                    // Look for modern extension blocks and load the members from there.
+                    if (currentTypeIsStaticClass)
+                        _containsExtensionMembers = LoadModernExtensionMembers(nestedType) || _containsExtensionMembers;
                 }
+            }
+
+            ParameterTypeInfo? TryGetExtensionParameterTypeInfo(TypeDefinition typeDefinition)
+            {
+                // Look for the special '<Extension>$' marker method which is how we can determine
+                // which type is being extended by the extension block.
+                foreach (var child in typeDefinition.GetMethods())
+                {
+                    var method = metadataReader.GetMethodDefinition(child);
+                    if ((method.Attributes & MethodAttributes.SpecialName) == 0 &&
+                        (method.Attributes & MethodAttributes.RTSpecialName) == 0)
+                    {
+                        continue;
+                    }
+
+                    // has to be `public static "<Extension>$"(parameter)` (with exactly one parameter). 
+                    if ((method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public ||
+                        (method.Attributes & MethodAttributes.Static) == 0 ||
+                        method.GetParameters().Count != 1)
+                    {
+                        continue;
+                    }
+
+                    var methodName = metadataReader.GetString(method.Name);
+                    if (methodName != "<Extension>$")
+                        continue;
+
+                    // Decode method signature to get the receiver nestedType name (i.e. nestedType name for the first parameter)
+                    var blob = metadataReader.GetBlobReader(method.Signature);
+                    var decoder = new SignatureDecoder<ParameterTypeInfo, object?>(ParameterTypeInfoProvider.Instance, metadataReader, genericContext: null);
+                    var signature = decoder.DecodeMethodSignature(ref blob);
+
+                    // It'd be good if we don't need to go through all parameters and make unnecessary allocations.
+                    // However, this is not possible with metadata reader API right now (although it's possible by
+                    // copying code from metadata reader implementation)
+                    if (signature.ParameterTypes.Length != 1)
+                        continue;
+
+                    return signature.ParameterTypes[0];
+                }
+
+                return null;
+            }
+
+            bool LoadClassicExtensionMethods()
+            {
+                var containsExtensionMembers = false;
+                foreach (var child in typeDefinition.GetMethods())
+                {
+                    var method = metadataReader.GetMethodDefinition(child);
+
+                    // SymbolTreeInfo is only searched for types and extension members. So we don't want to pull in all
+                    // methods here.  As a simple approximation we just pull in methods that have attributes on them.
+
+                    if ((method.Attributes & MethodAttributes.SpecialName) != 0 ||
+                        (method.Attributes & MethodAttributes.RTSpecialName) != 0 ||
+                        (method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public ||
+                        (method.Attributes & MethodAttributes.Static) == 0 ||
+                        method.GetParameters().Count == 0 ||
+                        method.GetCustomAttributes().Count == 0)
+                    {
+                        continue;
+                    }
+
+                    // Decode method signature to get the receiver nestedType name (i.e. nestedType name for the first parameter)
+                    var blob = metadataReader.GetBlobReader(method.Signature);
+                    var decoder = new SignatureDecoder<ParameterTypeInfo, object?>(ParameterTypeInfoProvider.Instance, metadataReader, genericContext: null);
+                    var signature = decoder.DecodeMethodSignature(ref blob);
+
+                    // It'd be good if we don't need to go through all parameters and make unnecessary allocations.
+                    // However, this is not possible with metadata reader API right now (although it's possible by
+                    // copying code from metadata reader implementation)
+                    if (signature.ParameterTypes.Length == 0)
+                        continue;
+
+                    containsExtensionMembers = true;
+                    var firstParameterTypeInfo = signature.ParameterTypes[0];
+                    var definition = new MetadataDefinition(MetadataDefinitionKind.Member, metadataReader.GetString(method.Name), firstParameterTypeInfo);
+                    definitionMap.Add(definition.Name, definition);
+                }
+
+                return containsExtensionMembers;
+            }
+
+            bool LoadModernExtensionMembers(TypeDefinition nestedType)
+            {
+                var containsExtensionMembers = false;
+                if ((nestedType.Attributes & TypeAttributes.SpecialName) != 0 ||
+                    (nestedType.Attributes & TypeAttributes.RTSpecialName) == 0)
+                {
+                    var extensionParameterTypeInfo = TryGetExtensionParameterTypeInfo(nestedType);
+                    if (extensionParameterTypeInfo is not null)
+                    {
+                        // Ok, this is definitely an extension block.  Load all the extension members from within it.
+                        foreach (var childMethod in typeDefinition.GetMethods())
+                        {
+                            var method = metadataReader.GetMethodDefinition(childMethod);
+                            if ((method.Attributes & MethodAttributes.SpecialName) != 0 ||
+                                (method.Attributes & MethodAttributes.RTSpecialName) != 0 ||
+                                (method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public)
+                            {
+                                continue;
+                            }
+
+                            var definition = new MetadataDefinition(MetadataDefinitionKind.Member, metadataReader.GetString(method.Name), extensionParameterTypeInfo.Value);
+                            definitionMap.Add(definition.Name, definition);
+                        }
+
+                        foreach (var childProperty in typeDefinition.GetProperties())
+                        {
+                            var property = metadataReader.GetPropertyDefinition(childProperty);
+                            if ((property.Attributes & PropertyAttributes.SpecialName) != 0 ||
+                                (property.Attributes & PropertyAttributes.RTSpecialName) != 0)
+                            {
+                                continue;
+                            }
+
+                            var accessors = property.GetAccessors();
+
+                            if (!IsPublicMethod(accessors.Getter) && !IsPublicMethod(accessors.Setter))
+                                continue;
+
+                            containsExtensionMembers = true;
+                            var definition = new MetadataDefinition(MetadataDefinitionKind.Member, metadataReader.GetString(property.Name), extensionParameterTypeInfo.Value);
+                            definitionMap.Add(definition.Name, definition);
+                        }
+                    }
+                }
+
+                return containsExtensionMembers;
+            }
+
+            bool IsPublicMethod(MethodDefinitionHandle methodHandle)
+            {
+                if (methodHandle.IsNil)
+                    return false;
+
+                var method = metadataReader.GetMethodDefinition(methodHandle);
+                return (method.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public;
             }
         }
 
@@ -568,9 +681,9 @@ internal sealed partial class SymbolTreeInfo
                         _inheritanceMap.Add(baseTypeNameParts.Last(), derivedTypeSimpleName);
                     }
 
-                    // The parent/child map may not know about this base-type yet (for example,
-                    // if the base type is a reference to a type outside of this assembly).
-                    // Add the base type to our map so we'll be able to resolve it later if 
+                    // The parent/child map may not know about this base-nestedType yet (for example,
+                    // if the base nestedType is a reference to a nestedType outside of this assembly).
+                    // Add the base nestedType to our map so we'll be able to resolve it later if 
                     // requested. 
                     EnsureParentsAndChildren(baseTypeNameParts);
                 }
@@ -606,17 +719,17 @@ internal sealed partial class SymbolTreeInfo
             var declaringType = typeDefinition.GetDeclaringType();
             if (declaringType.IsNil)
             {
-                // Not a nested type, just add the containing namespace.
+                // Not a nested nestedType, just add the containing namespace.
                 AddNamespaceParts(metadataReader, typeDefinition.NamespaceDefinition, simpleNames);
             }
             else
             {
-                // We're a nested type, recurse and add the type we're declared in.
+                // We're a nested nestedType, recurse and add the nestedType we're declared in.
                 // It will handle adding the namespace properly.
                 AddTypeDefinitionNameParts(metadataReader, declaringType, simpleNames);
             }
 
-            // Now add the simple name of the type itself.
+            // Now add the simple name of the nestedType itself.
             simpleNames.Add(GetMetadataNameWithoutBackticks(metadataReader, typeDefinition.Name));
         }
 
@@ -729,7 +842,7 @@ internal sealed partial class SymbolTreeInfo
             var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
             unsortedNodes.Add(BuilderNode.RootNode);
 
-            AddUnsortedNodes(unsortedNodes, receiverTypeNameToMemberMap, parentNode: _rootNode, parentIndex: 0, fullyQualifiedContainerName: _containsExtensionsMethod ? "" : null);
+            AddUnsortedNodes(unsortedNodes, receiverTypeNameToMemberMap, parentNode: _rootNode, parentIndex: 0, fullyQualifiedContainerName: _containsExtensionMembers ? "" : null);
             return unsortedNodes.ToImmutableAndFree();
         }
 
@@ -751,13 +864,13 @@ internal sealed partial class SymbolTreeInfo
                     {
                         // We do not differentiate array of different kinds for simplicity.
                         // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
-                        // similar for complex receiver types, "[]" means it's an array type, "" otherwise.
+                        // similar for complex receiver types, "[]" means it's an array nestedType, "" otherwise.
                         var parameterTypeName = (parameterTypeInfo.IsComplexType, parameterTypeInfo.IsArray) switch
                         {
-                            (true, true) => Extensions.ComplexArrayReceiverTypeName,                          // complex array type, e.g. "T[,]"
-                            (true, false) => Extensions.ComplexReceiverTypeName,                              // complex non-array type, e.g. "T"
-                            (false, true) => parameterTypeInfo.Name + Extensions.ArrayReceiverTypeNameSuffix, // simple array type, e.g. "int[][,]"
-                            (false, false) => parameterTypeInfo.Name                                          // simple non-array type, e.g. "int"
+                            (true, true) => Extensions.ComplexArrayReceiverTypeName,                          // complex array nestedType, e.g. "T[,]"
+                            (true, false) => Extensions.ComplexReceiverTypeName,                              // complex non-array nestedType, e.g. "T"
+                            (false, true) => parameterTypeInfo.Name + Extensions.ArrayReceiverTypeNameSuffix, // simple array nestedType, e.g. "int[][,]"
+                            (false, false) => parameterTypeInfo.Name                                          // simple non-array nestedType, e.g. "int"
                         };
 
                         receiverTypeNameToMethodMap.Add(parameterTypeName, new ExtensionMemberInfo(fullyQualifiedContainerName, child.Name));
@@ -829,7 +942,7 @@ internal sealed partial class SymbolTreeInfo
         public MetadataDefinitionKind Kind { get; } = kind;
 
         /// <summary>
-        /// Only applies to member kind. Represents the type info of the first parameter.
+        /// Only applies to member kind. Represents the nestedType info of the first parameter.
         /// </summary>
         public ParameterTypeInfo ReceiverTypeInfo { get; } = receiverTypeInfo;
 
