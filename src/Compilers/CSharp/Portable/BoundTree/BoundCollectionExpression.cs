@@ -23,17 +23,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             or BoundNewT
                             or BoundBadExpression);
 
+            if (collectionCreation is BoundCall boundCall)
+            {
+                Debug.Assert(
+                    boundCall.Arguments is [.., BoundValuePlaceholder { Kind: BoundKind.ValuePlaceholder } placeHolder] &&
+                    placeHolder == this.CollectionBuilderElementsPlaceholder);
+            }
+
             if (this.CollectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
             {
                 Debug.Assert(this.CollectionCreation is not null);
                 Debug.Assert(this.CollectionBuilderMethod is not null);
                 Debug.Assert(this.CollectionBuilderElementsPlaceholder is not null);
-
-                Debug.Assert(
-                    collectionCreation is BoundCall
-                    {
-                        Arguments: [.., BoundValuePlaceholder { Kind: BoundKind.ValuePlaceholder } placeHolder],
-                    } && placeHolder == this.CollectionBuilderElementsPlaceholder);
             }
 #endif
         }
