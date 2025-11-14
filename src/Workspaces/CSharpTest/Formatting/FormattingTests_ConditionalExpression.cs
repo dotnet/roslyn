@@ -70,7 +70,7 @@ public sealed class FormattingTests_ConditionalExpression : CSharpFormattingTest
                 {
                     ErrorCode code = overridingMemberIsObsolete
                         ? ErrorCode.WRN_ObsoleteOverridingNonObsolete
-                : ErrorCode.WRN_NonObsoleteOverridingObsolete;
+                        : ErrorCode.WRN_NonObsoleteOverridingObsolete;
                 }
             }
             """, """
@@ -80,7 +80,7 @@ public sealed class FormattingTests_ConditionalExpression : CSharpFormattingTest
                 {
                     ErrorCode code = overridingMemberIsObsolete
                         ? ErrorCode.WRN_ObsoleteOverridingNonObsolete
-                        : ErrorCode.WRN_NonObsoleteOverridingObsolete;
+                : ErrorCode.WRN_NonObsoleteOverridingObsolete;
                 }
             }
             """);
@@ -94,7 +94,7 @@ public sealed class FormattingTests_ConditionalExpression : CSharpFormattingTest
                 {
                     ErrorCode code = overridingMemberIsObsolete
                         ? ErrorCode.WRN_ObsoleteOverridingNonObsolete
-                                : ErrorCode.WRN_NonObsoleteOverridingObsolete;
+                        : ErrorCode.WRN_NonObsoleteOverridingObsolete;
                 }
             }
             """, """
@@ -104,7 +104,7 @@ public sealed class FormattingTests_ConditionalExpression : CSharpFormattingTest
                 {
                     ErrorCode code = overridingMemberIsObsolete
                         ? ErrorCode.WRN_ObsoleteOverridingNonObsolete
-                        : ErrorCode.WRN_NonObsoleteOverridingObsolete;
+                                : ErrorCode.WRN_NonObsoleteOverridingObsolete;
                 }
             }
             """);
