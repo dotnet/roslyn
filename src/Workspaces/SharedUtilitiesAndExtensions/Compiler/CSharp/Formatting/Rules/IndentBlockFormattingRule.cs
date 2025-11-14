@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -52,6 +53,8 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         AddBlockIndentationOperation(list, node);
 
         AddBracketIndentationOperation(list, node);
+
+        AddParenthesizedPatternIndentationOperation(list, node);
 
         AddLabelIndentationOperation(list, node);
 
@@ -253,7 +256,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
     {
         // Indentation inside the pattern of a switch statement is handled by AddBlockIndentationOperation. This continue ensures that bracket-specific
         // operations are skipped for switch patterns, as they are not formatted like blocks.
-        if (node.Parent is SwitchExpressionArmSyntax arm && arm.Pattern == node)
+        if (IsWithinSwitchExpressionArmPattern(node))
         {
             return;
         }
@@ -282,6 +285,22 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
             SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
         }
+    }
+
+    private static void AddParenthesizedPatternIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+    {
+        if (node is not ParenthesizedPatternSyntax parenthesizedPattern)
+            return;
+
+        // Add indentation for the content inside the parentheses.
+        // This indents the pattern content between the opening and closing parens.
+        var startToken = parenthesizedPattern.OpenParenToken.GetNextToken(includeZeroWidth: true);
+        var endToken = parenthesizedPattern.CloseParenToken.GetPreviousToken(includeZeroWidth: true);
+        AddIndentBlockOperation(
+            list, startToken, endToken,
+            TextSpan.FromBounds(
+                parenthesizedPattern.OpenParenToken.Span.End,
+                parenthesizedPattern.CloseParenToken.Span.Start));
     }
 
     private static void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
@@ -325,6 +344,18 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         var firstToken = embeddedStatement.GetFirstToken(includeZeroWidth: true);
         var lastToken = embeddedStatement.GetLastToken(includeZeroWidth: true);
 
+        // If the embedded statement is itself an embedded statement owner (e.g., if, using, while, for, etc.)
+        // and it's on the same line as the outer statement, don't add extra indentation. This generalizes
+        // the else-if logic to all nested embedded statements (e.g., if-if, if-using, while-for, etc.)
+        if (embeddedStatement.IsEmbeddedStatementOwner())
+        {
+            var tokenBeforeEmbedded = firstToken.GetPreviousToken(includeZeroWidth: true);
+            if (tokenBeforeEmbedded != default && FormattingHelpers.AreOnSameLine(tokenBeforeEmbedded, firstToken))
+            {
+                return;
+            }
+        }
+
         if (lastToken.IsMissing)
         {
             // embedded statement is not done, consider following as part of embedded statement
@@ -335,5 +366,22 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             // embedded statement is done
             AddIndentBlockOperation(list, firstToken, lastToken, TextSpan.FromBounds(firstToken.FullSpan.Start, lastToken.FullSpan.End));
         }
+    }
+
+    private static bool IsWithinSwitchExpressionArmPattern(SyntaxNode node)
+    {
+        // Walk up the parent chain to see if this node is within the pattern of a switch expression arm.
+        // This handles cases like ['a'] or "b" where the list pattern is inside a binary pattern.
+        for (var current = node; current != null; current = current.Parent)
+        {
+            if (current.Parent is SwitchExpressionArmSyntax arm && arm.Pattern == current)
+                return true;
+
+            // Stop walking if we've left the pattern context
+            if (current is SwitchExpressionArmSyntax)
+                return false;
+        }
+
+        return false;
     }
 }

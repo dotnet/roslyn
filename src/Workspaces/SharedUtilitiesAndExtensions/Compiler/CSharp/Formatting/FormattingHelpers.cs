@@ -217,6 +217,12 @@ internal static class FormattingHelpers
             token.Parent.IsAnyArgumentList();
     }
 
+    public static bool IsCommaInVariableDeclaration(this SyntaxToken token)
+    {
+        return token.Kind() == SyntaxKind.CommaToken &&
+            token.Parent.IsKind(SyntaxKind.VariableDeclaration);
+    }
+
     public static bool IsOpenParenOfParenthesizedExpression(this SyntaxToken token)
         => token.Parent is ParenthesizedExpressionSyntax parenthesizedExpression && parenthesizedExpression.OpenParenToken.Equals(token);
 
@@ -528,6 +534,18 @@ internal static class FormattingHelpers
     {
         return currentToken.IsKind(SyntaxKind.CommaToken) &&
             currentToken.Parent.IsKind(SyntaxKind.TupleExpression);
+    }
+
+    public static bool IsCommaInTupleType(this SyntaxToken currentToken)
+    {
+        return currentToken.IsKind(SyntaxKind.CommaToken) &&
+            currentToken.Parent.IsKind(SyntaxKind.TupleType);
+    }
+
+    public static bool IsCommaInParenthesizedVariableDesignation(this SyntaxToken currentToken)
+    {
+        return currentToken.IsKind(SyntaxKind.CommaToken) &&
+            currentToken.Parent.IsKind(SyntaxKind.ParenthesizedVariableDesignation);
     }
 
     public static bool IsCommaInCollectionExpression(this SyntaxToken token)
