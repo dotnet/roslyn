@@ -256,11 +256,11 @@ internal sealed partial class SymbolTreeInfo
         private readonly OrderPreservingMultiDictionary<MetadataNode, MetadataNode> _parentToChildren = OrderPreservingMultiDictionary<MetadataNode, MetadataNode>.GetInstance();
         private readonly MetadataNode _rootNode = MetadataNode.Allocate(name: "");
 
-        // The set of nestedType definitions we've read out of the current metadata reader.
+        // The set of type definitions we've read out of the current metadata reader.
         private readonly List<MetadataDefinition> _allTypeDefinitions = [];
 
-        // Map from node represents extension method to list of possible parameter nestedType info.
-        // We can have more than one if there's multiple methods with same name but different receiver nestedType.
+        // Map from node represents extension method to list of possible parameter type info.
+        // We can have more than one if there's multiple methods with same name but different receiver type.
         // e.g.
         //
         //      public static bool AnotherExtensionMethod1(this int x);
@@ -310,7 +310,7 @@ internal sealed partial class SymbolTreeInfo
                     // map accordingly.
                     PopulateInheritanceMap(metadataReader);
 
-                    // Clear the set of nestedType definitions we read out of this piece of metadata.
+                    // Clear the set of type definitions we read out of this piece of metadata.
                     _allTypeDefinitions.Clear();
                 }
                 catch (BadImageFormatException)
@@ -382,7 +382,7 @@ internal sealed partial class SymbolTreeInfo
                 {
                     if (definition.Kind == MetadataDefinitionKind.Member)
                     {
-                        // We need to support having multiple methods with same name but different receiver nestedType.
+                        // We need to support having multiple methods with same name but different receiver type.
                         _extensionMemberToParameterTypeInfo.Add(childNode, (definition.ReceiverTypeInfo, definition.IsModernExtension));
                     }
 
@@ -488,7 +488,7 @@ internal sealed partial class SymbolTreeInfo
                         continue;
                     }
 
-                    // Decode method signature to get the receiver nestedType name (i.e. nestedType name for the first parameter)
+                    // Decode method signature to get the receiver type name (i.e. type name for the first parameter)
                     var blob = metadataReader.GetBlobReader(method.Signature);
                     var decoder = new SignatureDecoder<ParameterTypeInfo, object?>(ParameterTypeInfoProvider.Instance, metadataReader, genericContext: null);
                     var signature = decoder.DecodeMethodSignature(ref blob);
@@ -628,7 +628,7 @@ internal sealed partial class SymbolTreeInfo
                         if (methodName != "<Extension>$")
                             continue;
 
-                        // Decode method signature to get the receiver nestedType name (i.e. nestedType name for the first parameter)
+                        // Decode method signature to get the receiver type name (i.e. type name for the first parameter)
                         var blob = metadataReader.GetBlobReader(method.Signature);
                         var decoder = new SignatureDecoder<ParameterTypeInfo, object?>(ParameterTypeInfoProvider.Instance, metadataReader, genericContext: null);
                         var signature = decoder.DecodeMethodSignature(ref blob);
@@ -732,9 +732,9 @@ internal sealed partial class SymbolTreeInfo
                         _inheritanceMap.Add(baseTypeNameParts.Last(), derivedTypeSimpleName);
                     }
 
-                    // The parent/child map may not know about this base-nestedType yet (for example,
-                    // if the base nestedType is a reference to a nestedType outside of this assembly).
-                    // Add the base nestedType to our map so we'll be able to resolve it later if 
+                    // The parent/child map may not know about this base-type yet (for example,
+                    // if the base type is a reference to a type outside of this assembly).
+                    // Add the base type to our map so we'll be able to resolve it later if 
                     // requested. 
                     EnsureParentsAndChildren(baseTypeNameParts);
                 }
@@ -770,17 +770,17 @@ internal sealed partial class SymbolTreeInfo
             var declaringType = typeDefinition.GetDeclaringType();
             if (declaringType.IsNil)
             {
-                // Not a nested nestedType, just add the containing namespace.
+                // Not a nested type, just add the containing namespace.
                 AddNamespaceParts(metadataReader, typeDefinition.NamespaceDefinition, simpleNames);
             }
             else
             {
-                // We're a nested nestedType, recurse and add the nestedType we're declared in.
+                // We're a nested type, recurse and add the type we're declared in.
                 // It will handle adding the namespace properly.
                 AddTypeDefinitionNameParts(metadataReader, declaringType, simpleNames);
             }
 
-            // Now add the simple name of the nestedType itself.
+            // Now add the simple name of the type itself.
             simpleNames.Add(GetMetadataNameWithoutBackticks(metadataReader, typeDefinition.Name));
         }
 
@@ -915,13 +915,13 @@ internal sealed partial class SymbolTreeInfo
                     {
                         // We do not differentiate array of different kinds for simplicity.
                         // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
-                        // similar for complex receiver types, "[]" means it's an array nestedType, "" otherwise.
+                        // similar for complex receiver types, "[]" means it's an array type, "" otherwise.
                         var parameterTypeName = (parameterTypeInfo.IsComplexType, parameterTypeInfo.IsArray) switch
                         {
-                            (true, true) => Extensions.ComplexArrayReceiverTypeName,                          // complex array nestedType, e.g. "T[,]"
-                            (true, false) => Extensions.ComplexReceiverTypeName,                              // complex non-array nestedType, e.g. "T"
-                            (false, true) => parameterTypeInfo.Name + Extensions.ArrayReceiverTypeNameSuffix, // simple array nestedType, e.g. "int[][,]"
-                            (false, false) => parameterTypeInfo.Name                                          // simple non-array nestedType, e.g. "int"
+                            (true, true) => Extensions.ComplexArrayReceiverTypeName,                          // complex array type, e.g. "T[,]"
+                            (true, false) => Extensions.ComplexReceiverTypeName,                              // complex non-array type, e.g. "T"
+                            (false, true) => parameterTypeInfo.Name + Extensions.ArrayReceiverTypeNameSuffix, // simple array type, e.g. "int[][,]"
+                            (false, false) => parameterTypeInfo.Name                                          // simple non-array type, e.g. "int"
                         };
 
                         // Symbol index expects modern extensions to be of the form `NS.StaticClass.extension(...)`.
@@ -1002,7 +1002,7 @@ internal sealed partial class SymbolTreeInfo
         public MetadataDefinitionKind Kind { get; } = kind;
 
         /// <summary>
-        /// Only applies to member kind. Represents the nestedType info of the first parameter.
+        /// Only applies to member kind. Represents the type info of the first parameter.
         /// </summary>
         public ParameterTypeInfo ReceiverTypeInfo { get; } = receiverTypeInfo;
         public bool IsModernExtension { get; } = isModernExtension;
