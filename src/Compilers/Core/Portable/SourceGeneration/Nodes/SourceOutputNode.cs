@@ -69,12 +69,13 @@ namespace Microsoft.CodeAnalysis
                     SourceProductionContext context = new SourceProductionContext(sourcesBuilder, diagnostics, graphState.Compilation, cancellationToken);
                     try
                     {
+                        var stopwatch = SharedStopwatch.StartNew();
                         _action(context, entry.Item, cancellationToken);
                         var sourcesAndDiagnostics = (sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly());
 
-                        if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntry(sourcesAndDiagnostics, tableStopwatch.Elapsed, inputs, entry.State))
+                        if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntry(sourcesAndDiagnostics, stopwatch.Elapsed, inputs, entry.State))
                         {
-                            tableBuilder.AddEntry(sourcesAndDiagnostics, EntryState.Added, tableStopwatch.Elapsed, inputs, EntryState.Added);
+                            tableBuilder.AddEntry(sourcesAndDiagnostics, EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
                         }
                     }
                     finally
