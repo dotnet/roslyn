@@ -119,4 +119,68 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
     }
+
+    [Fact]
+    public void Pointer_MemberAccess_SafeContext()
+    {
+        var source = """
+            int* x = null;
+            string s = x->ToString();
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* x = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 1),
+            // (2,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // string s = x->ToString();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 12));
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
+            // (2,13): error CS9500: This operation may only be used in an unsafe context
+            // string s = x->ToString();
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "->").WithLocation(2, 13));
+    }
+
+    [Fact]
+    public void Pointer_MemberAccess_UnsafeContext()
+    {
+        var source = """
+            int* x = null;
+            unsafe { string s = x->ToString(); }
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Pointer_MemberAccessViaDereference_SafeContext()
+    {
+        var source = """
+            int* x = null;
+            string s = (*x).ToString();
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* x = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 1),
+            // (2,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // string s = (*x).ToString();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 14));
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
+            // (2,13): error CS9500: This operation may only be used in an unsafe context
+            // string s = (*x).ToString();
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(2, 13));
+    }
+
+    [Fact]
+    public void Pointer_MemberAccessViaDereference_UnsafeContext()
+    {
+        var source = """
+            int* x = null;
+            unsafe { string s = (*x).ToString(); }
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithEvolvedMemorySafetyRules()).VerifyEmitDiagnostics();
+    }
 }

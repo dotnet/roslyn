@@ -7483,6 +7483,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool hasErrors;
                 BindPointerIndirectionExpressionInternal(node, boundLeft, diagnostics, out pointedAtType, out hasErrors);
 
+                ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, rules: MemorySafetyRules.Evolved);
+
                 // If there is no pointed-at type, fall back on the actual type (i.e. assume the user meant "." instead of "->").
                 if (ReferenceEquals(pointedAtType, null))
                 {
