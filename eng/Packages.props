@@ -8,7 +8,7 @@
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>18.0.332-preview</VisualStudioEditorPackagesVersion>
-    <ILAsmPackageVersion>10.0.0</ILAsmPackageVersion>
+    <ILAsmPackageVersion>9.0.0-rc.2.24462.10</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
     <!--
