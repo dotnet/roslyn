@@ -852,6 +852,90 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     }
 
     [Fact]
+    public async Task FuncOfT()
+    {
+        var markup = """
+            using System;
+
+            public class C
+            {
+                Func<string> $$
+            }
+            """;
+        await VerifyItemExistsAsync(markup, "factory");
+        await VerifyItemExistsAsync(markup, "stringFactory");
+    }
+
+    [Fact]
+    public async Task FuncOfTwoArguments()
+    {
+        var markup = """
+            using System;
+
+            public class C
+            {
+                Func<int, string> $$
+            }
+            """;
+        await VerifyItemExistsAsync(markup, "factory");
+        await VerifyItemExistsAsync(markup, "stringFactory");
+    }
+
+    [Fact]
+    public async Task FuncOfThreeArguments()
+    {
+        var markup = """
+            using System;
+
+            public class C
+            {
+                Func<int, bool, Customer> $$
+            }
+
+            public class Customer { }
+            """;
+        await VerifyItemExistsAsync(markup, "factory");
+        await VerifyItemExistsAsync(markup, "customerFactory");
+    }
+
+    [Fact]
+    public async Task FuncAsParameter()
+    {
+        var markup = """
+            using System;
+
+            public class C
+            {
+                void M(Func<Item> $$) { }
+            }
+
+            public class Item { }
+            """;
+        await VerifyItemExistsAsync(markup, "factory", glyph: Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "itemFactory", glyph: Glyph.Parameter);
+    }
+
+    [Fact]
+    public async Task FuncAsLocalVariable()
+    {
+        var markup = """
+            using System;
+
+            public class C
+            {
+                void M()
+                {
+                    Func<Result> $$
+                }
+            }
+
+            public class Result { }
+            """;
+        await VerifyItemExistsAsync(markup, "factory");
+        await VerifyItemExistsAsync(markup, "resultFactory");
+    }
+
+    [Fact]
     public Task NoSuggestionsForInt()
         => VerifyNoItemsExistAsync("""
             using System.Threading;

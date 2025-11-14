@@ -69,9 +69,36 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
         if (!IsValidType(nameInfo.Type))
             return default;
 
-        var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: []);
+        var compilation = semanticModel.Compilation;
+        var originalType = nameInfo.Type;
+        var (type, plural) = UnwrapType(originalType, compilation, wasPlural: false, seenTypes: []);
 
         var baseNames = NameGenerator.GetBaseNames(type, plural);
+
+        // Check if the original type is a Func<..., T> and add "Factory" suffix
+        if (IsFuncType(originalType, compilation))
+        {
+            using var _ = ArrayBuilder<ImmutableArray<string>>.GetInstance(out var result);
+
+            // Add "factory" as a standalone suggestion
+            result.Add(["Factory"]);
+
+            // Add all the original base names with "Factory" suffix
+            foreach (var baseName in baseNames)
+            {
+                using var factoryName = TemporaryArray<string>.Empty;
+                foreach (var word in baseName)
+                    factoryName.Add(word);
+                factoryName.Add("Factory");
+                result.Add(factoryName.ToImmutableAndClear());
+            }
+
+            // Also include the original base names without Factory suffix
+            result.AddRange(baseNames);
+
+            return result.ToImmutableAndClear();
+        }
+
         return baseNames;
     }
 
@@ -93,6 +120,25 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
         }
 
         return !type.IsSpecialType();
+    }
+
+    private static bool IsFuncType(ITypeSymbol type, Compilation compilation)
+    {
+        if (type is not INamedTypeSymbol namedType || !namedType.IsGenericType)
+            return false;
+
+        var originalDefinition = namedType.OriginalDefinition;
+
+        // Check if it's a Func type. Func types range from Func<TResult> to Func<T1, ..., T16, TResult>
+        // They have metadata names like "System.Func`1", "System.Func`2", etc.
+        if (originalDefinition.ContainingNamespace?.ToDisplayString() != "System")
+            return false;
+
+        if (!originalDefinition.Name.StartsWith("Func"))
+            return false;
+
+        // Verify it has at least one type argument (the return type)
+        return namedType.TypeArguments.Length >= 1;
     }
 
     private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural, HashSet<ITypeSymbol> seenTypes)
@@ -163,6 +209,13 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
                 originalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {
                 return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural, seenTypes: seenTypes);
+            }
+
+            // Handle Func<..., TResult> by extracting the last type argument (the return type)
+            if (IsFuncType(type, compilation))
+            {
+                var returnType = namedType.TypeArguments[^1];
+                return UnwrapType(returnType, compilation, wasPlural: wasPlural, seenTypes: seenTypes);
             }
         }
 
