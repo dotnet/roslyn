@@ -1112,11 +1112,11 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
             """, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
 
     /// <summary>
-    /// Verifies that preprocessor directives at the start of a namespace are handled correctly.
-    /// This tests the scenario from https://github.com/dotnet/roslyn/issues/31249
+    /// Verifies that when a namespace is wrapped in preprocessor directives, moving usings outside
+    /// keeps them inside the same preprocessor block. This tests the scenario from https://github.com/dotnet/roslyn/issues/31249
     /// </summary>
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31249")]
-    public Task WhenOutsidePreferred_NamespaceWithPreprocessorDirectives_DirectivesMovedCorrectly()
+    public Task WhenOutsidePreferred_NamespaceInsidePreprocessorBlock_UsingsStayInBlock()
         => TestInRegularAndScriptAsync("""
             #if NET6_0
 
