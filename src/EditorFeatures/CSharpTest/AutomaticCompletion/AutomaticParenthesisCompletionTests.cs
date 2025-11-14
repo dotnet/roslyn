@@ -230,6 +230,20 @@ public sealed class AutomaticParenthesisCompletionTests : AbstractAutomaticBrace
         using var session = CreateSession(code);
         Assert.NotNull(session);
         CheckStart(session.Session);
+        CheckText(session.Session, """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    if (a.Where())
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     internal static Holder CreateSession(string code, ParseOptions? parseOptions = null)
