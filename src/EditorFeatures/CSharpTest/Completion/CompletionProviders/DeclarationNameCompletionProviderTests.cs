@@ -851,7 +851,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         await VerifyItemExistsAsync(markup, "GetItems");
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
     public async Task FuncOfT()
     {
         var markup = """
@@ -866,7 +866,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         await VerifyItemExistsAsync(markup, "stringFactory");
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
     public async Task FuncOfTwoArguments()
     {
         var markup = """
@@ -881,7 +881,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         await VerifyItemExistsAsync(markup, "stringFactory");
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
     public async Task FuncOfThreeArguments()
     {
         var markup = """
@@ -898,7 +898,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         await VerifyItemExistsAsync(markup, "customerFactory");
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
     public async Task FuncAsParameter()
     {
         var markup = """
@@ -915,7 +915,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         await VerifyItemExistsAsync(markup, "itemFactory", glyph: Glyph.Parameter);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
     public async Task FuncAsLocalVariable()
     {
         var markup = """
