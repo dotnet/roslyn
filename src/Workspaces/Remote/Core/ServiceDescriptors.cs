@@ -68,7 +68,7 @@ internal sealed class ServiceDescriptors
         (typeof(IRemoteEditAndContinueService), typeof(IRemoteEditAndContinueService.ICallback)),
         (typeof(IRemoteEncapsulateFieldService), null),
         (typeof(IRemoteExtensionMessageHandlerService), null),
-        (typeof(IRemoteExtensionMethodImportCompletionService), null),
+        (typeof(IRemoteExtensionMemberImportCompletionService), null),
         (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
         (typeof(IRemoteFullyQualifyService), null),
         (typeof(IRemoteInheritanceMarginService), null),
