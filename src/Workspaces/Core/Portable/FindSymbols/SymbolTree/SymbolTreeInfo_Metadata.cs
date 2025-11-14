@@ -266,7 +266,7 @@ internal sealed partial class SymbolTreeInfo
         //      public static bool AnotherExtensionMethod1(this int x);
         //      public static bool AnotherExtensionMethod1(this bool x);
         //
-        private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo = [];
+        private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMemberToParameterTypeInfo = [];
         private bool _containsExtensionsMethod = false;
 
         private static ImmutableArray<ModuleMetadata> GetModuleMetadata(Metadata? metadata)
@@ -383,7 +383,7 @@ internal sealed partial class SymbolTreeInfo
                     if (definition.Kind == MetadataDefinitionKind.Member)
                     {
                         // We need to support having multiple methods with same name but different receiver type.
-                        _extensionMethodToParameterTypeInfo.Add(childNode, definition.ReceiverTypeInfo);
+                        _extensionMemberToParameterTypeInfo.Add(childNode, definition.ReceiverTypeInfo);
                     }
 
                     LookupMetadataDefinitions(metadataReader, definition, definitionMap);
@@ -741,13 +741,13 @@ internal sealed partial class SymbolTreeInfo
         {
             foreach (var child in _parentToChildren[parentNode])
             {
-                var childNode = new BuilderNode(child.Name, parentIndex, _extensionMethodToParameterTypeInfo[child]);
+                var childNode = new BuilderNode(child.Name, parentIndex, _extensionMemberToParameterTypeInfo[child]);
                 var childIndex = unsortedNodes.Count;
                 unsortedNodes.Add(childNode);
 
                 if (fullyQualifiedContainerName != null)
                 {
-                    foreach (var parameterTypeInfo in _extensionMethodToParameterTypeInfo[child])
+                    foreach (var parameterTypeInfo in _extensionMemberToParameterTypeInfo[child])
                     {
                         // We do not differentiate array of different kinds for simplicity.
                         // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
@@ -760,7 +760,7 @@ internal sealed partial class SymbolTreeInfo
                             (false, false) => parameterTypeInfo.Name                                          // simple non-array type, e.g. "int"
                         };
 
-                        receiverTypeNameToMethodMap.Add(parameterTypeName, new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
+                        receiverTypeNameToMethodMap.Add(parameterTypeName, new ExtensionMemberInfo(fullyQualifiedContainerName, child.Name));
                     }
                 }
 
