@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -139,7 +140,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
             bool forceCacheCreation,
             CancellationToken cancellationToken)
         {
-            ExtensionMethodImportCompletionCacheEntry? cacheEntry;
+            ExtensionMemberImportCompletionCacheEntry? cacheEntry;
             if (forceCacheCreation)
             {
                 cacheEntry = await GetUpToDateCacheEntryAsync(project, cancellationToken).ConfigureAwait(false);
@@ -151,7 +152,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
                 return;
             }
 
-            if (!cacheEntry.ContainsExtensionMethod)
+            if (!cacheEntry.ContainsExtensionMember)
                 return;
 
             var originatingAssembly = _originatingSemanticModel.Compilation.Assembly;
@@ -170,7 +171,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
 
             if (project == _originatingDocument.Project)
             {
-                GetExtensionMethodsForSymbolsFromSameCompilation(matchingMethodSymbols, callback, cancellationToken);
+                GetExtensionMembersForSymbolsFromSameCompilation(matchingMethodSymbols, callback, cancellationToken);
             }
             else
             {
@@ -358,17 +359,17 @@ internal static partial class ExtensionMemberImportCompletionHelper
             return null;
         }
 
-        private MultiDictionary<ITypeSymbol, IMethodSymbol> GetPotentialMatchingSymbolsFromAssembly(
+        private MultiDictionary<ITypeSymbol, ISymbol> GetPotentialMatchingSymbolsFromAssembly(
             IAssemblySymbol assembly,
-            MultiDictionary<string, (string methodName, string receiverTypeName)> extensionMethodFilter,
+            MultiDictionary<string, (string memberName, string receiverTypeName)> extensionMemberFilter,
             bool internalsVisible,
             CancellationToken cancellationToken)
         {
-            var builder = new MultiDictionary<ITypeSymbol, IMethodSymbol>();
+            var builder = new MultiDictionary<ITypeSymbol, ISymbol>();
 
             // The filter contains all the extension methods that potentially match the receiver type.
             // We use it as a guide to selectively retrive container and member symbols from the assembly.
-            foreach (var (fullyQualifiedContainerName, methodInfo) in extensionMethodFilter)
+            foreach (var (fullyQualifiedContainerName, memberInfo) in extensionMemberFilter)
             {
                 // First try to filter out types from already imported namespaces
                 var indexOfLastDot = fullyQualifiedContainerName.LastIndexOf('.');
@@ -391,18 +392,16 @@ internal static partial class ExtensionMemberImportCompletionHelper
 
                 // Now we have the container symbol, first try to get member extension method symbols that matches our syntactic filter,
                 // then further check if those symbols matches semantically.
-                foreach (var (methodName, receiverTypeName) in methodInfo)
+                foreach (var (memberName, receiverTypeName) in memberInfo)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var methodSymbols = containerSymbol.GetMembers(methodName).OfType<IMethodSymbol>();
-
-                    foreach (var methodSymbol in methodSymbols)
+                    foreach (var memberSymbol in containerSymbol.GetMembers(memberName))
                     {
-                        if (MatchExtensionMethod(methodSymbol, receiverTypeName, internalsVisible, out var receiverType))
+                        if (MatchExtensionMember(memberSymbol, receiverTypeName, internalsVisible, out var receiverType))
                         {
                             // Find a potential match.
-                            builder.Add(receiverType!, methodSymbol);
+                            builder.Add(receiverType!, memberSymbol);
                         }
                     }
                 }
@@ -410,23 +409,44 @@ internal static partial class ExtensionMemberImportCompletionHelper
 
             return builder;
 
-            static bool MatchExtensionMethod(IMethodSymbol method, string filterReceiverTypeName, bool internalsVisible, out ITypeSymbol? receiverType)
+            static bool MatchExtensionMember(
+                ISymbol symbol,
+                string filterReceiverTypeName,
+                bool internalsVisible,
+                [NotNullWhen(true)] out ITypeSymbol? receiverType)
             {
                 receiverType = null;
-                if (!method.IsExtensionMethod || method.Parameters.IsEmpty || !IsAccessible(method, internalsVisible))
+
+                if (symbol.ContainingType.IsExtension && symbol is IPropertySymbol or IMethodSymbol)
                 {
-                    return false;
+                    var extensionParameter = symbol.ContainingType.ExtensionParameter;
+                    if (extensionParameter is null)
+                        return false;
+
+                    if (filterReceiverTypeName.Length > 0 && !string.Equals(filterReceiverTypeName, GetReceiverTypeName(extensionParameter.Type), StringComparison.Ordinal))
+                        return false;
+
+                    if (!IsAccessible(symbol, internalsVisible))
+                        return false;
+
+                    receiverType = extensionParameter.Type;
+                    return true;
+                }
+                else if (symbol is IMethodSymbol { IsExtensionMethod: true, Parameters.Length: > 0 } method)
+                {
+                    if (!IsAccessible(method, internalsVisible))
+                        return false;
+
+                    // We get a match if the receiver type name match. 
+                    // For complex type, we would check if it matches with filter on whether it's an array.
+                    if (filterReceiverTypeName.Length > 0 && !string.Equals(filterReceiverTypeName, GetReceiverTypeName(method.Parameters[0].Type), StringComparison.Ordinal))
+                        return false;
+
+                    receiverType = method.Parameters[0].Type;
+                    return true;
                 }
 
-                // We get a match if the receiver type name match. 
-                // For complex type, we would check if it matches with filter on whether it's an array.
-                if (filterReceiverTypeName.Length > 0 && !string.Equals(filterReceiverTypeName, GetReceiverTypeName(method.Parameters[0].Type), StringComparison.Ordinal))
-                {
-                    return false;
-                }
-
-                receiverType = method.Parameters[0].Type;
-                return true;
+                return false;
             }
 
             // An quick accessibility check based on declared accessibility only, a semantic based check is still required later.
@@ -442,22 +462,18 @@ internal static partial class ExtensionMemberImportCompletionHelper
         /// Create a filter for extension methods from source.
         /// The filter is a map from fully qualified type name to info of extension methods it contains.
         /// </summary>
-        private MultiDictionary<string, (string methodName, string receiverTypeName)> CreateAggregatedFilter(ExtensionMethodImportCompletionCacheEntry syntaxIndex)
+        private MultiDictionary<string, (string methodName, string receiverTypeName)> CreateAggregatedFilter(ExtensionMemberImportCompletionCacheEntry syntaxIndex)
         {
             var results = new MultiDictionary<string, (string, string)>();
 
             foreach (var receiverTypeName in _receiverTypeNames)
             {
-                var methodInfos = syntaxIndex.ReceiverTypeNameToExtensionMethodMap[receiverTypeName];
+                var methodInfos = syntaxIndex.ReceiverTypeNameToExtensionMemberMap[receiverTypeName];
                 if (methodInfos.Count == 0)
-                {
                     continue;
-                }
 
                 foreach (var methodInfo in methodInfos)
-                {
                     results.Add(methodInfo.FullyQualifiedContainerName, (methodInfo.Name, receiverTypeName));
-                }
             }
 
             return results;
