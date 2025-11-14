@@ -23,12 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             or BoundNewT
                             or BoundBadExpression);
 
-            if (collectionCreation != null &&
-                this.HasWithElement)
-            {
-                Debug.Assert(collectionCreation.Syntax is WithElementSyntax);
-            }
-
             if (this.CollectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder)
             {
                 Debug.Assert(this.CollectionCreation is not null);
