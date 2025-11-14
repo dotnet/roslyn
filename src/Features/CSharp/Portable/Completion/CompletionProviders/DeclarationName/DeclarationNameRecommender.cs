@@ -123,23 +123,7 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
     }
 
     private static bool IsFuncType(ITypeSymbol type, Compilation compilation)
-    {
-        if (type is not INamedTypeSymbol namedType || !namedType.IsGenericType)
-            return false;
-
-        var originalDefinition = namedType.OriginalDefinition;
-
-        // Check if it's a Func type. Func types range from Func<TResult> to Func<T1, ..., T16, TResult>
-        // They have metadata names like "System.Func`1", "System.Func`2", etc.
-        if (originalDefinition.ContainingNamespace?.ToDisplayString() != "System")
-            return false;
-
-        if (!originalDefinition.Name.StartsWith("Func"))
-            return false;
-
-        // Verify it has at least one type argument (the return type)
-        return namedType.TypeArguments.Length >= 1;
-    }
+    => namedType is { Name: "Func", ContainingNamespace.Name: "System", TypeArguments.Length: > 0 };
 
     private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural, HashSet<ITypeSymbol> seenTypes)
     {
