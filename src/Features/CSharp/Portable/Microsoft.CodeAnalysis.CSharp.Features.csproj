@@ -67,7 +67,15 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Humanizer.Core" PrivateAssets="compile" />
+    <PackageReference Include="Microsoft.DotNet.FileBasedPrograms" GeneratePathProperty="true" PrivateAssets="All" />
+    <EmbeddedResource
+      Include="$(PkgMicrosoft_DotNet_FileBasedPrograms)\contentFiles\cs\any\FileBasedProgramsResources.resx"
+      GenerateSource="true"
+      Namespace="Microsoft.DotNet.FileBasedPrograms" />
   </ItemGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);FILE_BASED_PROGRAMS_SOURCE_PACKAGE_GRACEFUL_EXCEPTION</DefineConstants>
+  </PropertyGroup>
   <Import Project="..\..\..\Analyzers\CSharp\Analyzers\CSharpAnalyzers.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\CSharp\CodeFixes\CSharpCodeFixes.projitems" Label="Shared" />
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />

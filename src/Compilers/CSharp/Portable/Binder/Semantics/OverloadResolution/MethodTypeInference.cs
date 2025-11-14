@@ -129,7 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Indirect = 0x12
         }
 
-        private readonly CSharpCompilation _compilation;
+#nullable enable
+        private readonly CSharpCompilation? _compilation;
+#nullable disable
         private readonly ConversionsBase _conversions;
         private readonly ImmutableArray<TypeParameterSymbol> _methodTypeParameters;
         private readonly NamedTypeSymbol _constructedContainingTypeOfMethod;
@@ -320,14 +322,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         private MethodTypeInferrer(
-            CSharpCompilation compilation,
+            CSharpCompilation? compilation,
             ConversionsBase conversions,
             ImmutableArray<TypeParameterSymbol> methodTypeParameters,
             NamedTypeSymbol constructedContainingTypeOfMethod,
             ImmutableArray<TypeWithAnnotations> formalParameterTypes,
             ImmutableArray<RefKind> formalParameterRefKinds,
             ImmutableArray<BoundExpression> arguments,
-            Extensions extensions,
+            Extensions? extensions,
             Dictionary<TypeParameterSymbol, int>? ordinals)
         {
             _compilation = compilation;
@@ -1614,7 +1616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             UnboundLambda anonymousFunction = (UnboundLambda)source;
-            if (!anonymousFunction.HasExplicitReturnType(out _, out TypeWithAnnotations anonymousFunctionReturnType))
+            if (!anonymousFunction.HasExplicitReturnType(out _, out _, out TypeWithAnnotations anonymousFunctionReturnType))
             {
                 return;
             }
@@ -2856,7 +2858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static (TypeWithAnnotations Type, bool FromFunctionType) Fix(
-            CSharpCompilation compilation,
+            CSharpCompilation? compilation,
             ConversionsBase conversions,
             TypeParameterSymbol typeParameter,
             HashSet<TypeWithAnnotations>? exact,
@@ -2989,6 +2991,7 @@ OuterBreak:
                 var resultType = functionType.GetInternalDelegateType();
                 if (hasExpressionTypeConstraint(typeParameter))
                 {
+                    Debug.Assert(compilation is not null); // Tracked by https://github.com/dotnet/roslyn/issues/80658
                     var expressionOfTType = compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T);
                     resultType = expressionOfTType.Construct(resultType);
                 }
@@ -3179,6 +3182,7 @@ OuterBreak:
         // Helper methods
         //
 
+#nullable enable
         /// <summary>
         /// We apply type inference to an extension type, using the receiver as argument against the
         /// extension parameter.
@@ -3187,7 +3191,7 @@ OuterBreak:
         public static ImmutableArray<TypeWithAnnotations> InferTypeArgumentsFromReceiverType(
             NamedTypeSymbol extension,
             BoundExpression receiver,
-            CSharpCompilation compilation,
+            CSharpCompilation? compilation,
             ConversionsBase conversions,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -3216,6 +3220,7 @@ OuterBreak:
 
             return inferrer.GetInferredTypeArguments(out _);
         }
+#nullable disable
 
         ////////////////////////////////////////////////////////////////////////////////
         //

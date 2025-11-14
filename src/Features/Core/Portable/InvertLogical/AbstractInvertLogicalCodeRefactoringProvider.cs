@@ -117,7 +117,7 @@ internal abstract class AbstractInvertLogicalCodeRefactoringProvider<
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        var expression = root.GetAnnotatedNodes(s_annotation).Single()!;
+        var expression = root.GetAnnotatedNodes(s_annotation).Single();
 
         // Walk up parens and !'s.  That way we don't end up with something like !!.
         // It also ensures that this refactoring reverses itself when invoked twice.

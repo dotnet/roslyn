@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 public bool TryGetValue(TKey key, [MaybeNullWhen(returnValue: false)] out TValue value)
                 {
-                    value = default!;
+                    value = default;
                     return false;
                 }
 

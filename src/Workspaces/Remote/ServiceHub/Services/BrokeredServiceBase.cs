@@ -197,7 +197,7 @@ internal abstract partial class BrokeredServiceBase : IDisposable
             //   "appBasePath": "%VSAPPIDDIR%"
             //
 
-            var loadDir = AppDomain.CurrentDomain.BaseDirectory!;
+            var loadDir = AppDomain.CurrentDomain.BaseDirectory;
 
             try
             {

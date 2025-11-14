@@ -766,7 +766,7 @@ namespace N
         Public Async Function TestDeleteInDeeplyNestedExpression() As Task
             Dim binaryExp As New StringBuilder()
             For j = 0 To 10000
-                binaryExp.Append(j)
+                binaryExp.Append(j.ToString(Globalization.CultureInfo.InvariantCulture))
                 binaryExp.Append(" + ")
             Next
             Await TestCSharp(
@@ -795,7 +795,7 @@ public class C
         Public Async Function TestDeleteInDeeplyNestedExpression_A() As Task
             Dim binaryExp As New StringBuilder()
             For j = 0 To 10000
-                binaryExp.Append(j)
+                binaryExp.Append(j.ToString(Globalization.CultureInfo.InvariantCulture))
                 binaryExp.Append(" + ")
             Next
             Await TestCSharp(

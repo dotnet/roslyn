@@ -990,6 +990,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
+            Debug.Assert(!node.OperatorKind.IsDynamic());
+
             BoundSpillSequenceBuilder builder = null;
             var right = VisitExpression(ref builder, node.Right);
             BoundExpression left;
@@ -1021,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValueOpt, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type));
+            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValueOpt, node.BinaryOperatorMethod, node.ConstrainedToType, node.ResultKind, left, right, node.Type));
         }
 
         public override BoundNode VisitCall(BoundCall node)

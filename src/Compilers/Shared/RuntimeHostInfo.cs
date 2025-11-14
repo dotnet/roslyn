@@ -6,6 +6,7 @@
 
 using System;
 using System.IO;
+using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -26,35 +27,38 @@ namespace Microsoft.CodeAnalysis
 #endif
 
         internal const string DotNetRootEnvironmentName = "DOTNET_ROOT";
-        private const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
-        private const string DotNetExperimentalHostPathEnvironmentName = "DOTNET_EXPERIMENTAL_HOST_PATH";
+        internal const string DotNetHostPathEnvironmentName = "DOTNET_HOST_PATH";
+        internal const string DotNetExperimentalHostPathEnvironmentName = "DOTNET_EXPERIMENTAL_HOST_PATH";
 
         /// <summary>
         /// The <c>DOTNET_ROOT</c> that should be used when launching executable tools.
         /// </summary>
-        internal static string? GetToolDotNetRoot()
+        internal static string? GetToolDotNetRoot(Action<string, object[]>? logger)
         {
-            if (GetDotNetHostPath() is { } dotNetHostPath)
+            var dotNetPath = GetDotNetPathOrDefault();
+
+            // Resolve symlinks to dotnet
+            try
             {
-                return Path.GetDirectoryName(dotNetHostPath);
+                var resolvedPath = File.ResolveLinkTarget(dotNetPath, returnFinalTarget: true);
+                if (resolvedPath != null)
+                {
+                    dotNetPath = resolvedPath.FullName;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger?.Invoke("Failed to resolve symbolic link for dotnet path '{0}': {1}", [dotNetPath, ex]);
+                return null;
             }
 
-            return null;
-        }
-
-        private static string? GetDotNetHostPath()
-        {
-            if (Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
+            var directoryName = Path.GetDirectoryName(dotNetPath);
+            if (string.IsNullOrEmpty(directoryName))
             {
-                return pathToDotNet;
+                return null;
             }
 
-            if (Environment.GetEnvironmentVariable(DotNetExperimentalHostPathEnvironmentName) is { Length: > 0 } pathToDotNetExperimental)
-            {
-                return pathToDotNetExperimental;
-            }
-
-            return null;
+            return directoryName;
         }
 
         /// <summary>
@@ -64,9 +68,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static string GetDotNetPathOrDefault()
         {
-            if (GetDotNetHostPath() is { } pathToDotNet)
+            if (Environment.GetEnvironmentVariable(DotNetHostPathEnvironmentName) is { Length: > 0 } pathToDotNet)
             {
                 return pathToDotNet;
+            }
+
+            if (Environment.GetEnvironmentVariable(DotNetExperimentalHostPathEnvironmentName) is { Length: > 0 } pathToDotNetExperimental)
+            {
+                return pathToDotNetExperimental;
             }
 
             var (fileName, sep) = PlatformInformation.IsWindows

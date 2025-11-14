@@ -25,7 +25,7 @@ internal static class FindAllReferences
         // Passing null here means this will just collect items in an array builder
         var progress = BufferedProgress.Create<SumType<VSInternalReferenceItem, Location>[]>(progress: null);
 
-        await FindAllReferencesHandler.FindReferencesAsync(progress, workspace, document, linePosition, supportsVSExtensions, globalOptions, metadataAsSourceFileService, AsynchronousOperationListenerProvider.NullListener, cancellationToken).ConfigureAwait(false);
+        await FindAllReferencesHandler.FindReferencesAsync(progress, workspace, document, linePosition, supportsVSExtensions, includeDeclaration: true, globalOptions, metadataAsSourceFileService, AsynchronousOperationListenerProvider.NullListener, cancellationToken).ConfigureAwait(false);
 
         return progress.GetFlattenedValues();
     }

@@ -885,6 +885,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Se encontró un solo ensamblado: "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Equals">
+        <source>Generate Equals(...)</source>
+        <target state="new">Generate Equals(...)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Generar operadores de comparación</target>
@@ -3928,11 +3933,6 @@ Si el especificador de formato "M" se usa sin otros especificadores de formato p
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Generar Equals y GetHashCode</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Equals_object">
-        <source>Generate Equals(object)</source>
-        <target state="translated">Generar "Equals(object)"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_GetHashCode">

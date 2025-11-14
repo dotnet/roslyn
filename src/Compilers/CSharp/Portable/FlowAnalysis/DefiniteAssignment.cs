@@ -2307,11 +2307,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocal(BoundLocal node)
         {
             LocalSymbol localSymbol = node.LocalSymbol;
-            if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node.Syntax) == true)
+            if (node.Type == (object)this.compilation.ImplicitlyTypedVariableUsedInForbiddenZoneType)
             {
                 // Since we've already reported a use of the variable where not permitted, we
                 // suppress the diagnostic that the variable may not be assigned where used.
-                int slot = GetOrCreateSlot(node.LocalSymbol);
+                int slot = GetOrCreateSlot(localSymbol);
                 if (slot > 0)
                 {
                     _alreadyReported[slot] = true;
@@ -2632,7 +2632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
+        public override BoundNode VisitCatchBlock(BoundCatchBlock catchBlock)
         {
             DeclareVariables(catchBlock.Locals);
 
@@ -2642,12 +2642,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Assign(exceptionSource, value: null, read: false);
             }
 
-            base.VisitCatchBlock(catchBlock, ref finallyState);
+            base.VisitCatchBlock(catchBlock);
 
             foreach (var local in catchBlock.Locals)
             {
                 ReportIfUnused(local, assigned: local.DeclarationKind != LocalDeclarationKind.CatchVariable);
             }
+
+            return null;
         }
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)

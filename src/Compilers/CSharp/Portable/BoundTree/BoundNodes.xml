@@ -109,7 +109,6 @@
   -->
   <Node Name="BoundCapturedReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Receiver" Type="BoundExpression"/>
-    <Field Name="LocalScopeDepth" Type="SafeContext"/>
   </Node>
 
   <!--
@@ -481,7 +480,7 @@
     <Field Name="Right" Type="BoundExpression"/>
   </AbstractNode>
 
-  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
+  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true" HasValidate="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="Data" Type="BoundBinaryOperator.UncommonData?" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
@@ -1149,7 +1148,7 @@
     <Field Name="Flavor" Type="NoOpStatementFlavor"/>
   </Node>
 
-  <Node Name="BoundReturnStatement" Base="BoundStatement">
+  <Node Name="BoundReturnStatement" Base="BoundStatement" HasValidate="true">
     <Field Name="RefKind" Type="RefKind"/>
     <Field Name="ExpressionOpt" Type="BoundExpression?"/>
     <!--
@@ -2530,6 +2529,7 @@
            Right.InputType is the Left.NarrowedType 
   -->
   <Node Name="BoundBinaryPattern" Base="BoundPattern" HasValidate="true" SkipInNullabilityRewriter="true">
+    <!-- When true, denotes an 'or' pattern. When false, denotes an 'and' pattern. -->
     <Field Name="Disjunction" Type="bool"/>
     <Field Name="Left" Type="BoundPattern"/>
     <Field Name="Right" Type="BoundPattern"/>

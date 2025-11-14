@@ -499,7 +499,9 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor OrElse
                    special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter OrElse
-                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter Then
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32 Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)
@@ -573,7 +575,22 @@ End Namespace
                          WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
                          WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal,
                          WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute,
-                        WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray2,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray3,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray4,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray5,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray6,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray7,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray8,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray9,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray10,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray11,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray12,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray13,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray14,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray15,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray16
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -658,7 +675,22 @@ End Namespace
                          WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
                          WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal,
                          WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray2,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray3,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray4,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray5,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray6,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray7,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray8,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray9,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray10,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray11,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray12,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray13,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray14,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray15,
+                         WellKnownType.System_Runtime_CompilerServices_InlineArray16
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel

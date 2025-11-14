@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Threading;
@@ -88,6 +89,21 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// if the symbol is derived from another symbol, by type substitution for instance.
         /// </summary>
         bool IsDefinition { get; }
+
+        /// <summary>
+        /// Similar to getting the first location from <see cref="Locations"/>.  However, this can be more efficient as
+        /// an intermediary array may not need to be created.  This can often be advantageous for perf as most symbols
+        /// only have a single location, and most clients only need the first location for some purpose (like error
+        /// reporting).
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the symbol has no locations.</exception>
+        Location GetFirstLocation();
+
+        /// <summary>
+        /// Equivalent to calling <see cref="GetFirstLocation"/>,  except that if <see cref="Locations"/> is empty this
+        /// will return <see cref="Location.None"/>.
+        /// </summary>
+        Location GetFirstLocationOrNone();
 
         /// <summary>
         /// Gets the locations where the symbol was originally defined, either in source or

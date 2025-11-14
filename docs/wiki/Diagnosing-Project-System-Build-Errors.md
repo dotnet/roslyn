@@ -58,7 +58,7 @@ you'll see a bunch of files that end in `.designtime.log`.
 
   `Project "c:\Projects\ConsoleApplication53\ConsoleApplication53\ConsoleApplication53.csproj" (Compile target(s)):`
 
-  This shows the full name of the project, along with the target (Compile) being ran. Once again, look for the "Compile"
+  This shows the full name of the project, along with the target (Compile) being run. Once again, look for the "Compile"
   target. There are files with other targets being invoked, you'll want to ignore those. You might want to consider
   using Visual Studio's "find in files" feature to find the right file.
 
@@ -67,15 +67,15 @@ see something like this:
 
     Build FAILED.
 
-    c:\ConsoleApplication53\ConsoleApplication53\ConsoleApplication53.csproj(17,5): error : An error occured!
+    c:\ConsoleApplication53\ConsoleApplication53\ConsoleApplication53.csproj(17,5): error : An error occurred!
         0 Warning(s)
         1 Error(s)
 
-Notably, you should see `Build FAILED` and then one or more errors. This is summary of the errors in the log, so if you
+Notably, you should see `Build FAILED` and then one or more errors. This is a summary of the errors in the log, so if you
 do see an error, you should now search this log file for that error and find out where it is. Hopefully, the error will
 give some sort of a hint; it's looking for some file or SDK that's not installed, or some permissions were denied, etc.
 In that case, you can follow up with the owner of that to figure out what went wrong.
 
 If it seems to be a problem with Visual Studio itself, you might want to file a bug on
-[the Roslyn GitHub project](https://github.com/dotnet/roslyn) have a Visual Studio engineer take a look. Make sure you
+[the Roslyn GitHub project](https://github.com/dotnet/roslyn) to have a Visual Studio engineer take a look. Make sure you
 provide the full log and if possible your project file, since we may need both to diagnose the problem.

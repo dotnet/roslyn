@@ -24,8 +24,9 @@
 
 **Formatting**:
 - Whitespace formatting preferences are stored in the `.editorconfig` file
-- When running `dotnet format whitespace` use the `--folder .` option followed by `--include <relative path to file>` to avoid a design-time build.
-- `dotnet format whitespace --folder . --include <relative path to file>` - Applies formatting preferences to a particular .cs or .vb file
+- When running `dotnet format whitespace` use the `--folder .` option followed by `--include <path to file>` to avoid a design-time build
+- Apply formatting preferences to any modified .cs or .vb file
+- **Important**: Blank lines must not contain any whitespace characters (spaces or tabs). This will cause linting errors that must be fixed.
 
 ## Code Patterns
 
@@ -54,6 +55,10 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - Test utilities in `Microsoft.CodeAnalysis.Test.Utilities`
 - Language-specific test bases: `CSharpTestBase`, `VisualBasicTestBase`
 - Add `[WorkItem("https://github.com/dotnet/roslyn/issues/issueNumber")]` attribute to tests that fix specific GitHub issues
+- Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) when creating test source code
+- Avoid unnecessary intermediary assertions - tests should do the minimal amount of work to validate just the core issue being addressed
+  - In tests, use concise methods like `.Single()` instead of asserting count and extracting elements
+  - For compiler tests, validate diagnostics (e.g., `comp.VerifyEmitDiagnostics()`) so reviewers can easily see if the code is in error or represents something legal
 
 ## Critical Integration Points
 
@@ -85,4 +90,4 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - `docs/contributing/Building, Debugging, and Testing on Unix.md` - Development setup
 - `src/Compilers/Core/Portable/` - Core compiler APIs
 - `src/Workspaces/Core/Portable/` - Workspace object model
-- Solution filters: `Roslyn.sln`, `Compilers.slnf`, `Ide.slnf` for focused builds
+- Solution filters: `Roslyn.slnx`, `Compilers.slnf`, `Ide.slnf` for focused builds

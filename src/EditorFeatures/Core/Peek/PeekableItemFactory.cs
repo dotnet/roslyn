@@ -67,7 +67,8 @@ internal class PeekableItemFactory
         var originatingProject = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
         project = originatingProject ?? project;
 
-        var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+        var definitionItem = await symbol.ToNonClassifiedDefinitionItemAsync(
+            solution, includeHiddenLocations: true, cancellationToken).ConfigureAwait(false);
 
         var symbolNavigationService = solution.Services.GetService<ISymbolNavigationService>();
         var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);

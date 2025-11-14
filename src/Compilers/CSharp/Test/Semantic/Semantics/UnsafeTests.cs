@@ -14298,5 +14298,200 @@ class PointerImpl : IPointerTest
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(14, 55)
                 );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38378")]
+        public void PointerToNonExistentType_NoSuperfluousError()
+        {
+            var source = """
+                class Program
+                {
+                    static unsafe void Method(Type* type)
+                    {
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,31): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                //     static unsafe void Method(Type* type)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(3, 31));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38378")]
+        public void PointerToInaccessibleType()
+        {
+            var source = """
+                class X { class Y { } }
+
+                class Program
+                {
+                    static unsafe void Method(X.Y* y)
+                    {
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,33): error CS0122: 'X.Y' is inaccessible due to its protection level
+                //     static unsafe void Method(X.Y* y)
+                Diagnostic(ErrorCode.ERR_BadAccess, "Y").WithArguments("X.Y").WithLocation(5, 33),
+                // (5,36): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('X.Y')
+                //     static unsafe void Method(X.Y* y)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "y").WithArguments("X.Y").WithLocation(5, 36));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38378")]
+        public void PointerToWrongArity()
+        {
+            var source = """
+                class X { }
+
+                class Program
+                {
+                    static unsafe void Method(X<int>* y)
+                    {
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,31): error CS0308: The non-generic type 'X' cannot be used with type arguments
+                //     static unsafe void Method(X<int>* y)
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "X<int>").WithArguments("X", "type").WithLocation(5, 31),
+                // (5,39): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('X<int>')
+                //     static unsafe void Method(X<int>* y)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "y").WithArguments("X<int>").WithLocation(5, 39));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38378")]
+        public void PointerToNonExistentType_MultiplePointers()
+        {
+            var source = """
+                class Program
+                {
+                    static unsafe void Method(Type1* p1, Type2** p2)
+                    {
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,31): error CS0246: The type or namespace name 'Type1' could not be found (are you missing a using directive or an assembly reference?)
+                //     static unsafe void Method(Type1* p1, Type2** p2)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type1").WithArguments("Type1").WithLocation(3, 31),
+                // (3,42): error CS0246: The type or namespace name 'Type2' could not be found (are you missing a using directive or an assembly reference?)
+                //     static unsafe void Method(Type1* p1, Type2** p2)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type2").WithArguments("Type2").WithLocation(3, 42));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36877")]
+        public void PointerToNonExistentType_LocalVariable()
+        {
+            var source = """
+                unsafe class Program
+                {
+                    static void Method()
+                    {
+                        Type* local;
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,9): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+                //         Type* local;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(5, 9),
+                // (5,15): warning CS0168: The variable 'local' is declared but never used
+                //         Type* local;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(5, 15));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38378")]
+        public void PointerToExistingManagedType_StillReportsError()
+        {
+            var source = """
+                unsafe class Program
+                {
+                    static void Method(string* str)
+                    {
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,32): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+                //     static void Method(string* str)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "str").WithArguments("string").WithLocation(3, 32));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]
+        public void PointerTypeInTypeParameter_Field_RequiresUnsafeContext()
+        {
+            var code = """
+                class C<T>
+                {
+                    C<int*[]> field;
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     C<int*[]> field;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 7),
+                // (3,15): warning CS0169: The field 'C<T>.field' is never used
+                //     C<int*[]> field;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C<T>.field").WithLocation(3, 15));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]
+        public void PointerTypeInTypeParameter_Field_UnsafeModifierRemovesUnsafeNeededError()
+        {
+            var code = """
+                unsafe class C<T>
+                {
+                    C<int*[]> field;
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,15): warning CS0169: The field 'C<T>.field' is never used
+                //     C<int*[]> field;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C<T>.field").WithLocation(3, 15));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]
+        public void PointerTypeInTypeParameter_Variable_RequiresUnsafeContext()
+        {
+            var code = """
+                class C<T>
+                {
+                    void M()
+                    {
+                        C<int*[]> c = null;
+                    }
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         C<int*[]> c = null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 11),
+                // (5,19): warning CS0219: The variable 'c' is assigned but its value is never used
+                //         C<int*[]> c = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(5, 19));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44088")]
+        public void PointerTypeInTypeParameter_Variable_UnsafeModifierRemovesUnsafeNeededError()
+        {
+            var code = """
+                unsafe class C<T>
+                {
+                    void M()
+                    {
+                        C<int*[]> c = null;
+                    }
+                }
+                """;
+
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,19): warning CS0219: The variable 'c' is assigned but its value is never used
+                //         C<int*[]> c = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c").WithLocation(5, 19));
+        }
     }
 }

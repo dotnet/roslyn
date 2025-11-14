@@ -1135,8 +1135,7 @@ await System.Threading.Tasks.Task.Yield();
             comp.VerifyEmitDiagnostics();
 
             comp = CreateRuntimeAsyncCompilation(text);
-            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("-100"), verify: Verification.Fails with
             {
                 ILVerifyMessage = "[<Main>$]: Return value missing on the stack. { Offset = 0x2f }"
             }, sourceSymbolValidator: validator);
@@ -7879,7 +7878,9 @@ return 11;
             Assert.Equal("System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
-            CompileAndVerify(comp, expectedOutput: "hello Return_04", args: new[] { "Return_04" }, expectedReturnCode: 11);
+            var expectedOutput = "hello Return_04";
+            var args = new[] { "Return_04" };
+            CompileAndVerify(comp, expectedOutput: expectedOutput, args: args, expectedReturnCode: 11);
 
             if (ExecutionConditionUtil.IsWindows)
             {
@@ -7931,8 +7932,7 @@ return 11;
             }
 
             comp = CreateRuntimeAsyncCompilation(text);
-            // https://github.com/dotnet/roslyn/issues/79791: Verify runtime async output
-            var verifier = CompileAndVerify(comp, expectedOutput: null, verify: Verification.Fails with
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), args: args, verify: Verification.Fails with
             {
                 ILVerifyMessage = "[<Main>$]: Unexpected type on the stack. { Offset = 0x43, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }"
             }, sourceSymbolValidator: validator);
@@ -8407,7 +8407,7 @@ System.Console.WriteLine(""Hi!"");
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp).VerifyIL("<top-level-statements-entry-point>", sequencePoints: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, source: text, expectedIL:
+            CompileAndVerify(comp).VerifyIL("<top-level-statements-entry-point>", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL:
 @"
 {
   // Code size        2 (0x2)
@@ -8485,7 +8485,7 @@ System.Console.WriteLine(i);
 ";
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, source: text, expectedIL:
+            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL:
 @"
 {
   // Code size       20 (0x14)
@@ -8532,7 +8532,7 @@ System.Console.WriteLine(i);
 ";
             var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithOverflowChecks(true), parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, source: text, expectedIL:
+            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePointDisplay: SequencePointDisplayMode.Enhanced, expectedIL:
 @"
 {
   // Code size       20 (0x14)
