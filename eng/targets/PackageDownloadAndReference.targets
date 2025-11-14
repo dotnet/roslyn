@@ -1,0 +1,31 @@
+<Project>
+
+  <!--
+  Based on https://github.com/dotnet/runtime/blob/9893d145ebb61ae592afa1a64baa2f6f094b1f6b/eng/PackageDownloadAndReference.targets
+
+  These file supports using PackageDownloadAndReference items.
+  The PackageDownloadAndReference item is used to download a package and reference it in the project, without restoring the package's dependency closure.
+  When using PackageDownloadAndReference you are responsible for selecting the correct assets from the package and ensuring that the package and it's
+  dependencies are available at runtime.
+  The PackageDownloadAndReference item has the following metadata:
+    - Folder: The folder in the package where the assembly is located.
+    - AssemblyName: The name of the assembly to reference.
+    - Private: Whether the reference should be private (copied to the output directory) or not. Default is false.
+  A common use case for PackageDownloadAndReference is to reference assemblies provided by MSBuild or the .NET SDK.
+  -->
+
+  <ItemDefinitionGroup>
+    <PackageDownloadAndReference>
+      <Folder>lib/$(TargetFramework)</Folder>
+      <Private>false</Private>
+    </PackageDownloadAndReference>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <PackageDownload Include="@(PackageDownloadAndReference)" />
+    <PackageDownload Update="@(PackageDownloadAndReference)" Version="[%(Version)]"/>
+    <PackageDownloadAndReference Update="@(PackageDownloadAndReference)" PackageFolder="$([System.String]::new(%(Identity)).ToLowerInvariant())" AssemblyName="%(Identity)" />
+    <Reference Include="@(PackageDownloadAndReference->'$(NuGetPackageRoot)%(PackageFolder)/%(Version)/%(Folder)/%(AssemblyName).dll')" />
+  </ItemGroup>
+
+</Project>

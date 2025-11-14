@@ -21,23 +21,42 @@
          -->
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!--
+      We specifically reference Microsoft.Build 17.3.4, since it's the oldest version still compatible $(NetRoslynBuildHostNetCoreVersion).
+      The version targeted is only used for build time, since we use MSBuildLocator to discover the proper version at runtime.
+    -->
+    <_MsbuildVersion>17.3.4</_MsbuildVersion>
   </PropertyGroup>
+  <ItemGroup Condition="'$(DotnetBuildFromSource)' == 'true'">
+    <PackageReference Include="Microsoft.Build" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Framework" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DotnetBuildFromSource)' != 'true'">
+    <!-- Reference MSBuild directly to avoid redistributing its package closure and including the dependencies in deps.json file. -->
+    <PackageDownloadAndReference Include="Microsoft.Build" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Framework" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Tasks.Core" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Utilities.Core" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
+  </ItemGroup>
   <ItemGroup>
-    <!-- We specifically reference Microsoft.Build 17.3.4, since it's the oldest version still compatible net6.0. The version targeted is only used for build time, since
-         we use MSBuildLocator to discover the proper version at runtime. -->
-    <PackageReference Include="Microsoft.Build" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Framework" VersionOverride="17.3.4" ExcludeAssets="Runtime" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
-    <PackageReference Include="System.Text.Json" VersionOverride="8.0.5" PrivateAssets="All" Condition="'$(DotnetBuildFromSource)' != 'true'"/>
-    <PackageReference Include="System.CommandLine" />
-    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="System.Text.Json" VersionOverride="8.0.5" PrivateAssets="All" Condition="'$(DotnetBuildFromSource)' != 'true'"/>
     <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\*.cs" Link="InternalUtilities\%(FileName).cs" />
+
+    <!-- Exclude utilities that use System.Reflection.Metadata -->
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\BlobBuildingStream.cs" />
+    <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\IncrementalHashExtensions.cs" />
+
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs" Link="Collections\ArrayBuilderExtensions.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Collections\ImmutableArrayExtensions.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\TemporaryArray`1.cs" Link="Collections\TemporaryArray`1.cs" />
@@ -64,18 +83,18 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Include="Rpc\Readme.md" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <EmbeddedResource Update="WorkspaceMSBuildBuildHostResources.resx" GenerateSource="true" />
   </ItemGroup>
@@ -93,4 +112,5 @@
   </Target>
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+  <Import Project="$(RepositoryEngineeringDir)targets\PackageDownloadAndReference.targets"/>
 </Project>
