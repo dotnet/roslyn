@@ -222,6 +222,10 @@ function Process-Arguments() {
     $script:msbuildEngine = "dotnet"
   }
 
+  if ($skipCustomRoslynDeploy) {
+    $properties += "/p:RoslynIntegrationTestsEmptyRootSuffix=true"
+  }
+
   foreach ($property in $properties) {
     if (!$property.StartsWith("/p:", "InvariantCultureIgnoreCase")) {
       Write-Host "Invalid argument: $property"
