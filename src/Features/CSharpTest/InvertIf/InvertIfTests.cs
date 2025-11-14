@@ -1638,4 +1638,20 @@ public sealed partial class InvertIfTests
                 }
                 #endif
             """);
+
+    [Fact]
+    public Task TestMultiLine_ConditionOnNextLine()
+        => TestInsideMethodAsync(
+@"[||]if (
+    b) { }",
+@"if (
+    !b) { }");
+
+    [Fact]
+    public Task TestMultiLine_AndConditionOnNextLine()
+        => TestInsideMethodAsync(
+@"[||]if (a &&
+    b) { }",
+@"if (!a ||
+    !b) { }");
 }
