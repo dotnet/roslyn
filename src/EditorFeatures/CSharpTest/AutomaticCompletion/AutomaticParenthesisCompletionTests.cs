@@ -209,6 +209,29 @@ public sealed class AutomaticParenthesisCompletionTests : AbstractAutomaticBrace
         CheckBackspace(session.Session);
     }
 
+    [WpfFact]
+    public void NestedParenthesisInIfStatement()
+    {
+        var code = """
+            using System.Linq;
+
+            class C
+            {
+                void Method()
+                {
+                    var a = new int[] { };
+                    if (a.Where$$)
+                    {
+                    }
+                }
+            }
+            """;
+
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+    }
+
     internal static Holder CreateSession(string code, ParseOptions? parseOptions = null)
     {
         return CreateSession(
