@@ -123,7 +123,7 @@ public abstract class IntegrationTestBase : TestBase
     /// <param name="overrideToolExe">
     /// Setting ToolExe to "csc.exe" should use the built-in compiler regardless of apphost being used or not.
     /// </param>
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/80991"), CombinatorialData]
+    [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
     public void SdkBuild_Csc(bool useSharedCompilation, bool overrideToolExe, bool useAppHost)
     {
@@ -195,7 +195,7 @@ public abstract class IntegrationTestBase : TestBase
     /// <param name="overrideToolExe">
     /// Setting ToolExe to "vbc.exe" should use the built-in compiler regardless of apphost being used or not.
     /// </param>
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/80991"), CombinatorialData]
+    [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
     public void SdkBuild_Vbc(bool useSharedCompilation, bool overrideToolExe, bool useAppHost)
     {
