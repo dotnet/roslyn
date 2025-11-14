@@ -290,9 +290,8 @@ internal static partial class ExtensionMemberImportCompletionHelper
             }
 
             ISymbol? TryReduceExtensionMember(ISymbol memberSymbol)
-                => (memberSymbol as IPropertySymbol)?.ReduceExtensionMember(_receiverTypeSymbol) ??
-                   (memberSymbol as IMethodSymbol)?.ReduceExtensionMember(_receiverTypeSymbol) ??
-                   (ISymbol?)(memberSymbol as IMethodSymbol)?.ReduceExtensionMethod(_receiverTypeSymbol);
+                => memberSymbol.ReduceExtensionMember(_receiverTypeSymbol) ??
+                   (memberSymbol as IMethodSymbol)?.ReduceExtensionMethod(_receiverTypeSymbol);
         }
 
         private void GetExtensionMembersForSymbolsFromSameCompilation(
@@ -334,19 +333,17 @@ internal static partial class ExtensionMemberImportCompletionHelper
 
         private static ISymbol? TryReduceExtensionMember(ISymbol memberSymbol, ITypeSymbol receiverTypeSymbol)
         {
-            if (memberSymbol is IPropertySymbol propertySymbol)
-                return propertySymbol.ReduceExtensionMember(receiverTypeSymbol);
+            // Try modern extension member first.
+            var reduced = memberSymbol.ReduceExtensionMember(receiverTypeSymbol);
+            if (reduced != null)
+                return reduced;
 
             if (memberSymbol is IMethodSymbol methodSymbol)
             {
-                // Try modern extension method first.
-                if (methodSymbol.ReduceExtensionMember(receiverTypeSymbol) is IMethodSymbol reducedMember)
-                    return reducedMember;
-
                 // Then fall back to classic extension method reduction.
 
                 // First defer to compiler to try to reduce this.
-                var reduced = methodSymbol.ReduceExtensionMethod(receiverTypeSymbol);
+                reduced = methodSymbol.ReduceExtensionMethod(receiverTypeSymbol);
                 if (reduced is null)
                     return null;
 
