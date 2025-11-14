@@ -14,19 +14,9 @@
   </PropertyGroup>
 
   <Choose>
-    <When Condition="'$(TargetFramework)' == 'net452'">
+    <When Condition="'$(TargetFramework)' == 'net461'">
       <PropertyGroup>
-        <NuGetApiVersion>4.5.3</NuGetApiVersion>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(TargetFramework)' == 'net46'">
-      <PropertyGroup>
-        <NuGetApiVersion>4.5.3</NuGetApiVersion>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(TargetFramework)' == 'netstandard1.6'">
-      <PropertyGroup>
-        <NuGetApiVersion>4.5.3</NuGetApiVersion>
+        <NuGetApiVersion>5.11.6</NuGetApiVersion>
       </PropertyGroup>
     </When>
     <Otherwise>
@@ -50,6 +40,7 @@
     <PackageReference Include="Microsoft.VisualBasic" Version="10.0.1" Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="16.1.8" />
     <PackageReference Include="Nullable" Version="1.3.0" PrivateAssets="all" />
+    <PackageReference Include="System.Formats.Asn1" Version="$(SystemFormatsAsn1Version)" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" Condition="'$(TargetFramework)' == 'netstandard1.6' or '$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net46'" />
 
     <!-- Use PrivateAssets=compile to avoid exposing our NuGet dependencies downstream as public API. -->
