@@ -7483,8 +7483,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool hasErrors;
                 BindPointerIndirectionExpressionInternal(node, boundLeft, diagnostics, out pointedAtType, out hasErrors);
 
-                ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRules.Evolved);
-
                 // If there is no pointed-at type, fall back on the actual type (i.e. assume the user meant "." instead of "->").
                 if (ReferenceEquals(pointedAtType, null))
                 {
@@ -7496,6 +7494,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         WasCompilerGenerated = true, // don't interfere with the type info for exprSyntax.
                     };
+                }
+
+                if (!boundLeft.HasAnyErrors)
+                {
+                    ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRules.Evolved);
                 }
             }
 
@@ -9375,13 +9378,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindElementAccess(ElementAccessExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             BoundExpression receiver = BindExpression(node.Expression, diagnostics: diagnostics, invoked: false, indexed: true);
+            var result = BindElementAccess(node, receiver, node.ArgumentList, allowInlineArrayElementAccess: true, diagnostics);
 
-            if (receiver.Type?.ContainsPointerOrFunctionPointer() == true)
+            if (!result.HasAnyErrors && receiver.Type?.ContainsPointerOrFunctionPointer() == true)
             {
                 ReportUnsafeIfNotAllowed(node.ArgumentList.OpenBracketToken.GetLocation(), diagnostics, MemorySafetyRules.Evolved);
             }
 
-            return BindElementAccess(node, receiver, node.ArgumentList, allowInlineArrayElementAccess: true, diagnostics);
+            return result;
         }
 
         private BoundExpression BindElementAccess(ExpressionSyntax node, BoundExpression receiver, BracketedArgumentListSyntax argumentList, bool allowInlineArrayElementAccess, BindingDiagnosticBag diagnostics)

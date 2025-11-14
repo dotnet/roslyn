@@ -111,6 +111,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Pointer_Dereference_SafeContext_Null()
+    {
+        var source = """
+            int x = *null;
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,9): error CS0193: The * or -> operator must be applied to a pointer
+            // int x = *null;
+            Diagnostic(ErrorCode.ERR_PtrExpected, "*null").WithLocation(1, 9),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
     public void Pointer_Dereference_UnsafeContext()
     {
         var source = """
@@ -140,6 +158,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (2,13): error CS9500: This operation may only be used in an unsafe context
             // string s = x->ToString();
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "->").WithLocation(2, 13));
+    }
+
+    [Fact]
+    public void Pointer_MemberAccess_SafeContext_Null()
+    {
+        var source = """
+            string s = null->ToString();
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,12): error CS0193: The * or -> operator must be applied to a pointer
+            // string s = null->ToString();
+            Diagnostic(ErrorCode.ERR_PtrExpected, "null->ToString").WithLocation(1, 12),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -211,6 +247,41 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (3,10): error CS9500: This operation may only be used in an unsafe context
             // int y = x[1];
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(3, 10));
+    }
+
+    [Fact]
+    public void Pointer_ElementAccess_SafeContext_MultipleIndices()
+    {
+        var source = """
+            int* x = null;
+            x[0, 1] = 1;
+            int y = x[2, 3];
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int* x = null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 1),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // x[0, 1] = 1;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(2, 1),
+            // (2,1): error CS0196: A pointer must be indexed by only one value
+            // x[0, 1] = 1;
+            Diagnostic(ErrorCode.ERR_PtrIndexSingle, "x[0, 1]").WithLocation(2, 1),
+            // (3,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // int y = x[2, 3];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(3, 9),
+            // (3,9): error CS0196: A pointer must be indexed by only one value
+            // int y = x[2, 3];
+            Diagnostic(ErrorCode.ERR_PtrIndexSingle, "x[2, 3]").WithLocation(3, 9));
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithEvolvedMemorySafetyRules()).VerifyDiagnostics(
+            // (2,1): error CS0196: A pointer must be indexed by only one value
+            // x[0, 1] = 1;
+            Diagnostic(ErrorCode.ERR_PtrIndexSingle, "x[0, 1]").WithLocation(2, 1),
+            // (3,9): error CS0196: A pointer must be indexed by only one value
+            // int y = x[2, 3];
+            Diagnostic(ErrorCode.ERR_PtrIndexSingle, "x[2, 3]").WithLocation(3, 9));
     }
 
     [Fact]
