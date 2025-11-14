@@ -419,10 +419,7 @@ internal sealed partial class SymbolTreeInfo
             TypeDefinition typeDefinition,
             OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
         {
-            var currentTypeIsStaticClass =
-                (typeDefinition.Attributes & TypeAttributes.Abstract) != 0 &&
-                (typeDefinition.Attributes & TypeAttributes.Sealed) != 0 &&
-                typeDefinition.GetGenericParameters().Count == 0;
+            var currentTypeIsStaticClass = IsStaticClass(typeDefinition);
 
             // Only bother looking for extension methods in static types. Note this check means we would ignore
             // extension methods declared in assemblies compiled from VB code, since a module in VB is compiled into
@@ -441,7 +438,7 @@ internal sealed partial class SymbolTreeInfo
                 // We don't include internals from metadata assemblies.  It's less likely that a project would have IVT
                 // to it and so it helps us save on memory.  It also means we can avoid loading lots and lots of
                 // obfuscated code in the case the dll was obfuscated.
-                if (IsPublic(nestedType.Attributes))
+                if (IsPublicType(nestedType))
                 {
                     var definition = MetadataDefinition.Create(metadataReader, nestedType);
                     definitionMap.Add(definition.Name, definition);
@@ -453,46 +450,22 @@ internal sealed partial class SymbolTreeInfo
                 }
             }
 
-            ParameterTypeInfo? TryGetExtensionParameterTypeInfo(TypeDefinition typeDefinition)
+            bool HasSpecialName(TypeDefinition typeDefinition)
+                => (typeDefinition.Attributes & TypeAttributes.SpecialName) != 0 ||
+                   (typeDefinition.Attributes & TypeAttributes.RTSpecialName) != 0;
+
+            bool IsStaticClass(TypeDefinition typeDefinition)
+                => (typeDefinition.Attributes & TypeAttributes.Abstract) != 0 &&
+                   (typeDefinition.Attributes & TypeAttributes.Sealed) != 0 &&
+                   typeDefinition.GetGenericParameters().Count == 0;
+
+            bool IsPublicMethod(MethodDefinitionHandle methodHandle)
             {
-                // Look for the special '<Extension>$' marker method which is how we can determine
-                // which type is being extended by the extension block.
-                foreach (var child in typeDefinition.GetMethods())
-                {
-                    var method = metadataReader.GetMethodDefinition(child);
-                    if ((method.Attributes & MethodAttributes.SpecialName) == 0 &&
-                        (method.Attributes & MethodAttributes.RTSpecialName) == 0)
-                    {
-                        continue;
-                    }
+                if (methodHandle.IsNil)
+                    return false;
 
-                    // has to be `public static "<Extension>$"(parameter)` (with exactly one parameter). 
-                    if ((method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public ||
-                        (method.Attributes & MethodAttributes.Static) == 0 ||
-                        method.GetParameters().Count != 1)
-                    {
-                        continue;
-                    }
-
-                    var methodName = metadataReader.GetString(method.Name);
-                    if (methodName != "<Extension>$")
-                        continue;
-
-                    // Decode method signature to get the receiver nestedType name (i.e. nestedType name for the first parameter)
-                    var blob = metadataReader.GetBlobReader(method.Signature);
-                    var decoder = new SignatureDecoder<ParameterTypeInfo, object?>(ParameterTypeInfoProvider.Instance, metadataReader, genericContext: null);
-                    var signature = decoder.DecodeMethodSignature(ref blob);
-
-                    // It'd be good if we don't need to go through all parameters and make unnecessary allocations.
-                    // However, this is not possible with metadata reader API right now (although it's possible by
-                    // copying code from metadata reader implementation)
-                    if (signature.ParameterTypes.Length != 1)
-                        continue;
-
-                    return signature.ParameterTypes[0];
-                }
-
-                return null;
+                var method = metadataReader.GetMethodDefinition(methodHandle);
+                return (method.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public;
             }
 
             bool LoadClassicExtensionMethods()
@@ -538,58 +511,124 @@ internal sealed partial class SymbolTreeInfo
             bool LoadModernExtensionMembers(TypeDefinition nestedType)
             {
                 var containsExtensionMembers = false;
-                if ((nestedType.Attributes & TypeAttributes.SpecialName) != 0 ||
-                    (nestedType.Attributes & TypeAttributes.RTSpecialName) == 0)
+                var extensionParameterTypeInfo = TryGetExtensionParameterTypeInfo(nestedType);
+                if (extensionParameterTypeInfo is not null)
                 {
-                    var extensionParameterTypeInfo = TryGetExtensionParameterTypeInfo(nestedType);
-                    if (extensionParameterTypeInfo is not null)
+                    // Ok, this is definitely an extension block.  Load all the extension members from within it.
+                    foreach (var childMethod in typeDefinition.GetMethods())
                     {
-                        // Ok, this is definitely an extension block.  Load all the extension members from within it.
-                        foreach (var childMethod in typeDefinition.GetMethods())
+                        var method = metadataReader.GetMethodDefinition(childMethod);
+                        // Don't bother loading instance extension methods from modern extension blocks. We'll have
+                        // already loaded the static classic extension method above.
+                        if ((method.Attributes & MethodAttributes.SpecialName) != 0 ||
+                            (method.Attributes & MethodAttributes.RTSpecialName) != 0 ||
+                            (method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public ||
+                            (method.Attributes & MethodAttributes.Static) == 0)
                         {
-                            var method = metadataReader.GetMethodDefinition(childMethod);
-                            if ((method.Attributes & MethodAttributes.SpecialName) != 0 ||
-                                (method.Attributes & MethodAttributes.RTSpecialName) != 0 ||
-                                (method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public)
-                            {
-                                continue;
-                            }
-
-                            var definition = new MetadataDefinition(MetadataDefinitionKind.Member, metadataReader.GetString(method.Name), extensionParameterTypeInfo.Value);
-                            definitionMap.Add(definition.Name, definition);
+                            continue;
                         }
 
-                        foreach (var childProperty in typeDefinition.GetProperties())
+                        var definition = new MetadataDefinition(MetadataDefinitionKind.Member, metadataReader.GetString(method.Name), extensionParameterTypeInfo.Value);
+                        definitionMap.Add(definition.Name, definition);
+                    }
+
+                    foreach (var childProperty in typeDefinition.GetProperties())
+                    {
+                        var property = metadataReader.GetPropertyDefinition(childProperty);
+                        if ((property.Attributes & PropertyAttributes.SpecialName) != 0 ||
+                            (property.Attributes & PropertyAttributes.RTSpecialName) != 0)
                         {
-                            var property = metadataReader.GetPropertyDefinition(childProperty);
-                            if ((property.Attributes & PropertyAttributes.SpecialName) != 0 ||
-                                (property.Attributes & PropertyAttributes.RTSpecialName) != 0)
-                            {
-                                continue;
-                            }
-
-                            var accessors = property.GetAccessors();
-
-                            if (!IsPublicMethod(accessors.Getter) && !IsPublicMethod(accessors.Setter))
-                                continue;
-
-                            containsExtensionMembers = true;
-                            var definition = new MetadataDefinition(MetadataDefinitionKind.Member, metadataReader.GetString(property.Name), extensionParameterTypeInfo.Value);
-                            definitionMap.Add(definition.Name, definition);
+                            continue;
                         }
+
+                        var accessors = property.GetAccessors();
+
+                        if (!IsPublicMethod(accessors.Getter) && !IsPublicMethod(accessors.Setter))
+                            continue;
+
+                        containsExtensionMembers = true;
+                        var definition = new MetadataDefinition(MetadataDefinitionKind.Member, metadataReader.GetString(property.Name), extensionParameterTypeInfo.Value);
+                        definitionMap.Add(definition.Name, definition);
                     }
                 }
 
                 return containsExtensionMembers;
             }
 
-            bool IsPublicMethod(MethodDefinitionHandle methodHandle)
+            ParameterTypeInfo? TryGetExtensionParameterTypeInfo(TypeDefinition typeDefinition)
             {
-                if (methodHandle.IsNil)
-                    return false;
+                // There will be two nested types within the outer normal static class.  It should look like:
+                //
+                //  static class NormalClass
+                //  {
+                //      [SpecialName] public sealed class <G>$34505F560D9EACF86A87F3ED1F85E448
+                //      {
+                //          [SpecialName] public static class <M>$97B1E6A5993F490204BC5DC367191ECC
+                //          {
+                //              // This is used to determine the extension block parameter type
+                //              public static <Extension>$(parameter) { }
+                //          }
+                //
+                //          public void ExtensionMethod() { }
+                //          public int ExtensionProp => ...
+                //      }
+                //  }
 
-                var method = metadataReader.GetMethodDefinition(methodHandle);
-                return (method.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public;
+                if ((typeDefinition.Attributes & TypeAttributes.Sealed) == 0 ||
+                    !IsPublicType(typeDefinition) ||
+                    !HasSpecialName(typeDefinition))
+                {
+                    return null;
+                }
+
+                // Ok, we've seen the first interesting inner type.  Now look for the one inside of that
+                // that contains the maker method.
+                foreach (var nestedTypeHandle in typeDefinition.GetNestedTypes())
+                {
+                    var nestedType = metadataReader.GetTypeDefinition(nestedTypeHandle);
+                    if (!IsStaticClass(nestedType) ||
+                        !IsPublicType(nestedType) ||
+                        !HasSpecialName(nestedType))
+                    {
+                        continue;
+                    }
+
+                    // Look for the special '<Extension>$' marker method which is how we can determine
+                    // which type is being extended by the extension block.
+                    foreach (var child in nestedType.GetMethods())
+                    {
+                        var method = metadataReader.GetMethodDefinition(child);
+                        if ((method.Attributes & MethodAttributes.SpecialName) == 0 &&
+                            (method.Attributes & MethodAttributes.RTSpecialName) == 0)
+                        {
+                            continue;
+                        }
+
+                        // has to be `public static "<Extension>$"(parameter)` (with exactly one parameter). 
+                        if ((method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public ||
+                            (method.Attributes & MethodAttributes.Static) == 0 ||
+                            method.GetParameters().Count != 1)
+                        {
+                            continue;
+                        }
+
+                        var methodName = metadataReader.GetString(method.Name);
+                        if (methodName != "<Extension>$")
+                            continue;
+
+                        // Decode method signature to get the receiver nestedType name (i.e. nestedType name for the first parameter)
+                        var blob = metadataReader.GetBlobReader(method.Signature);
+                        var decoder = new SignatureDecoder<ParameterTypeInfo, object?>(ParameterTypeInfoProvider.Instance, metadataReader, genericContext: null);
+                        var signature = decoder.DecodeMethodSignature(ref blob);
+
+                        if (signature.ParameterTypes is not [var parameterType])
+                            continue;
+
+                        return parameterType;
+                    }
+                }
+
+                return null;
             }
         }
 
@@ -607,7 +646,7 @@ internal sealed partial class SymbolTreeInfo
             foreach (var child in namespaceDefinition.TypeDefinitions)
             {
                 var typeDefinition = metadataReader.GetTypeDefinition(child);
-                if (IsPublic(typeDefinition.Attributes))
+                if (IsPublicType(typeDefinition))
                 {
                     var definition = MetadataDefinition.Create(metadataReader, typeDefinition);
                     definitionMap.Add(definition.Name, definition);
@@ -616,9 +655,9 @@ internal sealed partial class SymbolTreeInfo
             }
         }
 
-        private static bool IsPublic(TypeAttributes attributes)
+        private static bool IsPublicType(TypeDefinition typeDefinition)
         {
-            var masked = attributes & TypeAttributes.VisibilityMask;
+            var masked = typeDefinition.Attributes & TypeAttributes.VisibilityMask;
             return masked is TypeAttributes.Public or TypeAttributes.NestedPublic;
         }
 
