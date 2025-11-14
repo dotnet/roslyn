@@ -43,6 +43,9 @@ public static class ClassificationTypeNames
         StructName,
         RecordStructName,
         TypeParameterName,
+        ArrayName,
+        PointerName,
+        FunctionPointerName,
         FieldName,
         EnumMemberName,
         ConstantName,
@@ -130,6 +133,9 @@ public static class ClassificationTypeNames
     public const string StructName = "struct name";
     public const string RecordStructName = "record struct name";
     public const string TypeParameterName = "type parameter name";
+    public const string ArrayName = "array name";
+    public const string PointerName = "pointer name";
+    public const string FunctionPointerName = "function pointer name";
 
     internal const string TestCode = "roslyn test code";
     internal const string TestCodeMarkdown = "roslyn test code markdown";

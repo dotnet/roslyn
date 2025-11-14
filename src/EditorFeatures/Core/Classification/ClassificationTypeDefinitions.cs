@@ -99,6 +99,24 @@ internal sealed class ClassificationTypeDefinitions
     [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
     internal readonly ClassificationTypeDefinition UserTypeTypeParametersTypeDefinition;
     #endregion
+    #region User Types - Arrays
+    [Export]
+    [Name(ClassificationTypeNames.ArrayName)]
+    [BaseDefinition(ClassificationTypeNames.ClassName)]
+    internal readonly ClassificationTypeDefinition UserTypeArraysTypeDefinition;
+    #endregion
+    #region User Types - Pointers
+    [Export]
+    [Name(ClassificationTypeNames.PointerName)]
+    [BaseDefinition(ClassificationTypeNames.StructName)]
+    internal readonly ClassificationTypeDefinition UserTypePointersTypeDefinition;
+    #endregion
+    #region User Types - Function Pointers
+    [Export]
+    [Name(ClassificationTypeNames.FunctionPointerName)]
+    [BaseDefinition(ClassificationTypeNames.StructName)]
+    internal readonly ClassificationTypeDefinition UserTypeFunctionPointersTypeDefinition;
+    #endregion
 
     #region Test Code
     [Export]
