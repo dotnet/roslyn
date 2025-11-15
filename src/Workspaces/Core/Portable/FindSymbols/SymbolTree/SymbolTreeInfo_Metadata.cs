@@ -421,10 +421,10 @@ internal sealed partial class SymbolTreeInfo
         {
             var currentTypeIsStaticClass = IsStaticClass(typeDefinition);
 
-            // Only bother looking for extension methods in non-generic static types. Note this check means we would
-            // ignore extension methods declared in assemblies compiled from VB code, since a module in VB is compiled
-            // into class with "sealed" attribute but not "abstract". Although this can be addressed by checking custom
-            // attributes, we believe this is not a common scenario to warrant potential perf impact.
+            // Only bother looking for classic extension methods in non-generic static types. Note this check means we
+            // would ignore extension methods declared in assemblies compiled from VB code, since a module in VB is
+            // compiled into class with "sealed" attribute but not "abstract". Although this can be addressed by
+            // checking custom attributes, we believe this is not a common scenario to warrant potential perf impact.
             if (currentTypeIsStaticClass &&
                 typeDefinition.GetGenericParameters().Count == 0)
             {
