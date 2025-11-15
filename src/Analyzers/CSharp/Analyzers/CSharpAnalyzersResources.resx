@@ -440,4 +440,7 @@
   <data name="Property_accessor_can_be_simplified" xml:space="preserve">
     <value>Property accessor can be simplified</value>
   </data>
+  <data name="Add_shebang" xml:space="preserve">
+    <value>Add '#!' directive</value>
+  </data>
 </root>

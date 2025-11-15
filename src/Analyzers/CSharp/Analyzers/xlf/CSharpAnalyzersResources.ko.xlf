@@ -12,6 +12,11 @@
         <target state="translated">'{0}' 문에 중괄호를 추가합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_shebang">
+        <source>Add '#!' directive</source>
+        <target state="new">Add '#!' directive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Anonymous_function_can_be_made_static">
         <source>Anonymous function can be made static</source>
         <target state="translated">익명 함수를 정적으로 만들 수 있습니다.</target>

@@ -102,7 +102,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         if (supportsDesignTimeBuild)
         {
             // For virtual (non-file) URIs or non-file-based programs, use the canonical loader
-            if (uri.ParsedUri is null || !uri.ParsedUri.IsFile || !VirtualProjectXmlProvider.IsFileBasedProgram(documentFilePath, documentText))
+            if (uri.ParsedUri is null || !uri.ParsedUri.IsFile || !VirtualProjectXmlProvider.IsFileBasedProgram(documentText))
             {
                 return await _canonicalMiscFilesLoader.AddMiscellaneousDocumentAsync(documentFilePath, documentText, CancellationToken.None);
             }
@@ -174,7 +174,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         var loader = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.CreateFileTextLoader(documentPath);
         var textAndVersion = await loader.LoadTextAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken);
-        var isFileBasedProgram = VirtualProjectXmlProvider.IsFileBasedProgram(documentPath, textAndVersion.Text);
+        var isFileBasedProgram = VirtualProjectXmlProvider.IsFileBasedProgram(textAndVersion.Text);
 
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);

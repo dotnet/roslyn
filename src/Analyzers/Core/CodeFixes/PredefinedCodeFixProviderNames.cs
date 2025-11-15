@@ -187,4 +187,5 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseTupleSwap = nameof(UseTupleSwap);
     public const string UseUnboundGenericTypeInNameOf = nameof(UseUnboundGenericTypeInNameOf);
     public const string UseUtf8StringLiteral = nameof(UseUtf8StringLiteral);
+    public const string AddShebangDirective = nameof(AddShebangDirective);
 }

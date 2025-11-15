@@ -12,6 +12,11 @@
         <target state="translated">Aggiunge le parentesi graffe all'istruzione '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_shebang">
+        <source>Add '#!' directive</source>
+        <target state="new">Add '#!' directive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Anonymous_function_can_be_made_static">
         <source>Anonymous function can be made static</source>
         <target state="translated">La funzione anonima può essere resa statica</target>
