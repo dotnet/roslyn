@@ -259,8 +259,8 @@ internal sealed partial class SymbolTreeInfo
         // The set of type definitions we've read out of the current metadata reader.
         private readonly List<MetadataDefinition> _allTypeDefinitions = [];
 
-        // Map from node represents extension method to list of possible parameter type info.
-        // We can have more than one if there's multiple methods with same name but different receiver type.
+        // Map from node represents extension member to list of possible parameter type info.
+        // We can have more than one if there's multiple members with same name but different receiver type.
         // e.g.
         //
         //      public static bool AnotherExtensionMethod1(this int x);
@@ -382,7 +382,7 @@ internal sealed partial class SymbolTreeInfo
                 {
                     if (definition.Kind == MetadataDefinitionKind.Member)
                     {
-                        // We need to support having multiple methods with same name but different receiver type.
+                        // We need to support having multiple members with same name but different receiver type.
                         _extensionMemberToParameterTypeInfo.Add(childNode, (definition.ReceiverTypeInfo, definition.IsModernExtension));
                     }
 
@@ -898,7 +898,7 @@ internal sealed partial class SymbolTreeInfo
         }
 
         private readonly void AddUnsortedNodes(ArrayBuilder<BuilderNode> unsortedNodes,
-            MultiDictionary<string, ExtensionMemberInfo> receiverTypeNameToMethodMap,
+            MultiDictionary<string, ExtensionMemberInfo> receiverTypeNameToMemberMap,
             MetadataNode parentNode,
             int parentIndex,
             string? fullyQualifiedContainerName)
@@ -930,13 +930,13 @@ internal sealed partial class SymbolTreeInfo
                             ? fullyQualifiedContainerName + ".extension()"
                             : fullyQualifiedContainerName;
 
-                        receiverTypeNameToMethodMap.Add(
+                        receiverTypeNameToMemberMap.Add(
                             parameterTypeName,
                             new ExtensionMemberInfo(containerName, child.Name));
                     }
                 }
 
-                AddUnsortedNodes(unsortedNodes, receiverTypeNameToMethodMap, child, childIndex, Concat(fullyQualifiedContainerName, child.Name));
+                AddUnsortedNodes(unsortedNodes, receiverTypeNameToMemberMap, child, childIndex, Concat(fullyQualifiedContainerName, child.Name));
             }
 
             [return: NotNullIfNotNull(nameof(containerName))]
