@@ -130,29 +130,7 @@ internal static partial class SyntaxGeneratorExtensions
 
         return syntaxFacts.IsAnyPattern(expressionOrPattern)
             ? generatorInternal.NotPattern(expressionOrPattern)
-            : CreateLogicalNotExpressionWithTrivia(generator, syntaxFacts, expressionOrPattern);
-    }
-
-    private static SyntaxNode CreateLogicalNotExpressionWithTrivia(
-        SyntaxGenerator generator,
-        ISyntaxFacts syntaxFacts,
-        SyntaxNode expression)
-    {
-        // When creating a logical not expression (e.g., !x), if the expression has leading trivia
-        // (like indentation in multi-line scenarios), move that trivia to the ! operator to preserve formatting.
-        var leadingTrivia = expression.GetLeadingTrivia();
-        var expressionWithoutLeadingTrivia = expression.WithoutLeadingTrivia();
-        var notExpression = generator.LogicalNotExpression(expressionWithoutLeadingTrivia);
-
-        // Move the leading trivia from the expression to the ! operator
-        if (leadingTrivia.Any())
-        {
-            var operatorToken = syntaxFacts.GetOperatorTokenOfPrefixUnaryExpression(notExpression);
-            var newOperatorToken = operatorToken.WithLeadingTrivia(leadingTrivia);
-            notExpression = notExpression.ReplaceToken(operatorToken, newOperatorToken);
-        }
-
-        return notExpression;
+            : generator.LogicalNotExpression(expressionOrPattern);
     }
 
     private static SyntaxNode GetNegationOfBinaryExpression(
@@ -169,7 +147,7 @@ internal static partial class SyntaxGeneratorExtensions
         if (operation is IBinaryOperation binaryOperation)
         {
             if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
-                return CreateLogicalNotExpressionWithTrivia(generator, syntaxFacts, expressionNode);
+                return generator.LogicalNotExpression(expressionNode);
 
             // Lifted relational operators return false if either operand is null.
             // Inverting the operator fails to invert the behavior when an operand is null.
@@ -179,7 +157,7 @@ internal static partial class SyntaxGeneratorExtensions
                                                    BinaryOperatorKind.GreaterThan or
                                                    BinaryOperatorKind.GreaterThanOrEqual)
             {
-                return CreateLogicalNotExpressionWithTrivia(generator, syntaxFacts, expressionNode);
+                return generator.LogicalNotExpression(expressionNode);
             }
 
             if (binaryOperation.OperatorKind is BinaryOperatorKind.Or or
@@ -243,7 +221,7 @@ internal static partial class SyntaxGeneratorExtensions
         else
         {
             // Apply the logical not operator if it is not a binary operation and also doesn't support patterns.
-            return CreateLogicalNotExpressionWithTrivia(generator, syntaxFacts, expressionNode);
+            return generator.LogicalNotExpression(expressionNode);
         }
     }
 
@@ -316,7 +294,7 @@ internal static partial class SyntaxGeneratorExtensions
             }
         }
 
-        return CreateLogicalNotExpressionWithTrivia(generator, syntaxFacts, isExpression);
+        return generator.LogicalNotExpression(isExpression);
     }
 
     private static SyntaxNode GetNegationOfRelationalPattern(
