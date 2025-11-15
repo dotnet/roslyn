@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal abstract class AbstractExtensionMemberImportCompletionProvider : AbstractImportCompletionProvider
 {
+    protected abstract bool SupportsStaticExtensionMembers { get; }
     protected abstract string GenericSuffix { get; }
 
     // Don't provide unimported extension methods if adding import is not supported,
@@ -42,7 +43,8 @@ internal abstract class AbstractExtensionMemberImportCompletionProvider : Abstra
         using (Logger.LogBlock(FunctionId.Completion_ExtensionMethodImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
         {
             var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
+            var (receiverTypeSymbol, isStatic) = TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken);
+            if (receiverTypeSymbol != null)
             {
                 var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
                     ? syntaxContext.InferredTypes
@@ -53,6 +55,7 @@ internal abstract class AbstractExtensionMemberImportCompletionProvider : Abstra
                 var completionItems = await ExtensionMemberImportCompletionHelper.GetUnimportedExtensionMembersAsync(
                     syntaxContext,
                     receiverTypeSymbol,
+                    isStatic,
                     namespaceInScope,
                     inferredTypes,
                     forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
@@ -68,14 +71,11 @@ internal abstract class AbstractExtensionMemberImportCompletionProvider : Abstra
         }
     }
 
-    private bool TryGetReceiverTypeSymbol(
+    private (ITypeSymbol? receiverTypeSymbol, bool isStatic) TryGetReceiverTypeSymbol(
         SyntaxContext syntaxContext,
         ISyntaxFactsService syntaxFacts,
-        CancellationToken cancellationToken,
-        [NotNullWhen(true)] out ITypeSymbol? receiverTypeSymbol)
+        CancellationToken cancellationToken)
     {
-        receiverTypeSymbol = null;
-
         var parentNode = syntaxContext.TargetToken.Parent;
 
         // Even though implicit access to extension method is allowed, we decide not support it for simplicity 
@@ -83,31 +83,31 @@ internal abstract class AbstractExtensionMemberImportCompletionProvider : Abstra
         // New Bar() {.X = .$$ }
         var expressionNode = syntaxFacts.GetLeftSideOfDot(parentNode, allowImplicitTarget: false);
         if (expressionNode is null)
-            return false;
+            return default;
 
-        return TryGetReceiverTypeSymbol(syntaxContext.SemanticModel, expressionNode, cancellationToken, out receiverTypeSymbol);
+        return TryGetReceiverTypeSymbol(syntaxContext.SemanticModel, expressionNode, cancellationToken);
     }
 
-    protected virtual bool TryGetReceiverTypeSymbol(
+    protected virtual (ITypeSymbol? receiverTypeSymbol, bool isStatic) TryGetReceiverTypeSymbol(
         SemanticModel semanticModel,
         SyntaxNode expressionNode,
-        CancellationToken cancellationToken,
-        [NotNullWhen(true)] out ITypeSymbol? receiverTypeSymbol)
+        CancellationToken cancellationToken)
     {
-        receiverTypeSymbol = null;
-
         // Check if we are accessing members of a type, no extension methods are exposed off of types.
-        if (semanticModel.GetSymbolInfo(expressionNode, cancellationToken).GetAnySymbol() is not ITypeSymbol)
+        if (semanticModel.GetSymbolInfo(expressionNode, cancellationToken).GetAnySymbol() is ITypeSymbol typeSymbol)
+        {
+            return this.SupportsStaticExtensionMembers ? (typeSymbol, isStatic: true) : default;
+        }
+        else
         {
             // The expression we're calling off of needs to have an actual instance type.
             // We try to be more tolerant to errors here so completion would still be available in certain case of partially typed code.
-            receiverTypeSymbol = semanticModel.GetTypeInfo(expressionNode, cancellationToken).Type;
+            var receiverTypeSymbol = semanticModel.GetTypeInfo(expressionNode, cancellationToken).Type;
             if (receiverTypeSymbol is IErrorTypeSymbol errorTypeSymbol)
                 receiverTypeSymbol = errorTypeSymbol.CandidateSymbols.Select(GetSymbolType).FirstOrDefault(s => s != null);
 
+            return (receiverTypeSymbol, isStatic: false);
         }
-
-        return receiverTypeSymbol != null;
     }
 
     private static ITypeSymbol? GetSymbolType(ISymbol symbol)

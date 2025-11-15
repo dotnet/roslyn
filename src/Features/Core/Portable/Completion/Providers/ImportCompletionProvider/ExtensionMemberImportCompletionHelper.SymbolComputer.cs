@@ -81,7 +81,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
         }
 
         public async Task<ImmutableArray<ISymbol>> GetExtensionMemberSymbolsAsync(
-            bool forceCacheCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
+            bool forceCacheCreation, bool hideAdvancedMembers, bool isStatic, CancellationToken cancellationToken)
         {
             try
             {
@@ -106,7 +106,10 @@ internal static partial class ExtensionMemberImportCompletionHelper
                 foreach (var memberArray in results)
                 {
                     foreach (var member in memberArray)
-                        symbols.AddIfNotNull(member);
+                    {
+                        if (MatchesStatic(member, isStatic))
+                            symbols.Add(member);
+                    }
                 }
 
                 var browsableSymbols = symbols
@@ -120,6 +123,27 @@ internal static partial class ExtensionMemberImportCompletionHelper
                 // If we are not force creating/updating the cache, an update task needs to be queued in background.
                 if (!forceCacheCreation)
                     GetCacheService(_originatingDocument.Project).WorkQueue.AddWork(_originatingDocument.Project);
+            }
+
+            static bool MatchesStatic([NotNullWhen(true)] ISymbol? symbol, bool isStatic)
+            {
+                if (symbol is null)
+                    return false;
+
+                if (symbol is IPropertySymbol propertySymbol)
+                    return propertySymbol.IsStatic == isStatic;
+
+                if (symbol is IMethodSymbol method)
+                {
+                    // Classic Extension methods are always instance methods.
+                    if (method.IsExtensionMethod)
+                        return !isStatic;
+
+                    // Modern extension methods can be static or instance methods.
+                    return method.IsStatic == isStatic;
+                }
+
+                throw ExceptionUtilities.UnexpectedValue(symbol.GetType());
             }
         }
 

@@ -15,6 +15,7 @@ internal interface IRemoteExtensionMemberImportCompletionService
         DocumentId documentId,
         int position,
         string receiverTypeSymbolKeyData,
+        bool isStatic,
         ImmutableArray<string> namespaceInScope,
         ImmutableArray<string> targetTypesSymbolKeyData,
         bool forceCacheCreation,

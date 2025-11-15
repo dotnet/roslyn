@@ -29,6 +29,7 @@ internal sealed class RemoteExtensionMemberImportCompletionService(
         DocumentId documentId,
         int position,
         string receiverTypeSymbolKeyData,
+        bool isStatic,
         ImmutableArray<string> namespaceInScope,
         ImmutableArray<string> targetTypesSymbolKeyData,
         bool forceCacheCreation,
@@ -51,7 +52,7 @@ internal sealed class RemoteExtensionMemberImportCompletionService(
                     .WhereNotNull().ToImmutableArray();
 
                 return await ExtensionMemberImportCompletionHelper.GetUnimportedExtensionMembersInCurrentProcessAsync(
-                    document, semanticModel: null, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+                    document, semanticModel: null, position, receiverTypeSymbol, isStatic, namespaceInScopeSet, targetTypes, forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
             }
 
             return default;

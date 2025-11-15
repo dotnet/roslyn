@@ -2371,6 +2371,49 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
 
     [Theory, MemberData(nameof(BuiltInTypesWithReferenceTypeData))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/80561")]
+    public async Task TestPredefinedType_ModernExtensionMethod_Static(string type1, string type2, ReferenceType refType)
+    {
+        var file1 = $$"""
+            using System;
+
+            namespace Goo
+            {
+                public static class ExtensionClass
+                {
+                    extension({{type1}})
+                    {
+                        public static bool ExtensionMethod()
+                            => true;
+                    }
+                }
+            }
+            """;
+        var file2 = $$"""
+            using System;
+
+            namespace Baz
+            {
+                public class Bat
+                {
+                    public void M()
+                    {
+                        {{type2}}.$$
+                    }
+                }
+            }
+            """;
+
+        var markup = GetMarkup(file2, file1, refType);
+
+        await VerifyImportItemExistsAsync(
+             markup,
+             "ExtensionMethod",
+             glyph: Glyph.ExtensionMethodPublic,
+             inlineDescription: "Goo");
+    }
+
+    [Theory, MemberData(nameof(BuiltInTypesWithReferenceTypeData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80561")]
     public async Task TestPredefinedType_ModernExtensionProperty(string type1, string type2, ReferenceType refType)
     {
         var file1 = $$"""
@@ -2397,6 +2440,48 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
                     public void M({{type2}} x)
                     {
                         x.$$
+                    }
+                }
+            }
+            """;
+
+        var markup = GetMarkup(file2, file1, refType);
+
+        await VerifyImportItemExistsAsync(
+             markup,
+             "ExtensionProp",
+             glyph: Glyph.PropertyPublic,
+             inlineDescription: "Goo");
+    }
+
+    [Theory, MemberData(nameof(BuiltInTypesWithReferenceTypeData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80561")]
+    public async Task TestPredefinedType_ModernExtensionProperty_Static(string type1, string type2, ReferenceType refType)
+    {
+        var file1 = $$"""
+            using System;
+
+            namespace Goo
+            {
+                public static class ExtensionClass
+                {
+                    extension({{type1}})
+                    {
+                        public static bool ExtensionProp => true;
+                    }
+                }
+            }
+            """;
+        var file2 = $$"""
+            using System;
+
+            namespace Baz
+            {
+                public class Bat
+                {
+                    public void M()
+                    {
+                        {{type2}}.$$
                     }
                 }
             }

@@ -25,6 +25,7 @@ internal sealed class ExtensionMemberImportCompletionProvider() : AbstractExtens
 {
     internal override string Language => LanguageNames.CSharp;
 
+    protected override bool SupportsStaticExtensionMembers => true;
     protected override string GenericSuffix => "<>";
 
     public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
@@ -58,11 +59,10 @@ internal sealed class ExtensionMemberImportCompletionProvider() : AbstractExtens
         // Therefore at here we always assume the user always wants to add parenthesis.
         => Task.FromResult(commitKey is ';' or '.');
 
-    protected override bool TryGetReceiverTypeSymbol(
+    protected override (ITypeSymbol? receiverTypeSymbol, bool isStatic) TryGetReceiverTypeSymbol(
         SemanticModel semanticModel,
         SyntaxNode node,
-        CancellationToken cancellationToken,
-        [NotNullWhen(true)] out ITypeSymbol? receiverTypeSymbol)
+        CancellationToken cancellationToken)
     {
         // If we have:
         //
@@ -76,10 +76,9 @@ internal sealed class ExtensionMemberImportCompletionProvider() : AbstractExtens
             expression.ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(semanticModel, out _, out var container) &&
             container is not null and not IErrorTypeSymbol)
         {
-            receiverTypeSymbol = container;
-            return true;
+            return (container, isStatic: false);
         }
 
-        return base.TryGetReceiverTypeSymbol(semanticModel, node, cancellationToken, out receiverTypeSymbol);
+        return base.TryGetReceiverTypeSymbol(semanticModel, node, cancellationToken);
     }
 }

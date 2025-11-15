@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -55,6 +54,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
     public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMembersAsync(
         SyntaxContext syntaxContext,
         ITypeSymbol receiverTypeSymbol,
+        bool isStatic,
         ISet<string> namespaceInScope,
         ImmutableArray<ITypeSymbol> targetTypesSymbols,
         bool forceCacheCreation,
@@ -76,7 +76,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
             var remoteResult = await client.TryInvokeAsync<IRemoteExtensionMemberImportCompletionService, ImmutableArray<SerializableImportCompletionItem>>(
                  project,
                  (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMembersAsync(
-                     solutionInfo, document.Id, position, receiverTypeSymbolKeyData, [.. namespaceInScope],
+                     solutionInfo, document.Id, position, receiverTypeSymbolKeyData, isStatic, [.. namespaceInScope],
                      targetTypesSymbolKeyData, forceCacheCreation, hideAdvancedMembers, cancellationToken),
                  cancellationToken).ConfigureAwait(false);
 
@@ -85,8 +85,8 @@ internal static partial class ExtensionMemberImportCompletionHelper
         else
         {
             return await GetUnimportedExtensionMembersInCurrentProcessAsync(
-                document, syntaxContext.SemanticModel, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceCacheCreation, hideAdvancedMembers, cancellationToken)
-                .ConfigureAwait(false);
+                document, syntaxContext.SemanticModel, position, receiverTypeSymbol, isStatic,
+                namespaceInScope, targetTypesSymbols, forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -95,6 +95,7 @@ internal static partial class ExtensionMemberImportCompletionHelper
         SemanticModel? semanticModel,
         int position,
         ITypeSymbol receiverTypeSymbol,
+        bool isStatic,
         ISet<string> namespaceInScope,
         ImmutableArray<ITypeSymbol> targetTypes,
         bool forceCacheCreation,
@@ -106,7 +107,8 @@ internal static partial class ExtensionMemberImportCompletionHelper
         semanticModel ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var symbolComputer = new SymbolComputer(
             document, semanticModel, receiverTypeSymbol, position, namespaceInScope);
-        var extensionMemberSymbols = await symbolComputer.GetExtensionMemberSymbolsAsync(forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+        var extensionMemberSymbols = await symbolComputer.GetExtensionMemberSymbolsAsync(
+            forceCacheCreation, hideAdvancedMembers, isStatic, cancellationToken).ConfigureAwait(false);
 
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
         var items = ConvertSymbolsToCompletionItems(compilation, extensionMemberSymbols, targetTypes, cancellationToken);
@@ -139,10 +141,11 @@ internal static partial class ExtensionMemberImportCompletionHelper
 
             ISymbol bestSymbol;
             int overloadCount;
-            var includeInTargetTypedCompletion = ShouldIncludeInTargetTypedCompletion(compilation, symbol, targetTypeSymbols, typeConvertibilityCache);
+            var includeInTargetTypedCompletion = ShouldIncludeInTargetTypedCompletion(
+                compilation, symbol, targetTypeSymbols, typeConvertibilityCache);
 
-            var containingNamespacename = GetFullyQualifiedNamespaceName(symbol.ContainingNamespace, namespaceNameCache);
-            var overloadKey = (containingNamespacename, symbol.Name, isGeneric: symbol.GetArity() > 0);
+            var containingNamespaceName = GetFullyQualifiedNamespaceName(symbol.ContainingNamespace, namespaceNameCache);
+            var overloadKey = (containingNamespaceName, symbol.Name, isGeneric: symbol.GetArity() > 0);
 
             // Select the overload convertible to any targeted type (if any) and with minimum number of parameters to display
             if (overloadMap.TryGetValue(overloadKey, out var currentValue))
