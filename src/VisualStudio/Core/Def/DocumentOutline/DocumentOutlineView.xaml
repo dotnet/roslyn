@@ -17,8 +17,8 @@
              x:Name="DocumentOutline"
              Background="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
              platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}"
-             FontFamily="{StaticResource {x:Static vsshell:VsFonts.EnvironmentFontFamilyKey}}"
-             FontSize="{StaticResource {x:Static vsshell:VsFonts.EnvironmentFontSizeKey}}">
+             FontFamily="{DynamicResource {x:Static vsshell:VsFonts.EnvironmentFontFamilyKey}}"
+             FontSize="{DynamicResource {x:Static vsshell:VsFonts.EnvironmentFontSizeKey}}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
