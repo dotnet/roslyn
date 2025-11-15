@@ -125,8 +125,8 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             }
             """,
             testHost,
-            ArrayType("IntArray"),
-            ArrayType("IntArray"));
+            Array("IntArray"),
+            Array("IntArray"));
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/67767")]
@@ -144,8 +144,8 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             }
             """,
             testHost,
-            PointerType("IntPointer"),
-            PointerType("IntPointer"));
+            Pointer("IntPointer"),
+            Pointer("IntPointer"));
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/67767")]
