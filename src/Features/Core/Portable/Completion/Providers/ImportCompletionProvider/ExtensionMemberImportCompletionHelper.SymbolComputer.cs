@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -85,6 +86,9 @@ internal static partial class ExtensionMemberImportCompletionHelper
         {
             try
             {
+                foreach (var reference in GetAllRelevantPeReferences(_originatingDocument.Project))
+                    await GetExtensionMemberSymbolsFromPeReferenceAsync(reference, _ => { }, forceCacheCreation, cancellationToken);
+
                 // Find applicable symbols in parallel
                 var peReferenceMemberSymbolsTask = ProducerConsumer<ISymbol?>.RunParallelAsync(
                     source: GetAllRelevantPeReferences(_originatingDocument.Project),

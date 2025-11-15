@@ -532,6 +532,7 @@ internal sealed partial class SymbolTreeInfo
                             continue;
                         }
 
+                        containsExtensionMembers = true;
                         var definition = new MetadataDefinition(
                             MetadataDefinitionKind.Member,
                             metadataReader.GetString(method.Name),
@@ -621,10 +622,12 @@ internal sealed partial class SymbolTreeInfo
                             continue;
                         }
 
-                        // has to be `public static "<Extension>$"(parameter)` (with exactly one parameter). 
+                        // has to be `public static "<Extension>$"(parameter)` (with exactly one parameter). note:
+                        // method.GetParameters() doesn't seem to work here for static methods (perhaps because the name
+                        // of the parameter is missing).  So we do a check of the method name only, and always decode in
+                        // that case.
                         if ((method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public ||
                             (method.Attributes & MethodAttributes.Static) == 0 ||
-                            method.GetParameters().Count != 1 ||
                             method.GetCustomAttributes().Count == 0)
                         {
                             continue;
