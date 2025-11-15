@@ -57,22 +57,17 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
     public static IEnumerable<object[]> AllTypeKindsWithReferenceTypeData
         => CombineWithReferenceTypeData((new[] { "class", "struct", "interface", "enum", "abstract class" }).Select(kind => new List<object>() { kind }));
 
-    private static IEnumerable<List<object>> BuiltInTypes
+    private static IEnumerable<List<object>> BuiltInTypes(bool includeArrays)
     {
-        get
-        {
-            var predefinedTypes = new List<string>() { "string", "String", "System.String" };
-            var arraySuffixes = new[] { "", "[]", "[,]" };
+        var predefinedTypes = new List<string>() { "string", "String", "System.String" };
+        var arraySuffixes = includeArrays ? new[] { "", "[]", "[,]" } : new[] { "" };
 
-            foreach (var type1 in predefinedTypes)
+        foreach (var type1 in predefinedTypes)
+        {
+            foreach (var type2 in predefinedTypes)
             {
-                foreach (var type2 in predefinedTypes)
-                {
-                    foreach (var suffix in arraySuffixes)
-                    {
-                        yield return new List<object>() { type1 + suffix, type2 + suffix };
-                    }
-                }
+                foreach (var suffix in arraySuffixes)
+                    yield return new List<object>() { type1 + suffix, type2 + suffix };
             }
         }
     }
@@ -91,8 +86,11 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
             _ => null,
         };
 
+    public static IEnumerable<object[]> BuiltInTypesIncludingArraysWithReferenceTypeData
+        => CombineWithReferenceTypeData(BuiltInTypes(includeArrays: true));
+
     public static IEnumerable<object[]> BuiltInTypesWithReferenceTypeData
-        => CombineWithReferenceTypeData(BuiltInTypes);
+        => CombineWithReferenceTypeData(BuiltInTypes(includeArrays: false));
 
     private Task VerifyImportItemExistsAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string expectedItem, string inlineDescription, Glyph? glyph = null, string displayTextSuffix = null, string expectedDescriptionOrNull = null, List<CompletionFilter> expectedFilters = null)
@@ -102,7 +100,7 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
         => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
 
-    [Theory, MemberData(nameof(BuiltInTypesWithReferenceTypeData))]
+    [Theory, MemberData(nameof(BuiltInTypesIncludingArraysWithReferenceTypeData))]
     public async Task TestPredefinedType(string type1, string type2, ReferenceType refType)
     {
         var file1 = $$"""
@@ -2326,7 +2324,7 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
              inlineDescription: "N",
              sourceCodeKind: SourceCodeKind.Regular);
 
-    [Theory, MemberData(nameof(BuiltInTypesWithReferenceTypeData))]
+    [Theory, MemberData(nameof(BuiltInTypesIncludingArraysWithReferenceTypeData))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/80561")]
     public async Task TestPredefinedType_ModernExtensionMethod(string type1, string type2, ReferenceType refType)
     {
@@ -2412,7 +2410,51 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
              inlineDescription: "Goo");
     }
 
-    [Theory, MemberData(nameof(BuiltInTypesWithReferenceTypeData))]
+    [Theory, MemberData(nameof(BuiltInTypesIncludingArraysWithReferenceTypeData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80561")]
+    public async Task TestPredefinedType_ModernExtensionMethod_Static_Alias(string type1, string type2, ReferenceType refType)
+    {
+        var file1 = $$"""
+            using System;
+
+            namespace Goo
+            {
+                public static class ExtensionClass
+                {
+                    extension({{type1}})
+                    {
+                        public static bool ExtensionMethod()
+                            => true;
+                    }
+                }
+            }
+            """;
+        var file2 = $$"""
+            using System;
+
+            namespace Baz
+            {
+                using T = {{type2}};
+                public class Bat
+                {
+                    public void M()
+                    {
+                        T.$$
+                    }
+                }
+            }
+            """;
+
+        var markup = GetMarkup(file2, file1, refType);
+
+        await VerifyImportItemExistsAsync(
+             markup,
+             "ExtensionMethod",
+             glyph: Glyph.ExtensionMethodPublic,
+             inlineDescription: "Goo");
+    }
+
+    [Theory, MemberData(nameof(BuiltInTypesIncludingArraysWithReferenceTypeData))]
     [WorkItem("https://github.com/dotnet/roslyn/issues/80561")]
     public async Task TestPredefinedType_ModernExtensionProperty(string type1, string type2, ReferenceType refType)
     {
@@ -2482,6 +2524,49 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
                     public void M()
                     {
                         {{type2}}.$$
+                    }
+                }
+            }
+            """;
+
+        var markup = GetMarkup(file2, file1, refType);
+
+        await VerifyImportItemExistsAsync(
+             markup,
+             "ExtensionProp",
+             glyph: Glyph.PropertyPublic,
+             inlineDescription: "Goo");
+    }
+
+    [Theory, MemberData(nameof(BuiltInTypesIncludingArraysWithReferenceTypeData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/80561")]
+    public async Task TestPredefinedType_ModernExtensionProperty_Static_Alias(string type1, string type2, ReferenceType refType)
+    {
+        var file1 = $$"""
+            using System;
+
+            namespace Goo
+            {
+                public static class ExtensionClass
+                {
+                    extension({{type1}})
+                    {
+                        public static bool ExtensionProp => true;
+                    }
+                }
+            }
+            """;
+        var file2 = $$"""
+            using System;
+
+            namespace Baz
+            {
+                using T = {{type2}};
+                public class Bat
+                {
+                    public void M()
+                    {
+                        T.$$
                     }
                 }
             }
