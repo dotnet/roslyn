@@ -6,12 +6,14 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
@@ -150,19 +152,76 @@ internal abstract class UseExpressionBodyHelper<TDeclaration>(
         if (declaration is PropertyDeclarationSyntax { Initializer: not null })
             return false;
 
-        if (TryConvertToExpressionBodyWorker(declaration, conversionPreference, cancellationToken, out arrowExpression, out semicolonToken))
-            return true;
-
         var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
+        if (TryConvertToExpressionBodyWorker(declaration, conversionPreference, cancellationToken, out arrowExpression, out semicolonToken))
+        {
+            arrowExpression = UpdateTriviaIndentation(arrowExpression, getAccessor);
+            return true;
+        }
+
         if (getAccessor?.ExpressionBody != null &&
             BlockSyntaxExtensions.MatchesPreference(getAccessor.ExpressionBody.Expression, conversionPreference))
         {
-            arrowExpression = ArrowExpressionClause(getAccessor.ExpressionBody.Expression);
+            arrowExpression = UpdateTriviaIndentation(ArrowExpressionClause(getAccessor.ExpressionBody.Expression), getAccessor);
             semicolonToken = getAccessor.SemicolonToken;
             return true;
         }
 
         return false;
+
+        static ArrowExpressionClauseSyntax UpdateTriviaIndentation(ArrowExpressionClauseSyntax arrowExpression, AccessorDeclarationSyntax? getAccessor)
+        {
+            if (!arrowExpression.Expression.GetLeadingTrivia().Any(t => t.IsRegularComment()) ||
+                getAccessor?.GetLeadingTrivia() is not [.., (kind: SyntaxKind.WhitespaceTrivia) whitespace])
+            {
+                return arrowExpression;
+            }
+
+            // We'ver got an expression with comments on it to return.  Because of the comments, the expression will
+            // not be placed directly after the `=>`, but instead will be on the following line.  For example:
+            //
+            //  {
+            //      get
+            //      {
+            //          // Comment
+            //          return x + y;
+            //      }
+            //  }
+            //
+            // will become:
+            //
+            //          // Comment
+            //          x + y;
+            //
+            // This will be indented one level too far.  Try to update the indentation to match the indentation
+            // on the get-accessor instead.
+            return arrowExpression.WithExpression(
+                arrowExpression.Expression.WithLeadingTrivia(
+                    UpdateLeadingWhitespace(arrowExpression.Expression.GetLeadingTrivia(), whitespace)));
+        }
+
+        static SyntaxTriviaList UpdateLeadingWhitespace(SyntaxTriviaList originalTrivia, SyntaxTrivia whitespace)
+        {
+            var startOfLine = true;
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(originalTrivia.Count, out var updatedTrivia);
+            foreach (var trivia in originalTrivia)
+            {
+                if (startOfLine && trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                {
+                    // if we hit a whitespace at the start of the line, replace with the whitespace on the get-accessor.
+                    updatedTrivia.Add(whitespace);
+                }
+                else
+                {
+                    // otherwise, keep track if we're at the start of a line for the next trivia and add whatever
+                    // we ran into.
+                    startOfLine = trivia.IsEndOfLine() || trivia.IsSingleLineComment();
+                    updatedTrivia.Add(trivia);
+                }
+            }
+
+            return TriviaList(updatedTrivia);
+        }
     }
 
     public bool CanOfferUseBlockBody(
