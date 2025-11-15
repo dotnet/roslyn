@@ -100,18 +100,24 @@ internal sealed class ClassificationTypeDefinitions
     internal readonly ClassificationTypeDefinition UserTypeTypeParametersTypeDefinition;
     #endregion
     #region User Types - Arrays
+    // Arrays inherit from ClassName to pick up the reference type classification by default.
+    // Users can customize this color separately if desired.
     [Export]
     [Name(ClassificationTypeNames.ArrayName)]
     [BaseDefinition(ClassificationTypeNames.ClassName)]
     internal readonly ClassificationTypeDefinition UserTypeArraysTypeDefinition;
     #endregion
     #region User Types - Pointers
+    // Pointers inherit from StructName to pick up the value type classification by default.
+    // Users can customize this color separately if desired.
     [Export]
     [Name(ClassificationTypeNames.PointerName)]
     [BaseDefinition(ClassificationTypeNames.StructName)]
     internal readonly ClassificationTypeDefinition UserTypePointersTypeDefinition;
     #endregion
     #region User Types - Function Pointers
+    // Function pointers inherit from StructName to pick up the value type classification by default.
+    // Users can customize this color separately if desired.
     [Export]
     [Name(ClassificationTypeNames.FunctionPointerName)]
     [BaseDefinition(ClassificationTypeNames.StructName)]
