@@ -1639,7 +1639,7 @@ public sealed partial class InvertIfTests
                 #endif
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77181")]
     public Task TestMultiLine_ConditionOnNextLine()
         => TestInsideMethodAsync(
 @"[||]if (
@@ -1647,7 +1647,7 @@ public sealed partial class InvertIfTests
 @"if (
     !b) { }");
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77181")]
     public Task TestMultiLine_AndConditionOnNextLine()
         => TestInsideMethodAsync(
 @"[||]if (a &&
