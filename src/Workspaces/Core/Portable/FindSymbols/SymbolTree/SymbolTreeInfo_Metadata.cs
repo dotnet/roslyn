@@ -573,22 +573,27 @@ internal sealed partial class SymbolTreeInfo
                 //
                 //  static class NormalClass
                 //  {
-                //      [SpecialName] public sealed class <G>$34505F560D9EACF86A87F3ED1F85E448
+                //      [SpecialName, Extension] public sealed class <G>$34505F560D9EACF86A87F3ED1F85E448
                 //      {
                 //          [SpecialName] public static class <M>$97B1E6A5993F490204BC5DC367191ECC
                 //          {
                 //              // This is used to determine the extension block parameter type
-                //              public static <Extension>$(parameter) { }
+                //              [CompilerGenerated] public static <Extension>$(parameter) { }
                 //          }
                 //
                 //          public void ExtensionMethod() { }
                 //          public int ExtensionProp => ...
                 //      }
                 //  }
+                //
+                // Note: to keep things simple, we don't check actual attributes.  We just check enough to give us
+                // confidencce that we found the right thing.  (So same modifiers, has or does not have a special name,
+                // has attributes, etc).
 
                 if ((typeDefinition.Attributes & TypeAttributes.Sealed) == 0 ||
                     !IsPublicType(typeDefinition) ||
-                    !HasSpecialName(typeDefinition))
+                    !HasSpecialName(typeDefinition) ||
+                    typeDefinition.GetCustomAttributes().Count == 0)
                 {
                     return null;
                 }
@@ -619,7 +624,8 @@ internal sealed partial class SymbolTreeInfo
                         // has to be `public static "<Extension>$"(parameter)` (with exactly one parameter). 
                         if ((method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public ||
                             (method.Attributes & MethodAttributes.Static) == 0 ||
-                            method.GetParameters().Count != 1)
+                            method.GetParameters().Count != 1 ||
+                            method.GetCustomAttributes().Count == 0)
                         {
                             continue;
                         }
