@@ -2580,4 +2580,180 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
              glyph: Glyph.PropertyPublic,
              inlineDescription: "Goo");
     }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80561")]
+    public async Task TestPredefinedType_ModernExtensionMethod_GenericType(ReferenceType refType)
+    {
+        var file1 = $$"""
+            using System;
+            using System.Collections.Generic;
+
+            namespace Goo
+            {
+                public static class ExtensionClass
+                {
+                    extension<T>(IList<T> x)
+                    {
+                        public bool ExtensionMethod()
+                            => true;
+                    }
+                }
+            }
+            """;
+        var file2 = $$"""
+            using System;
+            using System.Collections.Generic;
+
+            namespace Baz
+            {
+                public class Bat
+                {
+                    public void M(List<int> x)
+                    {
+                        x.$$
+                    }
+                }
+            }
+            """;
+
+        var markup = GetMarkup(file2, file1, refType);
+
+        await VerifyImportItemExistsAsync(
+             markup,
+             "ExtensionMethod",
+             glyph: Glyph.ExtensionMethodPublic,
+             inlineDescription: "Goo");
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80561")]
+    public async Task TestPredefinedType_ModernExtensionMethod_GenericType_Static(ReferenceType refType)
+    {
+        var file1 = $$"""
+            using System;
+            using System.Collections.Generic;
+
+            namespace Goo
+            {
+                public static class ExtensionClass
+                {
+                    extension<T>(IList<T> x)
+                    {
+                        public static bool ExtensionMethod()
+                            => true;
+                    }
+                }
+            }
+            """;
+        var file2 = $$"""
+            using System;
+            using System.Collections.Generic;
+
+            namespace Baz
+            {
+                public class Bat
+                {
+                    public void M()
+                    {
+                        List<int>.$$
+                    }
+                }
+            }
+            """;
+
+        var markup = GetMarkup(file2, file1, refType);
+
+        await VerifyImportItemExistsAsync(
+             markup,
+             "ExtensionMethod",
+             glyph: Glyph.ExtensionMethodPublic,
+             inlineDescription: "Goo");
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80561")]
+    public async Task TestPredefinedType_ModernExtensionProperty_GenericType(ReferenceType refType)
+    {
+        var file1 = $$"""
+            using System;
+            using System.Collections.Generic;
+
+            namespace Goo
+            {
+                public static class ExtensionClass
+                {
+                    extension<T>(IList<T> x)
+                    {
+                        public bool ExtensionProp
+                            => true;
+                    }
+                }
+            }
+            """;
+        var file2 = $$"""
+            using System;
+            using System.Collections.Generic;
+
+            namespace Baz
+            {
+                public class Bat
+                {
+                    public void M(List<int> x)
+                    {
+                        x.$$
+                    }
+                }
+            }
+            """;
+
+        var markup = GetMarkup(file2, file1, refType);
+
+        await VerifyImportItemExistsAsync(
+             markup,
+             "ExtensionProp",
+             glyph: Glyph.PropertyPublic,
+             inlineDescription: "Goo");
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80561")]
+    public async Task TestPredefinedType_ModernExtensionProperty_GenericType_Static(ReferenceType refType)
+    {
+        var file1 = $$"""
+            using System;
+            using System.Collections.Generic;
+
+            namespace Goo
+            {
+                public static class ExtensionClass
+                {
+                    extension<T>(IList<T> x)
+                    {
+                        public static bool ExtensionProp
+                            => true;
+                    }
+                }
+            }
+            """;
+        var file2 = $$"""
+            using System;
+            using System.Collections.Generic;
+
+            namespace Baz
+            {
+                public class Bat
+                {
+                    public void M()
+                    {
+                        List<int>.$$
+                    }
+                }
+            }
+            """;
+
+        var markup = GetMarkup(file2, file1, refType);
+
+        await VerifyImportItemExistsAsync(
+             markup,
+             "ExtensionProp",
+             glyph: Glyph.PropertyPublic,
+             inlineDescription: "Goo");
+    }
 }

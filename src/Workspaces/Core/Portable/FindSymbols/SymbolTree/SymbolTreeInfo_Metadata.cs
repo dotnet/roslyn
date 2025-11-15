@@ -421,11 +421,12 @@ internal sealed partial class SymbolTreeInfo
         {
             var currentTypeIsStaticClass = IsStaticClass(typeDefinition);
 
-            // Only bother looking for extension methods in static types. Note this check means we would ignore
-            // extension methods declared in assemblies compiled from VB code, since a module in VB is compiled into
-            // class with "sealed" attribute but not "abstract". Although this can be addressed by checking custom
+            // Only bother looking for extension methods in non-generic static types. Note this check means we would
+            // ignore extension methods declared in assemblies compiled from VB code, since a module in VB is compiled
+            // into class with "sealed" attribute but not "abstract". Although this can be addressed by checking custom
             // attributes, we believe this is not a common scenario to warrant potential perf impact.
-            if (currentTypeIsStaticClass)
+            if (currentTypeIsStaticClass &&
+                typeDefinition.GetGenericParameters().Count == 0)
             {
                 // Handle classic extension methods.
                 _containsExtensionMembers = LoadClassicExtensionMethods() || _containsExtensionMembers;
@@ -456,8 +457,7 @@ internal sealed partial class SymbolTreeInfo
 
             static bool IsStaticClass(TypeDefinition typeDefinition)
                 => (typeDefinition.Attributes & TypeAttributes.Abstract) != 0 &&
-                   (typeDefinition.Attributes & TypeAttributes.Sealed) != 0 &&
-                   typeDefinition.GetGenericParameters().Count == 0;
+                   (typeDefinition.Attributes & TypeAttributes.Sealed) != 0;
 
             bool IsPublicMethod(MethodDefinitionHandle methodHandle)
             {
@@ -514,6 +514,7 @@ internal sealed partial class SymbolTreeInfo
 
             bool LoadModernExtensionMembers(TypeDefinition nestedType)
             {
+                var isGenericExtensionBlock = nestedType.GetGenericParameters().Count > 0;
                 var containsExtensionMembers = false;
                 var extensionParameterTypeInfo = TryGetExtensionParameterTypeInfo(nestedType);
                 if (extensionParameterTypeInfo is not null)
@@ -522,11 +523,16 @@ internal sealed partial class SymbolTreeInfo
                     foreach (var childMethod in nestedType.GetMethods())
                     {
                         var method = metadataReader.GetMethodDefinition(childMethod);
-                        // Don't bother loading instance extension methods from modern extension blocks. We'll have
-                        // already loaded the static classic extension method above.
                         if ((method.Attributes & MethodAttributes.SpecialName) != 0 ||
                             (method.Attributes & MethodAttributes.RTSpecialName) != 0 ||
-                            (method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public ||
+                            (method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public)
+                        {
+                            continue;
+                        }
+
+                        // Don't bother loading instance extension methods from non-generic modern extension blocks.
+                        // We'll have already loaded the static classic extension method above.
+                        if (!isGenericExtensionBlock &&
                             (method.Attributes & MethodAttributes.Static) == 0)
                         {
                             continue;
