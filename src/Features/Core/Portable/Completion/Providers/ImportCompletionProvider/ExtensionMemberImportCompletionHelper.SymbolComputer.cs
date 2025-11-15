@@ -86,8 +86,12 @@ internal static partial class ExtensionMemberImportCompletionHelper
         {
             try
             {
+                // Enable if, during debugging, you want to be able to easily debug into the PE reference processing
+                // serially instead of in parallel below.
+#if false
                 foreach (var reference in GetAllRelevantPeReferences(_originatingDocument.Project))
                     await GetExtensionMemberSymbolsFromPeReferenceAsync(reference, _ => { }, forceCacheCreation, cancellationToken);
+#endif
 
                 // Find applicable symbols in parallel
                 var peReferenceMemberSymbolsTask = ProducerConsumer<ISymbol?>.RunParallelAsync(
