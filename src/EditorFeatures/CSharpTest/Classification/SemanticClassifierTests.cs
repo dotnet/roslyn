@@ -110,6 +110,7 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("dynamic"));
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67767")]
     public Task ArrayTypeAlias(TestHost testHost)
         => TestAsync(
             """
@@ -128,6 +129,7 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             ArrayType("IntArray"));
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67767")]
     public Task PointerTypeAlias(TestHost testHost)
         => TestAsync(
             """
@@ -146,6 +148,7 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             PointerType("IntPointer"));
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67767")]
     public Task FunctionPointerTypeAlias(TestHost testHost)
         => TestAsync(
             """
