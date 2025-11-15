@@ -2440,6 +2440,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SingleInapplicableUnaryOperator = 9341,
         ERR_AmbigOperator = 9342,
 
+        ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList = 9343,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

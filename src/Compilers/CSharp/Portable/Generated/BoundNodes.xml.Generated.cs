@@ -478,27 +478,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCapturedReceiverPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundCapturedReceiverPlaceholder(SyntaxNode syntax, BoundExpression receiver, SafeContext localScopeDepth, TypeSymbol? type, bool hasErrors = false)
+        public BoundCapturedReceiverPlaceholder(SyntaxNode syntax, BoundExpression receiver, TypeSymbol? type, bool hasErrors = false)
             : base(BoundKind.CapturedReceiverPlaceholder, syntax, type, hasErrors || receiver.HasErrors())
         {
 
             RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Receiver = receiver;
-            this.LocalScopeDepth = localScopeDepth;
         }
 
         public BoundExpression Receiver { get; }
-        public SafeContext LocalScopeDepth { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCapturedReceiverPlaceholder(this);
 
-        public BoundCapturedReceiverPlaceholder Update(BoundExpression receiver, SafeContext localScopeDepth, TypeSymbol? type)
+        public BoundCapturedReceiverPlaceholder Update(BoundExpression receiver, TypeSymbol? type)
         {
-            if (receiver != this.Receiver || localScopeDepth != this.LocalScopeDepth || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiver != this.Receiver || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCapturedReceiverPlaceholder(this.Syntax, receiver, localScopeDepth, type, this.HasErrors);
+                var result = new BoundCapturedReceiverPlaceholder(this.Syntax, receiver, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10878,7 +10876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiver, node.LocalScopeDepth, type);
+            return node.Update(receiver, type);
         }
         public override BoundNode? VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
@@ -12465,12 +12463,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(receiver, node.LocalScopeDepth, infoAndType.Type);
+                updatedNode = node.Update(receiver, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(receiver, node.LocalScopeDepth, node.Type);
+                updatedNode = node.Update(receiver, node.Type);
             }
             return updatedNode;
         }
@@ -15174,7 +15172,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitCapturedReceiverPlaceholder(BoundCapturedReceiverPlaceholder node, object? arg) => new TreeDumperNode("capturedReceiverPlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
-            new TreeDumperNode("localScopeDepth", node.LocalScopeDepth, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

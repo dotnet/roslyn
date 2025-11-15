@@ -6940,6 +6940,7 @@ class C
         End Sub
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2040")>
         <WorkItem("https://github.com/dotnet/roslyn/issues/44070")>
         Public Sub RenameTypeParameterFromCRef(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -6949,15 +6950,13 @@ class C
 class C
 {
     /// <summary>
-    /// <see cref="Goo{$${|Complex:{|unresolved:X|}|}}(X)"/>
+    /// <see cref="Goo{$$[|X|]}([|X|])"/>
     /// </summary>
     void Goo<T>(T t) { }
 }]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="D")
-
-                result.AssertLabeledSpansAre("Complex", "C.Goo{D}(X)", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 

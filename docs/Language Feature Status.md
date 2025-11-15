@@ -6,15 +6,23 @@ and will be updated as work progresses, features are added / removed, and as wor
 This is not an exhaustive list of our features but rather the ones which have active development
 efforts behind them.
 
+The "Feature" column contains a link to the championed proposal or doc for the feature.  
+The "State" column contains a link to the test plan issue for the feature. The test plan should have a "Feature - XYZ" label, which is also used on PRs and issues for the feature.  
+
 # Working Set C#
+
+Merged features should be in the bottom portion of the table (in descending order from earliest to latest merged), while in-progress features should be in the top portion of the table.  
+When a feature is merged to the `main` branch, its entry should be moved to the bottom of the table and its "State" value should be updated to record the relevant version number.  
 
 | Feature | Branch | State | Developer | Reviewer | IDE Buddy | LDM Champ |
 | ------- | ------ | ----- | --------- | -------- | --------- | --------- |
-| Runtime Async | [runtime-async](https://github.com/dotnet/roslyn/tree/features/runtime-async) | [Merged into main in preview](https://github.com/dotnet/roslyn/issues/75960) | [333fred](https://github.com/333fred) | [jcouv](https://github.com/jcouv), [RikkiGibson](https://github.com/RikkiGibson) |  |  |
 | [Dictionary expressions](https://github.com/dotnet/csharplang/issues/8659) | [dictionary-expressions](https://github.com/dotnet/roslyn/tree/features/dictionary-expressions) | [In progress](https://github.com/dotnet/roslyn/issues/76310) | [333fred](https://github.com/333fred)  | [CyrusNajmabadi](https://github.com/CyrusNajmabadi), [jcouv](https://github.com/jcouv) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 | [Collection expression arguments](https://github.com/dotnet/csharplang/issues/8887) | [collection-expression-arguments](https://github.com/dotnet/roslyn/tree/features/collection-expression-arguments) | [In progress](https://github.com/dotnet/roslyn/issues/80613) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [333fred](https://github.com/333fred), [jcouv](https://github.com/jcouv) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
-| [Unions](https://github.com/dotnet/csharplang/issues/9662) | | In Progress | [AlekseyTs](https://github.com/AlekseyTs) | [RikkiGibson](https://github.com/RikkiGibson), [333fred](https://github.com/333fred) | TBD | |
+| [Unions](https://github.com/dotnet/csharplang/issues/9662) | [Unions](https://github.com/dotnet/roslyn/tree/features/Unions) | [In Progress](https://github.com/dotnet/roslyn/issues/81074) | [AlekseyTs](https://github.com/AlekseyTs) | [RikkiGibson](https://github.com/RikkiGibson), [333fred](https://github.com/333fred) | TBD | [MadsTorgersen](https://github.com/MadsTorgersen) |
 | [Closed class hierarchies](https://github.com/dotnet/csharplang/issues/9499) | [closed-class](https://github.com/dotnet/roslyn/tree/features/closed-class) | [In progress](https://github.com/dotnet/roslyn/issues/81039) | [RikkiGibson](https://github.com/RikkiGibson) | [AlekseyTs](https://github.com/AlekseyTs), [jjonescz](https://github.com/jjonescz) | TBD | [mattwar](https://github.com/mattwar) |
+| [Unsafe evolution](https://github.com/dotnet/csharplang/issues/9704) | [UnsafeEvolution](https://github.com/dotnet/roslyn/tree/features/UnsafeEvolution) | [In progress](https://github.com/dotnet/roslyn/issues/81207) | [jjonescz](https://github.com/jjonescz) | [333fred](https://github.com/333fred), [jcouv](https://github.com/jcouv) | TBD | [agocke](https://github.com/agocke) |
+| Runtime Async | [runtime-async](https://github.com/dotnet/roslyn/tree/features/runtime-async) | [Merged into main in preview](https://github.com/dotnet/roslyn/issues/75960) | [333fred](https://github.com/333fred) | [jcouv](https://github.com/jcouv), [RikkiGibson](https://github.com/RikkiGibson) |  |  |
+
 # Working Set VB
 
 # C# 14.0
