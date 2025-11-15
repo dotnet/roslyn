@@ -643,6 +643,8 @@ internal sealed partial class SymbolTreeInfo
                         if (methodName != "<Extension>$")
                             continue;
 
+                        Debug.Assert(method.GetParameters().Count == 1);
+
                         // Decode method signature to get the receiver type name (i.e. type name for the first parameter)
                         var blob = metadataReader.GetBlobReader(method.Signature);
                         var decoder = new SignatureDecoder<ParameterTypeInfo, object?>(ParameterTypeInfoProvider.Instance, metadataReader, genericContext: null);
