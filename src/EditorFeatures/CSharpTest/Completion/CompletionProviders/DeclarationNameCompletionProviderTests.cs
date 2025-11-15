@@ -862,7 +862,10 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 Func<string> $$
             }
             """;
-        // Verify original suggestions still work
+        // Verify original Func-based suggestions still work
+        await VerifyItemExistsAsync(markup, "Func");
+        await VerifyItemExistsAsync(markup, "func");
+        // Verify return type suggestions
         await VerifyItemExistsAsync(markup, "String");
         await VerifyItemExistsAsync(markup, "@string");
         await VerifyItemExistsAsync(markup, "GetString");
@@ -883,7 +886,10 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 Func<int, string> $$
             }
             """;
-        // Verify original suggestions still work
+        // Verify original Func-based suggestions still work
+        await VerifyItemExistsAsync(markup, "Func");
+        await VerifyItemExistsAsync(markup, "func");
+        // Verify return type suggestions
         await VerifyItemExistsAsync(markup, "String");
         await VerifyItemExistsAsync(markup, "@string");
         // Verify new Func-specific suggestions
@@ -905,7 +911,10 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             public class Customer { }
             """;
-        // Verify original suggestions still work
+        // Verify original Func-based suggestions still work
+        await VerifyItemExistsAsync(markup, "Func");
+        await VerifyItemExistsAsync(markup, "func");
+        // Verify return type suggestions
         await VerifyItemExistsAsync(markup, "Customer");
         await VerifyItemExistsAsync(markup, "customer");
         // Verify new Func-specific suggestions
@@ -927,7 +936,9 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             public class Item { }
             """;
-        // Verify original suggestions still work
+        // Verify original Func-based suggestions still work
+        await VerifyItemExistsAsync(markup, "func", glyph: Glyph.Parameter);
+        // Verify return type suggestions
         await VerifyItemExistsAsync(markup, "item", glyph: Glyph.Parameter);
         // Verify new Func-specific suggestions
         await VerifyItemExistsAsync(markup, "factory", glyph: Glyph.Parameter);
@@ -951,7 +962,9 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             public class Result { }
             """;
-        // Verify original suggestions still work
+        // Verify original Func-based suggestions still work
+        await VerifyItemExistsAsync(markup, "func");
+        // Verify return type suggestions
         await VerifyItemExistsAsync(markup, "result");
         // Verify new Func-specific suggestions
         await VerifyItemExistsAsync(markup, "factory");

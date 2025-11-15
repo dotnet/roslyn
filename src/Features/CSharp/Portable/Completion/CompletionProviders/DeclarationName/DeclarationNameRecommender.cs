@@ -84,7 +84,7 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
             result.Add(["Factory"]);
             result.Add(["Selector"]);
 
-            // Add all the original base names with "Factory" suffix
+            // Add all the unwrapped type base names with "Factory" suffix
             foreach (var baseName in baseNames)
             {
                 using var factoryName = TemporaryArray<string>.Empty;
@@ -94,8 +94,12 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
                 result.Add(factoryName.ToImmutableAndClear());
             }
 
-            // Also include the original base names without Factory suffix
+            // Also include the unwrapped type base names (e.g., "string" for Func<string>)
             result.AddRange(baseNames);
+
+            // Additionally, include names based on the original Func type itself (e.g., "func" for Func<T>)
+            var funcBaseNames = NameGenerator.GetBaseNames(originalType, pluralize: false);
+            result.AddRange(funcBaseNames);
 
             return result.ToImmutableAndClear();
         }
