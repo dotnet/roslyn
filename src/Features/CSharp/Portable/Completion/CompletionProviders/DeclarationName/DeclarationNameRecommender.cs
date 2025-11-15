@@ -71,12 +71,9 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
 
         var compilation = semanticModel.Compilation;
         var originalType = nameInfo.Type;
-        var (type, plural) = UnwrapType(originalType, compilation, wasPlural: false, seenTypes: []);
 
-        var baseNames = NameGenerator.GetBaseNames(type, plural);
-
-        // Check if the original type is a Func<..., T> and add "Factory" and "Selector" suffixes
-        if (IsFuncType(originalType, compilation))
+        // Check if the original type is a Func<..., T> and add special suggestions
+        if (IsFuncType(originalType))
         {
             using var _ = ArrayBuilder<ImmutableArray<string>>.GetInstance(out var result);
 
@@ -84,26 +81,36 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
             result.Add(["Factory"]);
             result.Add(["Selector"]);
 
-            // Add all the unwrapped type base names with "Factory" suffix
-            foreach (var baseName in baseNames)
-            {
-                using var factoryName = TemporaryArray<string>.Empty;
-                foreach (var word in baseName)
-                    factoryName.Add(word);
-                factoryName.Add("Factory");
-                result.Add(factoryName.ToImmutableAndClear());
-            }
-
-            // Also include the unwrapped type base names (e.g., "string" for Func<string>)
-            result.AddRange(baseNames);
-
-            // Additionally, include names based on the original Func type itself (e.g., "func" for Func<T>)
+            // Get names based on the original Func type itself (e.g., "func" for Func<T>)
             var funcBaseNames = NameGenerator.GetBaseNames(originalType, pluralize: false);
             result.AddRange(funcBaseNames);
+
+            // Also unwrap the return type and get names from it
+            if (originalType is INamedTypeSymbol { TypeArguments.Length: > 0 } namedType)
+            {
+                var returnType = namedType.TypeArguments[^1];
+                var (unwrappedReturnType, returnTypePlural) = UnwrapType(returnType, compilation, wasPlural: false, seenTypes: []);
+                var returnTypeBaseNames = NameGenerator.GetBaseNames(unwrappedReturnType, returnTypePlural);
+
+                // Add return type base names with "Factory" suffix
+                foreach (var baseName in returnTypeBaseNames)
+                {
+                    using var factoryName = TemporaryArray<string>.Empty;
+                    foreach (var word in baseName)
+                        factoryName.Add(word);
+                    factoryName.Add("Factory");
+                    result.Add(factoryName.ToImmutableAndClear());
+                }
+
+                // Also include the return type base names without suffix (e.g., "string" for Func<string>)
+                result.AddRange(returnTypeBaseNames);
+            }
 
             return result.ToImmutableAndClear();
         }
 
+        var (type, plural) = UnwrapType(originalType, compilation, wasPlural: false, seenTypes: []);
+        var baseNames = NameGenerator.GetBaseNames(type, plural);
         return baseNames;
     }
 
@@ -127,7 +134,7 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
         return !type.IsSpecialType();
     }
 
-    private static bool IsFuncType(ITypeSymbol type, Compilation compilation)
+    private static bool IsFuncType(ITypeSymbol type)
         => type is INamedTypeSymbol { Name: "Func", ContainingNamespace.Name: "System", TypeArguments.Length: > 0 };
 
     private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural, HashSet<ITypeSymbol> seenTypes)
@@ -198,13 +205,6 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
                 originalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {
                 return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural, seenTypes: seenTypes);
-            }
-
-            // Handle Func<..., TResult> by extracting the last type argument (the return type)
-            if (IsFuncType(type, compilation))
-            {
-                var returnType = namedType.TypeArguments[^1];
-                return UnwrapType(returnType, compilation, wasPlural: wasPlural, seenTypes: seenTypes);
             }
         }
 
