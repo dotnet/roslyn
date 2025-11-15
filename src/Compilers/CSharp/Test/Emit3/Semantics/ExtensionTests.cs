@@ -51327,6 +51327,10 @@ static class E
             // (9,30): warning CS1573: Parameter 'o2' has no matching param tag in the XML comment for 'E.extension(object).M(object)' (but other parameters do)
             //         public void M(object o2) => throw null!;
             Diagnostic(ErrorCode.WRN_MissingParamTag, "o2").WithArguments("o2", "E.extension(object).M(object)").WithLocation(9, 30));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.SequenceEqual(["(o, null)"], PrintXmlNameSymbols(tree, model));
     }
 
     [Fact]
@@ -51347,6 +51351,10 @@ static class E
 """;
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.SequenceEqual(["(o, System.Object o)"], PrintXmlNameSymbols(tree, model));
     }
 
     [Fact]
@@ -51465,7 +51473,7 @@ static class E
     /// <summary>Summary for extension block</summary>
     extension<T>(T t)
     {
-        /// <summary>Summary for M</summary>
+        /// <summary>Summary for M <typeparamref name="T"/> </summary>
         /// <typeparam name="T">Description for T</typeparam>
         public static void M<U>(U u) => throw null!;
     }
@@ -51691,6 +51699,86 @@ static class E
             Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "value").WithArguments("value", "E.extension(object).P2").WithLocation(8, 53));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81217")]
+    public void XmlDoc_ParamRef_04()
+    {
+        // No parameter on method
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        /// <returns><paramref name="o"/></returns>
+        public object M() => o;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments,
+            assemblyName: "paramref_04");
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.SequenceEqual(["(o, System.Object o)"], PrintXmlNameSymbols(tree, model));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81217")]
+    public void XmlDoc_ParamRef_05()
+    {
+        // One parameter on method
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        /// <summary><paramref name="o"/></summary>
+        public object M(int i) => o;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments,
+            assemblyName: "paramref_05");
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.SequenceEqual(["(o, System.Object o)"], PrintXmlNameSymbols(tree, model));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81217")]
+    public void XmlDoc_ParamRef_06()
+    {
+        // <params> preceeds <paramref>
+        var src = """
+using System;
+
+static class E
+{
+    /// <param name="value">Param value</param>
+    extension(ReadOnlySpan<char> value)
+    {
+        /// <param name="n">Param n</param>
+        /// <param name="delimiter">Param delimiter</param>
+        /// <returns><paramref name="value"/></returns>
+        public ReadOnlySpan<char> GetNthDelimitedItem(int n, ReadOnlySpan<char> delimiter) => throw null !;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments,
+            assemblyName: "paramref_06", targetFramework: TargetFramework.Net100);
+
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.SequenceEqual([
+            "(value, System.ReadOnlySpan<System.Char> value)",
+            "(n, System.Int32 n)",
+            "(delimiter, System.ReadOnlySpan<System.Char> delimiter)",
+            "(value, System.ReadOnlySpan<System.Char> value)"],
+            PrintXmlNameSymbols(tree, model));
+    }
+
     [Fact]
     public void XmlDoc_TypeParamRef_01()
     {
@@ -51745,6 +51833,29 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.SequenceEqual(["(T, null)", "(T, T)"], PrintXmlNameSymbols(tree, model));
+    }
+
+    [Fact]
+    public void XmlDoc_TypeParamRef_03()
+    {
+        var src = """
+static class E
+{
+    /// <typeparam name="T1"/>
+    extension<T1>(int)
+    {
+        /// <summary><typeparamref name="T1"/></summary>
+        /// <typeparam name="T2"/>
+        public static void M<T2>() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.SequenceEqual(["(T1, T1)", "(T1, T1)", "(T2, T2)"], PrintXmlNameSymbols(tree, model));
     }
 
     [Fact]
