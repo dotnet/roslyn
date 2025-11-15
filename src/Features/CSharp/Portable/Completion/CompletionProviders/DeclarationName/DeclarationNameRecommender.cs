@@ -75,28 +75,29 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
         var baseNames = NameGenerator.GetBaseNames(type, plural);
 
         // Check if the original type is a Func<..., T> and add special suggestions
-        if (originalType is not INamedTypeSymbol { Name: "Func", ContainingNamespace.Name: "System", TypeArguments: [.., var returnType] })
-            return baseNames;
+        if (originalType is INamedTypeSymbol { Name: "Func", ContainingNamespace.Name: "System", TypeArguments: [.., var returnType] })
+        {
+            using var result = TemporaryArray<ImmutableArray<string>>.Empty;
 
-        using var _ = ArrayBuilder<ImmutableArray<string>>.GetInstance(out var result);
+            // Add standalone suggestions
+            result.Add(["Factory"]);
+            result.Add(["Selector"]);
 
-        // Add standalone suggestions
-        result.Add(["Factory"]);
-        result.Add(["Selector"]);
+            // Get names based on the original Func type itself (e.g., "func" for Func<T>)
+            result.AddRange(baseNames);
 
-        // Get names based on the original Func type itself (e.g., "func" for Func<T>)
-        result.AddRange(baseNames);
+            // Also unwrap the return type and get names from it
+            var (unwrappedReturnType, returnTypePlural) = UnwrapType(returnType, compilation, wasPlural: false, seenTypes: []);
+            var returnTypeBaseNames = NameGenerator.GetBaseNames(unwrappedReturnType, returnTypePlural);
 
-        // Also unwrap the return type and get names from it
+            // Add return type base names with "Factory" suffix
+            foreach (var baseName in returnTypeBaseNames)
+                result.Add([.. baseName, "Factory"]);
 
-        var (unwrappedReturnType, returnTypePlural) = UnwrapType(returnType, compilation, wasPlural: false, seenTypes: []);
-        var returnTypeBaseNames = NameGenerator.GetBaseNames(unwrappedReturnType, returnTypePlural);
+            return result.ToImmutableAndClear();
+        }
 
-        // Add return type base names with "Factory" suffix
-        foreach (var baseName in returnTypeBaseNames)
-            result.Add([.. baseName, "Factory"]);
-
-        return result.ToImmutableAndClear();
+        return baseNames;
     }
 
     private static bool IsValidType([NotNullWhen(true)] ITypeSymbol? type)
