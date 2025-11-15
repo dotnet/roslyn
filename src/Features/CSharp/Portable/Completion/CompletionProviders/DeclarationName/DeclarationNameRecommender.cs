@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
 
@@ -72,46 +71,34 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
         var compilation = semanticModel.Compilation;
         var originalType = nameInfo.Type;
 
-        // Check if the original type is a Func<..., T> and add special suggestions
-        if (IsFuncType(originalType))
-        {
-            using var _ = ArrayBuilder<ImmutableArray<string>>.GetInstance(out var result);
-
-            // Add standalone suggestions
-            result.Add(["Factory"]);
-            result.Add(["Selector"]);
-
-            // Get names based on the original Func type itself (e.g., "func" for Func<T>)
-            var funcBaseNames = NameGenerator.GetBaseNames(originalType, pluralize: false);
-            result.AddRange(funcBaseNames);
-
-            // Also unwrap the return type and get names from it
-            if (originalType is INamedTypeSymbol { TypeArguments.Length: > 0 } namedType)
-            {
-                var returnType = namedType.TypeArguments[^1];
-                var (unwrappedReturnType, returnTypePlural) = UnwrapType(returnType, compilation, wasPlural: false, seenTypes: []);
-                var returnTypeBaseNames = NameGenerator.GetBaseNames(unwrappedReturnType, returnTypePlural);
-
-                // Add return type base names with "Factory" suffix
-                foreach (var baseName in returnTypeBaseNames)
-                {
-                    using var factoryName = TemporaryArray<string>.Empty;
-                    foreach (var word in baseName)
-                        factoryName.Add(word);
-                    factoryName.Add("Factory");
-                    result.Add(factoryName.ToImmutableAndClear());
-                }
-
-                // Also include the return type base names without suffix (e.g., "string" for Func<string>)
-                result.AddRange(returnTypeBaseNames);
-            }
-
-            return result.ToImmutableAndClear();
-        }
-
         var (type, plural) = UnwrapType(originalType, compilation, wasPlural: false, seenTypes: []);
         var baseNames = NameGenerator.GetBaseNames(type, plural);
-        return baseNames;
+
+        // Check if the original type is a Func<..., T> and add special suggestions
+        if (!IsFuncType(originalType))
+            return baseNames;
+
+        using var _ = ArrayBuilder<ImmutableArray<string>>.GetInstance(out var result);
+
+        // Add standalone suggestions
+        result.Add(["Factory"]);
+        result.Add(["Selector"]);
+
+        // Get names based on the original Func type itself (e.g., "func" for Func<T>)
+        result.AddRange(baseNames);
+
+        // Also unwrap the return type and get names from it
+        if (originalType is INamedTypeSymbol { TypeArguments: [.., var returnType] } namedType)
+        {
+            var (unwrappedReturnType, returnTypePlural) = UnwrapType(returnType, compilation, wasPlural: false, seenTypes: []);
+            var returnTypeBaseNames = NameGenerator.GetBaseNames(unwrappedReturnType, returnTypePlural);
+
+            // Add return type base names with "Factory" suffix
+            foreach (var baseName in returnTypeBaseNames)
+                result.Add([.. baseName, "Factory"]);
+        }
+
+        return result.ToImmutableAndClear();
     }
 
     private static bool IsValidType([NotNullWhen(true)] ITypeSymbol? type)
