@@ -75,7 +75,7 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
         var baseNames = NameGenerator.GetBaseNames(type, plural);
 
         // Check if the original type is a Func<..., T> and add special suggestions
-        if (!IsFuncType(originalType))
+        if (originalType is not INamedTypeSymbol { Name: "Func", ContainingNamespace.Name: "System", TypeArguments: [.., var returnType] })
             return baseNames;
 
         using var _ = ArrayBuilder<ImmutableArray<string>>.GetInstance(out var result);
@@ -88,15 +88,13 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
         result.AddRange(baseNames);
 
         // Also unwrap the return type and get names from it
-        if (originalType is INamedTypeSymbol { TypeArguments: [.., var returnType] } namedType)
-        {
-            var (unwrappedReturnType, returnTypePlural) = UnwrapType(returnType, compilation, wasPlural: false, seenTypes: []);
-            var returnTypeBaseNames = NameGenerator.GetBaseNames(unwrappedReturnType, returnTypePlural);
 
-            // Add return type base names with "Factory" suffix
-            foreach (var baseName in returnTypeBaseNames)
-                result.Add([.. baseName, "Factory"]);
-        }
+        var (unwrappedReturnType, returnTypePlural) = UnwrapType(returnType, compilation, wasPlural: false, seenTypes: []);
+        var returnTypeBaseNames = NameGenerator.GetBaseNames(unwrappedReturnType, returnTypePlural);
+
+        // Add return type base names with "Factory" suffix
+        foreach (var baseName in returnTypeBaseNames)
+            result.Add([.. baseName, "Factory"]);
 
         return result.ToImmutableAndClear();
     }
@@ -120,9 +118,6 @@ internal sealed partial class DeclarationNameRecommender() : IDeclarationNameRec
 
         return !type.IsSpecialType();
     }
-
-    private static bool IsFuncType(ITypeSymbol type)
-        => type is INamedTypeSymbol { Name: "Func", ContainingNamespace.Name: "System", TypeArguments.Length: > 0 };
 
     private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural, HashSet<ITypeSymbol> seenTypes)
     {
