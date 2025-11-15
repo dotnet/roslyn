@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -376,75 +377,79 @@ internal static partial class ExtensionMemberImportCompletionHelper
                 var extensionDotIndex = Math.Max(
                     fullyQualifiedContainerName.LastIndexOf(".extension<"),
                     fullyQualifiedContainerName.LastIndexOf(".extension("));
-                if (extensionDotIndex == 0)
+                if (extensionDotIndex < 0)
                 {
                     // Classic extension method. 
 
-                    // First try to filter out types from already imported namespaces
-                    var indexOfLastDot = fullyQualifiedContainerName.LastIndexOf('.');
-                    var qualifiedNamespaceName = indexOfLastDot > 0 ? fullyQualifiedContainerName[..indexOfLastDot] : string.Empty;
+                    var extensionStaticClass = TryGetViableExtensionStaticClass(fullyQualifiedContainerName);
 
-                    if (_namespaceInScope.Contains(qualifiedNamespaceName))
-                        continue;
+                    // Now we have the container symbol, first try to get member extension method symbols directive
+                    // inside of it that matches our syntactic filter, then further check if those symbols matches
+                    // semantically.
+                    AddExtensionMembers(extensionStaticClass, examineExtensionGroups: false, memberInfo);
+                }
+                else
+                {
+                    // Modern extension member.
 
-                    // Container of extension method (static class in C# and Module in VB) can't be generic or nested.
-                    var containerSymbol = assembly.GetTypeByMetadataName(fullyQualifiedContainerName);
+                    var extensionStaticClass = TryGetViableExtensionStaticClass(fullyQualifiedContainerName[..extensionDotIndex]);
 
-                    if (containerSymbol == null
-                        || !containerSymbol.MightContainExtensionMethods
-                        || !IsAccessible(containerSymbol, internalsVisible))
+                    // Now we have the container symbol, dive into the extension blocks within and try to get member
+                    // extension member symbols that matches our syntactic filter, then further check if those symbols
+                    // matches semantically.
+                    AddExtensionMembers(extensionStaticClass, examineExtensionGroups: true, memberInfo);
+                }
+            }
+
+            return builder;
+
+            void AddExtensionMembers(
+                INamedTypeSymbol? extensionStaticClass,
+                bool examineExtensionGroups,
+                MultiDictionary<string, (string memberName, string receiverTypeName)>.ValueSet memberInfo)
+            {
+                if (extensionStaticClass is null)
+                    return;
+
+                var typesToExamine = examineExtensionGroups
+                    ? extensionStaticClass.GetTypeMembers().WhereAsArray(m => m.IsExtension)
+                    : [extensionStaticClass];
+                foreach (var (memberName, receiverTypeName) in memberInfo)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    foreach (var extensionType in typesToExamine)
                     {
-                        continue;
-                    }
-
-                    // Now we have the container symbol, first try to get member extension method symbols that matches our syntactic filter,
-                    // then further check if those symbols matches semantically.
-                    foreach (var (memberName, receiverTypeName) in memberInfo)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        foreach (var memberSymbol in containerSymbol.GetMembers(memberName))
+                        foreach (var memberSymbol in extensionType.GetMembers(memberName))
                         {
                             if (MatchExtensionMember(memberSymbol, receiverTypeName, internalsVisible, out var receiverType))
                                 builder.Add(receiverType, memberSymbol);
                         }
                     }
                 }
-                else
-                {
-                    // Modern extension member.
-
-                    var staticClassName = fullyQualifiedContainerName[..extensionDotIndex];
-                    var indexOfLastDot = staticClassName.LastIndexOf('.');
-                    var qualifiedNamespaceName = indexOfLastDot > 0 ? staticClassName[..indexOfLastDot] : string.Empty;
-                    if (_namespaceInScope.Contains(qualifiedNamespaceName))
-                        continue;
-
-                    var containerSymbol = assembly.GetTypeByMetadataName(staticClassName);
-
-                    if (containerSymbol == null || !IsAccessible(containerSymbol, internalsVisible))
-                        continue;
-
-                    // Now we have the container symbol, first try to get member extension member symbols that matches our syntactic filter,
-                    // then further check if those symbols matches semantically.
-                    var extensionTypes = containerSymbol.GetTypeMembers().WhereAsArray(m => m.IsExtension);
-                    foreach (var (memberName, receiverTypeName) in memberInfo)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        foreach (var extensionType in extensionTypes)
-                        {
-                            foreach (var memberSymbol in extensionType.GetMembers(memberName))
-                            {
-                                if (MatchExtensionMember(memberSymbol, receiverTypeName, internalsVisible, out var receiverType))
-                                    builder.Add(receiverType, memberSymbol);
-                            }
-                        }
-                    }
-                }
             }
 
-            return builder;
+            INamedTypeSymbol? TryGetViableExtensionStaticClass(string staticClassName)
+            {
+                var indexOfLastDot = staticClassName.LastIndexOf('.');
+                var qualifiedNamespaceName = indexOfLastDot > 0 ? staticClassName[..indexOfLastDot] : string.Empty;
+
+                // First try to filter out types from already imported namespaces
+                if (_namespaceInScope.Contains(qualifiedNamespaceName))
+                    return null;
+
+                // Container of extension method (static class in C# and Module in VB) can't be generic or nested.
+                var containerSymbol = assembly.GetTypeByMetadataName(staticClassName);
+
+                if (containerSymbol == null
+                    || !containerSymbol.MightContainExtensionMethods
+                    || !IsAccessible(containerSymbol, internalsVisible))
+                {
+                    return null;
+                }
+
+                return containerSymbol;
+            }
 
             static bool MatchExtensionMember(
                 ISymbol symbol,
