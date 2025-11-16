@@ -2024,8 +2024,7 @@ class C
                 Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M(int)", "System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(4, 61),
                 // (7,9): error CS4037: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier.
                 //         await System.Threading.Tasks.Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncIterator, "await System.Threading.Tasks.Task.CompletedTask").WithLocation(7, 9)
-                );
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncIterator, "await System.Threading.Tasks.Task.CompletedTask").WithLocation(7, 9));
         }
 
         [Fact]
