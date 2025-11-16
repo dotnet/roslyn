@@ -308,7 +308,7 @@ extends:
                        -binaryLog
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(Build.BuildNumber)
-                       -officialSkipTests $(SkipTests)
+                       -officialSkipTests ${{ parameters.SkipTests }}
                        -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
                        -officialIbcDrop $(IbcDrop)
@@ -351,7 +351,7 @@ extends:
             testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
             mergeTestResults: true
             testRunTitle: 'Unit Tests'
-          condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
+          condition: and(succeededOrFailed(), ${{ not(parameters.SkipTests) }})
 
       # Publish to Build Asset Registry
       - template: /eng/common/templates-official/job/publish-build-assets.yml@self
