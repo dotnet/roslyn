@@ -11945,5 +11945,59 @@ class B : A
                 """;
             CreateCompilation(source).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8925")]
+        public void ParamsErrorSuppression_StringConvertibleToObject()
+        {
+            // When a method has a params parameter and an argument would be convertible 
+            // to the element type when the params is expanded, we should not report an error
+            // for that argument. The real error is with another argument that prevents 
+            // the method from being applicable.
+            var source = """
+                class Program
+                {
+                    static void M(char c, params object[] args) { }
+                    
+                    static void Test(string[] arr)
+                    {
+                        // M has: M(char c, params object[] args)
+                        // When called with (string[], string), we get:
+                        // - First argument fails: string[] -> char
+                        // - Second argument would succeed if expanded: string -> object
+                        // We should only report the first error, not the second.
+                        M(arr, "test");
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,11): error CS1503: Argument 1: cannot convert from 'string[]' to 'char'
+                Diagnostic(ErrorCode.ERR_BadArgType, "arr").WithArguments("1", "string[]", "char").WithLocation(12, 11));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8925")]
+        public void ParamsErrorSuppression_IntNotConvertibleToString()
+        {
+            // When a method has a params parameter and an argument would NOT be convertible 
+            // to the element type when the params is expanded, we should still report the error.
+            var source = """
+                class C
+                {
+                    static void M(char c, params string[] args) { }
+                    
+                    static void Test()
+                    {
+                        // First argument fails: int -> char
+                        // Second argument also fails even if expanded: int -> string
+                        // We should report both errors.
+                        M(1, 2);
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,11): error CS1503: Argument 1: cannot convert from 'int' to 'char'
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "char").WithLocation(10, 11),
+                // (10,14): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("2", "int", "string").WithLocation(10, 14));
+        }
     }
 }

@@ -1218,6 +1218,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ParameterSymbol parameter = parameters[parm];
             bool isLastParameter = parameters.Length == parm + 1; // This is used to later decide if we need to try to unwrap a params collection
+            
+            // If this is a params parameter and the argument would be convertible to the element type when expanded,
+            // don't report an error for this argument. The real issue is elsewhere (e.g., another argument).
+            if (isLastParameter && parameter.IsParams && argument.HasExpressionType())
+            {
+                // Get the element type of the params parameter
+                var parameterType = parameter.Type;
+                if (parameterType is ArrayTypeSymbol arrayType)
+                {
+                    var paramsElementType = arrayType.ElementType;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+                    var conversion = binder.Conversions.ClassifyConversionFromExpression(argument, paramsElementType, isChecked: false, ref useSiteInfo);
+                    
+                    // If the argument can convert to the params element type, then the error is not really about this argument.
+                    // It's about another argument that prevents the method from being applicable.
+                    if (conversion.IsImplicit)
+                    {
+                        return;
+                    }
+                }
+            }
+            
             RefKind refArg = arguments.RefKind(arg);
             RefKind refParameter = parameter.RefKind;
 
