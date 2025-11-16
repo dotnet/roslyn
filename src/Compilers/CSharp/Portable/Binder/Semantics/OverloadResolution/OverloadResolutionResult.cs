@@ -1626,9 +1626,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // When looking for the best candidate to report errors, prefer members that accept delegate types
             // in positions where lambda/anonymous method arguments are provided.
-            if ((kind == MemberResolutionKind.BadArgumentConversion ||
-                 kind == MemberResolutionKind.TypeInferenceFailed ||
-                 kind == MemberResolutionKind.TypeInferenceExtensionInstanceArgument) && arguments != null)
+            if (kind is MemberResolutionKind.BadArgumentConversion or
+                    MemberResolutionKind.TypeInferenceFailed or
+                    MemberResolutionKind.TypeInferenceExtensionInstanceArgument &&
+                arguments != null)
             {
                 // First, check if any argument is a lambda or anonymous method
                 bool hasLambdaOrAnonymousMethod = false;
