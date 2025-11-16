@@ -12750,7 +12750,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78899")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
         public void DesignatorBeforePropertyPattern()
         {
             UsingExpression("o is string s { Length: 5 }",
@@ -12799,7 +12799,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78899")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
         public void DesignatorBeforePositionalPattern()
         {
             UsingExpression("o is Point p (1, 2)",
@@ -12851,7 +12851,7 @@ switch (e)
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78899")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50220")]
         public void DesignatorBeforeBothPatterns()
         {
             UsingExpression("o is string s (1, 2) { Length: 5 }",
