@@ -1983,46 +1983,48 @@ class C
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void AsyncIteratorReturningEnumerator_WithoutAsync()
         {
-            string source = @"
-class C
-{
-    static System.Collections.Generic.IAsyncEnumerator<int> M(int value)
-    {
-        yield return value;
-        await System.Threading.Tasks.Task.CompletedTask;
-    }
-}";
+            string source = """
+                class C
+                {
+                    static System.Collections.Generic.IAsyncEnumerator<int> M(int value)
+                    {
+                        yield return value;
+                        await System.Threading.Tasks.Task.CompletedTask;
+                    }
+                }
+                """;
             var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
-                // (4,61): error CS8403: Method 'C.M(int)' with an iterator block must be 'async' to return 'IAsyncEnumerator<int>'
+                // (3,61): error CS8403: Method 'C.M(int)' with an iterator block must be 'async' to return 'IAsyncEnumerator<int>'
                 //     static System.Collections.Generic.IAsyncEnumerator<int> M(int value)
-                Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M(int)", "System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 61),
-                // (7,9): error CS1992: The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier
+                Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M(int)", "System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(3, 61),
+                // (6,9): error CS1992: The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier
                 //         await System.Threading.Tasks.Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await System.Threading.Tasks.Task.CompletedTask").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await System.Threading.Tasks.Task.CompletedTask").WithLocation(6, 9)
                 );
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31113")]
         public void AsyncIteratorReturningEnumerable_WithoutAsync()
         {
-            string source = @"
-class C
-{
-    static System.Collections.Generic.IAsyncEnumerable<int> M(int value)
-    {
-        yield return value;
-        await System.Threading.Tasks.Task.CompletedTask;
-    }
-}";
+            string source = """
+                class C
+                {
+                    static System.Collections.Generic.IAsyncEnumerable<int> M(int value)
+                    {
+                        yield return value;
+                        await System.Threading.Tasks.Task.CompletedTask;
+                    }
+                }
+                """;
             var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
-                // (4,61): error CS8403: Method 'C.M(int)' with an iterator block must be 'async' to return 'IAsyncEnumerable<int>'
+                // (3,61): error CS8403: Method 'C.M(int)' with an iterator block must be 'async' to return 'IAsyncEnumerable<int>'
                 //     static System.Collections.Generic.IAsyncEnumerable<int> M(int value)
-                Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M(int)", "System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(4, 61),
-                // (7,9): error CS1992: The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier
+                Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M(int)", "System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(3, 61),
+                // (6,9): error CS1992: The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier
                 //         await System.Threading.Tasks.Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await System.Threading.Tasks.Task.CompletedTask").WithLocation(7, 9));
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await System.Threading.Tasks.Task.CompletedTask").WithLocation(6, 9));
         }
 
         [Fact]
