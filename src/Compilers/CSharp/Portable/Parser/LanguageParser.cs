@@ -5628,8 +5628,7 @@ parse_member_name:;
                     // - CommaToken, SemicolonToken: end of declarator
                     // - EqualsToken, LessThanToken, OpenParenToken, OpenBracketToken: handled by cases above
                     if (!isFixed && 
-                        this.CurrentToken.Kind != SyntaxKind.CommaToken && 
-                        this.CurrentToken.Kind != SyntaxKind.SemicolonToken &&
+                        this.CurrentToken.Kind is not SyntaxKind.CommaToken and not SyntaxKind.SemicolonToken &&
                         !this.IsTrueIdentifier() &&
                         this.IsPossibleExpression())
                     {
