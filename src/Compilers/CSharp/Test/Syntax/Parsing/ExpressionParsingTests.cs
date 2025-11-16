@@ -7494,6 +7494,28 @@ select t";
                 // if (Boo Quux())
                 Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 9));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Boo");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
@@ -7507,6 +7529,41 @@ select t";
                 // var v = (Boo Quux());
                 Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 14));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.ParenthesizedExpression);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Boo");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
@@ -7525,6 +7582,51 @@ select t";
                 // catch (Exception e) when (Boo Quux())
                 Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(4, 31));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.TryStatement);
+                    {
+                        N(SyntaxKind.TryKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.CatchClause);
+                        {
+                            N(SyntaxKind.CatchKeyword);
+                            N(SyntaxKind.CatchDeclaration);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Exception");
+                                }
+                                N(SyntaxKind.IdentifierToken, "e");
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.CatchFilterClause);
+                            {
+                                N(SyntaxKind.WhenKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Boo");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
@@ -7541,6 +7643,30 @@ select t";
                 // while (Boo Quux());
                 Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(4, 12));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.DoStatement);
+                    {
+                        N(SyntaxKind.DoKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.WhileKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Boo");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
@@ -7556,6 +7682,28 @@ select t";
                 // lock (Boo Quux())
                 Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 11));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LockStatement);
+                    {
+                        N(SyntaxKind.LockKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Boo");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
@@ -7571,6 +7719,28 @@ select t";
                 // while (Boo Quux())
                 Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 12));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.WhileStatement);
+                    {
+                        N(SyntaxKind.WhileKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Boo");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
@@ -7584,6 +7754,42 @@ select t";
                 // var v = __makeref(Boo Quux());
                 Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 23));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.MakeRefExpression);
+                                    {
+                                        N(SyntaxKind.MakeRefKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Boo");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
@@ -7597,6 +7803,42 @@ select t";
                 // var v = __reftype(Boo Quux());
                 Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 23));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.RefTypeExpression);
+                                    {
+                                        N(SyntaxKind.RefTypeKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Boo");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
@@ -7605,7 +7847,10 @@ select t";
         {
             UsingTree("""
                 var v = __refvalue(Boo Quux);
-                """);
+                """,
+                // (1,24): error CS1003: Syntax error, ',' expected
+                // var v = __refvalue(Boo Quux);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Quux").WithArguments(",").WithLocation(1, 24));
 
             EOF();
         }
@@ -7620,6 +7865,42 @@ select t";
                 // var v = checked(Boo Quux());
                 Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 21));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.CheckedExpression);
+                                    {
+                                        N(SyntaxKind.CheckedKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Boo");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
@@ -7633,6 +7914,42 @@ select t";
                 // var v = unchecked(Boo Quux());
                 Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 23));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.UncheckedExpression);
+                                    {
+                                        N(SyntaxKind.UncheckedKeyword);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Boo");
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
@@ -7641,7 +7958,10 @@ select t";
         {
             UsingTree("""
                 var v = Goo(Boo Quux());
-                """);
+                """,
+                // (1,17): error CS1003: Syntax error, ',' expected
+                // var v = Goo(Boo Quux());
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Quux").WithArguments(",").WithLocation(1, 17));
 
             EOF();
         }
@@ -7651,7 +7971,10 @@ select t";
         {
             UsingTree("""
                 var v = Goo(1, Boo Quux());
-                """);
+                """,
+                // (1,20): error CS1003: Syntax error, ',' expected
+                // var v = Goo(1, Boo Quux());
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Quux").WithArguments(",").WithLocation(1, 20));
 
             EOF();
         }
@@ -7661,7 +7984,10 @@ select t";
         {
             UsingTree("""
                 var v = Goo(Boo Quux(), 1);
-                """);
+                """,
+                // (1,17): error CS1003: Syntax error, ',' expected
+                // var v = Goo(Boo Quux(), 1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Quux").WithArguments(",").WithLocation(1, 17));
 
             EOF();
         }
@@ -7671,7 +7997,10 @@ select t";
         {
             UsingTree("""
                 var v = new Goo(Boo Quux());
-                """);
+                """,
+                // (1,21): error CS1003: Syntax error, ',' expected
+                // var v = new Goo(Boo Quux());
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Quux").WithArguments(",").WithLocation(1, 21));
 
             EOF();
         }
