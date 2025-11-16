@@ -189,8 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod);
                             }
-                            else if (method.IsIterator && 
-                                     (method.ReturnType.IsIAsyncEnumerableType(Compilation) || 
+                            else if (method.IsIterator &&
+                                     (method.ReturnType.IsIAsyncEnumerableType(Compilation) ||
                                       method.ReturnType.IsIAsyncEnumeratorType(Compilation)))
                             {
                                 // For async iterators, use the generic error that doesn't suggest changing the return type
