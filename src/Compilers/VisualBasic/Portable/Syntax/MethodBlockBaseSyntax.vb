@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use SubNewStatement instead.", True)>
         Public Shadows ReadOnly Property Begin As SubNewStatementSyntax
             Get
                 Return SubNewStatement
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Property
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use EndSubStatement instead.", True)>
         Public Shadows ReadOnly Property [End] As EndBlockStatementSyntax
             Get
                 Return EndSubStatement
@@ -154,13 +154,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Property
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use WithSubNewStatement instead.", True)>
         Public Shadows Function WithBegin(begin As SubNewStatementSyntax) As ConstructorBlockSyntax
             Return WithSubNewStatement(begin)
         End Function
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use WithEndSubStatement instead.", True)>
         Public Shadows Function WithEnd([end] As EndBlockStatementSyntax) As ConstructorBlockSyntax
             Return WithEndSubStatement([end])
         End Function
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use SubOrFunctionStatement instead.", True)>
         Public Shadows ReadOnly Property Begin As MethodStatementSyntax
             Get
                 Return SubOrFunctionStatement
@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Property
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use EndSubOrFunctionStatement instead.", True)>
         Public Shadows ReadOnly Property [End] As EndBlockStatementSyntax
             Get
                 Return EndSubOrFunctionStatement
@@ -206,13 +206,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Property
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use WithSubOrFunctionStatement instead.", True)>
         Public Shadows Function WithBegin(begin As MethodStatementSyntax) As MethodBlockSyntax
             Return WithSubOrFunctionStatement(begin)
         End Function
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use WithEndSubOrFunctionStatement instead.", True)>
         Public Shadows Function WithEnd([end] As EndBlockStatementSyntax) As MethodBlockSyntax
             Return WithEndSubOrFunctionStatement([end])
         End Function
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use OperatorStatement instead.", True)>
         Public Shadows ReadOnly Property Begin As OperatorStatementSyntax
             Get
                 Return OperatorStatement
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Property
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use EndOperatorStatement instead.", True)>
         Public Shadows ReadOnly Property [End] As EndBlockStatementSyntax
             Get
                 Return EndOperatorStatement
@@ -258,13 +258,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Property
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use WithOperatorStatement instead.", True)>
         Public Shadows Function WithBegin(begin As OperatorStatementSyntax) As OperatorBlockSyntax
             Return WithOperatorStatement(begin)
         End Function
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use WithEndOperatorStatement instead.", True)>
         Public Shadows Function WithEnd([end] As EndBlockStatementSyntax) As OperatorBlockSyntax
             Return WithEndOperatorStatement([end])
         End Function
