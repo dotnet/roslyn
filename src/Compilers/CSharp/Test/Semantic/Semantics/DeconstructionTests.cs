@@ -102,6 +102,44 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void DeconstructMethodMissing_WithImplicitlyTypedVariables()
+        {
+            string source = @"
+class C
+{
+    public static void M(object o)
+    {
+        /*<bind>*/var (x, y) = o/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: ?, IsInvalid) (Syntax: 'var (x, y) = o')
+  Left: 
+    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (var x, var y)) (Syntax: 'var (x, y)')
+      ITupleOperation (OperationKind.Tuple, Type: (var x, var y)) (Syntax: '(x, y)')
+        NaturalType: (var x, var y)
+        Elements(2):
+            ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'x')
+            ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'y')
+  Right: 
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //         /*<bind>*/var (x, y) = o/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "o").WithArguments("object", "Deconstruct").WithLocation(6, 32),
+                // CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                // TODO: This is redundant with CS1061 and should be suppressed (see https://github.com/dotnet/roslyn/issues/25533)
+                //         /*<bind>*/var (x, y) = o/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "o").WithArguments("object", "2").WithLocation(6, 32)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void DeconstructWrongParams()
         {
             string source = @"
