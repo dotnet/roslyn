@@ -2578,24 +2578,12 @@ class Program
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(new[]
             {
-                // (6,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
-                //         var y = (ConsoleColor) - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 18),
                 // (6,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
                 //         var y = (ConsoleColor) - 1;
                 Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(ConsoleColor) - 1").WithLocation(6, 17),
-                // (6,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
-                //         var y = (ConsoleColor) - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 18),
-                // (7,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
-                //         var z = (System.ConsoleColor) - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 18),
                 // (7,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
                 //         var z = (System.ConsoleColor) - 1;
-                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(System.ConsoleColor) - 1").WithLocation(7, 17),
-                // (7,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
-                //         var z = (System.ConsoleColor) - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(System.ConsoleColor) - 1").WithLocation(7, 17)
             });
         }
 

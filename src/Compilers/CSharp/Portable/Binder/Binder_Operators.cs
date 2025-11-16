@@ -901,15 +901,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 current = binOp.Left;
             }
 
-            BoundExpression result = BindExpression(current, diagnostics);
+            // For negative cast detection, we need to check if we're going to report ERR_PossibleBadNegCast
+            // before binding the left operand. If we will report it, we should suppress the ERR_BadSKunknown
+            // error that would be reported when binding a type name in a value context.
+            bool mightReportPossibleBadNegCast = node.IsKind(SyntaxKind.SubtractExpression)
+                && current.IsKind(SyntaxKind.ParenthesizedExpression);
 
-            if (node.IsKind(SyntaxKind.SubtractExpression)
-                && current.IsKind(SyntaxKind.ParenthesizedExpression))
+            var leftDiagnostics = mightReportPossibleBadNegCast ? BindingDiagnosticBag.GetInstance(diagnostics) : diagnostics;
+            BoundExpression result = BindExpression(current, leftDiagnostics);
+
+            bool reportedPossibleBadNegCast = false;
+            if (mightReportPossibleBadNegCast)
             {
                 if (result.Kind == BoundKind.TypeExpression
                     && !((ParenthesizedExpressionSyntax)current).Expression.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
                     Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
+                    reportedPossibleBadNegCast = true;
                 }
                 else if (result.Kind == BoundKind.BadExpression)
                 {
@@ -919,15 +927,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                         && ((IdentifierNameSyntax)parenthesizedExpression.Expression).Identifier.ValueText == "dynamic")
                     {
                         Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
+                        reportedPossibleBadNegCast = true;
                     }
                 }
+
+                // If we reported ERR_PossibleBadNegCast, filter out ERR_BadSKunknown errors from the temporary
+                // diagnostic bag to avoid cascading errors. Otherwise, add all diagnostics to the main bag.
+                if (reportedPossibleBadNegCast)
+                {
+                    foreach (var diagnostic in leftDiagnostics.DiagnosticBag.AsEnumerable())
+                    {
+                        if (diagnostic.Code != (int)ErrorCode.ERR_BadSKunknown)
+                        {
+                            diagnostics.Add(diagnostic);
+                        }
+                    }
+                }
+                else
+                {
+                    diagnostics.AddRange(leftDiagnostics);
+                }
+
+                leftDiagnostics.Free();
             }
 
             while (syntaxNodes.Count > 0)
             {
                 BinaryExpressionSyntax syntaxNode = syntaxNodes.Pop();
                 BindValueKind bindValueKind = GetBinaryAssignmentKind(syntaxNode.Kind());
-                BoundExpression left = CheckValue(result, bindValueKind, diagnostics);
+                // When we've reported ERR_PossibleBadNegCast, suppress the cascading ERR_BadSKunknown error
+                // that would be reported by CheckValue for type expressions.
+                var checkValueDiagnostics = reportedPossibleBadNegCast ? BindingDiagnosticBag.Discarded : diagnostics;
+                BoundExpression left = CheckValue(result, bindValueKind, checkValueDiagnostics);
                 BoundExpression right = BindValue(syntaxNode.Right, diagnostics, BindValueKind.RValue);
                 BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right, leaveUnconvertedIfInterpolatedString: true);
                 result = boundOp;
