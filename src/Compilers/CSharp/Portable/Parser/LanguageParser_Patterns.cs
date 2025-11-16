@@ -344,7 +344,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var designation = TryParseSimpleDesignation(inSwitchArmPattern);
                 if (designation != null)
+                {
+                    // Check if after the designator we have a property pattern or positional pattern
+                    // This handles the error case: "string s { Length: 5 }" instead of "string { Length: 5 } s"
+                    if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+                    {
+                        // Parse the property/positional pattern that came in the wrong order
+                        PositionalPatternClauseSyntax? positionalPattern = null;
+                        PropertyPatternClauseSyntax? propertyPattern = null;
+
+                        if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+                        {
+                            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+                            var subPatterns = this.ParseCommaSeparatedSyntaxList(
+                                ref openParen,
+                                SyntaxKind.CloseParenToken,
+                                static @this => @this.IsPossibleSubpatternElement(),
+                                static @this => @this.ParseSubpatternElement(),
+                                SkipBadPatternListTokens,
+                                allowTrailingSeparator: false,
+                                requireOneElement: false,
+                                allowSemicolonAsSeparator: false);
+                            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+                            positionalPattern = _syntaxFactory.PositionalPatternClause(openParen, subPatterns, closeParen);
+                        }
+
+                        if (parsePropertyPatternClause(out PropertyPatternClauseSyntax? propertyPatternAfterDesignation))
+                        {
+                            propertyPattern = propertyPatternAfterDesignation;
+                        }
+
+                        // The designation should come after the property/positional pattern, not before
+                        // Add error to the designation token and place it as skipped syntax after the type
+                        var designationWithError = AddError(designation, ErrorCode.ERR_DesignatorBeneathPattern, designation.ToString());
+                        var typeWithSkippedDesignation = AddTrailingSkippedSyntax(type, designationWithError);
+
+                        return _syntaxFactory.RecursivePattern(typeWithSkippedDesignation, positionalPattern, propertyPattern, designation: null);
+                    }
+
                     return _syntaxFactory.DeclarationPattern(type, designation);
+                }
 
                 // We normally prefer an expression rather than a type in a pattern.
                 return ConvertTypeToExpression(type, out var expression)

@@ -632,6 +632,11 @@
         <target state="translated">Литерал по умолчанию "default" недопустимо использовать в качестве шаблона. Используйте другой литерал (например, "0" или "null") по мере необходимости. Чтобы задать полное совпадение, используйте шаблон отмены "_".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DesignatorBeneathPattern">
+        <source>The variable designator must come after any property or positional patterns. Change '{0} {{ ... }}' to '{{ ... }} {0}'.</source>
+        <target state="new">The variable designator must come after any property or positional patterns. Change '{0} {{ ... }}' to '{{ ... }} {0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
         <target state="translated">Переменная не может быть объявлена в шаблоне "not" или "or".</target>

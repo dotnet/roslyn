@@ -632,6 +632,11 @@
         <target state="translated">既定のリテラル 'default' はパターンとして無効です。必要に応じて別のリテラル (例: '0' または 'null') をご使用ください。すべてと一致させるには、破棄パターン '_' をご使用ください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DesignatorBeneathPattern">
+        <source>The variable designator must come after any property or positional patterns. Change '{0} {{ ... }}' to '{{ ... }} {0}'.</source>
+        <target state="new">The variable designator must come after any property or positional patterns. Change '{0} {{ ... }}' to '{{ ... }} {0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
         <target state="translated">'not' または 'or' パターンの中で変数を宣言することはできません。</target>

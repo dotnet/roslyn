@@ -632,6 +632,11 @@
         <target state="translated">Un littéral par défaut 'default' est non valide en tant que modèle. Utilisez un autre littéral (par exemple, '0' ou 'null') selon le cas. Pour correspondre à tout, utilisez un modèle d'abandon '_'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DesignatorBeneathPattern">
+        <source>The variable designator must come after any property or positional patterns. Change '{0} {{ ... }}' to '{{ ... }} {0}'.</source>
+        <target state="new">The variable designator must come after any property or positional patterns. Change '{0} {{ ... }}' to '{{ ... }} {0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
         <target state="translated">Une variable ne peut pas être déclarée dans un modèle 'not' ou 'or'.</target>

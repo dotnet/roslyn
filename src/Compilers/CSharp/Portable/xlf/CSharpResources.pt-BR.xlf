@@ -632,6 +632,11 @@
         <target state="translated">Um literal padrão 'default' não é válido como um padrão. Use outro literal (por exemplo, '0' ou 'null') conforme o necessário. Para corresponder a tudo, use um padrão de descarte '_'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DesignatorBeneathPattern">
+        <source>The variable designator must come after any property or positional patterns. Change '{0} {{ ... }}' to '{{ ... }} {0}'.</source>
+        <target state="new">The variable designator must come after any property or positional patterns. Change '{0} {{ ... }}' to '{{ ... }} {0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
         <target state="translated">Uma variável não pode ser declarada em um padrão 'not' ou 'or'.</target>
