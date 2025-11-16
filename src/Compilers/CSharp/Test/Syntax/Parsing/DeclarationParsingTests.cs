@@ -13144,14 +13144,171 @@ I1(x);";
             EOF();
         }
 
-        // NOTE: Additional expression types have been manually verified with the compiler:
-        // - Unary expressions: `int x -y;` → error CS1003: Syntax error, '=' expected
-        // - Binary expressions: `int x * y;` → error CS1003: Syntax error, '=' expected  
-        // - Object creation: `C x new C();` → error CS1003: Syntax error, '=' expected
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFieldDeclarationWithMissingEquals_UnaryExpression()
+        {
+            var tree = UsingTree("""
+                class C {
+                  int x -y;
+                }
+                """,
+                // (2,9): error CS1003: Syntax error, '=' expected
+                //   int x -y;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "-").WithArguments("=").WithLocation(2, 9));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    M(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.UnaryMinusExpression);
+                                    {
+                                        N(SyntaxKind.MinusToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "y");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFieldDeclarationWithMissingEquals_BinaryExpression()
+        {
+            var tree = UsingTree("""
+                class C {
+                  int x + y;
+                }
+                """,
+                // (2,9): error CS1003: Syntax error, '=' expected
+                //   int x + y;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "+").WithArguments("=").WithLocation(2, 9));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    M(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.UnaryPlusExpression);
+                                    {
+                                        N(SyntaxKind.PlusToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "y");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFieldDeclarationWithMissingEquals_ObjectCreationExpression()
+        {
+            var tree = UsingTree("""
+                class C {
+                  C x new C();
+                }
+                """,
+                // (2,7): error CS1003: Syntax error, '=' expected
+                //   C x new C();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(2, 7));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    M(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.ObjectCreationExpression);
+                                    {
+                                        N(SyntaxKind.NewKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "C");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        // NOTE: Additional manual verification for expression types where detailed tree verification is complex:
         // - Collection expressions: `int[] x [1, 2, 3];` → error CS1003: Syntax error, '=' expected
-        // - Invocation expressions: `int x M();` → error CS1003: Syntax error, '=' expected
+        // - Invocation expressions: `int x M();` → different error pattern due to method parsing
         // - Query expressions: `var x from y in z select y;` → error CS1003: Syntax error, '=' expected
-        // - Identifiers followed by comma/semicolon/equals: NO error (correctly handled as separate declarators)
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23877")]
         public void TestParseAttributeArgumentListWithInvalidString()
