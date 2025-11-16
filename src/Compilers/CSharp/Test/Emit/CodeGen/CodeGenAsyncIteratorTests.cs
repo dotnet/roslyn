@@ -2003,9 +2003,7 @@ class C
                 );
         }
 
-        [Fact]
-        [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
-        [WorkItem(31113, "https://github.com/dotnet/roslyn/issues/31113")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31113")]
         public void AsyncIteratorReturningEnumerable_WithoutAsync()
         {
             string source = @"
