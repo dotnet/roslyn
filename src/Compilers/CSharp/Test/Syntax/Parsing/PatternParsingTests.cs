@@ -12754,9 +12754,9 @@ switch (e)
         public void DesignatorBeforePropertyPattern()
         {
             UsingExpression("o is string s { Length: 5 }",
-                // (1,13): error CS8525: The variable designator 's' must come after any property pattern.
+                // (1,13): error CS8525: A variable designator must come after a property pattern.
                 // o is string s { Length: 5 }
-                Diagnostic(ErrorCode.ERR_DesignatorBeforePropertyPattern, "s").WithArguments("s").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_DesignatorBeforePropertyPattern, "s").WithLocation(1, 13));
 
             N(SyntaxKind.IsPatternExpression);
             {
