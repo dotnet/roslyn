@@ -1263,11 +1263,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Check if the syntax is a type name inside (T)-X pattern:
             // The syntax could be inside a ParenthesizedExpression which is the left side of a SubtractExpression
-            if (syntax.Parent is Syntax.ParenthesizedExpressionSyntax parenthesized)
-            {
-                return IsParenthesizedExpressionInPossibleBadNegCastContext(parenthesized);
-            }
-            return false;
+            return syntax.Parent is ParenthesizedExpressionSyntax parenthesized &&
+                IsParenthesizedExpressionInPossibleBadNegCastContext(parenthesized);
         }
 
         /// <summary>
