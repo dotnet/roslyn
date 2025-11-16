@@ -2778,8 +2778,7 @@ struct Empty
                 );
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/10914")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5243")]
         public void NoCascadedErrorsForMissingLabel_GotoCase()
         {
             // When a goto case statement has an error (label not found), it should still
@@ -2812,8 +2811,7 @@ struct Empty
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto default;").WithArguments("default:").WithLocation(12, 17));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/10914")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5243")]
         public void NoCascadedErrorsForMissingLabel_GotoLabel()
         {
             // When a goto label statement has an error (label not found), it should still
@@ -2836,8 +2834,7 @@ struct Empty
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "foo").WithArguments("foo").WithLocation(5, 14));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/10914")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5243")]
         public void NoCascadedErrorsForMissingLabel_MultipleCases()
         {
             // Test with multiple missing labels in the same switch statement
