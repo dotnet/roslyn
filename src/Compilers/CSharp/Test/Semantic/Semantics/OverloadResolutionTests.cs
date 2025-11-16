@@ -11956,18 +11956,13 @@ class B : A
                     
                     static void Test(string[] arr)
                     {
-                        // M has: M(char c, params object[] args)
-                        // When called with (string[], string), we get:
-                        // - First argument fails: string[] -> char
-                        // - Second argument would succeed if expanded: string -> object
-                        // We should only report the first error, not the second.
                         M(arr, "test");
                     }
                 }
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (12,11): error CS1503: Argument 1: cannot convert from 'string[]' to 'char'
-                Diagnostic(ErrorCode.ERR_BadArgType, "arr").WithArguments("1", "string[]", "char").WithLocation(12, 11));
+                // (7,11): error CS1503: Argument 1: cannot convert from 'string[]' to 'char'
+                Diagnostic(ErrorCode.ERR_BadArgType, "arr").WithArguments("1", "string[]", "char").WithLocation(7, 11));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12933")]
@@ -11980,18 +11975,15 @@ class B : A
                     
                     static void Test()
                     {
-                        // First argument fails: int -> char
-                        // Second argument also fails even if expanded: int -> string
-                        // We should report both errors.
                         M(1, 2);
                     }
                 }
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (10,11): error CS1503: Argument 1: cannot convert from 'int' to 'char'
-                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "char").WithLocation(10, 11),
-                // (10,14): error CS1503: Argument 2: cannot convert from 'int' to 'string'
-                Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("2", "int", "string").WithLocation(10, 14));
+                // (7,11): error CS1503: Argument 1: cannot convert from 'int' to 'char'
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "char").WithLocation(7, 11),
+                // (7,14): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("2", "int", "string").WithLocation(7, 14));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43920")]
@@ -12004,16 +11996,13 @@ class B : A
                     
                     static void Test()
                     {
-                        // First argument fails: string -> int
-                        // Second argument would succeed if expanded: string -> object
-                        // We should only report the first error.
                         M("wrong", "test");
                     }
                 }
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (10,11): error CS1503: Argument 1: cannot convert from 'string' to 'int'
-                Diagnostic(ErrorCode.ERR_BadArgType, "\"wrong\"").WithArguments("1", "string", "int").WithLocation(10, 11));
+                // (7,11): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+                Diagnostic(ErrorCode.ERR_BadArgType, "\"wrong\"").WithArguments("1", "string", "int").WithLocation(7, 11));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43920")]
@@ -12026,16 +12015,13 @@ class B : A
                     
                     static void Test()
                     {
-                        // First argument fails: int -> string
-                        // Second argument would succeed if expanded: string -> string
-                        // We should only report the first error.
                         A(1, "test");
                     }
                 }
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (10,11): error CS1503: Argument 1: cannot convert from 'int' to 'string'
-                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(10, 11));
+                // (7,11): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(7, 11));
         }
     }
 }
