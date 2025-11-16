@@ -13504,7 +13504,7 @@ static class S
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18648")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20172")]
         public void CS0718ERR_GenericArgIsStaticClass_Tuple()
         {
             var text =
