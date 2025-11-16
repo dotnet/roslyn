@@ -12953,14 +12953,14 @@ I1(x);";
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestFieldDeclarationWithMissingEquals()
         {
-            var tree = UsingTree(@"
-class C {
-  int value 5;
-}
-",
-                // (3,13): error CS1003: Syntax error, '=' expected
+            var tree = UsingTree("""
+                class C {
+                  int value 5;
+                }
+                """,
+                // (2,13): error CS1003: Syntax error, '=' expected
                 //   int value 5;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(3, 13));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(2, 13));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -13001,14 +13001,16 @@ class C {
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestFieldDeclarationWithMissingEquals_StringLiteral()
         {
-            var tree = UsingTree(@"
-class C {
-  string value ""hello"";
-}
-",
-                // (3,16): error CS1003: Syntax error, '=' expected
+            var tree = UsingTree("""
+                class C {
+                  string value "hello";
+                }
+                """,
+                // (2,16): error CS1003: Syntax error, '=' expected
                 //   string value "hello";
-                Diagnostic(ErrorCode.ERR_SyntaxError, @"""hello""").WithArguments("=").WithLocation(3, 16));
+                Diagnostic(ErrorCode.ERR_SyntaxError, """
+                    "hello"
+                    """).WithArguments("=").WithLocation(2, 16));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -13049,14 +13051,14 @@ class C {
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestFieldDeclarationWithMissingEquals_BoolLiteral()
         {
-            var tree = UsingTree(@"
-class C {
-  bool value true;
-}
-",
-                // (3,14): error CS1003: Syntax error, '=' expected
+            var tree = UsingTree("""
+                class C {
+                  bool value true;
+                }
+                """,
+                // (2,14): error CS1003: Syntax error, '=' expected
                 //   bool value true;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=").WithLocation(3, 14));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=").WithLocation(2, 14));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -13097,14 +13099,14 @@ class C {
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestFieldDeclarationWithMissingEquals_NullLiteral()
         {
-            var tree = UsingTree(@"
-class C {
-  object value null;
-}
-",
-                // (3,16): error CS1003: Syntax error, '=' expected
+            var tree = UsingTree("""
+                class C {
+                  object value null;
+                }
+                """,
+                // (2,16): error CS1003: Syntax error, '=' expected
                 //   object value null;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments("=").WithLocation(3, 16));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments("=").WithLocation(2, 16));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);

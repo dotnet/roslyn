@@ -5621,8 +5621,17 @@ parse_member_name:;
                     break;
 
                 default:
-                    // If we see a literal token after the identifier (e.g., "int value 5;"), treat it as a missing '=' and parse the initializer
-                    if (!isFixed && SyntaxFacts.IsLiteralExpression(this.CurrentToken.Kind))
+                    // If we see a token that can start an expression after the identifier (e.g., "int value 5;"), 
+                    // treat it as a missing '=' and parse the initializer. However, we need to exclude tokens
+                    // that can legally appear in ParseVariableDeclarator:
+                    // - IdentifierToken: handled by ERR_MultiTypeInDeclaration check above
+                    // - CommaToken, SemicolonToken: end of declarator
+                    // - EqualsToken, LessThanToken, OpenParenToken, OpenBracketToken: handled by cases above
+                    if (!isFixed && 
+                        this.CurrentToken.Kind != SyntaxKind.CommaToken && 
+                        this.CurrentToken.Kind != SyntaxKind.SemicolonToken &&
+                        !this.IsTrueIdentifier() &&
+                        this.IsPossibleExpression())
                     {
                         var missingEquals = this.EatToken(SyntaxKind.EqualsToken);
                         var initExpr = this.ParseVariableInitializer();
