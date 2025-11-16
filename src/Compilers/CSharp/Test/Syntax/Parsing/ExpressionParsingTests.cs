@@ -7483,7 +7483,7 @@ select t";
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
-        public void InProgressMultipleExpressionsInIfStatement()
+        public void InProgressMultipleExpressionsInIfStatement1()
         {
             UsingTree("""
                 if (Boo Quux())
@@ -7511,6 +7511,42 @@ select t";
                         {
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4009")]
+        public void InProgressMultipleExpressionsInIfStatement2()
+        {
+            UsingTree("""
+                if (1 2)
+                    return;
+                """,
+                // (1,7): error CS9344: Binary operator expected
+                // if (1 2)
+                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 7));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.ReturnStatement);
+                        {
+                            N(SyntaxKind.ReturnKeyword);
+                            N(SyntaxKind.SemicolonToken);
                         }
                     }
                 }
@@ -8301,217 +8337,6 @@ select t";
                         }
                         N(SyntaxKind.SemicolonToken);
                     }
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4009")]
-        public void TestExcessExpressionInNestedTryCatch()
-        {
-            UsingTree("""
-                class C {
-                    C() {
-                        try {
-                            Action a = () => {
-                                try {
-                                    try {
-                                    } catch (ArgumentException ex) {
-                                        if (1 2)
-                                            ex.ParamName.ToString();
-                                    }
-                                } catch (AggregateException ex) { }
-                            };
-                        } catch (Exception ex) { }
-                    }
-                }
-                """,
-                // (8,31): error CS9344: Binary operator expected
-                //                         if (1 2)
-                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(8, 31));
-
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.ClassDeclaration);
-                {
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.ConstructorDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierToken, "C");
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.TryStatement);
-                            {
-                                N(SyntaxKind.TryKeyword);
-                                N(SyntaxKind.Block);
-                                {
-                                    N(SyntaxKind.OpenBraceToken);
-                                    N(SyntaxKind.LocalDeclarationStatement);
-                                    {
-                                        N(SyntaxKind.VariableDeclaration);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "Action");
-                                            }
-                                            N(SyntaxKind.VariableDeclarator);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "a");
-                                                N(SyntaxKind.EqualsValueClause);
-                                                {
-                                                    N(SyntaxKind.EqualsToken);
-                                                    N(SyntaxKind.ParenthesizedLambdaExpression);
-                                                    {
-                                                        N(SyntaxKind.ParameterList);
-                                                        {
-                                                            N(SyntaxKind.OpenParenToken);
-                                                            N(SyntaxKind.CloseParenToken);
-                                                        }
-                                                        N(SyntaxKind.EqualsGreaterThanToken);
-                                                        N(SyntaxKind.Block);
-                                                        {
-                                                            N(SyntaxKind.OpenBraceToken);
-                                                            N(SyntaxKind.TryStatement);
-                                                            {
-                                                                N(SyntaxKind.TryKeyword);
-                                                                N(SyntaxKind.Block);
-                                                                {
-                                                                    N(SyntaxKind.OpenBraceToken);
-                                                                    N(SyntaxKind.TryStatement);
-                                                                    {
-                                                                        N(SyntaxKind.TryKeyword);
-                                                                        N(SyntaxKind.Block);
-                                                                        {
-                                                                            N(SyntaxKind.OpenBraceToken);
-                                                                            N(SyntaxKind.CloseBraceToken);
-                                                                        }
-                                                                        N(SyntaxKind.CatchClause);
-                                                                        {
-                                                                            N(SyntaxKind.CatchKeyword);
-                                                                            N(SyntaxKind.CatchDeclaration);
-                                                                            {
-                                                                                N(SyntaxKind.OpenParenToken);
-                                                                                N(SyntaxKind.IdentifierName);
-                                                                                {
-                                                                                    N(SyntaxKind.IdentifierToken, "ArgumentException");
-                                                                                }
-                                                                                N(SyntaxKind.IdentifierToken, "ex");
-                                                                                N(SyntaxKind.CloseParenToken);
-                                                                            }
-                                                                            N(SyntaxKind.Block);
-                                                                            {
-                                                                                N(SyntaxKind.OpenBraceToken);
-                                                                                N(SyntaxKind.IfStatement);
-                                                                                {
-                                                                                    N(SyntaxKind.IfKeyword);
-                                                                                    N(SyntaxKind.OpenParenToken);
-                                                                                    N(SyntaxKind.NumericLiteralExpression);
-                                                                                    {
-                                                                                        N(SyntaxKind.NumericLiteralToken, "1");
-                                                                                    }
-                                                                                    N(SyntaxKind.CloseParenToken);
-                                                                                    N(SyntaxKind.ExpressionStatement);
-                                                                                    {
-                                                                                        N(SyntaxKind.InvocationExpression);
-                                                                                        {
-                                                                                            N(SyntaxKind.SimpleMemberAccessExpression);
-                                                                                            {
-                                                                                                N(SyntaxKind.SimpleMemberAccessExpression);
-                                                                                                {
-                                                                                                    N(SyntaxKind.IdentifierName);
-                                                                                                    {
-                                                                                                        N(SyntaxKind.IdentifierToken, "ex");
-                                                                                                    }
-                                                                                                    N(SyntaxKind.DotToken);
-                                                                                                    N(SyntaxKind.IdentifierName);
-                                                                                                    {
-                                                                                                        N(SyntaxKind.IdentifierToken, "ParamName");
-                                                                                                    }
-                                                                                                }
-                                                                                                N(SyntaxKind.DotToken);
-                                                                                                N(SyntaxKind.IdentifierName);
-                                                                                                {
-                                                                                                    N(SyntaxKind.IdentifierToken, "ToString");
-                                                                                                }
-                                                                                            }
-                                                                                            N(SyntaxKind.ArgumentList);
-                                                                                            {
-                                                                                                N(SyntaxKind.OpenParenToken);
-                                                                                                N(SyntaxKind.CloseParenToken);
-                                                                                            }
-                                                                                        }
-                                                                                        N(SyntaxKind.SemicolonToken);
-                                                                                    }
-                                                                                }
-                                                                                N(SyntaxKind.CloseBraceToken);
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    N(SyntaxKind.CloseBraceToken);
-                                                                }
-                                                                N(SyntaxKind.CatchClause);
-                                                                {
-                                                                    N(SyntaxKind.CatchKeyword);
-                                                                    N(SyntaxKind.CatchDeclaration);
-                                                                    {
-                                                                        N(SyntaxKind.OpenParenToken);
-                                                                        N(SyntaxKind.IdentifierName);
-                                                                        {
-                                                                            N(SyntaxKind.IdentifierToken, "AggregateException");
-                                                                        }
-                                                                        N(SyntaxKind.IdentifierToken, "ex");
-                                                                        N(SyntaxKind.CloseParenToken);
-                                                                    }
-                                                                    N(SyntaxKind.Block);
-                                                                    {
-                                                                        N(SyntaxKind.OpenBraceToken);
-                                                                        N(SyntaxKind.CloseBraceToken);
-                                                                    }
-                                                                }
-                                                            }
-                                                            N(SyntaxKind.CloseBraceToken);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        N(SyntaxKind.SemicolonToken);
-                                    }
-                                    N(SyntaxKind.CloseBraceToken);
-                                }
-                                N(SyntaxKind.CatchClause);
-                                {
-                                    N(SyntaxKind.CatchKeyword);
-                                    N(SyntaxKind.CatchDeclaration);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Exception");
-                                        }
-                                        N(SyntaxKind.IdentifierToken, "ex");
-                                        N(SyntaxKind.CloseParenToken);
-                                    }
-                                    N(SyntaxKind.Block);
-                                    {
-                                        N(SyntaxKind.OpenBraceToken);
-                                        N(SyntaxKind.CloseBraceToken);
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
