@@ -359,17 +359,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // Check for the error case: identifier followed by '{'
                 // This handles "string s { Length: 5 }" which should be "string { Length: 5 } s"
-                if (this.IsTrueIdentifier() && this.IsValidPatternDesignation(inSwitchArmPattern) && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+                if (this.IsTrueIdentifier() && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
                 {
-                    // Parse the misplaced designation
-                    var misplacedDesignation = ParseSimpleDesignation();
+                    // Consume the misplaced identifier token
+                    var misplacedToken = this.EatToken();
                     
                     // Parse the property pattern
                     propertyPatternClauseResult = ParsePropertyPatternClause();
                     
-                    // Add error to the designation and attach it as skipped syntax to the property pattern
-                    var designationWithError = AddError(misplacedDesignation, ErrorCode.ERR_DesignatorBeneathPattern, misplacedDesignation.ToString());
-                    propertyPatternClauseResult = AddLeadingSkippedSyntax(propertyPatternClauseResult, designationWithError);
+                    // Add error to the token and attach it as skipped syntax to the property pattern
+                    var tokenWithError = AddError(misplacedToken, ErrorCode.ERR_DesignatorBeneathPattern, misplacedToken.ValueText);
+                    propertyPatternClauseResult = AddLeadingSkippedSyntax(propertyPatternClauseResult, tokenWithError);
                     
                     return true;
                 }
