@@ -1263,14 +1263,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Check if the syntax is a type name inside (T)-X pattern:
             // The syntax could be inside a ParenthesizedExpression which is the left side of a SubtractExpression
-            //
-            // Additional check: the parenthesized expression should not itself be parenthesized
-            // (i.e., we want (T)-X, not ((T))-X)
-            return syntax.Parent is ParenthesizedExpressionSyntax
+            if (syntax.Parent is Syntax.ParenthesizedExpressionSyntax parenthesized)
             {
-                Parent: BinaryExpressionSyntax { RawKind: (int)SyntaxKind.SubtractExpression } binary,
-                Expression.RawKind: not (int)SyntaxKind.ParenthesizedExpression,
-            } parenthesized && binary.Left == parenthesized;
+                return IsParenthesizedExpressionInPossibleBadNegCastContext(parenthesized);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if a parenthesized expression is in a (T)-X pattern where ERR_PossibleBadNegCast would be reported.
+        /// This method is shared between CheckNotNamespaceOrType and BindSimpleBinaryOperator to ensure they
+        /// check for the same pattern consistently.
+        /// </summary>
+        private static bool IsParenthesizedExpressionInPossibleBadNegCastContext(Syntax.ParenthesizedExpressionSyntax parenthesized)
+        {
+            // The parenthesized expression should not itself contain a parenthesized expression
+            // (i.e., we want (T)-X, not ((T))-X)
+            if (parenthesized.Expression.IsKind(SyntaxKind.ParenthesizedExpression))
+            {
+                return false;
+            }
+
+            // Check if it's the left side of a subtraction
+            return parenthesized.Parent is Syntax.BinaryExpressionSyntax { RawKind: (int)SyntaxKind.SubtractExpression } binary
+                && binary.Left == parenthesized;
         }
 
         private void CheckAddressOfInAsyncOrIteratorMethod(SyntaxNode node, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
