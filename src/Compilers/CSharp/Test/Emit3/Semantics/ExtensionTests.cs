@@ -3279,11 +3279,8 @@ public static class E
     [Fact]
     public void ReceiverParameter_TypeParameter_TopLevelExtension()
     {
-        // Regression test for https://github.com/dotnet/roslyn/issues/XXXXX
-        // This test ensures CheckUnderspecifiedGenericExtension doesn't crash when 
-        // extension.ContainingType is null (extension declared at namespace level)
         var src = """
-extension<T>(int)
+extension<T>(int i)
 {
     public int P => 0;
 }
@@ -3292,10 +3289,7 @@ extension<T>(int)
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             // extension<T>(int)
-            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 1),
-            // (3,16): error CS9303: 'P': cannot declare instance members in an extension block with an unnamed receiver parameter
-            //     public int P => 0;
-            Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, "P").WithArguments("P").WithLocation(3, 16));
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 1));
     }
 
     [Fact]
