@@ -2746,23 +2746,20 @@ class Program
             });
         }
 
-        /// <summary>
-        ///    Tests that nested parentheses prevent CS0075 from being reported in both TypeExpression and dynamic cases.
-        ///    For TypeExpression ((T))-X: CS0075 is NOT reported (the nested parens check explicitly excludes it).
-        ///    For dynamic identifier ((dynamic))-X: CS0075 is also NOT reported (the expression inside is ParenthesizedExpression, not IdentifierName).
-        /// </summary>
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32057")]
         public void PossibleBadNegCastNestedParentheses()
         {
-            var source = @"using System;
-class Program
-{
-    static void Main()
-    {
-        var y = ((ConsoleColor)) - 1;
-        var z = ((dynamic)) - 1;
-    }
-}";
+            var source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var y = ((ConsoleColor)) - 1;
+                        var z = ((dynamic)) - 1;
+                    }
+                }
+                """;
 
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
