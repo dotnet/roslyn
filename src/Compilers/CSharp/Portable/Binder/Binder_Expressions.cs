@@ -345,10 +345,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundTupleLiteral sourceTuple:
                     {
                         var boundArgs = ArrayBuilder<BoundExpression>.GetInstance(sourceTuple.Arguments.Length);
-                        foreach (var arg in sourceTuple.Arguments)
+                        var typesWithAnnotations = ArrayBuilder<TypeWithAnnotations>.GetInstance(sourceTuple.Arguments.Length);
+                        var locations = ArrayBuilder<Location>.GetInstance(sourceTuple.Arguments.Length);
+                        
+                        for (int i = 0; i < sourceTuple.Arguments.Length; i++)
                         {
-                            boundArgs.Add(BindToNaturalType(arg, diagnostics, reportNoTargetType));
+                            var arg = sourceTuple.Arguments[i];
+                            var boundArg = BindToNaturalType(arg, diagnostics, reportNoTargetType);
+                            
+                            // If the argument still doesn't have a type after binding (e.g., null literal),
+                            // convert it to object for error recovery
+                            if (boundArg.Type is null && boundArg is BoundLiteral { ConstantValueOpt.Value: null } nullLiteral)
+                            {
+                                var objectType = GetSpecialType(SpecialType.System_Object, diagnostics, boundArg.Syntax);
+                                boundArg = nullLiteral.Update(nullLiteral.ConstantValueOpt, objectType);
+                            }
+                            
+                            boundArgs.Add(boundArg);
+                            typesWithAnnotations.Add(TypeWithAnnotations.Create(boundArg.Type));
+                            locations.Add(arg.Syntax.Location);
                         }
+                        
+                        // Create a tuple type from the converted arguments, even if some had no natural type
+                        var tupleType = sourceTuple.Type;
+                        if (tupleType is null)
+                        {
+                            bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
+                            tupleType = NamedTypeSymbol.CreateTuple(
+                                sourceTuple.Syntax.Location,
+                                typesWithAnnotations.ToImmutableAndFree(),
+                                locations.ToImmutableAndFree(),
+                                sourceTuple.ArgumentNamesOpt,
+                                this.Compilation,
+                                shouldCheckConstraints: true,
+                                includeNullability: false,
+                                errorPositions: disallowInferredNames && sourceTuple.InferredNamesOpt.IsDefault == false ? sourceTuple.InferredNamesOpt : default,
+                                syntax: (CSharpSyntaxNode)sourceTuple.Syntax,
+                                diagnostics: null); // Don't report duplicate errors
+                        }
+                        else
+                        {
+                            typesWithAnnotations.Free();
+                            locations.Free();
+                        }
+                        
                         result = new BoundConvertedTupleLiteral(
                             sourceTuple.Syntax,
                             sourceTuple,
@@ -356,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             boundArgs.ToImmutableAndFree(),
                             sourceTuple.ArgumentNamesOpt,
                             sourceTuple.InferredNamesOpt,
-                            sourceTuple.Type, // same type to keep original element names
+                            tupleType,
                             sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
                     }
                     break;

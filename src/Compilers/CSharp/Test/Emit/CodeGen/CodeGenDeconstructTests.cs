@@ -5580,43 +5580,27 @@ var (x, y) = (1, null);
 ";
 
             var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
-            comp.GetDeclarationDiagnostics().Verify(
-                // (2,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
-                // var (x, y) = (1, null);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(2, 6),
-                // (2,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
-                // var (x, y) = (1, null);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(2, 9)
-                );
-
-            comp.VerifyDiagnostics(
-                // (2,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
-                // var (x, y) = (1, null);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(2, 6),
-                // (2,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
-                // var (x, y) = (1, null);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(2, 9)
-                );
+            
+            // With the fix, x should be inferred as int and y as object, with no errors
+            comp.GetDeclarationDiagnostics().Verify();
+            comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
             var x = GetDeconstructionVariable(tree, "x");
             var xSymbol = model.GetDeclaredSymbol(x);
-            Assert.Equal("var Script.x", xSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
             var xType = xSymbol.GetSymbol<FieldSymbol>().TypeWithAnnotations;
-            Assert.True(xType.Type.IsErrorType());
-            Assert.Equal("var", xType.ToTestDisplayString());
-
-            var xTypeISymbol = xType.Type.GetPublicSymbol();
-            Assert.Equal(SymbolKind.ErrorType, xTypeISymbol.Kind);
+            Assert.False(xType.Type.IsErrorType());
+            Assert.Equal("System.Int32", xType.ToTestDisplayString());
 
             var y = GetDeconstructionVariable(tree, "y");
             var ySymbol = model.GetDeclaredSymbol(y);
-            Assert.Equal("var Script.y", ySymbol.ToTestDisplayString());
+            Assert.Equal("System.Object Script.y", ySymbol.ToTestDisplayString());
             var yType = ((IFieldSymbol)ySymbol).Type;
-            Assert.True(yType.IsErrorType());
-            Assert.Equal("var", yType.ToTestDisplayString());
+            Assert.False(yType.IsErrorType());
+            Assert.Equal("System.Object", yType.ToTestDisplayString());
         }
 
         [Fact]
