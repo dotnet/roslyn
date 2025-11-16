@@ -217,6 +217,11 @@
         <target state="translated">O argumento {0} não pode ser passado com o palavra-chave 'ref' na versão {1} da linguagem. Para passar argumentos 'ref' para parâmetros 'in', atualize para a versão {2} ou superior da linguagem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitWithoutAsyncIterator">
+        <source>The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier.</source>
+        <target state="new">The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">O operador '{0}' não pode ser aplicado a operandos do tipo '{1}' e '{2}' que não são representações de bytes UTF-8</target>

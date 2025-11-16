@@ -185,9 +185,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            info = method.ReturnsVoid ?
-                                new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod) :
-                                new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, method.ReturnType);
+                            if (method.ReturnsVoid)
+                            {
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod);
+                            }
+                            else if (method.IsIterator && 
+                                     (method.ReturnType.IsIAsyncEnumerableType(Compilation) || 
+                                      method.ReturnType.IsIAsyncEnumeratorType(Compilation)))
+                            {
+                                // For async iterators, don't suggest changing the return type
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsyncIterator);
+                            }
+                            else
+                            {
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, method.ReturnType);
+                            }
                         }
                         break;
                 }

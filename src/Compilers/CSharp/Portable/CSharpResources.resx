@@ -3797,6 +3797,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAwaitWithoutVoidAsyncMethod" xml:space="preserve">
     <value>The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.</value>
   </data>
+  <data name="ERR_BadAwaitWithoutAsyncIterator" xml:space="preserve">
+    <value>The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier.</value>
+  </data>
   <data name="ERR_BadAwaitInFinally" xml:space="preserve">
     <value>Cannot await in the body of a finally clause</value>
   </data>

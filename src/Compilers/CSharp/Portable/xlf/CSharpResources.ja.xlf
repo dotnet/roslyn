@@ -217,6 +217,11 @@
         <target state="translated">言語バージョン {1} では、引数 {0} を 'ref' キーワードと共に渡すことはできません。'ref' 引数を 'in' パラメーターに渡すには、言語バージョン {2} 以上にアップグレードしてください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitWithoutAsyncIterator">
+        <source>The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier.</source>
+        <target state="new">The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">演算子 '{0}' は、UTF-8 バイト表現ではない型 '{1}' および '{2}' のオペランドには適用できません</target>
