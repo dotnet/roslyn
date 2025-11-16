@@ -1268,6 +1268,16 @@ outerDefault:
                             // Errors are better if we use the expanded form in this case.
                             return true;
                         }
+                        
+                        // Also prefer expanded form if the normal form has a bad argument for the last parameter
+                        // but the expanded form doesn't. This handles cases like:
+                        // M(char c, params object[] args) called with M(string[], string)
+                        // where string[] -> char is bad and string -> object[] is bad in normal form,
+                        // but string -> object is good in expanded form.
+                        if (haveBadArgumentForLastParameter(normalResult) && !haveBadArgumentForLastParameter(expandedResult))
+                        {
+                            return true;
+                        }
                     }
 
                     break;
