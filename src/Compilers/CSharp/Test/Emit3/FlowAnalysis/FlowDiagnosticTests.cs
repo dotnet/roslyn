@@ -2809,9 +2809,7 @@ struct Empty
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 1;").WithArguments("case 1:").WithLocation(9, 17),
                 // (12,17): error CS0159: No such label 'default:' within the scope of the goto statement
                 //                 goto default;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto default;").WithArguments("default:").WithLocation(12, 17)
-                // No cascaded ERR_SwitchFallThrough or ERR_SwitchFallOut errors
-                );
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto default;").WithArguments("default:").WithLocation(12, 17));
         }
 
         [Fact]
@@ -2835,9 +2833,7 @@ struct Empty
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,14): error CS0159: No such label 'foo' within the scope of the goto statement
                 //         goto foo;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "foo").WithArguments("foo").WithLocation(5, 14)
-                // No cascaded ERR_ReturnExpected error
-                );
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "foo").WithArguments("foo").WithLocation(5, 14));
         }
 
         [Fact]
@@ -2872,9 +2868,7 @@ struct Empty
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 98;").WithArguments("case 98:").WithLocation(10, 17),
                 // (12,17): error CS0159: No such label 'case 97:' within the scope of the goto statement
                 //                 goto case 97;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 97;").WithArguments("case 97:").WithLocation(12, 17)
-                // No cascaded ERR_SwitchFallThrough or ERR_SwitchFallOut errors
-                );
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 97;").WithArguments("case 97:").WithLocation(12, 17));
         }
     }
 }
