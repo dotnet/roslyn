@@ -1595,9 +1595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we should still treat it as unreachable after the goto, even though the goto failed to bind.
             // This prevents cascaded diagnostics about unreachable code or missing return statements.
             var syntax = node.Syntax;
-            bool isGotoStatement = syntax.Kind() == SyntaxKind.GotoStatement ||
-                                   syntax.Kind() == SyntaxKind.GotoCaseStatement ||
-                                   syntax.Kind() == SyntaxKind.GotoDefaultStatement;
+            var isGotoStatement = syntax.Kind() is SyntaxKind.GotoStatement or SyntaxKind.GotoCaseStatement or SyntaxKind.GotoDefaultStatement;
 
             foreach (var child in node.ChildBoundNodes)
             {
