@@ -351,6 +351,9 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
+            // (10,17): error CS8506: No best type was found for the switch expression.
+            //         _ = obj switch
+            Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(10, 17),
             // (12,13): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
             //             int? => 1,
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(12, 13),
@@ -433,6 +436,9 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
+            // (10,17): error CS8506: No best type was found for the switch expression.
+            //         _ = obj switch
+            Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(10, 17),
             // (12,13): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
             //             int[]? => 1,
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(12, 13),
