@@ -1248,6 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TypeExpression:
                     // Don't report ERR_BadSKunknown if we're in a (T)-X pattern, as we'll report
                     // ERR_PossibleBadNegCast instead which is more specific and helpful.
+                    // Note: This check must be kept in sync with BindSimpleBinaryOperator where ERR_PossibleBadNegCast is reported.
                     if (!IsInPossibleBadNegCastContext(expr.Syntax))
                     {
                         Error(diagnostics, ErrorCode.ERR_BadSKunknown, expr.Syntax, expr.Type, MessageID.IDS_SK_TYPE.Localize());
