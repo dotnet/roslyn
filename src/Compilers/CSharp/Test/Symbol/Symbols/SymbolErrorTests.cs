@@ -13504,6 +13504,53 @@ static class S
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18648")]
+        public void CS0718ERR_GenericArgIsStaticClass_Tuple()
+        {
+            var text =
+@"static class X
+{
+    static (X, long) Foo()
+    {
+        return default;
+    }
+
+    static (int, X) Bar()
+    {
+        return default;
+    }
+
+    static (X, X, int) Baz()
+    {
+        return default;
+    }
+
+    static void Test()
+    {
+        (X, int) local;
+    }
+}";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (3,13): error CS0718: 'X': static types cannot be used as type arguments
+                //     static (X, long) Foo()
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "X").WithArguments("X").WithLocation(3, 13),
+                // (8,18): error CS0718: 'X': static types cannot be used as type arguments
+                //     static (int, X) Bar()
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "X").WithArguments("X").WithLocation(8, 18),
+                // (13,13): error CS0718: 'X': static types cannot be used as type arguments
+                //     static (X, X, int) Baz()
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "X").WithArguments("X").WithLocation(13, 13),
+                // (13,16): error CS0718: 'X': static types cannot be used as type arguments
+                //     static (X, X, int) Baz()
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "X").WithArguments("X").WithLocation(13, 16),
+                // (20,10): error CS0718: 'X': static types cannot be used as type arguments
+                //         (X, int) local;
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "X").WithArguments("X").WithLocation(20, 10),
+                // (20,18): warning CS0168: The variable 'local' is declared but never used
+                //         (X, int) local;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(20, 18));
+        }
+
         [Fact]
         public void CS0719ERR_ArrayOfStaticClass01()
         {

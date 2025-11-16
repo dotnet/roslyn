@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    locations.Add(argumentSyntax.Location);
+                    locations.Add(argumentSyntax.Type.Location);
                 }
 
                 CollectTupleFieldMemberName(name, i, numElements, ref elementNames);

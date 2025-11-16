@@ -734,7 +734,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var pair in diagnosticsBuilder)
             {
-                args.Diagnostics.Add(pair.UseSiteInfo, args.Location);
+                var location = args.Location;
+                // For tuple types, use the specific element location if available
+                if (type.IsTupleType && type.TupleData is object)
+                {
+                    var elementLocations = type.TupleData.ElementLocations;
+                    var ordinal = pair.TypeParameter.Ordinal;
+                    if (!elementLocations.IsDefault && ordinal >= 0 && ordinal < elementLocations.Length)
+                    {
+                        var elementLocation = elementLocations[ordinal];
+                        if (elementLocation != null)
+                        {
+                            location = elementLocation;
+                        }
+                    }
+                }
+                args.Diagnostics.Add(pair.UseSiteInfo, location);
             }
 
             diagnosticsBuilder.Free();
