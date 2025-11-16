@@ -2781,8 +2781,6 @@ struct Empty
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5243")]
         public void NoCascadedErrorsForMissingLabel_GotoCase()
         {
-            // When a goto case statement has an error (label not found), it should still
-            // be treated as unreachable after the goto, preventing cascaded diagnostics.
             var source = """
                 class Program
                 {
@@ -2814,30 +2812,26 @@ struct Empty
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5243")]
         public void NoCascadedErrorsForMissingLabel_GotoLabel()
         {
-            // When a goto label statement has an error (label not found), it should still
-            // be treated as unreachable after the goto, preventing cascaded diagnostics
-            // about missing return values.
             var source = """
                 class Program
                 {
                     static int M()
                     {
-                        goto foo;
+                        goto goo;
                         // Should NOT report: not all code paths return a value
                     }
                 }
                 """;
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,14): error CS0159: No such label 'foo' within the scope of the goto statement
-                //         goto foo;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "foo").WithArguments("foo").WithLocation(5, 14));
+                // (5,14): error CS0159: No such label 'goo' within the scope of the goto statement
+                //         goto goo;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goo").WithArguments("goo").WithLocation(5, 14));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5243")]
         public void NoCascadedErrorsForMissingLabel_MultipleCases()
         {
-            // Test with multiple missing labels in the same switch statement
             var source = """
                 class Program
                 {
