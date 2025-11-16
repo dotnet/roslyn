@@ -1276,14 +1276,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The parenthesized expression should not itself contain a parenthesized expression
             // (i.e., we want (T)-X, not ((T))-X)
-            if (parenthesized.Expression.IsKind(SyntaxKind.ParenthesizedExpression))
-            {
-                return false;
-            }
-
-            // Check if it's the left side of a subtraction
-            return parenthesized.Parent is Syntax.BinaryExpressionSyntax { RawKind: (int)SyntaxKind.SubtractExpression } binary
-                && binary.Left == parenthesized;
+            return parenthesized.Expression.IsKind(SyntaxKind.ParenthesizedExpression) &&
+            parenthesized.Parent is Syntax.BinaryExpressionSyntax { RawKind: (int)SyntaxKind.SubtractExpression } binary &&
+            binary.Left == parenthesized;
         }
 
         private void CheckAddressOfInAsyncOrIteratorMethod(SyntaxNode node, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
