@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckImplicitThisCopyInReadOnlyMember(boundRHS, conversion.Method, diagnostics);
             }
 
-            FailRemainingInferences(checkedVariables, diagnostics);
+            FailRemainingInferences(checkedVariables, diagnostics, suppressErrors: hasErrors);
 
             var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: diagnostics.HasAnyErrors() || !resultIsUsed);
             Debug.Assert(hasErrors || lhsTuple.Type is object);
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Find any deconstruction locals that are still pending inference and fail their inference.
         /// Set the safe-to-escape scope for all deconstruction locals.
         /// </summary>
-        private void FailRemainingInferences(ArrayBuilder<DeconstructionVariable> variables, BindingDiagnosticBag diagnostics)
+        private void FailRemainingInferences(ArrayBuilder<DeconstructionVariable> variables, BindingDiagnosticBag diagnostics, bool suppressErrors = false)
         {
             int count = variables.Count;
             for (int i = 0; i < count; i++)
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variable = variables[i];
                 if (variable.NestedVariables is object)
                 {
-                    FailRemainingInferences(variable.NestedVariables, diagnostics);
+                    FailRemainingInferences(variable.NestedVariables, diagnostics, suppressErrors);
                 }
                 else
                 {
@@ -404,14 +404,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (variable.Single.Kind)
                     {
                         case BoundKind.DeconstructionVariablePendingInference:
-                            BoundExpression errorLocal = ((DeconstructionVariablePendingInference)variable.Single).FailInference(this, diagnostics);
+                            BoundExpression errorLocal = ((DeconstructionVariablePendingInference)variable.Single).FailInference(this, suppressErrors ? null : diagnostics);
                             variables[i] = new DeconstructionVariable(errorLocal, errorLocal.Syntax);
                             break;
                         case BoundKind.DiscardExpression:
                             var pending = (BoundDiscardExpression)variable.Single;
                             if ((object?)pending.Type == null)
                             {
-                                Error(diagnostics, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, pending.Syntax, "_");
+                                if (!suppressErrors)
+                                {
+                                    Error(diagnostics, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, pending.Syntax, "_");
+                                }
                                 variables[i] = new DeconstructionVariable(pending.FailInference(this, diagnostics), pending.Syntax);
                             }
                             break;
@@ -649,19 +652,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 const string methodName = WellKnownMemberNames.DeconstructMethodName;
+                
+                // Use a temporary diagnostic bag to capture member access errors
+                var memberAccessDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
                 var memberAccess = BindInstanceMemberAccess(
                                         rightSyntax, receiverSyntax, receiver, methodName, rightArity: 0,
                                         typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
                                         typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
-                                        invoked: true, indexed: false, diagnostics: diagnostics);
+                                        invoked: true, indexed: false, diagnostics: memberAccessDiagnostics);
 
-                memberAccess = CheckValue(memberAccess, BindValueKind.RValueOrMethodGroup, diagnostics);
+                memberAccess = CheckValue(memberAccess, BindValueKind.RValueOrMethodGroup, memberAccessDiagnostics);
                 memberAccess.WasCompilerGenerated = true;
 
                 if (memberAccess.Kind != BoundKind.MethodGroup)
                 {
-                    return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, receiver);
+                    // BindInstanceMemberAccess reports CS1061 when the member is not found.
+                    // Check if CS1061 was reported, and if so, don't also report CS8129 as it's redundant.
+                    bool reportedNoSuchMember = memberAccessDiagnostics.DiagnosticBag != null &&
+                        memberAccessDiagnostics.DiagnosticBag.AsEnumerable().Any(d => d.Code == (int)ErrorCode.ERR_NoSuchMemberOrExtension);
+                    diagnostics.AddRange(memberAccessDiagnostics);
+                    memberAccessDiagnostics.Free();
+                    return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, receiver, suppressError: reportedNoSuchMember);
                 }
+                
+                diagnostics.AddRange(memberAccessDiagnostics);
+                memberAccessDiagnostics.Free();
 
                 // After the overload resolution completes, the last step is to coerce the arguments with inferred types.
                 // That step returns placeholder (of correct type) instead of the outVar nodes that were passed in as arguments.
@@ -713,9 +728,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundBadExpression MissingDeconstruct(BoundExpression receiver, SyntaxNode rightSyntax, int numParameters, BindingDiagnosticBag diagnostics,
-                                    out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundExpression childNode)
+                                    out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundExpression childNode, bool suppressError = false)
         {
-            if (receiver.Type?.IsErrorType() == false)
+            if (!suppressError && receiver.Type?.IsErrorType() == false)
             {
                 Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type!, numParameters);
             }

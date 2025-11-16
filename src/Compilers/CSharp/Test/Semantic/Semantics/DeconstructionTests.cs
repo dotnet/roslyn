@@ -94,10 +94,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(8, 28),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, y) = new C()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(8, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1152,10 +1149,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1061: 'void' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'void' could be found (are you missing a using directive or an assembly reference?)
                 //         /*<bind>*/(x, x) = M()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M()").WithArguments("void", "Deconstruct").WithLocation(7, 28),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'void', with 2 out parameters and a void return type.
-                //         /*<bind>*/(x, x) = M()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "M()").WithArguments("void", "2").WithLocation(7, 28)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M()").WithArguments("void", "Deconstruct").WithLocation(7, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -2428,9 +2422,6 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                 // CS1061: 'void' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'void' could be found (are you missing a using directive or an assembly reference?)
                 //         /*<bind>*/(int x1, int x2) = M(x1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M(x1)").WithArguments("void", "Deconstruct").WithLocation(6, 38),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'void', with 2 out parameters and a void return type.
-                //         /*<bind>*/(int x1, int x2) = M(x1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "M(x1)").WithArguments("void", "2").WithLocation(6, 38),
                 // CS0165: Use of unassigned local variable 'x1'
                 //         /*<bind>*/(int x1, int x2) = M(x1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 40)
@@ -2973,13 +2964,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
                 //         /*<bind>*/(var (x1, x2), var x3) = (1, 2, 3)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(var (x1, x2), var x3) = (1, 2, 3)").WithArguments("3", "2").WithLocation(6, 19),
-                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
-                //         /*<bind>*/(var (x1, x2), var x3) = (1, 2, 3)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 25),
-                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
-                //         /*<bind>*/(var (x1, x2), var x3) = (1, 2, 3)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(var (x1, x2), var x3) = (1, 2, 3)").WithArguments("3", "2").WithLocation(6, 19)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -3108,15 +3093,6 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                 // CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("int", "Deconstruct").WithLocation(9, 32),
-                // CS8129: No suitable Deconstruct instance or extension method was found for type 'int', with 2 out parameters and a void return type.
-                //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(9, 32),
-                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
-                //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(9, 24),
-                // CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
-                //         /*<bind>*/var (x, y) = 42/*</bind>*/; // parsed as deconstruction
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(9, 27),
                 // CS0219: The variable 'x' is assigned but its value is never used
                 //         int x = 0, y = 0;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 13),
@@ -3187,9 +3163,6 @@ class C
                 // (9,22): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         @var(x, y) = 42; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("int", "Deconstruct").WithLocation(9, 22),
-                // (9,22): error CS8129: No Deconstruct instance or extension method was found for type 'int', with 2 out parameters.
-                //         @var(x, y) = 42; // parsed as invocation
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(9, 22),
                 // (11,14): error CS0128: A local variable named 'x' is already defined in this scope
                 //         (var(x, y)) = 43; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(11, 14),
@@ -3199,9 +3172,6 @@ class C
                 // (11,23): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         (var(x, y)) = 43; // parsed as invocation
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "43").WithArguments("int", "Deconstruct").WithLocation(11, 23),
-                // (11,23): error CS8129: No Deconstruct instance or extension method was found for type 'int', with 1 out parameters.
-                //         (var(x, y)) = 43; // parsed as invocation
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "43").WithArguments("int", "1").WithLocation(11, 23),
                 // (13,14): error CS0128: A local variable named 'x' is already defined in this scope
                 //         (var(x, y) = 44); // parsed as invocation
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(13, 14),
@@ -3211,9 +3181,6 @@ class C
                 // (13,22): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         (var(x, y) = 44); // parsed as invocation
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "44").WithArguments("int", "Deconstruct").WithLocation(13, 22),
-                // (13,22): error CS8129: No Deconstruct instance or extension method was found for type 'int', with 1 out parameters.
-                //         (var(x, y) = 44); // parsed as invocation
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "44").WithArguments("int", "1").WithLocation(13, 22),
                 // (8,13): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         int x = 0, y = 0;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(8, 13),
