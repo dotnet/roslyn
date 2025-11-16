@@ -5506,8 +5506,6 @@ parse_member_name:;
             // specifically treats it as a variable name, even if it could be interpreted as a
             // keyword.
             var name = this.ParseIdentifierToken();
-            BracketedArgumentListSyntax argumentList = null;
-            EqualsValueClauseSyntax initializer = null;
             TerminatorState saveTerm = _termState;
             bool isFixed = (flags & VariableFlags.Fixed) != 0;
             bool isConst = (flags & VariableFlags.Const) != 0;
@@ -5540,10 +5538,14 @@ parse_member_name:;
                         : null;
 
                     var init = this.ParseVariableInitializer();
-                    initializer = _syntaxFactory.EqualsValueClause(
-                        equals,
-                        refKeyword == null ? init : _syntaxFactory.RefExpression(refKeyword, init));
-                    break;
+
+                    localFunction = null;
+                    return _syntaxFactory.VariableDeclarator(
+                        name,
+                        argumentList: null,
+                        _syntaxFactory.EqualsValueClause(
+                            equals,
+                            refKeyword == null ? init : _syntaxFactory.RefExpression(refKeyword, init)));
 
                 case SyntaxKind.LessThanToken:
                     if (allowLocalFunctions && isFirst)
@@ -5569,10 +5571,12 @@ parse_member_name:;
                     // Special case for accidental use of C-style constructors
                     // Fake up something to hold the arguments.
                     _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
-                    argumentList = this.ParseBracketedArgumentList();
+                    var argumentList = this.ParseBracketedArgumentList();
                     _termState = saveTerm;
                     argumentList = this.AddError(argumentList, ErrorCode.ERR_BadVarDecl);
-                    break;
+
+                    localFunction = null;
+                    return _syntaxFactory.VariableDeclarator(name, argumentList, initializer: null);
 
                 case SyntaxKind.OpenBracketToken:
                     bool sawNonOmittedSize;
@@ -5618,7 +5622,8 @@ parse_member_name:;
                         }
                     }
 
-                    break;
+                    localFunction = null;
+                    return _syntaxFactory.VariableDeclarator(name, argumentList, initializer: null);
 
                 default:
                     // If we see a token that can start an expression after the identifier (e.g., "int value 5;"), 
@@ -5626,21 +5631,25 @@ parse_member_name:;
                     //
                     // Do this except for cases that are better served by saying we have a missing comma.  Specifically:
                     //
+                    //      Type t1 t2 t3
                     //      Type t1 t2,
                     //      Type t1 t2 = ...
                     //      Type t1 t2;
                     //      Type t1 t2)    // likely an incorrect tuple.
                     var shouldParseAsNextDeclarator =
                         this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
-                        this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.EndOfFileToken;
-                    if (ContainsErrorDiagnostic(name) && !shouldParseAsNextDeclarator)
+                        this.PeekToken(1).Kind is SyntaxKind.IdentifierToken or SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.EndOfFileToken;
+                    if (!ContainsErrorDiagnostic(name) && !shouldParseAsNextDeclarator)
                     {
                         if (this.CanStartExpression() || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                         {
-                            initializer = _syntaxFactory.EqualsValueClause(
-                                this.EatToken(SyntaxKind.EqualsToken),
-                                this.ParseVariableInitializer());
-                            break;
+                            localFunction = null;
+                            return _syntaxFactory.VariableDeclarator(
+                                name,
+                                argumentList: null,
+                                _syntaxFactory.EqualsValueClause(
+                                    this.EatToken(SyntaxKind.EqualsToken),
+                                    this.ParseVariableInitializer()));
                         }
                     }
 
@@ -5661,11 +5670,9 @@ parse_member_name:;
                         }
                     }
 
-                    break;
+                    localFunction = null;
+                    return _syntaxFactory.VariableDeclarator(name, argumentList: null, initializer: null);
             }
-
-            localFunction = null;
-            return _syntaxFactory.VariableDeclarator(name, argumentList, initializer);
         }
 
         // Is there a local function after an eaten identifier?
