@@ -11949,10 +11949,6 @@ class B : A
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12933")]
         public void ParamsErrorSuppression_StringConvertibleToObject()
         {
-            // When a method has a params parameter and an argument would be convertible 
-            // to the element type when the params is expanded, we should not report an error
-            // for that argument. The real error is with another argument that prevents 
-            // the method from being applicable.
             var source = """
                 class Program
                 {
@@ -11977,8 +11973,6 @@ class B : A
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12933")]
         public void ParamsErrorSuppression_IntNotConvertibleToString()
         {
-            // When a method has a params parameter and an argument would NOT be convertible 
-            // to the element type when the params is expanded, we should still report the error.
             var source = """
                 class C
                 {
