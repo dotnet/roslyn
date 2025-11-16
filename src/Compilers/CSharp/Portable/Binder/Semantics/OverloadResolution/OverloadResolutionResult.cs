@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Location location,
             CSharpSyntaxNode queryClause = null)
         {
-            var inferenceFailed = GetFirstMemberKind(MemberResolutionKind.TypeInferenceFailed);
+            var inferenceFailed = GetFirstMemberKind(MemberResolutionKind.TypeInferenceFailed, arguments);
             if (inferenceFailed.IsNotNull)
             {
                 if (queryClause != null)
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            inferenceFailed = GetFirstMemberKind(MemberResolutionKind.TypeInferenceExtensionInstanceArgument);
+            inferenceFailed = GetFirstMemberKind(MemberResolutionKind.TypeInferenceExtensionInstanceArgument, arguments);
             if (inferenceFailed.IsNotNull)
             {
                 Debug.Assert(arguments.Arguments.Count > 0);
@@ -1117,10 +1117,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinderFlags flags,
             bool isMethodGroupConversion)
         {
-            var badArg = GetFirstMemberKind(MemberResolutionKind.BadArgumentConversion);
+            var badArg = GetFirstMemberKind(MemberResolutionKind.BadArgumentConversion, arguments);
             if (badArg.IsNull)
             {
                 return false;
+            }
+
+            // If we have a lambda/anonymous method argument converting to a non-delegate type,
+            // check if there's a type inference failure for a delegate-accepting overload.
+            // In that case, report the type inference error instead, as it's more informative.
+            if (!isMethodGroupConversion && HasLambdaArgumentConvertingToNonDelegate(badArg.Member, arguments))
+            {
+                var inferenceFailed = GetFirstMemberKind(MemberResolutionKind.TypeInferenceFailed, arguments);
+                if (inferenceFailed.IsNotNull)
+                {
+                    // Report the type inference error instead
+                    // error CS0411: The type arguments for method 'M<T>(T)' cannot be inferred
+                    // from the usage. Try specifying the type arguments explicitly.
+                    diagnostics.Add(new DiagnosticInfoWithSymbols(
+                        ErrorCode.ERR_CantInferMethTypeArgs,
+                        new object[] { inferenceFailed.Member },
+                        symbols), location);
+                    return true;
+                }
             }
 
             if (isMethodGroupConversion)
@@ -1561,8 +1580,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private MemberResolutionResult<TMember> GetFirstMemberKind(MemberResolutionKind kind)
+        private MemberResolutionResult<TMember> GetFirstMemberKind(MemberResolutionKind kind, AnalyzedArguments arguments = null)
         {
+            // When looking for the best candidate to report errors, prefer members that accept delegate types
+            // in positions where lambda/anonymous method arguments are provided.
+            if ((kind == MemberResolutionKind.BadArgumentConversion ||
+                 kind == MemberResolutionKind.TypeInferenceFailed ||
+                 kind == MemberResolutionKind.TypeInferenceExtensionInstanceArgument) && arguments != null)
+            {
+                // First, check if any argument is a lambda or anonymous method
+                bool hasLambdaOrAnonymousMethod = false;
+                for (int i = 0; i < arguments.Arguments.Count; i++)
+                {
+                    var arg = arguments.Arguments[i];
+                    if (arg.Kind == BoundKind.UnboundLambda)
+                    {
+                        hasLambdaOrAnonymousMethod = true;
+                        break;
+                    }
+                }
+
+                if (hasLambdaOrAnonymousMethod)
+                {
+                    // Try to find a candidate that accepts a delegate in a position where we have a lambda
+                    MemberResolutionResult<TMember> firstCandidate = default;
+                    foreach (var result in this.ResultsBuilder)
+                    {
+                        if (result.Result.Kind == kind)
+                        {
+                            if (firstCandidate.IsNull)
+                            {
+                                firstCandidate = result;
+                            }
+
+                            // Check if this candidate has delegate-type parameters matching lambda positions
+                            if (HasDelegateParameterForLambdaArgument(result.Member, arguments))
+                            {
+                                return result;
+                            }
+                        }
+                    }
+
+                    // If we didn't find a delegate-accepting overload, return the first one
+                    return firstCandidate;
+                }
+            }
+
+            // Default behavior: return the first result with the specified kind
             foreach (var result in this.ResultsBuilder)
             {
                 if (result.Result.Kind == kind)
@@ -1572,6 +1636,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return default(MemberResolutionResult<TMember>);
+        }
+
+        private bool HasDelegateParameterForLambdaArgument(TMember member, AnalyzedArguments arguments)
+        {
+            var parameters = member.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
+
+            // Need to have matching number of arguments
+            if (parameters.Length == 0 || arguments.Arguments.Count == 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < arguments.Arguments.Count && i < parameters.Length; i++)
+            {
+                var arg = arguments.Arguments[i];
+                if (arg.Kind == BoundKind.UnboundLambda)
+                {
+                    var parameterType = parameters[i].Type;
+                    if (parameterType.IsDelegateType())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool HasLambdaArgumentConvertingToNonDelegate(TMember member, AnalyzedArguments arguments)
+        {
+            var parameters = member.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
+
+            for (int i = 0; i < arguments.Arguments.Count && i < parameters.Length; i++)
+            {
+                var arg = arguments.Arguments[i];
+                if (arg.Kind == BoundKind.UnboundLambda)
+                {
+                    var parameterType = parameters[i].Type;
+                    if (!parameterType.IsDelegateType())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
 #if DEBUG

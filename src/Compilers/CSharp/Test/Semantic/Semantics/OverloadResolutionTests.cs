@@ -11945,5 +11945,38 @@ class B : A
                 """;
             CreateCompilation(source).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21950")]
+        public void PreferDelegateOverloadForLambdaArgument()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M(x => { });
+                    }
+
+                    static void M(string s)
+                    {
+                    }
+
+                    static void M<T>(Action<T> a)
+                    {
+                    }
+                }
+                """;
+            // The error should mention the generic delegate overload, not the string overload.
+            // Before the fix, this would report: CS1660: Cannot convert lambda expression to type 'string'
+            // After the fix, it should report: CS0411: The type arguments for method 'Program.M<T>(Action<T>)' cannot be inferred
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0411: The type arguments for method 'Program.M<T>(Action<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(x => { });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(System.Action<T>)").WithLocation(7, 9)
+                );
+        }
     }
 }
