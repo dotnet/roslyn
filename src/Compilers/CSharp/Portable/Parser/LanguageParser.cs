@@ -5629,10 +5629,11 @@ parse_member_name:;
                     //      Type t1 t2,
                     //      Type t1 t2 = ...
                     //      Type t1 t2;
+                    //      Type t1 t2)    // likely an incorrect tuple.
                     var shouldParseAsNextDeclarator =
                         this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
-                        this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.SemicolonToken;
-                    if (!name.IsMissing && !shouldParseAsNextDeclarator)
+                        this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.EndOfFileToken;
+                    if (ContainsErrorDiagnostic(name) && !shouldParseAsNextDeclarator)
                     {
                         if (this.CanStartExpression() || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                         {

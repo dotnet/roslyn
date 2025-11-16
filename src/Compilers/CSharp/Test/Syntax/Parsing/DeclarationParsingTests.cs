@@ -13305,10 +13305,133 @@ I1(x);";
             EOF();
         }
 
-        // NOTE: Additional manual verification for expression types where detailed tree verification is complex:
-        // - Collection expressions: `int[] x [1, 2, 3];` → error CS1003: Syntax error, '=' expected
-        // - Invocation expressions: `int x M();` → different error pattern due to method parsing
-        // - Query expressions: `var x from y in z select y;` → error CS1003: Syntax error, '=' expected
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFieldDeclarationWithMissingEquals_ImplicitObjectCreation()
+        {
+            var tree = UsingTree("""
+            class C {
+                C x new();
+            }
+            """,
+                // (2,7): error CS1003: Syntax error, '=' expected
+                //   C x new C();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(2, 7));
+
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFieldDeclarationWithMissingEquals_CollectionExpression()
+        {
+            var tree = UsingTree("""
+                class C {
+                  C x [1, 2, 3];
+                }
+                """,
+                // (2,7): error CS1003: Syntax error, '=' expected
+                //   C x new C();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(2, 7));
+
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFieldDeclarationWithMissingEquals_InvocationExpression()
+        {
+            var tree = UsingTree("""
+                class C {
+                  C x X.Y;
+                }
+                """,
+                // (2,7): error CS1003: Syntax error, '=' expected
+                //   C x new C();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(2, 7));
+
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFieldDeclarationWithMissingEquals_CastExpression()
+        {
+            var tree = UsingTree("""
+                class C {
+                  C x (int)0;
+                }
+                """,
+                // (2,7): error CS1003: Syntax error, '=' expected
+                //   C x new C();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(2, 7));
+
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFieldDeclarationWithMissingEquals_SimpleLambda()
+        {
+            var tree = UsingTree("""
+                class C {
+                  C x a => b;
+                }
+                """,
+                // (2,7): error CS1003: Syntax error, '=' expected
+                //   C x new C();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(2, 7));
+
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFieldDeclarationWithMissingEquals_ParenthesizedLambda()
+        {
+            var tree = UsingTree("""
+                class C {
+                  C x (a) => b;
+                }
+                """,
+                // (2,7): error CS1003: Syntax error, '=' expected
+                //   C x new C();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(2, 7));
+
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFieldDeclarationWithMissingEquals_DefaultLiteral()
+        {
+            var tree = UsingTree("""
+                class C {
+                  C x default;
+                }
+                """,
+                // (2,7): error CS1003: Syntax error, '=' expected
+                //   C x new C();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(2, 7));
+
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFieldDeclarationWithMissingEquals_QueryExpression()
+        {
+            var tree = UsingTree("""
+                class C {
+                  C x from x in y select x;
+                }
+                """,
+                // (2,7): error CS1003: Syntax error, '=' expected
+                //   C x new C();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(2, 7));
+
+
+            EOF();
+        }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23877")]
         public void TestParseAttributeArgumentListWithInvalidString()
