@@ -668,10 +668,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // BindInstanceMemberAccess reports an error when the member is not found or not accessible.
                     // If memberAccess has errors, suppress CS8129 to avoid redundant error reporting.
-                    bool suppressCS8129 = memberAccess.HasErrors;
-                    diagnostics.AddRange(memberAccessDiagnostics);
-                    memberAccessDiagnostics.Free();
-                    return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, receiver, suppressError: suppressCS8129);
+                    diagnostics.AddRangeAndFree(memberAccessDiagnostics);
+                    return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, receiver, suppressError: memberAccess.HasErrors);
                 }
 
                 diagnostics.AddRange(memberAccessDiagnostics);
