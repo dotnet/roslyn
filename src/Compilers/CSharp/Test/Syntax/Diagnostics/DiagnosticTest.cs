@@ -2765,8 +2765,7 @@ class Program
 }";
 
             var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(new[]
-            {
+            compilation.VerifyDiagnostics(
                 // (6,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
                 //         var y = ((ConsoleColor)) - 1;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 19),
@@ -2778,8 +2777,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 19),
                 // (7,19): error CS0103: The name 'dynamic' does not exist in the current context
                 //         var z = ((dynamic)) - 1;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(7, 19)
-            });
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(7, 19));
         }
 
         #region Mocks
