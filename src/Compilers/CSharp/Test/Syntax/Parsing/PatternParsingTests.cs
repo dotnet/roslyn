@@ -12749,5 +12749,181 @@ switch (e)
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78899")]
+        public void DesignatorBeforePropertyPattern()
+        {
+            UsingExpression("o is string s { Length: 5 }",
+                // (1,13): error CS8525: The variable designator must come after any property or positional patterns. Change 's { ... }' to '{ ... } s'.
+                // o is string s { Length: 5 }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPattern, "s").WithArguments("s").WithLocation(1, 13));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "o");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.NameColon);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Length");
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "5");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78899")]
+        public void DesignatorBeforePositionalPattern()
+        {
+            UsingExpression("o is Point p (1, 2)",
+                // (1,12): error CS8525: The variable designator must come after any property or positional patterns. Change 'p { ... }' to '{ ... } p'.
+                // o is Point p (1, 2)
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPattern, "p").WithArguments("p").WithLocation(1, 12));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "o");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Point");
+                    }
+                    N(SyntaxKind.PositionalPatternClause);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78899")]
+        public void DesignatorBeforeBothPatterns()
+        {
+            UsingExpression("o is string s (1, 2) { Length: 5 }",
+                // (1,13): error CS8525: The variable designator must come after any property or positional patterns. Change 's { ... }' to '{ ... } s'.
+                // o is string s (1, 2) { Length: 5 }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPattern, "s").WithArguments("s").WithLocation(1, 13));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "o");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    N(SyntaxKind.PositionalPatternClause);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.NameColon);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Length");
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "5");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
     }
 }
