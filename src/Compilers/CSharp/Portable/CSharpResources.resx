@@ -6423,8 +6423,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DesignatorBeneathPatternCombinator" xml:space="preserve">
     <value>A variable may not be declared within a 'not' or 'or' pattern.</value>
   </data>
-  <data name="ERR_DesignatorBeneathPattern" xml:space="preserve">
-    <value>The variable designator '{0}' must come after any property pattern.</value>
+  <data name="ERR_DesignatorBeforePropertyPattern" xml:space="preserve">
+    <value>A variable designator must come after a property pattern.</value>
   </data>
   <data name="ERR_UnsupportedTypeForRelationalPattern" xml:space="preserve">
     <value>Relational patterns may not be used for a value of type '{0}'.</value>

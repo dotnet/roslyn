@@ -357,26 +357,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool parsePropertyPatternClause([NotNullWhen(true)] out PropertyPatternClauseSyntax? propertyPatternClauseResult)
             {
-                // Check for the error case: identifier followed by '{'
-                // This handles "string s { Length: 5 }" which should be "string { Length: 5 } s"
-                if (this.IsTrueIdentifier() && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
-                {
-                    // Consume the misplaced identifier token
-                    var misplacedToken = this.EatToken();
-                    
-                    // Parse the property pattern
-                    propertyPatternClauseResult = ParsePropertyPatternClause();
-                    
-                    // Add error to the token and attach it as skipped syntax to the property pattern
-                    var tokenWithError = AddError(misplacedToken, ErrorCode.ERR_DesignatorBeneathPattern, misplacedToken.ValueText);
-                    propertyPatternClauseResult = AddLeadingSkippedSyntax(propertyPatternClauseResult, tokenWithError);
-                    
-                    return true;
-                }
-                
+                // Check for the `id {` and report that the designator has to come after the property pattern.
+                var misplacedIdentifier = this.IsTrueIdentifier() && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken
+                    ? AddError(this.EatToken(), ErrorCode.ERR_DesignatorBeforePropertyPattern)
+                    : null;
+
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                 {
-                    propertyPatternClauseResult = ParsePropertyPatternClause();
+                    propertyPatternClauseResult = AddLeadingSkippedSyntax(ParsePropertyPatternClause(), misplacedIdentifier);
                     return true;
                 }
 

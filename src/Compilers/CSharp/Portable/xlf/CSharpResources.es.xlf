@@ -632,9 +632,9 @@
         <target state="translated">Un literal predeterminado "default" no es válido como patrón. Use otro literal (por ejemplo, "0" o "null") según corresponda. Para hacer coincidir todo, use un patrón de descarte "_".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DesignatorBeneathPattern">
-        <source>The variable designator '{0}' must come after any property pattern.</source>
-        <target state="new">The variable designator '{0}' must come after any property pattern.</target>
+      <trans-unit id="ERR_DesignatorBeforePropertyPattern">
+        <source>A variable designator must come after a property pattern.</source>
+        <target state="new">A variable designator must come after a property pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">

@@ -632,9 +632,9 @@
         <target state="translated">默认字面量“default”不能作为模式使用。请使用其他更适合的字面量（如“0”或“null”）。若要匹配任何输入，请使用放弃模式“_”。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DesignatorBeneathPattern">
-        <source>The variable designator '{0}' must come after any property pattern.</source>
-        <target state="new">The variable designator '{0}' must come after any property pattern.</target>
+      <trans-unit id="ERR_DesignatorBeforePropertyPattern">
+        <source>A variable designator must come after a property pattern.</source>
+        <target state="new">A variable designator must come after a property pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
