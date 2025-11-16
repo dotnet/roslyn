@@ -5624,13 +5624,12 @@ parse_member_name:;
                     // If we see a token that can start an expression after the identifier (e.g., "int value 5;"), 
                     // treat it as a missing '=' and parse the initializer. However, we need to exclude tokens
                     // that can legally appear in ParseVariableDeclarator:
-                    // - IdentifierToken: handled by ERR_MultiTypeInDeclaration check above
-                    // - CommaToken, SemicolonToken: end of declarator
-                    // - EqualsToken, LessThanToken, OpenParenToken, OpenBracketToken: handled by cases above
+                    // - CommaToken, SemicolonToken, EqualsToken: better parsed as another declarator or end of declaration
+                    // - LessThanToken, OpenParenToken, OpenBracketToken: handled by cases above
+                    // We DO want to handle OpenBraceToken (e.g., "X x { ... }") as it's likely meant to be "X x = { ... }"
                     if (!isFixed && 
-                        this.CurrentToken.Kind is not SyntaxKind.CommaToken and not SyntaxKind.SemicolonToken &&
-                        !this.IsTrueIdentifier() &&
-                        this.IsPossibleExpression())
+                        this.CurrentToken.Kind is not SyntaxKind.CommaToken and not SyntaxKind.SemicolonToken and not SyntaxKind.EqualsToken &&
+                        (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || this.IsPossibleExpression()))
                     {
                         var missingEquals = this.EatToken(SyntaxKind.EqualsToken);
                         var initExpr = this.ParseVariableInitializer();
