@@ -9866,9 +9866,13 @@ done:
                 // Look for common case of `(a b)` where the user is in the middle of updating the expression to
                 // something like `(a && b)`.  We want to recover well here as otherwise the subsequent close paren will
                 // cause problems for higher level constructs.
+                //
+                // Note if we see `(a b) =>` we don't do this as it's much more likely this is some incomplete lambda
+                // expression.
                 using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
                 var nextExpression = this.ParseExpressionCore();
-                if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
+                if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken &&
+                    this.PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken)
                 {
                     nextExpression = AddError(nextExpression, offset: 0, length: 0, ErrorCode.ERR_BinaryOperatorExpected);
                     expression = AddTrailingSkippedSyntax(expression, nextExpression);
