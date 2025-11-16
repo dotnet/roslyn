@@ -2895,13 +2895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!returnsMatch)
             {
-                // Only report ERR_BadRetType if the return type is well-defined.
-                // If the return type is an error type (from omitted type arguments like Method<>),
-                // there's already a more specific error reported elsewhere (e.g., ERR_OmittedTypeArgument).
-                if (!method.ReturnType.ContainsErrorType())
-                {
-                    Error(diagnostics, ErrorCode.ERR_BadRetType, errorLocation, method, method.ReturnType);
-                }
+                Error(diagnostics, ErrorCode.ERR_BadRetType, errorLocation, method, method.ReturnType);
                 diagnostics.Add(errorLocation, useSiteInfo);
                 return false;
             }
