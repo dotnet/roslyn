@@ -322,7 +322,7 @@ extends:
                        -officialSkipTests ${{ parameters.SkipTests }}
                        -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
-                       -officialIbcDrop $(IbcDrop)
+                       -officialIbcDrop ${{ parameters.IbcDrop }}
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
