@@ -1632,10 +1632,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments != null)
             {
                 // First, check if any argument is a lambda or anonymous method
-                bool hasLambdaOrAnonymousMethod = false;
-                for (int i = 0; i < arguments.Arguments.Count; i++)
+                var hasLambdaOrAnonymousMethod = false;
+                foreach (var arg in arguments.Arguments)
                 {
-                    var arg = arguments.Arguments[i];
                     if (arg.Kind == BoundKind.UnboundLambda)
                     {
                         hasLambdaOrAnonymousMethod = true;
