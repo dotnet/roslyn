@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (result.Result.Kind == MemberResolutionKind.BadArgumentConversion && !result.Result.BadArgumentsOpt.IsNull)
                 {
                     var parameters = result.Member.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
-                    
+
                     foreach (var badArgIndex in result.Result.BadArgumentsOpt.TrueBits())
                     {
                         // Check if this bad argument is a non-lambda argument
