@@ -1136,10 +1136,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAwaitWithoutAsyncLambda = 4034,
         // ERR_BadAwaitWithoutAsyncAnonMeth = 4035,         Merged with ERR_BadAwaitWithoutAsyncLambda in Roslyn
         ERR_NoSuchMemberOrExtensionNeedUsing = 4036,
-        ERR_BadAwaitWithoutAsyncIterator = 4037,
         #endregion diagnostics introduced in C# 5
 
-        // unused 4038-4999
+        // unused 4037-4999
 
         #region diagnostics introduced in C# 6
         // WRN_UnknownOption = 5000,   //unused in Roslyn

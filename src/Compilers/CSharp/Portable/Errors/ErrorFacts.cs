@@ -1573,7 +1573,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_BadAwaitWithoutAsyncMethod
                 or ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod
                 or ErrorCode.ERR_BadAwaitWithoutAsyncLambda
-                or ErrorCode.ERR_BadAwaitWithoutAsyncIterator
                 or ErrorCode.ERR_NoSuchMemberOrExtensionNeedUsing
                 or ErrorCode.ERR_UnexpectedAliasedName
                 or ErrorCode.ERR_UnexpectedGenericName

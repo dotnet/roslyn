@@ -1997,9 +1997,9 @@ class C
                 // (4,61): error CS8403: Method 'C.M(int)' with an iterator block must be 'async' to return 'IAsyncEnumerator<int>'
                 //     static System.Collections.Generic.IAsyncEnumerator<int> M(int value)
                 Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M(int)", "System.Collections.Generic.IAsyncEnumerator<int>").WithLocation(4, 61),
-                // (7,9): error CS4037: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier.
+                // (7,9): error CS1992: The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier
                 //         await System.Threading.Tasks.Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncIterator, "await System.Threading.Tasks.Task.CompletedTask").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await System.Threading.Tasks.Task.CompletedTask").WithLocation(7, 9)
                 );
         }
 
@@ -2020,9 +2020,9 @@ class C
                 // (4,61): error CS8403: Method 'C.M(int)' with an iterator block must be 'async' to return 'IAsyncEnumerable<int>'
                 //     static System.Collections.Generic.IAsyncEnumerable<int> M(int value)
                 Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "M").WithArguments("C.M(int)", "System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(4, 61),
-                // (7,9): error CS4037: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier.
+                // (7,9): error CS1992: The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier
                 //         await System.Threading.Tasks.Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncIterator, "await System.Threading.Tasks.Task.CompletedTask").WithLocation(7, 9));
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await System.Threading.Tasks.Task.CompletedTask").WithLocation(7, 9));
         }
 
         [Fact]

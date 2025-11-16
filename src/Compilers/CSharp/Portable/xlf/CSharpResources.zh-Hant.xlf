@@ -217,11 +217,6 @@
         <target state="translated">引數 {0} 可能無法以語言版本 {1} 中的 'ref' 關鍵字傳遞。若要將 'ref' 引數傳遞至 'in' 參數，請升級為語言版本 {2} 或更新版本。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadAwaitWithoutAsyncIterator">
-        <source>The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier.</source>
-        <target state="new">The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">運算子 '{0}' 無法套用到型別為 '{1}' 的運算元，而 '{2}' 不是 UTF-8 位元組標記法</target>

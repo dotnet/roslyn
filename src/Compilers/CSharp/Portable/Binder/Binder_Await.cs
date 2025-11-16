@@ -193,8 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                      (method.ReturnType.IsIAsyncEnumerableType(Compilation) || 
                                       method.ReturnType.IsIAsyncEnumeratorType(Compilation)))
                             {
-                                // For async iterators, don't suggest changing the return type
-                                info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsyncIterator);
+                                // For async iterators, use the generic error that doesn't suggest changing the return type
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsync);
                             }
                             else
                             {
