@@ -9871,8 +9871,10 @@ done:
                 // expression.
                 using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
                 var nextExpression = this.ParseExpressionCore();
+
                 if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken &&
-                    this.PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken)
+                    this.PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken &&
+                    !nextExpression.GetLastToken().IsMissing)
                 {
                     nextExpression = AddError(nextExpression, offset: 0, length: 0, ErrorCode.ERR_BinaryOperatorExpected);
                     expression = AddTrailingSkippedSyntax(expression, nextExpression);

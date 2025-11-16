@@ -8342,5 +8342,81 @@ select t";
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void TestParenthesizedDefaultInIsExpression()
+        {
+            // We don't want to treat `!` as the start of a new 'missing' expression.
+            UsingTree("""
+                if (i is (default)!) {}
+                """,
+                // (1,19): error CS1026: ) expected
+                // if (i is (default)!) {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "!").WithLocation(1, 19),
+                // (1,20): error CS1525: Invalid expression term ')'
+                // if (i is (default)!) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 20),
+                // (1,20): error CS1002: ; expected
+                // if (i is (default)!) {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 20),
+                // (1,20): error CS1022: Type or namespace definition, or end-of-file expected
+                // if (i is (default)!) {}
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 20));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IsPatternExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "i");
+                            }
+                            N(SyntaxKind.IsKeyword);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.ParenthesizedExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.DefaultLiteralExpression);
+                                    {
+                                        N(SyntaxKind.DefaultKeyword);
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.LogicalNotExpression);
+                            {
+                                N(SyntaxKind.ExclamationToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }
