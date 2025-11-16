@@ -9998,8 +9998,13 @@ int a
 Console.Goo()
 ";
 
-            ParseAndValidate(test,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 3, Column = 6 });
+            UsingTree(test,
+                // (3,6): error CS1003: Syntax error, '=' expected
+                // int a
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=").WithLocation(3, 6),
+                // (4,14): error CS1002: ; expected
+                // Console.Goo()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 14));
         }
 
         #endregion

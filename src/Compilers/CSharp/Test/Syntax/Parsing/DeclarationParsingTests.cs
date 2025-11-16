@@ -13718,14 +13718,71 @@ I1(x);";
         {
             var tree = UsingTree("""
                 class C {
-                  C x from x in y select x;
+                  C x from int x in y select x;
                 }
                 """,
                 // (2,7): error CS1003: Syntax error, '=' expected
-                //   C x new C();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(2, 7));
+                //   C x from int x in y select x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "from").WithArguments("=").WithLocation(2, 7));
 
-
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    M(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.QueryExpression);
+                                    {
+                                        N(SyntaxKind.FromClause);
+                                        {
+                                            N(SyntaxKind.FromKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                            N(SyntaxKind.InKeyword);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "y");
+                                            }
+                                        }
+                                        N(SyntaxKind.QueryBody);
+                                        {
+                                            N(SyntaxKind.SelectClause);
+                                            {
+                                                N(SyntaxKind.SelectKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "x");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
