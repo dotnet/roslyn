@@ -666,13 +666,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (memberAccess.Kind != BoundKind.MethodGroup)
                 {
-                    // BindInstanceMemberAccess reports CS1061 when the member is not found.
-                    // Check if CS1061 was reported, and if so, don't also report CS8129 as it's redundant.
-                    bool reportedNoSuchMember = memberAccessDiagnostics.DiagnosticBag != null &&
-                        memberAccessDiagnostics.DiagnosticBag.AsEnumerable().Any(d => d.Code == (int)ErrorCode.ERR_NoSuchMemberOrExtension);
+                    // BindInstanceMemberAccess reports an error when the member is not found or not accessible.
+                    // If memberAccess has errors, suppress CS8129 to avoid redundant error reporting.
+                    bool suppressCS8129 = memberAccess.HasErrors;
                     diagnostics.AddRange(memberAccessDiagnostics);
                     memberAccessDiagnostics.Free();
-                    return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, receiver, suppressError: reportedNoSuchMember);
+                    return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, receiver, suppressError: suppressCS8129);
                 }
                 
                 diagnostics.AddRange(memberAccessDiagnostics);
