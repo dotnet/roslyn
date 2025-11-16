@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -1261,16 +1262,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Check if the syntax is a type name inside (T)-X pattern:
             // The syntax could be inside a ParenthesizedExpression which is the left side of a SubtractExpression
-            if (syntax.Parent is Syntax.ParenthesizedExpressionSyntax parenthesized &&
-                parenthesized.Parent is Syntax.BinaryExpressionSyntax binary &&
-                binary.IsKind(SyntaxKind.SubtractExpression) &&
-                binary.Left == parenthesized)
+            //
+            // Additional check: the parenthesized expression should not itself be parenthesized
+            // (i.e., we want (T)-X, not ((T))-X)
+            return syntax.Parent is ParenthesizedExpressionSyntax
             {
-                // Additional check: the parenthesized expression should not itself be parenthesized
-                // (i.e., we want (T)-X, not ((T))-X)
-                return !parenthesized.Expression.IsKind(SyntaxKind.ParenthesizedExpression);
-            }
-            return false;
+                Parent: BinaryExpressionSyntax { RawKind: (int)SyntaxKind.SubtractExpression } binary,
+                Expression.RawKind: not (int)SyntaxKind.ParenthesizedExpression,
+            } parenthesized && binary.Left == parenthesized;
         }
 
         private void CheckAddressOfInAsyncOrIteratorMethod(SyntaxNode node, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
