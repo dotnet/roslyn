@@ -6424,7 +6424,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A variable may not be declared within a 'not' or 'or' pattern.</value>
   </data>
   <data name="ERR_DesignatorBeneathPattern" xml:space="preserve">
-    <value>The variable designator must come after any property or positional patterns. Change '{0} {{ ... }}' to '{{ ... }} {0}'.</value>
+    <value>The variable designator '{0}' must come after any property pattern.</value>
   </data>
   <data name="ERR_UnsupportedTypeForRelationalPattern" xml:space="preserve">
     <value>Relational patterns may not be used for a value of type '{0}'.</value>
