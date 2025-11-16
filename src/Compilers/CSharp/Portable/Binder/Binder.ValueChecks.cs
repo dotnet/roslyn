@@ -1263,22 +1263,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Check if the syntax is a type name inside (T)-X pattern:
             // The syntax could be inside a ParenthesizedExpression which is the left side of a SubtractExpression
+            // Additionally, the parenthesized expression should not itself be parenthesized (i.e., we want (T)-X, not ((T))-X)
             return syntax.Parent is ParenthesizedExpressionSyntax parenthesized &&
+                !parenthesized.Expression.IsKind(SyntaxKind.ParenthesizedExpression) &&
                 IsParenthesizedExpressionInPossibleBadNegCastContext(parenthesized);
         }
 
         /// <summary>
-        /// Checks if a parenthesized expression is in a (T)-X pattern where ERR_PossibleBadNegCast would be reported.
+        /// Checks if a parenthesized expression is the left operand of a subtraction (the -X part of (T)-X).
         /// This method is shared between CheckNotNamespaceOrType and BindSimpleBinaryOperator to ensure they
         /// check for the same pattern consistently.
         /// </summary>
         private static bool IsParenthesizedExpressionInPossibleBadNegCastContext(ParenthesizedExpressionSyntax parenthesized)
         {
-            // The parenthesized expression should not itself contain a parenthesized expression
-            // (i.e., we want (T)-X, not ((T))-X)
-            return parenthesized.Expression.IsKind(SyntaxKind.ParenthesizedExpression) &&
-            parenthesized.Parent is Syntax.BinaryExpressionSyntax { RawKind: (int)SyntaxKind.SubtractExpression } binary &&
-            binary.Left == parenthesized;
+            // Check if it's the left side of a subtraction: (T) - X
+            return parenthesized.Parent is Syntax.BinaryExpressionSyntax { RawKind: (int)SyntaxKind.SubtractExpression } binary &&
+                binary.Left == parenthesized;
         }
 
         private void CheckAddressOfInAsyncOrIteratorMethod(SyntaxNode node, BindValueKind valueKind, BindingDiagnosticBag diagnostics)

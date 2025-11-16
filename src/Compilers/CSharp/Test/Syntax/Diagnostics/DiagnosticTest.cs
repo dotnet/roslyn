@@ -2746,6 +2746,42 @@ class Program
             });
         }
 
+        /// <summary>
+        ///    Tests that nested parentheses prevent CS0075 from being reported in both TypeExpression and dynamic cases.
+        ///    For TypeExpression ((T))-X: CS0075 is NOT reported (the nested parens check explicitly excludes it).
+        ///    For dynamic identifier ((dynamic))-X: CS0075 is also NOT reported (the expression inside is ParenthesizedExpression, not IdentifierName).
+        /// </summary>
+        [Fact]
+        public void PossibleBadNegCastNestedParentheses()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        var y = ((ConsoleColor)) - 1;
+        var z = ((dynamic)) - 1;
+    }
+}";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(new[]
+            {
+                // (6,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = ((ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 19),
+                // (6,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = ((ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 19),
+                // (6,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = ((ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 19),
+                // (7,19): error CS0103: The name 'dynamic' does not exist in the current context
+                //         var z = ((dynamic)) - 1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(7, 19)
+            });
+        }
+
         #region Mocks
         internal class CustomErrorInfo : DiagnosticInfo
         {

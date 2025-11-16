@@ -906,7 +906,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (current is ParenthesizedExpressionSyntax parenthesizedExpression
                 && IsParenthesizedExpressionInPossibleBadNegCastContext(parenthesizedExpression))
             {
-                if (result.Kind == BoundKind.TypeExpression)
+                if (result.Kind == BoundKind.TypeExpression
+                    && !parenthesizedExpression.Expression.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
                     Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
                 }
