@@ -5622,41 +5622,25 @@ parse_member_name:;
 
                 default:
                     // If we see a token that can start an expression after the identifier (e.g., "int value 5;"), 
-                    // treat it as a missing '=' and parse the initializer. However, we need to exclude tokens
-                    // that can legally appear in ParseVariableDeclarator:
-                    // - CommaToken, SemicolonToken, EqualsToken: end of declarator or start of next one
-                    // - For identifiers: also check if followed by CommaToken, SemicolonToken, or EqualsToken (better parsed as another declarator)
-                    // - LessThanToken, OpenParenToken, OpenBracketToken: handled by cases above
-                    // We DO want to handle OpenBraceToken (e.g., "X x { ... }") as it's likely meant to be "X x = { ... }"
-                    if (!isFixed)
+                    // treat it as a missing '=' and parse the initializer.
+                    //
+                    // Do this except for cases that are better served by saying we have a missing comma.  Specifically:
+                    //
+                    //      Type t1 t2,
+                    //      Type t1 t2 = ...
+                    //      Type t1 t2;
+                    if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken ||
+                        this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.SemicolonToken)
                     {
-                        var currentKind = this.CurrentToken.Kind;
-                        
-                        // Don't trigger for comma, semicolon, or equals - these legally end/continue the declarator
-                        if (currentKind is SyntaxKind.CommaToken or SyntaxKind.SemicolonToken or SyntaxKind.EqualsToken)
+                        if (this.CanStartExpression() || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                         {
-                            goto default_case_end;
-                        }
-
-                        // For identifiers, also check the next token
-                        if (this.IsTrueIdentifier())
-                        {
-                            var nextKind = this.PeekToken(1).Kind;
-                            if (nextKind is SyntaxKind.CommaToken or SyntaxKind.SemicolonToken or SyntaxKind.EqualsToken)
-                            {
-                                goto default_case_end;
-                            }
-                        }
-
-                        // If we have an open brace or something that can start an expression, treat as missing equals
-                        if (currentKind == SyntaxKind.OpenBraceToken || this.IsPossibleExpression())
-                        {
-                            var missingEquals = this.EatToken(SyntaxKind.EqualsToken);
-                            var initExpr = this.ParseVariableInitializer();
-                            initializer = _syntaxFactory.EqualsValueClause(missingEquals, initExpr);
+                            initializer = _syntaxFactory.EqualsValueClause(
+                                this.EatToken(SyntaxKind.EqualsToken),
+                                this.ParseVariableInitializer());
+                            break;
                         }
                     }
-                    default_case_end:
+
                     if (isConst)
                     {
                         name = this.AddError(name, ErrorCode.ERR_ConstValueRequired);  // Error here for missing constant initializers
