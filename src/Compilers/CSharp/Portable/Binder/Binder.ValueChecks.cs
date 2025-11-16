@@ -1245,11 +1245,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_BadSKknown, expr.Syntax, ((BoundNamespaceExpression)expr).NamespaceSymbol, MessageID.IDS_SK_NAMESPACE.Localize(), MessageID.IDS_SK_VARIABLE.Localize());
                     return false;
                 case BoundKind.TypeExpression:
-                    Error(diagnostics, ErrorCode.ERR_BadSKunknown, expr.Syntax, expr.Type, MessageID.IDS_SK_TYPE.Localize());
+                    // Don't report ERR_BadSKunknown if we're in a (T)-X pattern, as we'll report
+                    // ERR_PossibleBadNegCast instead which is more specific and helpful.
+                    if (!IsInPossibleBadNegCastContext(expr.Syntax))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadSKunknown, expr.Syntax, expr.Type, MessageID.IDS_SK_TYPE.Localize());
+                    }
                     return false;
                 default:
                     return true;
             }
+        }
+
+        private static bool IsInPossibleBadNegCastContext(SyntaxNode syntax)
+        {
+            // Check if the syntax is a type name inside (T)-X pattern:
+            // The syntax could be inside a ParenthesizedExpression which is the left side of a SubtractExpression
+            if (syntax.Parent is Syntax.ParenthesizedExpressionSyntax parenthesized &&
+                parenthesized.Parent is Syntax.BinaryExpressionSyntax binary &&
+                binary.IsKind(SyntaxKind.SubtractExpression) &&
+                binary.Left == parenthesized)
+            {
+                // Additional check: the parenthesized expression should not itself be parenthesized
+                // (i.e., we want (T)-X, not ((T))-X)
+                return !parenthesized.Expression.IsKind(SyntaxKind.ParenthesizedExpression);
+            }
+            return false;
         }
 
         private void CheckAddressOfInAsyncOrIteratorMethod(SyntaxNode node, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
