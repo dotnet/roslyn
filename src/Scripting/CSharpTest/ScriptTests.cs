@@ -1009,7 +1009,10 @@ return reply;
                 ex.Diagnostics.Verify(
                     // (1,12): error CS0103: The name 'notExistentVariable' does not exist in the current context
                     // var data = notExistentVariable switch { _ => null };
-                    Diagnostic(ErrorCode.ERR_NameNotInContext, "notExistentVariable").WithArguments("notExistentVariable").WithLocation(1, 12));
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "notExistentVariable").WithArguments("notExistentVariable").WithLocation(1, 12),
+                    // (1,32): error CS8506: No best type was found for the switch expression.
+                    // var data = notExistentVariable switch { _ => null };
+                    Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(1, 32));
             }
 
             Assert.True(exceptionThrown);
@@ -1029,6 +1032,9 @@ return reply;
                 exceptionThrown = true;
                 // Verify that it produces a single NameNotInContext error. 
                 ex.Diagnostics.Verify(
+                    // (1,19): error CS8506: No best type was found for the switch expression.
+                    // var data = "data" switch { < 5 => null };
+                    Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(1, 19),
                     // (1,28): error CS8781: Relational patterns may not be used for a value of type 'string'.
                     // var data = "data" switch { < 5 => null };
                     Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 5").WithArguments("string").WithLocation(1, 28),
