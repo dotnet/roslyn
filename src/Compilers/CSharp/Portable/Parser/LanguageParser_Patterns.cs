@@ -358,9 +358,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool parsePropertyPatternClause([NotNullWhen(true)] out PropertyPatternClauseSyntax? propertyPatternClauseResult)
             {
                 // Check for the `id {` and report that the designator has to come after the property pattern.
-                var misplacedIdentifier = this.IsTrueIdentifier() && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken
-                    ? AddError(this.EatToken(), ErrorCode.ERR_DesignatorBeforePropertyPattern)
-                    : null;
+                var misplacedIdentifier =
+                    this.IsTrueIdentifier() &&
+                    this.IsValidPatternDesignation(inSwitchArmPattern) &&
+                    this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken
+                        ? AddError(this.EatToken(), ErrorCode.ERR_DesignatorBeforePropertyPattern)
+                        : null;
 
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                 {
