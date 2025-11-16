@@ -1272,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method is shared between CheckNotNamespaceOrType and BindSimpleBinaryOperator to ensure they
         /// check for the same pattern consistently.
         /// </summary>
-        private static bool IsParenthesizedExpressionInPossibleBadNegCastContext(Syntax.ParenthesizedExpressionSyntax parenthesized)
+        private static bool IsParenthesizedExpressionInPossibleBadNegCastContext(ParenthesizedExpressionSyntax parenthesized)
         {
             // The parenthesized expression should not itself contain a parenthesized expression
             // (i.e., we want (T)-X, not ((T))-X)
