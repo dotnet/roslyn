@@ -13508,7 +13508,8 @@ static class S
         public void CS0718ERR_GenericArgIsStaticClass_Tuple()
         {
             var text =
-@"static class X
+"""
+static class X
 {
     static (X, long) Foo()
     {
@@ -13529,7 +13530,8 @@ static class S
     {
         (X, int) local;
     }
-}";
+}
+""";
             CreateCompilation(text).VerifyDiagnostics(
                 // (3,13): error CS0718: 'X': static types cannot be used as type arguments
                 //     static (X, long) Foo()
