@@ -274,10 +274,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = "ref scoped R F() => default;";
             UsingDeclaration(source, TestOptions.Regular11,
-                // (1,14): error CS1003: Syntax error, ',' expected
+                // (1,14): error CS1003: Syntax error, '=' expected
                 // ref scoped R F() => default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "F").WithArguments(",").WithLocation(1, 14)
-                );
+                Diagnostic(ErrorCode.ERR_SyntaxError, "F").WithArguments("=").WithLocation(1, 14));
 
             N(SyntaxKind.FieldDeclaration);
             {

@@ -9997,6 +9997,7 @@ using System;
 int a
 Console.Goo()
 ";
+
             ParseAndValidate(test,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 3, Column = 6 });
         }
