@@ -377,6 +377,11 @@
         <target state="translated">No se puede usar "yield return" en un bloque "unsafe"</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BinaryOperatorExpected">
+        <source>Binary operator expected</source>
+        <target state="new">Binary operator expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">El atributo AsyncMethodBuilder no se permite en métodos anónimos sin un tipo de valor devuelto explícito.</target>

@@ -377,6 +377,11 @@
         <target state="translated">'unsafe' ブロックでは 'yield return' を使用できません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BinaryOperatorExpected">
+        <source>Binary operator expected</source>
+        <target state="new">Binary operator expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">AsyncMethodBuilder 属性は、明示的な戻り値の型のない匿名メソッドでは許可されていません。</target>

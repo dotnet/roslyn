@@ -7481,5 +7481,199 @@ select t";
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInIfStatement()
+        {
+            UsingTree("""
+                if (Boo Quux())
+                {
+                }
+                """,
+                // (1,9): error CS9344: Binary operator expected
+                // if (Boo Quux())
+                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 9));
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInParenthesizedExpression()
+        {
+            UsingTree("""
+                var v = (Boo Quux());
+                """,
+                // (1,14): error CS9344: Binary operator expected
+                // var v = (Boo Quux());
+                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 14));
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInCatchFilter()
+        {
+            UsingTree("""
+                try
+                {
+                }
+                catch (Exception e) when (Boo Quux())
+                {
+                }
+                """,
+                // (4,31): error CS9344: Binary operator expected
+                // catch (Exception e) when (Boo Quux())
+                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(4, 31));
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInDoStatement()
+        {
+            UsingTree("""
+                do
+                {
+                }
+                while (Boo Quux());
+                """,
+                // (4,12): error CS9344: Binary operator expected
+                // while (Boo Quux());
+                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(4, 12));
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInLockStatement()
+        {
+            UsingTree("""
+                lock (Boo Quux())
+                {
+                }
+                """,
+                // (1,11): error CS9344: Binary operator expected
+                // lock (Boo Quux())
+                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 11));
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInWhileStatement()
+        {
+            UsingTree("""
+                while (Boo Quux())
+                {
+                }
+                """,
+                // (1,12): error CS9344: Binary operator expected
+                // while (Boo Quux())
+                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 12));
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInMakeRefExpression()
+        {
+            UsingTree("""
+                var v = __makeref(Boo Quux());
+                """,
+                // (1,23): error CS9344: Binary operator expected
+                // var v = __makeref(Boo Quux());
+                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 23));
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInRefTypeExpression()
+        {
+            UsingTree("""
+                var v = __reftype(Boo Quux());
+                """,
+                // (1,23): error CS9344: Binary operator expected
+                // var v = __reftype(Boo Quux());
+                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 23));
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInRefValueExpression()
+        {
+            UsingTree("""
+                var v = __refvalue(Boo Quux);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInCheckedExpression()
+        {
+            UsingTree("""
+                var v = checked(Boo Quux());
+                """,
+                // (1,21): error CS9344: Binary operator expected
+                // var v = checked(Boo Quux());
+                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 21));
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInUncheckedExpression()
+        {
+            UsingTree("""
+                var v = unchecked(Boo Quux());
+                """,
+                // (1,23): error CS9344: Binary operator expected
+                // var v = unchecked(Boo Quux());
+                Diagnostic(ErrorCode.ERR_BinaryOperatorExpected, "").WithLocation(1, 23));
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInInvocationExpression1()
+        {
+            UsingTree("""
+                var v = Goo(Boo Quux());
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInInvocationExpression2()
+        {
+            UsingTree("""
+                var v = Goo(1, Boo Quux());
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInInvocationExpression3()
+        {
+            UsingTree("""
+                var v = Goo(Boo Quux(), 1);
+                """);
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16595")]
+        public void InProgressMultipleExpressionsInObjectCreationExpression1()
+        {
+            UsingTree("""
+                var v = new Goo(Boo Quux());
+                """);
+
+            EOF();
+        }
     }
 }

@@ -9345,7 +9345,7 @@ done:
 
                 _termState |= TerminatorState.IsEndOfFilterClause;
                 var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                var filterExpression = this.ParseExpressionCore();
+                var filterExpression = this.ParseExpressionForParenthesizedConstruct();
 
                 _termState = saveTerm;
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
@@ -9410,7 +9410,7 @@ done:
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfDoWhileExpression;
-            var expression = this.ParseExpressionCore();
+            var expression = this.ParseExpressionForParenthesizedConstruct();
             _termState = saveTerm;
 
             return _syntaxFactory.DoStatement(
@@ -9856,6 +9856,32 @@ done:
                 kind, attributes, @goto, caseOrDefault, arg, this.EatToken(SyntaxKind.SemicolonToken));
         }
 
+        private ExpressionSyntax ParseExpressionForParenthesizedConstruct()
+            => ParseErrantExpressionWhenNoCloseParenToken(this.ParseExpressionCore());
+
+        private ExpressionSyntax ParseErrantExpressionWhenNoCloseParenToken(ExpressionSyntax expression)
+        {
+            if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
+            {
+                // Look for common case of `(a b)` where the user is in the middle of updating the expression to
+                // something like `(a && b)`.  We want to recover well here as otherwise the subsequent close paren will
+                // cause problems for higher level constructs.
+                using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+                var nextExpression = this.ParseExpressionCore();
+                if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
+                {
+                    nextExpression = AddError(nextExpression, offset: 0, length: 0, ErrorCode.ERR_BinaryOperatorExpected);
+                    expression = AddTrailingSkippedSyntax(expression, nextExpression);
+                }
+                else
+                {
+                    resetPoint.Reset();
+                }
+            }
+
+            return expression;
+        }
+
         private IfStatementSyntax ParseIfStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
@@ -9867,7 +9893,7 @@ done:
             {
                 var ifKeyword = this.EatToken(SyntaxKind.IfKeyword);
                 var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                var condition = this.ParseExpressionCore();
+                var condition = this.ParseExpressionForParenthesizedConstruct();
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
                 var consequence = this.ParseEmbeddedStatement();
 
@@ -9951,7 +9977,7 @@ done:
                 attributes,
                 this.EatToken(SyntaxKind.LockKeyword),
                 this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseExpressionCore(),
+                this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken),
                 this.ParseEmbeddedStatement());
         }
@@ -10304,7 +10330,7 @@ done:
                 attributes,
                 this.EatToken(SyntaxKind.WhileKeyword),
                 this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseExpressionCore(),
+                this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken),
                 this.ParseEmbeddedStatement());
         }
@@ -12482,7 +12508,7 @@ done:
             return _syntaxFactory.MakeRefExpression(
                 this.EatToken(),
                 this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseSubExpression(Precedence.Expression),
+                this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
@@ -12491,7 +12517,7 @@ done:
             return _syntaxFactory.RefTypeExpression(
                 this.EatToken(),
                 this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseSubExpression(Precedence.Expression),
+                this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
@@ -12505,7 +12531,7 @@ done:
                 kind,
                 checkedOrUnchecked,
                 this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseSubExpression(Precedence.Expression),
+                this.ParseExpressionForParenthesizedConstruct(),
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
@@ -12687,7 +12713,7 @@ done:
 
             return _syntaxFactory.ParenthesizedExpression(
                 openParen,
-                expression,
+                this.ParseErrantExpressionWhenNoCloseParenToken(expression),
                 this.EatToken(SyntaxKind.CloseParenToken));
         }
 
