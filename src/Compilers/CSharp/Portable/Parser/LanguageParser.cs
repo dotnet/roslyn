@@ -5629,9 +5629,10 @@ parse_member_name:;
                     //      Type t1 t2,
                     //      Type t1 t2 = ...
                     //      Type t1 t2;
-                    var shouldParseAsNextDeclarator = this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                    var shouldParseAsNextDeclarator =
+                        this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
                         this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.SemicolonToken;
-                    if (!shouldParseAsNextDeclarator)
+                    if (!name.IsMissing && !shouldParseAsNextDeclarator)
                     {
                         if (this.CanStartExpression() || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                         {
