@@ -3860,9 +3860,6 @@ public class Class1
                 // (33,51): error CS8389: Omitting the type argument is not allowed in the current context
                 //         System.Func<object> delegateConversion1 = "string literal".ExtensionMethod1<>;
                 Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod1<>").WithLocation(33, 51),
-                // (33,51): error CS0407: '? FooExtensions.ExtensionMethod1<?>(object)' has the wrong return type
-                //         System.Func<object> delegateConversion1 = "string literal".ExtensionMethod1<>;
-                Diagnostic(ErrorCode.ERR_BadRetType, @"""string literal"".ExtensionMethod1<>").WithArguments("FooExtensions.ExtensionMethod1<?>(object)", "?").WithLocation(33, 51),
                 // (34,51): error CS8389: Omitting the type argument is not allowed in the current context
                 //         System.Func<object> delegateConversion2 = "string literal".ExtensionMethod2<>;
                 Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod2<>").WithLocation(34, 51),
