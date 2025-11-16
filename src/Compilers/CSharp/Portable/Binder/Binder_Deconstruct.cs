@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 const string methodName = WellKnownMemberNames.DeconstructMethodName;
-                
+
                 // Use a temporary diagnostic bag to capture member access errors
                 var memberAccessDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
                 var memberAccess = BindInstanceMemberAccess(
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     memberAccessDiagnostics.Free();
                     return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, receiver, suppressError: suppressCS8129);
                 }
-                
+
                 diagnostics.AddRange(memberAccessDiagnostics);
                 memberAccessDiagnostics.Free();
 
