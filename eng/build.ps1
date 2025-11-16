@@ -534,22 +534,6 @@ function TestUsingRunTests() {
   }
 }
 
-function EnablePreviewSdks() {
-  $vsInfo = LocateVisualStudio
-  if ($vsInfo -eq $null) {
-    # Preview SDKs are allowed when no Visual Studio instance is installed
-    return
-  }
-
-  $vsId = $vsInfo.instanceId
-  $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
-
-  $instanceDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsId"
-  Create-Directory $instanceDir
-  $sdkFile = Join-Path $instanceDir "sdk.txt"
-  'UsePreviews=True' | Set-Content $sdkFile
-}
-
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
 # deploying at build time.
 function Deploy-VsixViaTool() {
