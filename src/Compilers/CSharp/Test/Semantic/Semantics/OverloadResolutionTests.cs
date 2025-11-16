@@ -11993,5 +11993,27 @@ class B : A
                 // (10,14): error CS1503: Argument 2: cannot convert from 'int' to 'string'
                 Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("2", "int", "string").WithLocation(10, 14));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43920")]
+        public void ParamsErrorSuppression_Issue43920()
+        {
+            var source = """
+                class Program
+                {
+                    static void M(int x, params object[] args) { }
+                    
+                    static void Test()
+                    {
+                        // First argument fails: string -> int
+                        // Second argument would succeed if expanded: string -> object
+                        // We should only report the first error.
+                        M("wrong", "test");
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,11): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+                Diagnostic(ErrorCode.ERR_BadArgType, "\"wrong\"").WithArguments("1", "string", "int").WithLocation(10, 11));
+        }
     }
 }
