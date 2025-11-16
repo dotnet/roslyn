@@ -324,7 +324,6 @@
     <PackageVersion Include="vswhere" Version="$(vswhereVersion)" />
     <PackageVersion Include="CliWrap" Version="3.8.2" />
     <PackageVersion Include="Microsoft.DotNet.DarcLib" Version="$(MicrosoftDotNetDarcLibPackageVersion)" />
-    <PackageVersion Include="Microsoft.DotNet.FileBasedPrograms" Version="$(MicrosoftDotNetFileBasedProgramsPackageVersion)" />
     <PackageVersion Include="Spectre.Console" Version="0.51.1" />
     <!--
       The version of Roslyn we build Source Generators against that are built in this

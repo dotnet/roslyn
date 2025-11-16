@@ -27,6 +27,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Basic.Reference.Assemblies.Net60" />
+    <PackageDownload
+      Include="Microsoft.DotNet.FileBasedPrograms"
+      Version="[$(MicrosoftDotNetFileBasedProgramsPackageVersion)]"
+      Condition="'$(DotNetBuildSourceOnly)' != 'true'" />
   </ItemGroup>
   <Import Project="..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
 
