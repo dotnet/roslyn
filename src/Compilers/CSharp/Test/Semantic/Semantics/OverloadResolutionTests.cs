@@ -12056,5 +12056,30 @@ class B : A
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "string").WithLocation(5, 13)
                 );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10672")]
+        public void Issue10672_TaskRunWithInvalidArgument()
+        {
+            var source = """
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        Task.Run(() => { }, TaskCreationOptions.LongRunning);
+                    }
+                }
+                """;
+            // Before the fix: CS1643: Not all code paths return a value in lambda expression of type 'Func<Task>'
+            // After the fix: CS1503: Argument 2: cannot convert from 'TaskCreationOptions' to 'CancellationToken'
+            // This correctly identifies the real problem (wrong second argument) instead of complaining about the lambda
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,29): error CS1503: Argument 2: cannot convert from 'System.Threading.Tasks.TaskCreationOptions' to 'System.Threading.CancellationToken'
+                //         Task.Run(() => { }, TaskCreationOptions.LongRunning);
+                Diagnostic(ErrorCode.ERR_BadArgType, "TaskCreationOptions.LongRunning").WithArguments("2", "System.Threading.Tasks.TaskCreationOptions", "System.Threading.CancellationToken").WithLocation(7, 29)
+                );
+        }
     }
 }

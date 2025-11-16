@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static bool HadLambdaConversionError(BindingDiagnosticBag diagnostics, AnalyzedArguments arguments)
+        private bool HadLambdaConversionError(BindingDiagnosticBag diagnostics, AnalyzedArguments arguments)
         {
             bool hadError = false;
             foreach (var argument in arguments.Arguments)
@@ -1103,7 +1103,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // If we have lambda conversion errors, check if there are also bad argument conversions
+            // in non-lambda positions. If so, those errors might be more informative than the lambda
+            // errors, especially if there's a delegate-accepting overload that would work.
+            if (hadError && HasBadArgumentsInNonLambdaPositions(arguments))
+            {
+                // Check if there's a delegate-accepting overload with bad arguments in non-lambda positions
+                // If so, clear the lambda errors and let the bad argument errors be reported instead
+                foreach (var result in this.ResultsBuilder)
+                {
+                    if (result.Result.Kind == MemberResolutionKind.BadArgumentConversion &&
+                        HasDelegateParameterForLambdaArgument(result.Member, arguments))
+                    {
+                        // Clear the lambda errors - we'll report the bad arguments instead
+                        diagnostics.Clear();
+                        return false;
+                    }
+                }
+            }
+
             return hadError;
+        }
+
+        private bool HasBadArgumentsInNonLambdaPositions(AnalyzedArguments arguments)
+        {
+            // Check if any overload has bad arguments in non-lambda positions
+            foreach (var result in this.ResultsBuilder)
+            {
+                if (result.Result.Kind == MemberResolutionKind.BadArgumentConversion && !result.Result.BadArgumentsOpt.IsNull)
+                {
+                    var parameters = result.Member.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
+                    
+                    foreach (var badArgIndex in result.Result.BadArgumentsOpt.TrueBits())
+                    {
+                        // Check if this bad argument is a non-lambda argument
+                        if (badArgIndex < arguments.Arguments.Count &&
+                            arguments.Arguments[badArgIndex].Kind != BoundKind.UnboundLambda)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
         private bool HadBadArguments(
