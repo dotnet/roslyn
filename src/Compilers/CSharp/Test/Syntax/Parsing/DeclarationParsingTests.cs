@@ -13433,6 +13433,38 @@ I1(x);";
             EOF();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFieldDeclarationWithMissingEquals_PrimitiveVariableFollows1()
+        {
+            var tree = UsingTree("""
+                class C {
+                  C x int y;
+                }
+                """,
+                // (2,7): error CS1003: Syntax error, '=' expected
+                //   C x new C();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(2, 7));
+
+
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
+        public void TestFieldDeclarationWithMissingEquals_PrimitiveVariableFollows2()
+        {
+            var tree = UsingTree("""
+                class C {
+                  C x int.MaxValue;
+                }
+                """,
+                // (2,7): error CS1003: Syntax error, '=' expected
+                //   C x new C();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "new").WithArguments("=").WithLocation(2, 7));
+
+
+            EOF();
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23877")]
         public void TestParseAttributeArgumentListWithInvalidString()
         {

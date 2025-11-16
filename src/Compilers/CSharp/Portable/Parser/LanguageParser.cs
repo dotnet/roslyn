@@ -5626,31 +5626,15 @@ parse_member_name:;
                     return _syntaxFactory.VariableDeclarator(name, argumentList, initializer: null);
 
                 default:
-                    // If we see a token that can start an expression after the identifier (e.g., "int value 5;"), 
-                    // treat it as a missing '=' and parse the initializer.
-                    //
-                    // Do this except for cases that are better served by saying we have a missing comma.  Specifically:
-                    //
-                    //      Type t1 t2 t3
-                    //      Type t1 t2,
-                    //      Type t1 t2 = ...
-                    //      Type t1 t2;
-                    //      Type t1 t2)    // likely an incorrect tuple.
-                    var shouldParseAsNextDeclarator =
-                        this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
-                        this.PeekToken(1).Kind is SyntaxKind.IdentifierToken or SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.EndOfFileToken;
-                    if (!ContainsErrorDiagnostic(name) && !shouldParseAsNextDeclarator)
+                    if (looksLikeVariableInitializer())
                     {
-                        if (this.CanStartExpression() || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                        {
-                            localFunction = null;
-                            return _syntaxFactory.VariableDeclarator(
-                                name,
-                                argumentList: null,
-                                _syntaxFactory.EqualsValueClause(
-                                    this.EatToken(SyntaxKind.EqualsToken),
-                                    this.ParseVariableInitializer()));
-                        }
+                        localFunction = null;
+                        return _syntaxFactory.VariableDeclarator(
+                            name,
+                            argumentList: null,
+                            _syntaxFactory.EqualsValueClause(
+                                this.EatToken(SyntaxKind.EqualsToken),
+                                this.ParseVariableInitializer()));
                     }
 
                     if (isConst)
@@ -5672,6 +5656,40 @@ parse_member_name:;
 
                     localFunction = null;
                     return _syntaxFactory.VariableDeclarator(name, argumentList: null, initializer: null);
+            }
+
+            bool looksLikeVariableInitializer()
+            {
+                // If we see a token that can start an expression after the identifier (e.g., "int value 5;"), 
+                // treat it as a missing '=' and parse the initializer.
+                //
+                // Do this except for cases that are better served by saying we have a missing comma.  Specifically:
+                //
+                //      Type t1 t2 t3
+                //      Type t1 t2,
+                //      Type t1 t2 = ...
+                //      Type t1 t2;
+                //      Type t1 t2)    // likely an incorrect tuple.
+                var shouldParseAsNextDeclarator =
+                    this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(1).Kind is SyntaxKind.IdentifierToken or SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.EndOfFileToken;
+                if (shouldParseAsNextDeclarator)
+                    return false;
+
+                if (ContainsErrorDiagnostic(name))
+                    return false;
+
+                if (!CanStartExpression())
+                    return false;
+
+                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+                var initializer = this.ParseExpressionCore();
+
+                // If we see a type following, then prefer to view this as a declarator for the next variable.
+                if (initializer is TypeSyntax)
+                    return false;
+
+                return !ContainsErrorDiagnostic(initializer);
             }
         }
 
