@@ -5621,7 +5621,14 @@ parse_member_name:;
                     break;
 
                 default:
-                    if (isConst)
+                    // If we see a literal token after the identifier (e.g., "int value 5;"), treat it as a missing '=' and parse the initializer
+                    if (!isFixed && SyntaxFacts.IsLiteralExpression(this.CurrentToken.Kind))
+                    {
+                        var missingEquals = this.EatToken(SyntaxKind.EqualsToken);
+                        var initExpr = this.ParseVariableInitializer();
+                        initializer = _syntaxFactory.EqualsValueClause(missingEquals, initExpr);
+                    }
+                    else if (isConst)
                     {
                         name = this.AddError(name, ErrorCode.ERR_ConstValueRequired);  // Error here for missing constant initializers
                     }

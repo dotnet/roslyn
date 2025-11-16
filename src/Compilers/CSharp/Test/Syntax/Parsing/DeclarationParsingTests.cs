@@ -12950,6 +12950,198 @@ I1(x);";
             EOF();
         }
 
+        [Fact]
+        public void TestFieldDeclarationWithMissingEquals()
+        {
+            var tree = UsingTree(@"
+class C {
+  int value 5;
+}
+",
+                // (3,13): error CS1003: Syntax error, '=' expected
+                //   int value 5;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=").WithLocation(3, 13));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "value");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    M(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestFieldDeclarationWithMissingEquals_StringLiteral()
+        {
+            var tree = UsingTree(@"
+class C {
+  string value ""hello"";
+}
+",
+                // (3,16): error CS1003: Syntax error, '=' expected
+                //   string value "hello";
+                Diagnostic(ErrorCode.ERR_SyntaxError, @"""hello""").WithArguments("=").WithLocation(3, 16));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.StringKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "value");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    M(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, @"""hello""");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestFieldDeclarationWithMissingEquals_BoolLiteral()
+        {
+            var tree = UsingTree(@"
+class C {
+  bool value true;
+}
+",
+                // (3,14): error CS1003: Syntax error, '=' expected
+                //   bool value true;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=").WithLocation(3, 14));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.BoolKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "value");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    M(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.TrueLiteralExpression);
+                                    {
+                                        N(SyntaxKind.TrueKeyword);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestFieldDeclarationWithMissingEquals_NullLiteral()
+        {
+            var tree = UsingTree(@"
+class C {
+  object value null;
+}
+",
+                // (3,16): error CS1003: Syntax error, '=' expected
+                //   object value null;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments("=").WithLocation(3, 16));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "value");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    M(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NullLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NullKeyword);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23877")]
         public void TestParseAttributeArgumentListWithInvalidString()
         {
