@@ -11946,7 +11946,7 @@ class B : A
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8925")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12933")]
         public void ParamsErrorSuppression_StringConvertibleToObject()
         {
             // When a method has a params parameter and an argument would be convertible 
@@ -11974,7 +11974,7 @@ class B : A
                 Diagnostic(ErrorCode.ERR_BadArgType, "arr").WithArguments("1", "string[]", "char").WithLocation(12, 11));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8925")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12933")]
         public void ParamsErrorSuppression_IntNotConvertibleToString()
         {
             // When a method has a params parameter and an argument would NOT be convertible 
