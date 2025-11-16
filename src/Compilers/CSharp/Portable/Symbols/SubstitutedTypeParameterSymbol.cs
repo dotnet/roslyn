@@ -9,12 +9,25 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class SubstitutedTypeParameterSymbol : WrappedTypeParameterSymbol
+    internal sealed class SubstitutedTypeParameterSymbol : SubstitutedTypeParameterSymbolBase
+    {
+        internal SubstitutedTypeParameterSymbol(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
+            : base(newContainer, map, substitutedFrom, ordinal)
+        {
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+        }
+    }
+
+    internal abstract class SubstitutedTypeParameterSymbolBase : WrappedTypeParameterSymbol
     {
         private readonly Symbol _container;
         private readonly TypeMap _map;
@@ -25,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly int _mySequence;
 #endif
 
-        internal SubstitutedTypeParameterSymbol(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
+        internal SubstitutedTypeParameterSymbolBase(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
             : base(substitutedFrom)
         {
             _container = newContainer;

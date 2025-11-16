@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal = 0;
             foreach (var tp in oldTypeParameters)
             {
-                var newTp = synthesized ?
+                TypeParameterSymbol newTp = synthesized ?
                     new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal, propagateAttributes) :
                     new SubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal);
                 result.Mapping.Add(tp, TypeWithAnnotations.Create(newTp));

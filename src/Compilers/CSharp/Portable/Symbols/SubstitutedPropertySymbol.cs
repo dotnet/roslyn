@@ -6,6 +6,8 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -162,6 +164,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 return substituted.AsImmutableOrNull();
             }
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
         }
     }
 }

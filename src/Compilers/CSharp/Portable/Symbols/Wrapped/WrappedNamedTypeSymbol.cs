@@ -10,6 +10,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -258,5 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _underlyingType.GetGuidString(out guidString);
         }
+
+        internal abstract override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes);
     }
 }

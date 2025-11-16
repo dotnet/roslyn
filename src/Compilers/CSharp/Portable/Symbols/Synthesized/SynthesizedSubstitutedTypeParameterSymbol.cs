@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A type parameter for a synthesized class or method.
     /// </summary>
-    internal sealed class SynthesizedSubstitutedTypeParameterSymbol : SubstitutedTypeParameterSymbol
+    internal sealed class SynthesizedSubstitutedTypeParameterSymbol : SubstitutedTypeParameterSymbolBase
     {
         /// <summary>
         /// Indicates whether the synthesized type parameter should keep the original attributes by default
@@ -56,8 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
-
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             if (this.HasUnmanagedTypeConstraint)
             {

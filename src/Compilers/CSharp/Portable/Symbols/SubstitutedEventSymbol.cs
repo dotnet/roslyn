@@ -5,6 +5,8 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -135,6 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // non-WinRT event or vice versa, so we'll delegate to the original definition.
                 return OriginalDefinition.IsWindowsRuntimeEvent;
             }
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
         }
     }
 }
