@@ -1591,6 +1591,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBadStatement(BoundBadStatement node)
         {
+            // If this bad statement originated from a goto statement (including goto case and goto default),
+            // we should still treat it as unreachable after the goto, even though the goto failed to bind.
+            // This prevents cascaded diagnostics about unreachable code or missing return statements.
+            var syntax = node.Syntax;
+            bool isGotoStatement = syntax.Kind() == SyntaxKind.GotoStatement ||
+                                   syntax.Kind() == SyntaxKind.GotoCaseStatement ||
+                                   syntax.Kind() == SyntaxKind.GotoDefaultStatement;
+
             foreach (var child in node.ChildBoundNodes)
             {
                 if (child is BoundStatement)
@@ -1601,6 +1609,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     VisitRvalue(child as BoundExpression);
                 }
+            }
+
+            if (isGotoStatement)
+            {
+                SetUnreachable();
             }
 
             return null;
