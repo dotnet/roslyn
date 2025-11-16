@@ -12950,7 +12950,7 @@ I1(x);";
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestFieldDeclarationWithMissingEquals()
         {
             var tree = UsingTree(@"
@@ -12998,7 +12998,7 @@ class C {
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestFieldDeclarationWithMissingEquals_StringLiteral()
         {
             var tree = UsingTree(@"
@@ -13046,7 +13046,7 @@ class C {
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestFieldDeclarationWithMissingEquals_BoolLiteral()
         {
             var tree = UsingTree(@"
@@ -13094,7 +13094,7 @@ class C {
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44292")]
         public void TestFieldDeclarationWithMissingEquals_NullLiteral()
         {
             var tree = UsingTree(@"
