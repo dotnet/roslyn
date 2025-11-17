@@ -3868,7 +3868,7 @@ public class Class1
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<>").WithArguments("string", "ExtensionMethod2").WithLocation(34, 68));
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16041")]
         public void MissingTypeArgumentInGenericExtensionMethod_ParameterType()
         {
             var source =
