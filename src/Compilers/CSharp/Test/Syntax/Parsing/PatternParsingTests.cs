@@ -8981,22 +8981,6 @@ switch (e)
                                 N(SyntaxKind.NumericLiteralToken, "5");
                             }
                         }
-                        M(SyntaxKind.CommaToken);
-                        N(SyntaxKind.SwitchExpressionArm);
-                        {
-                            M(SyntaxKind.ConstantPattern);
-                            {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                            }
-                            N(SyntaxKind.EqualsGreaterThanToken);
-                            N(SyntaxKind.NumericLiteralExpression);
-                            {
-                                N(SyntaxKind.NumericLiteralToken, "5");
-                            }
-                        }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.CloseBraceToken);
                     }
