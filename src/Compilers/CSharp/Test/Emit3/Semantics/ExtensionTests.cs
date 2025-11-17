@@ -25867,28 +25867,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
-            // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
-            // var (x1, y1) = new C1();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(1, 6),
-            // (1,10): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y1'.
-            // var (x1, y1) = new C1();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y1").WithArguments("y1").WithLocation(1, 10),
             // (1,16): error CS1061: 'C1' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C1' could be found (are you missing a using directive or an assembly reference?)
             // var (x1, y1) = new C1();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C1()").WithArguments("C1", "Deconstruct").WithLocation(1, 16),
-            // (1,16): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C1', with 2 out parameters and a void return type.
-            // var (x1, y1) = new C1();
-            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(1, 16),
-            // (3,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
-            // var (x2, y2) = new C2();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(3, 6),
-            // (3,10): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y2'.
-            // var (x2, y2) = new C2();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y2").WithArguments("y2").WithLocation(3, 10),
             // (3,16): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C2', with 2 out parameters and a void return type.
             // var (x2, y2) = new C2();
-            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C2()").WithArguments("C2", "2").WithLocation(3, 16)
-            );
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C2()").WithArguments("C2", "2").WithLocation(3, 16));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -25915,19 +25899,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(1, 6),
-            // (1,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(1, 9),
             // (1,14): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
             // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(1, 14),
-            // (1,14): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(1, 14)
-            );
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(1, 14));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);

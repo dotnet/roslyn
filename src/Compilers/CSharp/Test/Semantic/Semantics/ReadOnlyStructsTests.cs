@@ -2016,18 +2016,9 @@ public struct S2
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
-                //         var (x, y) = this; // error
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(6, 14),
-                // (6,17): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
-                //         var (x, y) = this; // error
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(6, 17),
                 // (6,22): error CS1061: 'S2' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'S2' could be found (are you missing a using directive or an assembly reference?)
                 //         var (x, y) = this; // error
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "this").WithArguments("S2", "Deconstruct").WithLocation(6, 22),
-                // (6,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S2', with 2 out parameters and a void return type.
-                //         var (x, y) = this; // error
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "this").WithArguments("S2", "2").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "this").WithArguments("S2", "Deconstruct").WithLocation(6, 22));
         }
 
         [Fact]

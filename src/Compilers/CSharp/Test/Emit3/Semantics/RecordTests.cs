@@ -14725,10 +14725,7 @@ record C
             comp.VerifyDiagnostics(
                 // (8,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //             case C():
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19),
-                // (8,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
-                //             case C():
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19));
 
             Assert.Null(comp.GetMember("C.Deconstruct"));
         }
@@ -15138,10 +15135,7 @@ record C()
             comp.VerifyDiagnostics(
                 // (8,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //             case C():
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19),
-                // (8,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
-                //             case C():
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19));
 
             Assert.Null(comp.GetMember("C.Deconstruct"));
         }
@@ -15274,10 +15268,7 @@ record C()
             comp.VerifyDiagnostics(
                 // (8,19): error CS0176: Member 'C.Deconstruct()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //             case C():
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "()", isSuppressed: false).WithArguments("C.Deconstruct()").WithLocation(8, 19),
-                // (8,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
-                //             case C():
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "()").WithArguments("C.Deconstruct()").WithLocation(8, 19));
         }
 
         [Fact]
