@@ -16171,9 +16171,6 @@ class C
                 // (6,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int, int)").WithArguments("object", "Deconstruct").WithLocation(6, 18),
-                // (6,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-                //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(6, 18),
                 // (6,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(6, 19),
@@ -16218,13 +16215,9 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // (6,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int a, int b)").WithArguments("object", "Deconstruct").WithLocation(6, 18),
-                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-                //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int a, int b)").WithArguments("object", "2").WithLocation(6, 18)
-                );
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int a, int b)").WithArguments("object", "Deconstruct").WithLocation(6, 18));
         }
 
         [Fact]
@@ -16242,13 +16235,9 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // (6,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         if (o is (1, 2)) { }
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(6, 18),
-                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-                //         if (o is (1, 2)) { }
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 2)").WithArguments("object", "2").WithLocation(6, 18)
-                );
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(6, 18));
         }
 
         [Fact]
@@ -16268,18 +16257,15 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                    // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
-                    //             case (int, int) tuple: return;
-                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int, int)").WithArguments("object", "Deconstruct").WithLocation(7, 18),
-                    // (7,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-                    //             case (int, int) tuple: return;
-                    Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(7, 18),
-                    // (7,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
-                    //             case (int, int) tuple: return;
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(7, 19),
-                    // (7,24): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
-                    //             case (int, int) tuple: return;
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(7, 24));
+                // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             case (int, int) tuple: return;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int, int)").WithArguments("object", "Deconstruct").WithLocation(7, 18),
+                // (7,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //             case (int, int) tuple: return;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(7, 19),
+                // (7,24): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //             case (int, int) tuple: return;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(7, 24));
         }
 
         [Fact]
@@ -16299,13 +16285,9 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (1, 1): return;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 1)").WithArguments("object", "Deconstruct").WithLocation(7, 18),
-                // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-                //             case (1, 1): return;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 1)").WithArguments("object", "2").WithLocation(7, 18)
-               );
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 1)").WithArguments("object", "Deconstruct").WithLocation(7, 18));
         }
 
         [Fact]
@@ -16325,13 +16307,9 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 1)").WithArguments("object", "Deconstruct").WithLocation(7, 18),
-                // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-                //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 1)").WithArguments("object", "2").WithLocation(7, 18)
-               );
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 1)").WithArguments("object", "Deconstruct").WithLocation(7, 18));
         }
 
         [Fact]
