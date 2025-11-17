@@ -65,10 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return DeclarationModifiers.Protected | DeclarationModifiers.Override;
             }
 
-            // Base is not a record, so treat like object base
+            // Base is not a record, so treat like object base.
+            // Mark as new to avoid WRN_NewOrOverrideExpected if the base happens to have
+            // a property with the same signature.
             return containingType.IsSealed 
-                ? DeclarationModifiers.Private 
-                : DeclarationModifiers.Protected | DeclarationModifiers.Virtual;
+                ? DeclarationModifiers.Private | DeclarationModifiers.New
+                : DeclarationModifiers.Protected | DeclarationModifiers.Virtual | DeclarationModifiers.New;
         }
 
         public override bool IsImplicitlyDeclared => true;

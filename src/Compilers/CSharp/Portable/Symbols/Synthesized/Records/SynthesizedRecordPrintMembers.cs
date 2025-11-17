@@ -49,6 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
+                    // Base is not a record. Mark as new to avoid WRN_NewOrOverrideExpected
+                    // if the base happens to have a method with the same signature.
+                    result |= DeclarationModifiers.New;
                     result |= containingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual;
                 }
             }
@@ -88,6 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case DeclarationModifiers.None:
                     case DeclarationModifiers.Override:
                     case DeclarationModifiers.Virtual:
+                    case DeclarationModifiers.New | DeclarationModifiers.Virtual:
+                    case DeclarationModifiers.New:
                         return true;
                     default:
                         return false;

@@ -3694,12 +3694,6 @@ public record B : A {
             comp.VerifyEmitDiagnostics(
                 // (2,15): warning CS0114: 'B.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(2, 15),
-                // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
-                // (2,19): error CS8864: Records may only inherit from object or another record
-                // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
 
@@ -3914,12 +3908,6 @@ public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (2,15): warning CS0114: 'B.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(2, 15),
-                // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
                 // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
@@ -4146,12 +4134,6 @@ public record B : A {
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): warning CS0114: 'B.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(2, 15),
-                // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
-                // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
@@ -4674,12 +4656,6 @@ public record B : A {
             comp.VerifyEmitDiagnostics(
                 // (2,15): warning CS0114: 'B.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(2, 15),
-                // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
-                // (2,19): error CS8864: Records may only inherit from object or another record
-                // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
 
@@ -4782,12 +4758,6 @@ public record B : A {
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (2,15): warning CS0114: 'B.EqualityContract' hides inherited member 'A.EqualityContract'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(2, 15),
-                // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
-                // (2,19): error CS8864: Records may only inherit from object or another record
                 // public record B : A {
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
                 );
@@ -11205,6 +11175,27 @@ End Class
                 "System.Object C.R { get; init; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63270")]
+        public void RecordInheritingFromNonRecord_OnlyReportsBaseError()
+        {
+            var source = """
+                class Base { }
+
+                record Derived : Base { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS0109: The member 'Derived.EqualityContract' does not hide an accessible member. The new keyword is not required.
+                // record Derived : Base { }
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "Derived").WithArguments("Derived.EqualityContract").WithLocation(3, 8),
+                // (3,8): warning CS0109: The member 'Derived.PrintMembers(StringBuilder)' does not hide an accessible member. The new keyword is not required.
+                // record Derived : Base { }
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "Derived").WithArguments("Derived.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 8),
+                // (3,18): error CS8864: Records may only inherit from object or another record
+                // record Derived : Base { }
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "Base").WithLocation(3, 18));
         }
 
         [Fact]
