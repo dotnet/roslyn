@@ -581,6 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                     Debug.Assert(!diagnostics.HasAnyErrors());
                     Debug.Assert(!body.HasErrors);
+                    PipelinePhaseValidator.Assert(body, PipelinePhase.InitialBinding);
 
                     body = LocalRewriter.Rewrite(
                         compilation: this.DeclaringCompilation,
@@ -683,6 +684,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     localsSet.Free();
                 }
+
+                PipelinePhaseValidator.Assert(body, PipelinePhase.ClosureConversion);
 
                 // Insert locals from the original method,
                 // followed by any new locals.
