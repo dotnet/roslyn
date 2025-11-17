@@ -25919,12 +25919,6 @@ class C
 """;
         comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(1, 6),
-            // (1,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
-            // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(1, 9),
             // (1,14): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
             // var (x, y) = new C();
             Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(1, 14));
@@ -45469,10 +45463,7 @@ object o = new object();
         comp.VerifyEmitDiagnostics(
             // (2,20): error CS0570: 'E.extension(object).Deconstruct(out int, out int)' is not supported by the language
             // (int x1, int x2) = o;
-            Diagnostic(ErrorCode.ERR_BindToBogus, "o").WithArguments("E.extension(object).Deconstruct(out int, out int)").WithLocation(2, 20),
-            // (2,20): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-            // (int x1, int x2) = o;
-            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "o").WithArguments("object", "2").WithLocation(2, 20));
+            Diagnostic(ErrorCode.ERR_BindToBogus, "o").WithArguments("E.extension(object).Deconstruct(out int, out int)").WithLocation(2, 20));
     }
 
     [Fact]
