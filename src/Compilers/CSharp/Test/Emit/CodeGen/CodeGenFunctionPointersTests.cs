@@ -7446,7 +7446,8 @@ unsafe class Test
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var c, var d)").WithArguments("object", "Deconstruct").WithLocation(7, 21),
                 // (7,21): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         param1(o is (var c, var d));
-                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(var c, var d)").WithArguments("object", "2").WithLocation(7, 21));
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(var c, var d)").WithArguments("object", "2").WithLocation(7, 21)
+            );
         }
 
         [Fact]
