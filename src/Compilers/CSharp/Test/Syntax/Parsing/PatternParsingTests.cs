@@ -8851,18 +8851,9 @@ switch (e)
                 // (3,14): error CS8504: Pattern missing
                 //     == 4 < 4 => 4,
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(3, 14),
-                // (4,10): error CS1003: Syntax error, '=>' expected
+                // (4,5): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 //     != 5 < 5 => 5,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "<").WithArguments("=>").WithLocation(4, 10),
-                // (4,10): error CS1525: Invalid expression term '<'
-                //     != 5 < 5 => 5,
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(4, 10),
-                // (4,14): error CS1003: Syntax error, ',' expected
-                //     != 5 < 5 => 5,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(4, 14),
-                // (4,14): error CS8504: Pattern missing
-                //     != 5 < 5 => 5,
-                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(4, 14)
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "!=").WithLocation(4, 5)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -8965,26 +8956,29 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.RelationalPattern);
+                            N(SyntaxKind.NotPattern);
                             {
-                                N(SyntaxKind.ExclamationEqualsToken);
-                                N(SyntaxKind.NumericLiteralExpression);
+                                M(SyntaxKind.NotKeyword);
+                                N(SyntaxKind.ConstantPattern);
                                 {
-                                    N(SyntaxKind.NumericLiteralToken, "5");
+                                    N(SyntaxKind.LessThanExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "5");
+                                        }
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "5");
+                                        }
+                                    }
                                 }
                             }
-                            M(SyntaxKind.EqualsGreaterThanToken);
-                            N(SyntaxKind.LessThanExpression);
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
                             {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "5");
-                                }
+                                N(SyntaxKind.NumericLiteralToken, "5");
                             }
                         }
                         M(SyntaxKind.CommaToken);
@@ -9021,7 +9015,10 @@ switch (e)
     == 4 << 4 => 4,
     != 5 << 5 => 5,
 };",
-                TestOptions.RegularWithPatternCombinators
+                TestOptions.RegularWithPatternCombinators,
+                // (4,5): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
+                //     != 5 << 5 => 5,
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "!=").WithLocation(4, 5)
                 );
             N(SyntaxKind.ExpressionStatement);
             {
@@ -9092,19 +9089,22 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.RelationalPattern);
+                            N(SyntaxKind.NotPattern);
                             {
-                                N(SyntaxKind.ExclamationEqualsToken);
-                                N(SyntaxKind.LeftShiftExpression);
+                                M(SyntaxKind.NotKeyword);
+                                N(SyntaxKind.ConstantPattern);
                                 {
-                                    N(SyntaxKind.NumericLiteralExpression);
+                                    N(SyntaxKind.LeftShiftExpression);
                                     {
-                                        N(SyntaxKind.NumericLiteralToken, "5");
-                                    }
-                                    N(SyntaxKind.LessThanLessThanToken);
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "5");
+                                        }
+                                        N(SyntaxKind.LessThanLessThanToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "5");
+                                        }
                                     }
                                 }
                             }
