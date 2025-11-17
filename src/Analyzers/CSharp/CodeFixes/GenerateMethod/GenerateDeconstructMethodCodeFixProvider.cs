@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod;
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class GenerateDeconstructMethodCodeFixProvider() : CodeFixProvider
 {
-    private const string CS8129 = nameof(CS8129); // No suitable Deconstruct instance or extension method was found...
-
+    private const string CS8129 = nameof(CS8129); // (Error) No suitable Deconstruct instance or extension method was found...
+    private const string CS9344 = nameof(CS9344); // (Hidden) No suitable Deconstruct instance or extension method was found...
     public override FixAllProvider? GetFixAllProvider() => base.GetFixAllProvider();
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds => [CS8129];

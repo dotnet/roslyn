@@ -718,9 +718,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBadExpression MissingDeconstruct(BoundExpression receiver, SyntaxNode rightSyntax, int numParameters, BindingDiagnosticBag diagnostics,
                                     out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundExpression childNode, bool suppressError = false)
         {
-            if (!suppressError && receiver.Type?.IsErrorType() == false)
+            if (receiver.Type?.IsErrorType() == false)
             {
-                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, rightSyntax, receiver.Type!, numParameters);
+                // If the error is suppressed, report is hidden.  IDE still keys off of the diagnostic to offer to
+                // generate a Deconstruct method.
+                Error(diagnostics,
+                    suppressError ? ErrorCode.HDN_MissingDeconstruct : ErrorCode.ERR_MissingDeconstruct,
+                    rightSyntax, receiver.Type!, numParameters);
             }
 
             outPlaceholders = default;

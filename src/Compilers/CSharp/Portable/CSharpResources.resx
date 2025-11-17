@@ -5261,6 +5261,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MissingDeconstruct" xml:space="preserve">
     <value>No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</value>
   </data>
+  <data name="HDN_MissingDeconstruct" xml:space="preserve">
+    <value>No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</value>
+  </data>
   <data name="ERR_DeconstructRequiresExpression" xml:space="preserve">
     <value>Deconstruct assignment requires an expression with a type on the right-hand-side.</value>
   </data>
