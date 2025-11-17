@@ -652,7 +652,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 const string methodName = WellKnownMemberNames.DeconstructMethodName;
-
                 var memberAccess = BindInstanceMemberAccess(
                                         rightSyntax, receiverSyntax, receiver, methodName, rightArity: 0,
                                         typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
