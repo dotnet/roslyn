@@ -63,6 +63,7 @@ param (
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testCompilerOnly = $false,
+  [switch]$testBuildOnly = $false,
   [switch]$testIOperation,
   [switch]$testUsedAssemblies,
   [switch]$testRuntimeAsync,
@@ -99,6 +100,7 @@ function Print-Usage() {
   Write-Host "  -testDesktop              Run Desktop unit tests (short: -test)"
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
+  Write-Host "  -testBuildOnly            Run only the build unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
   Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature (see ROSLYN_TEST_USEDASSEMBLIES in codebase)"
@@ -417,6 +419,8 @@ function TestUsingRunTests() {
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
+    } elseif ($testBuildOnly) {
+      $args += " --include '^Build\.UnitTests$'"
     } else {
       $args += " --include '\.UnitTests'"
     }

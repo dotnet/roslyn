@@ -299,6 +299,7 @@
       <BuildDependency Project="src/EditorFeatures/CSharp/Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
       <BuildDependency Project="src/EditorFeatures/VisualBasic/Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
     </Project>
+    <Project Path="src/Tools/Build.UnitTests/Build.UnitTests.csproj" />
     <Project Path="src/Tools/BuildActionTelemetryTable/BuildActionTelemetryTable.csproj" />
     <Project Path="src/Tools/BuildBoss/BuildBoss.csproj" />
     <Project Path="src/Tools/BuildValidator/BuildValidator.csproj" />

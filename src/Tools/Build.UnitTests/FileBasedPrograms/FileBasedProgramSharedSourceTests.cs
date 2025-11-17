@@ -11,7 +11,7 @@ using System.Xml.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FileBasedPrograms;
+namespace Microsoft.CodeAnalysis.Build.UnitTests.FileBasedPrograms;
 
 public sealed class FileBasedProgramSharedSourceTests
 {
@@ -24,7 +24,7 @@ public sealed class FileBasedProgramSharedSourceTests
     /// We do this instead of including the source package directly as <c>PackageReference</c>
     /// because that would not work in source build (which requires roslyn to build before sdk).
     /// </summary>
-    [ConditionalFact(typeof(DesktopOnly), Reason = "Avoid regenerating snapshots multiple times")]
+    [Fact]
     public void Match()
     {
         var root = FindRepoRoot();
