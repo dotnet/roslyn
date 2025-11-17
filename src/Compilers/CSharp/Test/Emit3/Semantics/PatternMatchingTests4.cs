@@ -237,7 +237,8 @@ public class C
             compilation.VerifyDiagnostics(
                 // (7,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Console.WriteLine(t is (3, 4, 5));
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("object", "Deconstruct").WithLocation(7, 32));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("object", "Deconstruct").WithLocation(7, 32)
+                );
         }
 
         [Fact]
@@ -268,7 +269,8 @@ public class C : System.Runtime.CompilerServices.ITuple
             compilation.VerifyDiagnostics(
                 // (15,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Console.WriteLine(t is (3, 4, 5));
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("object", "Deconstruct").WithLocation(15, 32));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("object", "Deconstruct").WithLocation(15, 32)
+                );
         }
 
         [Fact]
@@ -564,7 +566,8 @@ public class C : ITuple
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(3, 0, 5)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2, T3>(System.Tuple<T1, T2, T3>, out T1, out T2, out T3)").WithLocation(15, 32),
                 // 0.cs(16,32): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2, T3, T4>(Tuple<T1, T2, T3, T4>, out T1, out T2, out T3, out T4)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Console.WriteLine(t is (3, 4, 5, 6)); // false
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(3, 4, 5, 6)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2, T3, T4>(System.Tuple<T1, T2, T3, T4>, out T1, out T2, out T3, out T4)").WithLocation(16, 32));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(3, 4, 5, 6)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2, T3, T4>(System.Tuple<T1, T2, T3, T4>, out T1, out T2, out T3, out T4)").WithLocation(16, 32)
+                );
         }
 
         [Fact]
@@ -842,7 +845,8 @@ public class C : System.Runtime.CompilerServices.ITuple
             compilation.VerifyDiagnostics(
                 // (17,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Console.WriteLine(t is (3, 4, 5));
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("object", "Deconstruct").WithLocation(17, 32));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("object", "Deconstruct").WithLocation(17, 32)
+                );
         }
 
         [Fact]
@@ -875,7 +879,8 @@ public class C : System.Runtime.CompilerServices.ITuple
             compilation.VerifyDiagnostics(
                 // (17,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Console.WriteLine(t is (3, 4, 5));
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("object", "Deconstruct").WithLocation(17, 32));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(3, 4, 5)").WithArguments("object", "Deconstruct").WithLocation(17, 32)
+                );
         }
 
         [Fact]
