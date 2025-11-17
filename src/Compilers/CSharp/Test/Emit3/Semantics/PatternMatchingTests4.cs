@@ -3500,9 +3500,13 @@ class Program
                 }
                 """;
             CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-                // (5,22): error CS1525: Invalid expression term '=='
-                //         if (p is     == null) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, op).WithArguments(op).WithLocation(5, 22));
+                op == "!="
+                    // (5,22): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
+                    //         if (p is     != null) { }
+                    ? Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, op).WithLocation(5, 22)
+                    // (5,22): error CS1525: Invalid expression term '=='
+                    //         if (p is     == null) { }
+                    : Diagnostic(ErrorCode.ERR_InvalidExprTerm, op).WithArguments(op).WithLocation(5, 22));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70048")]

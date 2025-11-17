@@ -2998,9 +2998,9 @@ class C
                 // (6,9): error CS1525: Invalid expression term '=='
                 //         == 0 => 1,
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "==").WithArguments("==").WithLocation(6, 9),
-                // (7,9): error CS1525: Invalid expression term '!='
+                // (7,9): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 //         != 2 => 2,
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "!=").WithLocation(7, 9)
                 );
 
             VerifyOperationTreeForTest<SwitchExpressionSyntax>(compilation, @"
@@ -3018,14 +3018,16 @@ ISwitchExpressionOperation (3 arms, IsExhaustive: True) (OperationKind.SwitchExp
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '!= 2 => 2')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '        != 2 => 2')
         Pattern: 
-          IRelationalPatternOperation (BinaryOperatorKind.Equals) (OperationKind.RelationalPattern, Type: null, IsInvalid) (Syntax: '!= 2') (InputType: System.UInt32, NarrowedType: System.UInt32)
-            Value: 
-              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: 
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+          INegatedPatternOperation (OperationKind.NegatedPattern, Type: null, IsInvalid) (Syntax: '        != 2') (InputType: System.UInt32, NarrowedType: System.UInt32)
+            Pattern: 
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2') (InputType: System.UInt32, NarrowedType: System.UInt32)
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => 7')
