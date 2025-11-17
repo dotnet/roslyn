@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.Intrinsics.X86;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -190,10 +191,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns true if the base type is a record (has a valid Clone method).
-        /// Use site info will already have been computed in CheckBase, so we pass Discarded.
         /// </summary>
         internal static bool BaseTypeIsRecordNoUseSiteDiagnostics(NamedTypeSymbol baseType)
         {
+            // Use site info will already have been computed in CheckBase, so we pass Discarded.
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             return FindValidCloneMethod(baseType, ref useSiteInfo) is not null;
         }
