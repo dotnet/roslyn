@@ -189,12 +189,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod);
                             }
-                            else if (method.IsIterator &&
-                                     (method.ReturnType.IsIAsyncEnumerableType(Compilation) ||
-                                      method.ReturnType.IsIAsyncEnumeratorType(Compilation)))
+                            else if (method.IsIterator && InMethodBinder.IsAsyncStreamInterface(Compilation, method.RefKind, method.ReturnType))
                             {
                                 // For async iterators, we don't report an error on await because ERR_IteratorMustBeAsync
-                                // is already reported on the method signature, which tells the user to add 'async'.
+                                // is already reported by ExecutableCodeBinder.ValidateIteratorMethod, which tells the user to add 'async'.
                                 // Reporting a second error here would be redundant.
                                 return false;
                             }
