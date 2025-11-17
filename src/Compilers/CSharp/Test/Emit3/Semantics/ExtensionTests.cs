@@ -25872,7 +25872,8 @@ static class E
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C1()").WithArguments("C1", "Deconstruct").WithLocation(1, 16),
             // (3,16): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C2', with 2 out parameters and a void return type.
             // var (x2, y2) = new C2();
-            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C2()").WithArguments("C2", "2").WithLocation(3, 16));
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C2()").WithArguments("C2", "2").WithLocation(3, 16)
+            );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -25901,7 +25902,8 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (1,14): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
             // var (x, y) = new C();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(1, 14));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(1, 14)
+            );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
