@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (memberAccess.Kind != BoundKind.MethodGroup)
                 {
-                    return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, receiver, suppressError: memberAccess.HasErrors);
+                    return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, receiver);
                 }
 
                 // After the overload resolution completes, the last step is to coerce the arguments with inferred types.
