@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Base is not a record, so treat like object base.
             // Mark as new to avoid WRN_NewOrOverrideExpected if the base happens to have
             // a property with the same signature.
-            return containingType.IsSealed 
+            return containingType.IsSealed
                 ? DeclarationModifiers.Private | DeclarationModifiers.New
                 : DeclarationModifiers.Protected | DeclarationModifiers.Virtual | DeclarationModifiers.New;
         }
