@@ -5,10 +5,10 @@
 
 using System.Xml.Linq;
 
-// Verifies the shared source files under `src/Features/CSharp/Portable/FileBasedPrograms`
+// Verifies the shared source files under `src/Features/CSharp/Portable/SyncedSource/FileBasedPrograms`
 // exactly match the copies shipped in the `Microsoft.DotNet.FileBasedPrograms` NuGet package
 // If any file is missing or differs, the local file is regenerated from the package content
-// and the test fails listing the changes.
+// and the script fails listing the changes.
 //
 // We do this instead of including the source package directly as `PackageReference`
 // because that would not work in source build (which requires roslyn to build before sdk).
@@ -33,7 +33,7 @@ if (!Directory.Exists(contentFilesDir1)) throw new InvalidOperationException($"c
 var contentFilesDir2 = Path.Combine(packageRoot, "contentFiles", "cs", "netstandard2.0");
 if (!Directory.Exists(contentFilesDir2)) throw new InvalidOperationException($"contentFiles directory not found: {contentFilesDir2}");
 
-var localSourceDir = Path.Combine(root, "src", "Features", "CSharp", "Portable", "FileBasedPrograms");
+var localSourceDir = Path.Combine(root, "src", "Features", "CSharp", "Portable", "SyncedSource", "FileBasedPrograms");
 if (!Directory.Exists(Path.GetDirectoryName(localSourceDir))) throw new InvalidOperationException($"Local source directory not found: {localSourceDir}");
 
 var extensions = new[] { ".cs", ".resx", ".editorconfig" };
