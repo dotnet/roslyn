@@ -72,6 +72,12 @@
   <ItemGroup>
     <PackageReference Include="Humanizer.Core" PrivateAssets="compile" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageDownload
+      Include="Microsoft.DotNet.FileBasedPrograms"
+      Version="[$(MicrosoftDotNetFileBasedProgramsPackageVersion)]"
+      Condition="'$(DotNetBuildSourceOnly)' != 'true'" />
+  </ItemGroup>
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);FILE_BASED_PROGRAMS_SOURCE_PACKAGE_GRACEFUL_EXCEPTION</DefineConstants>
   </PropertyGroup>
