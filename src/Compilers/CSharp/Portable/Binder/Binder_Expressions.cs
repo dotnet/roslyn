@@ -305,7 +305,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool hasErrors = expression.HasErrors;
                         if (commonType is null)
                         {
-                            diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, exprSyntax.SwitchKeyword.GetLocation());
+                            if (!expr.HasAnyErrors)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, exprSyntax.SwitchKeyword.GetLocation());
+                            }
+
                             commonType = CreateErrorType();
                             hasErrors = true;
                         }
