@@ -14,7 +14,7 @@ public readonly struct EmitDifferenceOptions()
     public bool EmitFieldRva { get; init; }
 
     /// <summary>
-    /// True to allow explicit method implementations in the delta.
+    /// True to disallow explicit method implementations in the delta.
     /// Some runtimes (.NET Framework) do not support this feature.
     /// </summary>
     public bool DisallowExplicitMethodImplementations { get; init; }
