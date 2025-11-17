@@ -4078,7 +4078,8 @@ class C
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(< 10, object)").WithArguments("i3", "C.Deconstruct(out int, out string, out int?)").WithLocation(26, 18),
                 // (26,18): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
                 //             case (< 10, object): // 1, 2
-                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(< 10, object)").WithArguments("C", "2").WithLocation(26, 18));
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(< 10, object)").WithArguments("C", "2").WithLocation(26, 18)
+            );
 
             var tree = comp.SyntaxTrees.Single();
             var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
