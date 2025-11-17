@@ -163,6 +163,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     ConvertToKeyword(this.EatToken()),
                     ParseNegatedPattern(precedence, afterIs, inSwitchArmPattern));
             }
+            else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
+            {
+                // Handle != in patterns - suggest using 'not' instead
+                var notEqualsToken = this.AddError(this.EatToken(), ErrorCode.ERR_EqualityOperatorInPatternNotSupported);
+                var missingNotToken = SyntaxFactory.MissingToken(SyntaxKind.NotKeyword);
+                missingNotToken = this.AddTrailingSkippedSyntax(missingNotToken, notEqualsToken);
+                return _syntaxFactory.UnaryPattern(
+                    missingNotToken,
+                    ParsePrimaryPattern(precedence, afterIs, inSwitchArmPattern));
+            }
             else
             {
                 return ParsePrimaryPattern(precedence, afterIs, inSwitchArmPattern);

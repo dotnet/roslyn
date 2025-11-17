@@ -2548,6 +2548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SingleInapplicableUnaryOperator
                 or ErrorCode.ERR_AmbigOperator
                 or ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList
+                or ErrorCode.ERR_EqualityOperatorInPatternNotSupported
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

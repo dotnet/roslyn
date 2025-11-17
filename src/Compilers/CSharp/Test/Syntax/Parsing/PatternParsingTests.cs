@@ -8676,14 +8676,17 @@ switch (e)
                 // (6,5): error CS1525: Invalid expression term '=='
                 //     == 4 => 4,
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "==").WithArguments("==").WithLocation(6, 5),
-                // (7,5): error CS8400: Feature 'relational pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // (7,1): error CS8400: Feature 'not pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //     != 5 => 5,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "!=").WithArguments("relational pattern", "9.0").WithLocation(7, 5),
-                // (7,5): error CS1525: Invalid expression term '!='
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "").WithArguments("not pattern", "9.0").WithLocation(7, 1),
+                // (7,5): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
                 //     != 5 => 5,
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(7, 5));
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "!=").WithLocation(7, 5));
 
-            UsingStatement(test, TestOptions.RegularWithoutPatternCombinators);
+            UsingStatement(test, TestOptions.RegularWithoutPatternCombinators,
+                // (7,5): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
+                //     != 5 => 5,
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "!=").WithLocation(7, 5));
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -8788,12 +8791,15 @@ switch (e)
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.SwitchExpressionArm);
                         {
-                            N(SyntaxKind.RelationalPattern);
+                            N(SyntaxKind.NotPattern);
                             {
-                                N(SyntaxKind.ExclamationEqualsToken);
-                                N(SyntaxKind.NumericLiteralExpression);
+                                M(SyntaxKind.NotKeyword);
+                                N(SyntaxKind.ConstantPattern);
                                 {
-                                    N(SyntaxKind.NumericLiteralToken, "5");
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
                                 }
                             }
                             N(SyntaxKind.EqualsGreaterThanToken);
@@ -12746,6 +12752,60 @@ switch (e)
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/12345")]
+        public void EqualityOperatorInPattern()
+        {
+            UsingStatement(@"_ = foo switch { != 5 => 5 };",
+                // (1,18): error CS9344: The '!=' operator is not supported in a pattern. Use 'not' to represent a negated pattern.
+                // _ = foo switch { != 5 => 5 };
+                Diagnostic(ErrorCode.ERR_EqualityOperatorInPatternNotSupported, "!=").WithLocation(1, 18)
+                );
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.SwitchExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "foo");
+                        }
+                        N(SyntaxKind.SwitchKeyword);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SwitchExpressionArm);
+                        {
+                            N(SyntaxKind.NotPattern);
+                            {
+                                M(SyntaxKind.NotKeyword);
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
             }
             EOF();
         }
