@@ -11936,6 +11936,21 @@ done:
                             {
                                 expr = this.AddError(expr, ErrorCode.ERR_ExpressionExpected);
                             }
+                            else if (
+                                SyntaxFacts.IsBinaryExpression(tk) ||
+                                SyntaxFacts.IsAssignmentExpressionOperatorToken(tk))
+                            {
+                                // We got into the expression parsing path because we saw an error operator (see the
+                                // default case in IsPossibleExpression), knowing we'd create a missing expr which would
+                                // then allow the binary/assignment expr parsing to proceed.  In this case, we want to
+                                // report the invalid expr, but place it next to the operator, not whatever might have
+                                // come arbitrarily far before us.
+                                return WithAdditionalDiagnostics(expr, MakeError(
+                                    offset: this.CurrentToken.GetLeadingTriviaWidth(),
+                                    width: this.CurrentToken.Width,
+                                    ErrorCode.ERR_InvalidExprTerm,
+                                    SyntaxFacts.GetText(tk)));
+                            }
                             else
                             {
                                 expr = this.AddError(expr, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
