@@ -50,7 +50,7 @@ public sealed class FileBasedProgramSharedSourceTests
         var localSourceDir = Path.Combine(root, "src", "Features", "CSharp", "Portable", "FileBasedPrograms");
         Assert.True(Directory.Exists(Path.GetDirectoryName(localSourceDir)), $"Local source directory not found: {localSourceDir}");
 
-        var extensions = new[] { ".cs", ".resx" };
+        var extensions = new[] { ".cs", ".resx", ".editorconfig" };
 
         var packageFiles = Directory.GetFiles(contentFilesDir1, "*", SearchOption.TopDirectoryOnly)
             .Concat(Directory.GetFiles(contentFilesDir2, "*", SearchOption.TopDirectoryOnly))
