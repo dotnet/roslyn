@@ -25,12 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExplicitInterfaceImplementation: false,
                 explicitInterfaceType: null,
                 aliasQualifierOpt: null,
-                modifiers: (containingType.IsSealed, containingType.BaseTypeNoUseSiteDiagnostics.IsObjectType()) switch
-                {
-                    (true, true) => DeclarationModifiers.Private,
-                    (false, true) => DeclarationModifiers.Protected | DeclarationModifiers.Virtual,
-                    (_, false) => DeclarationModifiers.Protected | DeclarationModifiers.Override
-                },
+                modifiers: MakeModifiers(containingType),
                 hasInitializer: false,
                 hasExplicitAccessMod: false,
                 hasAutoPropertyGet: false,
@@ -46,6 +41,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics)
         {
             Debug.Assert(!containingType.IsRecordStruct);
+        }
+
+        private static DeclarationModifiers MakeModifiers(SourceMemberContainerTypeSymbol containingType)
+        {
+            var baseType = containingType.BaseTypeNoUseSiteDiagnostics;
+            bool baseIsObject = baseType.IsObjectType();
+
+            if (containingType.IsSealed && baseIsObject)
+            {
+                return DeclarationModifiers.Private;
+            }
+
+            if (baseIsObject)
+            {
+                return DeclarationModifiers.Protected | DeclarationModifiers.Virtual;
+            }
+
+            // Only mark as override if the base type is actually a record.
+            // If it's not a record, ERR_BadRecordBase will be reported separately.
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            if (SynthesizedRecordClone.FindValidCloneMethod(baseType, ref useSiteInfo) is object)
+            {
+                return DeclarationModifiers.Protected | DeclarationModifiers.Override;
+            }
+
+            // Base is not a record, so treat like object base
+            return containingType.IsSealed 
+                ? DeclarationModifiers.Private 
+                : DeclarationModifiers.Protected | DeclarationModifiers.Virtual;
         }
 
         public override bool IsImplicitlyDeclared => true;
@@ -101,7 +125,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void VerifyOverridesEqualityContractFromBase(PropertySymbol overriding, BindingDiagnosticBag diagnostics)
         {
-            if (overriding.ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
+            NamedTypeSymbol baseType = overriding.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            if (baseType.IsObjectType())
+            {
+                return;
+            }
+
+            // If the base type is not a record, ERR_BadRecordBase will already be reported.
+            // Don't cascade an override error in this case.
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            if (SynthesizedRecordClone.FindValidCloneMethod(baseType, ref useSiteInfo) is null)
             {
                 return;
             }
@@ -117,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var overridden = overriding.OverriddenProperty;
 
                 if (overridden is object &&
-                    !overridden.ContainingType.Equals(overriding.ContainingType.BaseTypeNoUseSiteDiagnostics, TypeCompareKind.AllIgnoreOptions))
+                    !overridden.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
                 {
                     reportAnError = true;
                 }
@@ -125,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (reportAnError)
             {
-                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, overriding.GetFirstLocation(), overriding, overriding.ContainingType.BaseTypeNoUseSiteDiagnostics);
+                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseEqualityContract, overriding.GetFirstLocation(), overriding, baseType);
             }
         }
 

@@ -38,9 +38,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Private :
                 DeclarationModifiers.Protected;
 
-            if (containingType.IsRecord && !containingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
+            var baseType = containingType.BaseTypeNoUseSiteDiagnostics;
+            if (containingType.IsRecord && !baseType.IsObjectType())
             {
-                result |= DeclarationModifiers.Override;
+                // Only mark as override if the base type is actually a record.
+                // If it's not a record, ERR_BadRecordBase will be reported separately.
+                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                if (SynthesizedRecordClone.FindValidCloneMethod(baseType, ref useSiteInfo) is object)
+                {
+                    result |= DeclarationModifiers.Override;
+                }
+                else
+                {
+                    result |= containingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual;
+                }
             }
             else
             {
@@ -264,6 +275,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             NamedTypeSymbol baseType = overriding.ContainingType.BaseTypeNoUseSiteDiagnostics;
             if (baseType.IsObjectType())
+            {
+                return;
+            }
+
+            // If the base type is not a record, ERR_BadRecordBase will already be reported.
+            // Don't cascade an override error in this case.
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            if (SynthesizedRecordClone.FindValidCloneMethod(baseType, ref useSiteInfo) is null)
             {
                 return;
             }
