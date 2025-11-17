@@ -5,16 +5,6 @@ VisualStudioVersion = 17.1.32014.330
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit", "src\Microsoft.VisualStudio.Extensibility.Testing.Xunit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj", "{C4C38EAE-B6B1-4EE5-9F01-03B4D9249BBD}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.VisualStudio.VsixInstaller.Shared", "src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.shproj", "{B3BED6CB-ABFE-4BB8-8AF7-901FF0C6F027}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.11", "src\Microsoft.VisualStudio.VsixInstaller.11\Microsoft.VisualStudio.VsixInstaller.11.csproj", "{784CB5C8-6258-499D-8EFB-7A601A6F7E46}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.12", "src\Microsoft.VisualStudio.VsixInstaller.12\Microsoft.VisualStudio.VsixInstaller.12.csproj", "{75EDEB61-DB9D-4F12-B922-ECEF8081CEF1}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.14", "src\Microsoft.VisualStudio.VsixInstaller.14\Microsoft.VisualStudio.VsixInstaller.14.csproj", "{DA8322BC-E135-41BB-838A-D87551092E1A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.15", "src\Microsoft.VisualStudio.VsixInstaller.15\Microsoft.VisualStudio.VsixInstaller.15.csproj", "{4232A7BA-A7B7-4C65-B7A1-17FB5CDED299}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests", "src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.csproj", "{346081A2-A088-4486-94B3-B586BD6FD888}"
 	ProjectSection(ProjectDependencies) = postProject
 		{25E61E07-E449-4ABB-A197-BD5C8EE3347F} = {25E61E07-E449-4ABB-A197-BD5C8EE3347F}
@@ -29,10 +19,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		THIRD-PARTY-NOTICES.TXT = THIRD-PARTY-NOTICES.TXT
 	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.16", "src\Microsoft.VisualStudio.VsixInstaller.16\Microsoft.VisualStudio.VsixInstaller.16.csproj", "{6A12CFF7-2499-4671-8EBE-EC3F2FF2ADF0}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.17", "src\Microsoft.VisualStudio.VsixInstaller.17\Microsoft.VisualStudio.VsixInstaller.17.csproj", "{43CC037C-8EBC-424C-AB73-9DD4047924A1}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.VisualStudio.IntegrationTestService.Shared", "src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.shproj", "{629938E1-1C2C-4F01-8038-90A34A940AC8}"
 EndProject
@@ -57,15 +43,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.Exte
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.IntegrationTestService", "Microsoft.VisualStudio.IntegrationTestService", "{F8D033DE-AC32-4928-A1D9-30AD5FBD212A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.VsixInstaller", "Microsoft.VisualStudio.VsixInstaller", "{37C00986-FB67-46DA-8B12-6CF99786ECC6}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator", "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator", "{D2869BF7-27E8-42B9-BF23-8790C0CE08C2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator", "src\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj", "{25E61E07-E449-4ABB-A197-BD5C8EE3347F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests", "src\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests.csproj", "{DA9797F0-F158-42AB-BE2B-922588756941}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.VsixInstaller.18", "src\Microsoft.VisualStudio.VsixInstaller.18\Microsoft.VisualStudio.VsixInstaller.18.csproj", "{45749C3E-7511-8C1B-06FF-6330B67C1433}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EqualException", "test\EqualException\EqualException.csproj", "{8E8E834C-968B-4F3C-77AC-22BCFB1EFEE8}"
 EndProject
@@ -135,10 +117,6 @@ Global
 		{DA9797F0-F158-42AB-BE2B-922588756941}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA9797F0-F158-42AB-BE2B-922588756941}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA9797F0-F158-42AB-BE2B-922588756941}.Release|Any CPU.Build.0 = Release|Any CPU
-		{45749C3E-7511-8C1B-06FF-6330B67C1433}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{45749C3E-7511-8C1B-06FF-6330B67C1433}.Debug|Any CPU.Build.0 = Debug|x64
-		{45749C3E-7511-8C1B-06FF-6330B67C1433}.Release|Any CPU.ActiveCfg = Release|x64
-		{45749C3E-7511-8C1B-06FF-6330B67C1433}.Release|Any CPU.Build.0 = Release|x64
 		{8E8E834C-968B-4F3C-77AC-22BCFB1EFEE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8E8E834C-968B-4F3C-77AC-22BCFB1EFEE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E8E834C-968B-4F3C-77AC-22BCFB1EFEE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -153,14 +131,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C4C38EAE-B6B1-4EE5-9F01-03B4D9249BBD} = {9ED7BE6A-BDEE-44CF-B5C8-EA5F6E212CFD}
-		{B3BED6CB-ABFE-4BB8-8AF7-901FF0C6F027} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
-		{784CB5C8-6258-499D-8EFB-7A601A6F7E46} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
-		{75EDEB61-DB9D-4F12-B922-ECEF8081CEF1} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
-		{DA8322BC-E135-41BB-838A-D87551092E1A} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
-		{4232A7BA-A7B7-4C65-B7A1-17FB5CDED299} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
 		{346081A2-A088-4486-94B3-B586BD6FD888} = {7A983C88-A0B8-4A6C-8837-E45ADD6C01EE}
-		{6A12CFF7-2499-4671-8EBE-EC3F2FF2ADF0} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
-		{43CC037C-8EBC-424C-AB73-9DD4047924A1} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
 		{629938E1-1C2C-4F01-8038-90A34A940AC8} = {F8D033DE-AC32-4928-A1D9-30AD5FBD212A}
 		{5A516B07-7B9C-4CE1-9DDC-E59800919D64} = {F8D033DE-AC32-4928-A1D9-30AD5FBD212A}
 		{56550D99-71D3-44FE-804C-944D82D639F6} = {F8D033DE-AC32-4928-A1D9-30AD5FBD212A}
@@ -170,7 +141,6 @@ Global
 		{CE32D863-E8C3-461F-80C7-32D0B0853217} = {7A983C88-A0B8-4A6C-8837-E45ADD6C01EE}
 		{25E61E07-E449-4ABB-A197-BD5C8EE3347F} = {D2869BF7-27E8-42B9-BF23-8790C0CE08C2}
 		{DA9797F0-F158-42AB-BE2B-922588756941} = {D2869BF7-27E8-42B9-BF23-8790C0CE08C2}
-		{45749C3E-7511-8C1B-06FF-6330B67C1433} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
 		{8E8E834C-968B-4F3C-77AC-22BCFB1EFEE8} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{B8DB05D9-7707-DB64-DD5A-4246B3BCCD33} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
@@ -179,21 +149,13 @@ Global
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems*{346081a2-a088-4486-94b3-b586bd6fd888}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{4232a7ba-a7b7-4c65-b7a1-17fb5cded299}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{43cc037c-8ebc-424c-ab73-9dd4047924a1}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{45749c3e-7511-8c1b-06ff-6330b67c1433}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{56550d99-71d3-44fe-804c-944d82d639f6}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{5a516b07-7b9c-4ce1-9ddc-e59800919d64}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{629938e1-1c2c-4f01-8038-90a34a940ac8}*SharedItemsImports = 13
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{6a12cff7-2499-4671-8ebe-ec3f2ff2adf0}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{75edeb61-db9d-4f12-b922-ecef8081cef1}*SharedItemsImports = 5
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{784cb5c8-6258-499d-8efb-7a601a6f7e46}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.projitems*{8bda92b2-e2e0-4607-94f6-444f56ad0582}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems*{9b5759ad-4eff-4e2d-921b-d617bb8cfa22}*SharedItemsImports = 13
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{b3bed6cb-abfe-4bb8-8af7-901ff0c6f027}*SharedItemsImports = 13
 		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.projitems*{c4c38eae-b6b1-4ee5-9f01-03b4d9249bbd}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems*{ce32d863-e8c3-461f-80c7-32d0b0853217}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared.projitems*{d7647395-129b-4f45-8c78-10e6f92fc8ad}*SharedItemsImports = 13
-		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{da8322bc-e135-41bb-838a-d87551092e1a}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

@@ -131,6 +131,7 @@ namespace Xunit.Harness
             Version actualVersion;
             ImmutableHashSet<string> supportedPackageIds;
             string installationPath;
+            string instanceId;
 
             if (shouldStartNewInstance)
             {
@@ -141,8 +142,9 @@ namespace Xunit.Harness
                 supportedPackageIds = instance.Item3;
                 installationPath = instance.Item1;
                 actualVersion = instance.Item2;
+                instanceId = instance.Item5;
 
-                hostProcess = await StartNewVisualStudioProcessAsync(installationPath, version, rootSuffix, environmentVariables, extensionFiles).ConfigureAwait(true);
+                hostProcess = await StartNewVisualStudioProcessAsync(installationPath, version, rootSuffix, environmentVariables, extensionFiles, instanceId).ConfigureAwait(true);
 
                 // We wait until the DTE instance is up before we're good
                 dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
@@ -179,43 +181,15 @@ namespace Xunit.Harness
             }
         }
 
-        internal static IEnumerable<Tuple<string, Version, ImmutableHashSet<string>, InstanceState>> EnumerateVisualStudioInstances()
+        internal static IEnumerable<Tuple<string, Version, ImmutableHashSet<string>, InstanceState, string>> EnumerateVisualStudioInstances()
         {
-            foreach (var result in EnumerateVisualStudioInstancesInRegistry())
-            {
-                yield return Tuple.Create(result.Item1, result.Item2, ImmutableHashSet.Create<string>(), InstanceState.Local | InstanceState.Registered | InstanceState.NoErrors | InstanceState.NoRebootRequired);
-            }
-
             foreach (ISetupInstance2 result in EnumerateVisualStudioInstancesViaInstaller())
             {
                 var productDir = Path.GetFullPath(result.GetInstallationPath());
                 var version = Version.Parse(result.GetInstallationVersion());
                 var supportedPackageIds = ImmutableHashSet.CreateRange(result.GetPackages().Select(package => package.GetId()));
-                yield return Tuple.Create(productDir, version, supportedPackageIds, result.GetState());
-            }
-        }
-
-        private static IEnumerable<Tuple<string, Version>> EnumerateVisualStudioInstancesInRegistry()
-        {
-            using (var software = Registry.LocalMachine.OpenSubKey("SOFTWARE"))
-            using (var microsoft = software.OpenSubKey("Microsoft"))
-            using (var visualStudio = microsoft.OpenSubKey("VisualStudio"))
-            {
-                foreach (string versionKey in visualStudio.GetSubKeyNames())
-                {
-                    if (!Version.TryParse(versionKey, out var version))
-                    {
-                        continue;
-                    }
-
-                    string? path = Registry.GetValue($@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\{versionKey}\Setup\VS", "ProductDir", null) as string;
-                    if (string.IsNullOrEmpty(path) || !File.Exists(Path.Combine(path, @"Common7\IDE\devenv.exe")))
-                    {
-                        continue;
-                    }
-
-                    yield return Tuple.Create(path!, version);
-                }
+                var instanceId = result.GetInstanceId();
+                yield return Tuple.Create(productDir, version, supportedPackageIds, result.GetState(), instanceId);
             }
         }
 
@@ -240,7 +214,7 @@ namespace Xunit.Harness
             while (instancesFetched != 0);
         }
 
-        private static Tuple<string, Version, ImmutableHashSet<string>, InstanceState> LocateVisualStudioInstance(Version version, ImmutableHashSet<string> requiredPackageIds)
+        private static Tuple<string, Version, ImmutableHashSet<string>, InstanceState, string> LocateVisualStudioInstance(Version version, ImmutableHashSet<string> requiredPackageIds)
         {
             var vsInstallDir = Environment.GetEnvironmentVariable("__UNITTESTEXPLORER_VSINSTALLPATH__")
                 ?? Environment.GetEnvironmentVariable("VSAPPIDDIR");
@@ -326,54 +300,80 @@ namespace Xunit.Harness
                                 "There were no instances of Visual Studio found that match the specified requirements.");
         }
 
-        private static async Task<Process> StartNewVisualStudioProcessAsync(string installationPath, Version version, string? rootSuffix, ImmutableDictionary<string, string> environmentVariables, ImmutableList<string> extensionFiles)
+        private static async Task<Process> StartNewVisualStudioProcessAsync(string installationPath, Version version, string? rootSuffix, ImmutableDictionary<string, string> environmentVariables, ImmutableList<string> extensionFiles, string vsInstanceId)
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
             var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");
+            var vsixInstallerExeFile = Path.Combine(installationPath, @"Common7\IDE\VSIXInstaller.exe");
 
             var temporaryFolder = Path.Combine(Path.GetTempPath(), "vs-extension-testing", Path.GetRandomFileName());
             Assert.False(Directory.Exists(temporaryFolder));
             Directory.CreateDirectory(temporaryFolder);
 
-            var installerAssemblyPath = ExtractInstallerAssembly(version, temporaryFolder);
-
             var integrationTestServiceExtension = ExtractIntegrationTestServiceExtension(temporaryFolder);
             var extensions = extensionFiles.Add(integrationTestServiceExtension);
 
+            var logDir = DataCollectionService.GetLogDirectory();
+            if (!Directory.Exists(logDir))
+            {
+                Directory.CreateDirectory(logDir);
+            }
+
+            var logFileName = $"VSExtensionTestingInstallerLog-{Guid.NewGuid():N}.log";
+
             try
             {
-                var arguments = string.Join(
-                    " ",
-                    $"\"{rootSuffix}\"",
-                    $"\"{installationPath}\"",
-                    string.Join(" ", extensions.Select(extension => $"\"{extension}\"")));
-
-                var installProcessStartInfo = CreateStartInfo(installerAssemblyPath, silent: true, arguments);
-                installProcessStartInfo.RedirectStandardError = true;
-                installProcessStartInfo.RedirectStandardOutput = true;
-                using var installProcess = Process.Start(installProcessStartInfo);
-                var standardErrorAsync = installProcess.StandardError.ReadToEndAsync();
-                var standardOutputAsync = installProcess.StandardOutput.ReadToEndAsync();
-                installProcess.WaitForExit();
-
-                if (installProcess.ExitCode != 0)
+                var baseArguments = ImmutableArray.Create("/quiet", "/shutdownprocesses", $"/instanceIds:{vsInstanceId}", $"/logFile:{logFileName}");
+                if (!string.IsNullOrEmpty(rootSuffix))
                 {
-                    var messageBuilder = new StringBuilder();
-                    messageBuilder.AppendLine($"VSIX installer failed with exit code: {installProcess.ExitCode}");
-                    messageBuilder.AppendLine();
-                    messageBuilder.AppendLine($"Standard Error:");
-                    messageBuilder.AppendLine(await standardErrorAsync.ConfigureAwait(true));
-                    messageBuilder.AppendLine();
-                    messageBuilder.AppendLine($"Standard Output:");
-                    messageBuilder.AppendLine(await standardOutputAsync.ConfigureAwait(true));
+                    baseArguments = baseArguments.Add($"/rootSuffix:{rootSuffix}");
+                }
 
-                    throw new InvalidOperationException(messageBuilder.ToString());
+                foreach (var extension in extensions)
+                {
+                    var arguments = string.Join(" ", baseArguments.Add($"\"{extension}\""));
+                    Debug.WriteLine($"{vsixInstallerExeFile} {arguments}");
+
+                    var installProcessStartInfo = CreateStartInfo(vsixInstallerExeFile, silent: true, arguments);
+                    installProcessStartInfo.RedirectStandardError = true;
+                    installProcessStartInfo.RedirectStandardOutput = true;
+                    using var installProcess = Process.Start(installProcessStartInfo);
+                    var standardErrorAsync = installProcess.StandardError.ReadToEndAsync();
+                    var standardOutputAsync = installProcess.StandardOutput.ReadToEndAsync();
+                    installProcess.WaitForExit();
+
+                    if (installProcess.ExitCode != 0)
+                    {
+                        var messageBuilder = new StringBuilder();
+                        messageBuilder.AppendLine($"VSIX installer failed with exit code: {installProcess.ExitCode}");
+                        messageBuilder.AppendLine();
+                        messageBuilder.AppendLine($"Standard Error:");
+                        messageBuilder.AppendLine(await standardErrorAsync.ConfigureAwait(true));
+                        messageBuilder.AppendLine();
+                        messageBuilder.AppendLine($"Standard Output:");
+                        messageBuilder.AppendLine(await standardOutputAsync.ConfigureAwait(true));
+
+                        throw new InvalidOperationException(messageBuilder.ToString());
+                    }
                 }
             }
             finally
             {
                 File.Delete(integrationTestServiceExtension);
                 Directory.Delete(temporaryFolder, recursive: true);
+
+                // Copy installer log file to log directory
+                var installerLog = Path.Combine(Path.GetTempPath(), logFileName);
+                if (File.Exists(installerLog))
+                {
+                    var logDestination = Path.Combine(logDir, logFileName);
+                    File.Move(installerLog, logDestination);
+                    Debug.WriteLine($"Moved '{installerLog}' to '{logDestination}'.");
+                }
+                else
+                {
+                    Debug.WriteLine($"The installer log file '{installerLog}' was not found.");
+                }
             }
 
             if (version.Major >= 16)
@@ -433,22 +433,6 @@ namespace Xunit.Harness
 
                 return startInfo;
             }
-        }
-
-        private static string ExtractInstallerAssembly(Version version, string temporaryFolder)
-        {
-            var installerDirectory = Path.Combine(temporaryFolder, $"{version.Major}.{version.Minor}");
-            Directory.CreateDirectory(installerDirectory);
-
-            var installerFileName = $"Microsoft.VisualStudio.VsixInstaller.{version.Major}.exe";
-            var path = Path.Combine(installerDirectory, installerFileName);
-            using (var resourceStream = typeof(VisualStudioInstanceFactory).Assembly.GetManifestResourceStream(installerFileName))
-            using (var writerStream = File.Open(path, FileMode.CreateNew, FileAccess.Write))
-            {
-                resourceStream.CopyTo(writerStream);
-            }
-
-            return path;
         }
 
         private static string ExtractIntegrationTestServiceExtension(string temporaryFolder)

@@ -36,12 +36,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev11\Microsoft.VisualStudio.IntegrationTestService.Dev11.csproj" Private="false" PrivateAssets="all" />
-
-    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.11\Microsoft.VisualStudio.VsixInstaller.11.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" PrivateAssets="all" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.12\Microsoft.VisualStudio.VsixInstaller.12.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" PrivateAssets="all" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.14\Microsoft.VisualStudio.VsixInstaller.14.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" PrivateAssets="all" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.15\Microsoft.VisualStudio.VsixInstaller.15.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" PrivateAssets="all" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.16\Microsoft.VisualStudio.VsixInstaller.16.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,11 +45,6 @@
 
   <ItemGroup>
     <!-- Embedded assemblies -->
-    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.11\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.11.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.11.exe" />
-    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.12\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.12.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.12.exe" />
-    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.14\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.14.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.14.exe" />
-    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.15\x86\$(Configuration)\net46\Microsoft.VisualStudio.VsixInstaller.15.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.15.exe" />
-    <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.VsixInstaller.16\x86\$(Configuration)\net472\Microsoft.VisualStudio.VsixInstaller.16.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.16.exe" />
     <EmbeddedResource Include="$(RepoRootPath)bin\Microsoft.VisualStudio.IntegrationTestService.Dev11\$(Configuration)\net45\Microsoft.VisualStudio.IntegrationTestService.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.dll" />
 
     <!-- Embedded extensions -->
