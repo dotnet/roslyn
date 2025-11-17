@@ -5368,12 +5368,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(isRecordClass);
                 var baseType = BaseTypeNoUseSiteDiagnostics;
-                // Only add BaseEquals if the base type is actually a record.
-                // If it's not a record, ERR_BadRecordBase will be reported separately.
-                if (!baseType.IsObjectType() &&
-                    SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
+                if (!baseType.IsObjectType())
                 {
-                    members.Add(new SynthesizedRecordBaseEquals(this, memberOffset: members.Count));
+                    // Only add BaseEquals if the base type is actually a record.
+                    // If it's not a record, ERR_BadRecordBase will be reported separately.
+                    if (SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
+                    {
+                        members.Add(new SynthesizedRecordBaseEquals(this, memberOffset: members.Count));
+                    }
                 }
             }
 
