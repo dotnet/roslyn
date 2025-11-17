@@ -653,27 +653,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 const string methodName = WellKnownMemberNames.DeconstructMethodName;
 
-                // Use a temporary diagnostic bag to capture member access errors
-                var memberAccessDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
                 var memberAccess = BindInstanceMemberAccess(
                                         rightSyntax, receiverSyntax, receiver, methodName, rightArity: 0,
                                         typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
                                         typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
-                                        invoked: true, indexed: false, diagnostics: memberAccessDiagnostics);
+                                        invoked: true, indexed: false, diagnostics: diagnostics);
 
-                memberAccess = CheckValue(memberAccess, BindValueKind.RValueOrMethodGroup, memberAccessDiagnostics);
+                memberAccess = CheckValue(memberAccess, BindValueKind.RValueOrMethodGroup, diagnostics);
                 memberAccess.WasCompilerGenerated = true;
 
                 if (memberAccess.Kind != BoundKind.MethodGroup)
                 {
-                    // BindInstanceMemberAccess reports an error when the member is not found or not accessible.
-                    // If memberAccess has errors, suppress CS8129 to avoid redundant error reporting.
-                    diagnostics.AddRangeAndFree(memberAccessDiagnostics);
                     return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, receiver, suppressError: memberAccess.HasErrors);
                 }
-
-                diagnostics.AddRange(memberAccessDiagnostics);
-                memberAccessDiagnostics.Free();
 
                 // After the overload resolution completes, the last step is to coerce the arguments with inferred types.
                 // That step returns placeholder (of correct type) instead of the outVar nodes that were passed in as arguments.
