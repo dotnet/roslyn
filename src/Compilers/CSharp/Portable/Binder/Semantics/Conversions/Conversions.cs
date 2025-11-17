@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // are suppressed for methods with omitted type arguments.
                         hasErrors = overloadDiagnostics.HasAnyErrors()
                             || result.Results.Any(static candidate => candidate.Member.ReturnType.ContainsErrorType()
-                                || candidate.Member.Parameters.Any(static p => p.Type.ContainsErrorType()));
+                            || candidate.Member.Parameters.Any(static p => p.Type.ContainsErrorType()));
 
                         diagnostics.AddRangeAndFree(overloadDiagnostics);
                     }
