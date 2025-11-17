@@ -381,105 +381,106 @@ public class Point
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // 0.cs(6,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (6,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default) {} // error 1
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 18),
-                // 0.cs(7,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (7,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default)) {} // error 2
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(7, 19),
-                // 0.cs(8,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (8,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case default: break; } // error 3
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(8, 27),
-                // 0.cs(9,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (9,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case default when true: break; } // error 4
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(9, 27),
-                // 0.cs(10,36): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (10,36): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch ((1, 2)) { case (1, default): break; } // error 5
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 36),
-                // 0.cs(12,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (12,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is < default) {} // error 6
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(12, 20),
-                // 0.cs(13,29): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (13,29): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case < default: break; } // error 7
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(13, 29),
-                // 0.cs(14,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (14,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is < ((default))) {} // error 8
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(14, 22),
-                // 0.cs(15,31): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (15,31): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case < ((default)): break; } // error 9
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(15, 31),
-                // 0.cs(17,18): error CS8598: The suppression operator is not allowed in this context
+                // (17,18): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is default!) {} // error 10
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(17, 18),
-                // 0.cs(17,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (17,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default!) {} // error 10
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(17, 18),
-                // 0.cs(18,19): error CS8598: The suppression operator is not allowed in this context
+                // (18,19): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is (default!)) {} // error 11
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(18, 19),
-                // 0.cs(18,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (18,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default!)) {} // error 11
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(18, 19),
-                // 0.cs(19,21): error CS8598: The suppression operator is not allowed in this context
+                // (19,21): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is < ((default)!)) {} // error 12
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!").WithLocation(19, 21),
-                // 0.cs(19,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (19,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is < ((default)!)) {} // error 12
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(19, 22),
-                // 0.cs(20,18): error CS8598: The suppression operator is not allowed in this context
+                // (20,18): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is default!!) {} // error 13
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!!").WithLocation(20, 18),
-                // 0.cs(20,18): error CS8598: The suppression operator is not allowed in this context
+                // (20,18): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is default!!) {} // error 13
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(20, 18),
-                // 0.cs(20,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (20,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default!!) {} // error 13
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(20, 18),
-                // 0.cs(21,19): error CS8598: The suppression operator is not allowed in this context
+                // (21,19): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is (default!!)) {} // error 14
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!!").WithLocation(21, 19),
-                // 0.cs(21,19): error CS8598: The suppression operator is not allowed in this context
+                // (21,19): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is (default!!)) {} // error 14
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(21, 19),
-                // 0.cs(21,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (21,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default!!)) {} // error 14
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(21, 19),
-                // 0.cs(22,21): error CS8598: The suppression operator is not allowed in this context
+                // (22,21): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is < ((default)!!)) {} // error 15
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!!").WithLocation(22, 21),
-                // 0.cs(22,21): error CS8598: The suppression operator is not allowed in this context
+                // (22,21): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is < ((default)!!)) {} // error 15
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!").WithLocation(22, 21),
-                // 0.cs(22,22): error CS8715: Duplicate null suppression operator ('!')
+                // (22,22): error CS8715: Duplicate null suppression operator ('!')
                 //         if (i is < ((default)!!)) {} // error 15
                 Diagnostic(ErrorCode.ERR_DuplicateNullSuppression, "default").WithLocation(22, 22),
-                // 0.cs(22,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (22,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is < ((default)!!)) {} // error 15
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(22, 22),
-                // 0.cs(25,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (25,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default)!) {} // error 16
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(25, 19),
-                // 0.cs(25,27): error CS1026: ) expected
+                // (25,27): error CS1026: ) expected
                 //         if (i is (default)!) {} // error 16
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "!").WithLocation(25, 27),
-                // 0.cs(25,28): error CS1525: Invalid expression term ')'
+                // (25,28): error CS1525: Invalid expression term ')'
                 //         if (i is (default)!) {} // error 16
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(25, 28),
-                // 0.cs(25,28): error CS1002: ; expected
+                // (25,28): error CS1002: ; expected
                 //         if (i is (default)!) {} // error 16
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(25, 28),
-                // 0.cs(25,28): error CS1513: } expected
+                // (25,28): error CS1513: } expected
                 //         if (i is (default)!) {} // error 16
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(25, 28),
-                // 0.cs(26,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (26,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is ((default)!)) {} // error 17
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(26, 20),
-                // 0.cs(26,28): error CS1003: Syntax error, ',' expected
+                // (26,28): error CS1003: Syntax error, ',' expected
                 //         if (i is ((default)!)) {} // error 17
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(26, 28),
-                // 0.cs(26,29): error CS1525: Invalid expression term ')'
+                // (26,29): error CS1525: Invalid expression term ')'
                 //         if (i is ((default)!)) {} // error 17
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(26, 29));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(26, 29)
+                );
         }
 
         [Fact]
