@@ -381,109 +381,105 @@ public class Point
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(6,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default) {} // error 1
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 18),
-                // (7,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(7,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default)) {} // error 2
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(7, 19),
-                // (8,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(8,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case default: break; } // error 3
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(8, 27),
-                // (9,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(9,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case default when true: break; } // error 4
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(9, 27),
-                // (10,36): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(10,36): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch ((1, 2)) { case (1, default): break; } // error 5
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 36),
-                // (12,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(12,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is < default) {} // error 6
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(12, 20),
-                // (13,29): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(13,29): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case < default: break; } // error 7
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(13, 29),
-                // (14,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(14,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is < ((default))) {} // error 8
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(14, 22),
-                // (15,31): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(15,31): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case < ((default)): break; } // error 9
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(15, 31),
-                // (17,18): error CS8598: The suppression operator is not allowed in this context
+                // 0.cs(17,18): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is default!) {} // error 10
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(17, 18),
-                // (17,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(17,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default!) {} // error 10
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(17, 18),
-                // (18,19): error CS8598: The suppression operator is not allowed in this context
+                // 0.cs(18,19): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is (default!)) {} // error 11
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(18, 19),
-                // (18,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(18,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default!)) {} // error 11
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(18, 19),
-                // (19,21): error CS8598: The suppression operator is not allowed in this context
+                // 0.cs(19,21): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is < ((default)!)) {} // error 12
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!").WithLocation(19, 21),
-                // (19,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(19,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is < ((default)!)) {} // error 12
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(19, 22),
-                // (20,18): error CS8598: The suppression operator is not allowed in this context
+                // 0.cs(20,18): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is default!!) {} // error 13
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!!").WithLocation(20, 18),
-                // (20,18): error CS8598: The suppression operator is not allowed in this context
+                // 0.cs(20,18): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is default!!) {} // error 13
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(20, 18),
-                // (20,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(20,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default!!) {} // error 13
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(20, 18),
-                // (21,19): error CS8598: The suppression operator is not allowed in this context
+                // 0.cs(21,19): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is (default!!)) {} // error 14
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!!").WithLocation(21, 19),
-                // (21,19): error CS8598: The suppression operator is not allowed in this context
+                // 0.cs(21,19): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is (default!!)) {} // error 14
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(21, 19),
-                // (21,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(21,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default!!)) {} // error 14
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(21, 19),
-                // (22,21): error CS8598: The suppression operator is not allowed in this context
+                // 0.cs(22,21): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is < ((default)!!)) {} // error 15
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!!").WithLocation(22, 21),
-                // (22,21): error CS8598: The suppression operator is not allowed in this context
+                // 0.cs(22,21): error CS8598: The suppression operator is not allowed in this context
                 //         if (i is < ((default)!!)) {} // error 15
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!").WithLocation(22, 21),
-                // (22,22): error CS8715: Duplicate null suppression operator ('!')
+                // 0.cs(22,22): error CS8715: Duplicate null suppression operator ('!')
                 //         if (i is < ((default)!!)) {} // error 15
                 Diagnostic(ErrorCode.ERR_DuplicateNullSuppression, "default").WithLocation(22, 22),
-                // (22,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(22,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is < ((default)!!)) {} // error 15
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(22, 22),
-                // (25,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(25,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default)!) {} // error 16
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(25, 19),
-                // (25,27): error CS1026: ) expected
+                // 0.cs(25,27): error CS1026: ) expected
                 //         if (i is (default)!) {} // error 16
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "!").WithLocation(25, 27),
-                // (25,28): error CS1525: Invalid expression term ')'
+                // 0.cs(25,28): error CS1525: Invalid expression term ')'
                 //         if (i is (default)!) {} // error 16
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(25, 28),
-                // (25,28): error CS1002: ; expected
+                // 0.cs(25,28): error CS1002: ; expected
                 //         if (i is (default)!) {} // error 16
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(25, 28),
-                // (25,28): error CS1513: } expected
+                // 0.cs(25,28): error CS1513: } expected
                 //         if (i is (default)!) {} // error 16
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(25, 28),
-                // (26,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 2 out parameters and a void return type.
-                //         if (i is ((default)!)) {} // error 17
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "((default)!)").WithArguments("int", "2").WithLocation(26, 18),
-                // (26,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // 0.cs(26,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is ((default)!)) {} // error 17
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(26, 20),
-                // (26,28): error CS1003: Syntax error, ',' expected
+                // 0.cs(26,28): error CS1003: Syntax error, ',' expected
                 //         if (i is ((default)!)) {} // error 17
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(26, 28),
-                // (26,29): error CS1525: Invalid expression term ')'
+                // 0.cs(26,29): error CS1525: Invalid expression term ')'
                 //         if (i is ((default)!)) {} // error 17
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(26, 29)
-                );
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(26, 29));
         }
 
         [Fact]
@@ -874,22 +870,15 @@ namespace N
                 // 0.cs(10,36): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2>(Tuple<T1, T2>, out T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(x, y)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2>(System.Tuple<T1, T2>, out T1, out T2)").WithLocation(10, 36),
-                // 0.cs(10,36): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'var', with 2 out parameters and a void return type.
-                //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(x, y)").WithArguments("N.var", "2").WithLocation(10, 36),
                 // 0.cs(11,33): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
                 Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(11, 33),
                 // 0.cs(11,37): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2>(Tuple<T1, T2>, out T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(x, y)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2>(System.Tuple<T1, T2>, out T1, out T2)").WithLocation(11, 37),
-                // 0.cs(11,37): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'var', with 2 out parameters and a void return type.
-                //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(x, y)").WithArguments("N.var", "2").WithLocation(11, 37),
                 // 0.cs(12,32): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(true, t is var x); }                           // error 3
-                Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(12, 32)
-                );
+                Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(12, 32));
         }
 
         [Fact]
@@ -1171,11 +1160,7 @@ class Frog
             compilation.VerifyDiagnostics(
                 // (8,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (1, 2):
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(8, 18),
-                // (8,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-                //             case (1, 2):
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 2)").WithArguments("object", "2").WithLocation(8, 18)
-                );
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(8, 18));
         }
 
         [Fact]
@@ -2111,11 +2096,7 @@ class Point
             compilation.VerifyDiagnostics(
                 // (6,23): error CS7036: There is no argument given that corresponds to the required parameter 'X' of 'Point.Deconstruct(out int, out int)'
                 //         if (p is Point())
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "()").WithArguments("X", "Point.Deconstruct(out int, out int)").WithLocation(6, 23),
-                // (6,23): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Point', with 0 out parameters and a void return type.
-                //         if (p is Point())
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("Point", "0").WithLocation(6, 23)
-                );
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "()").WithArguments("X", "Point.Deconstruct(out int, out int)").WithLocation(6, 23));
         }
 
         [Fact]
@@ -2161,16 +2142,12 @@ class Point
             };
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (10,24): error CS8504: Pattern missing
-                //         if (p is Point(, { })) { }
-                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(10, 24),
-                // (9,23): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
-                //         if (p is Point({ }, { }, { })) { }
-                Diagnostic(ErrorCode.ERR_BadArgCount, "({ }, { }, { })").WithArguments("Deconstruct", "3").WithLocation(9, 23),
-                // (9,23): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'Point', with 3 out parameters and a void return type.
-                //         if (p is Point({ }, { }, { })) { }
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "({ }, { }, { })").WithArguments("Point", "3").WithLocation(9, 23)
-                );
+                    // (10,24): error CS8504: Pattern missing
+                    //         if (p is Point(, { })) { }
+                    Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(10, 24),
+                    // (9,23): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
+                    //         if (p is Point({ }, { }, { })) { }
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "({ }, { }, { })").WithArguments("Deconstruct", "3").WithLocation(9, 23));
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             int i = 0;
@@ -2200,11 +2177,7 @@ public class C {
             compilation.VerifyDiagnostics(
                 // (4,21): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1>(Tuple<T1>, out T1)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = this is (a: 1);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 21),
-                // (4,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 1 out parameters and a void return type.
-                //         _ = this is (a: 1);
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a: 1)").WithArguments("C", "1").WithLocation(4, 21)
-                );
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 21));
         }
 
         [Fact, WorkItem(26613, "https://github.com/dotnet/roslyn/issues/26613")]
@@ -2222,11 +2195,7 @@ public class C {
             compilation.VerifyDiagnostics(
                 // (4,22): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1>(Tuple<T1>, out T1)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = this is C(a: 1);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 22),
-                // (4,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 1 out parameters and a void return type.
-                //         _ = this is C(a: 1);
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a: 1)").WithArguments("C", "1").WithLocation(4, 22)
-                );
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 22));
         }
 
         [Fact]
