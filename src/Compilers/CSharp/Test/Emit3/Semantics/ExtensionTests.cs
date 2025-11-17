@@ -4575,6 +4575,50 @@ public static class Extensions
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P").WithArguments("Extensions.extension(Extensions.C).P", "Extensions.C").WithLocation(6, 27));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81251")]
+    public void ReceiverParameter_Name()
+    {
+        // Unnamed extension parameter should not default to "value" as its name when round-tripped
+        var libSrc = """
+using System;
+
+public static class ArrayEx
+{
+    extension(Array)
+    {
+        public static T[] Init<T>(T value)
+            => throw null;
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc);
+        libComp.VerifyDiagnostics();
+
+        var src = """
+using System;
+
+Array.Init(value: 10);
+""";
+        var comp = CreateCompilation([src, libSrc]);
+        comp.VerifyEmitDiagnostics();
+        validate(comp);
+
+        comp = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp.VerifyEmitDiagnostics();
+        validate(comp);
+
+        comp = CreateCompilation(src, references: [libComp.ToMetadataReference()]);
+        comp.VerifyEmitDiagnostics();
+        validate(comp);
+
+        void validate(CSharpCompilation comp)
+        {
+            var extension = comp.GlobalNamespace.GetTypeMember("ArrayEx").GetTypeMembers("").Single();
+            Assert.True(extension.IsExtension);
+            Assert.Equal("", extension.ExtensionParameter.Name);
+        }
+    }
+
     [Fact]
     public void InconsistentTypeAccessibility_01()
     {
@@ -9085,7 +9129,7 @@ public static class Extensions
             AssertEx.Equal("Extensions.extension(object).M(object, string)", m1.ToDisplayString());
             AssertEx.Equal([], m1.GetAttributes());
 
-            AssertEx.Equal("System.Object value", extensions[1].ExtensionParameter.ToTestDisplayString());
+            AssertEx.Equal("System.Object", extensions[1].ExtensionParameter.ToTestDisplayString());
             AssertEx.Equal("<M>$C43E2675C7BBF9284AF22FB8A9BF0280", extensions[1].MetadataName);
             Symbol m2 = extensions[1].GetMembers().Single();
             AssertEx.Equal("Extensions.extension(object).M(object, string, int)", m2.ToDisplayString());
@@ -29798,7 +29842,7 @@ public static partial class C
             var container = m.GlobalNamespace.GetTypeMember("C");
             var extension = container.GetTypeMembers().Single();
 
-            AssertEx.Equal("System.Object value", extension.ExtensionParameter.ToTestDisplayString());
+            AssertEx.Equal("System.Object", extension.ExtensionParameter.ToTestDisplayString());
             AssertEx.Equal("<M>$C43E2675C7BBF9284AF22FB8A9BF0280", extension.MetadataName);
 
             var methods = extension.GetMembers();
