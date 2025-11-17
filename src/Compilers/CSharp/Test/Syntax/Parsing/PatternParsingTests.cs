@@ -12740,8 +12740,7 @@ switch (e)
             EOF();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/12345")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58010")]
         public void EqualityOperatorInPattern()
         {
             UsingStatement(@"_ = foo switch { != 5 => 5 };",
