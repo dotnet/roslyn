@@ -39,14 +39,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.MethodChecks(diagnostics);
 
-            NamedTypeSymbol baseType = ContainingType.BaseTypeNoUseSiteDiagnostics;
+            var baseType = ContainingType.BaseTypeNoUseSiteDiagnostics;
 
             // If the base type is not a record, ERR_BadRecordBase will already be reported.
             // Don't cascade an override error in this case.
             if (!SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
-            {
                 return;
-            }
 
             var overridden = OverriddenMethod;
 
