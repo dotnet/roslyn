@@ -11222,12 +11222,6 @@ End Class
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,8): warning CS0109: The member 'Derived.EqualityContract' does not hide an accessible member. The new keyword is not required.
-                // record Derived : Base { }
-                Diagnostic(ErrorCode.WRN_NewNotRequired, "Derived").WithArguments("Derived.EqualityContract").WithLocation(3, 8),
-                // (3,8): warning CS0109: The member 'Derived.PrintMembers(StringBuilder)' does not hide an accessible member. The new keyword is not required.
-                // record Derived : Base { }
-                Diagnostic(ErrorCode.WRN_NewNotRequired, "Derived").WithArguments("Derived.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 8),
                 // (3,18): error CS8864: Records may only inherit from object or another record
                 // record Derived : Base { }
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "Base").WithLocation(3, 18));

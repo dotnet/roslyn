@@ -39,19 +39,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.MethodChecks(diagnostics);
 
-            var baseType = ContainingType.BaseTypeNoUseSiteDiagnostics;
-
-            // If the base type is not a record, ERR_BadRecordBase will already be reported.
-            // Don't cascade an override error in this case.
-            if (!SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
-                return;
-
             var overridden = OverriddenMethod;
 
             if (overridden is object &&
-                !overridden.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
+                !overridden.ContainingType.Equals(ContainingType.BaseTypeNoUseSiteDiagnostics, TypeCompareKind.AllIgnoreOptions))
             {
-                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseMethod, GetFirstLocation(), this, baseType);
+                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideBaseMethod, GetFirstLocation(), this, ContainingType.BaseTypeNoUseSiteDiagnostics);
             }
         }
 
