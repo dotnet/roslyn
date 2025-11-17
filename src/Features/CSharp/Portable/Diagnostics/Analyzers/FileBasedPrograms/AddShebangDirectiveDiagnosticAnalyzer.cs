@@ -18,14 +18,17 @@ internal sealed class AddShebangDirectiveDiagnosticAnalyzer()
         descriptors: [s_descriptor],
         generatedCodeAnalysisFlags: GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics)
 {
-    private static readonly LocalizableResourceString s_localizableAddShebang = new(
+    private static readonly LocalizableResourceString s_localizableAddShebangTitle = new(
        nameof(CSharpAnalyzersResources.Add_shebang), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+
+    private static readonly LocalizableResourceString s_localizableAddShebangMessage = new(
+       nameof(CSharpAnalyzersResources.Add_shebang_to_make_this_a_file_based_app), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
     private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptor(
                 id: IDEDiagnosticIds.AddShebangDirective,
                 enforceOnBuild: EnforceOnBuild.Never,
-                title: s_localizableAddShebang,
-                messageFormat: s_localizableAddShebang,
+                title: s_localizableAddShebangTitle,
+                messageFormat: s_localizableAddShebangMessage,
                 hasAnyCodeStyleOption: false,
                 isUnnecessary: false,
                 isEnabledByDefault: true,

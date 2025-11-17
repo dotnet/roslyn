@@ -443,4 +443,7 @@
   <data name="Add_shebang" xml:space="preserve">
     <value>Add '#!' directive</value>
   </data>
+  <data name="Add_shebang_to_make_this_a_file_based_app" xml:space="preserve">
+    <value>Add '#!' directive to make this a file-based app</value>
+  </data>
 </root>

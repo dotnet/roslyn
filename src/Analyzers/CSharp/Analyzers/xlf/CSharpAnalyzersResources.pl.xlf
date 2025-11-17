@@ -17,6 +17,11 @@
         <target state="new">Add '#!' directive</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_shebang_to_make_this_a_file_based_app">
+        <source>Add '#!' directive to make this a file-based app</source>
+        <target state="new">Add '#!' directive to make this a file-based app</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Anonymous_function_can_be_made_static">
         <source>Anonymous function can be made static</source>
         <target state="translated">Funkcja anonimowa może być statyczna</target>
