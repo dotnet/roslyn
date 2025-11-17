@@ -471,6 +471,9 @@ public class Point
                 // (25,28): error CS1513: } expected
                 //         if (i is (default)!) {} // error 16
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(25, 28),
+                // (26,18): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 2 out parameters and a void return type.
+                //         if (i is ((default)!)) {} // error 17
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "((default)!)").WithArguments("int", "2").WithLocation(26, 18),
                 // (26,20): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is ((default)!)) {} // error 17
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(26, 20),
