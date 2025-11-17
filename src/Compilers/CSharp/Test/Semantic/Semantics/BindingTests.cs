@@ -3872,20 +3872,20 @@ public class Class1
         public void MissingTypeArgumentInGenericExtensionMethod_ParameterType()
         {
             var source =
-"""
-public static class FooExtensions
-{
-    public static void ExtensionMethod1<T>(this object obj, T t) { }
-}
+                """
+                public static class GooExtensions
+                {
+                    public static void ExtensionMethod1<T>(this object obj, T t) { }
+                }
 
-public class Class1
-{
-    public void Test()
-    {
-        System.Action<object> delegateConversion1 = "literal".ExtensionMethod1<>;
-    }
-}
-""";
+                public class Class1
+                {
+                    public void Test()
+                    {
+                        System.Action<object> delegateConversion1 = "literal".ExtensionMethod1<>;
+                    }
+                }
+                """;
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
             compilation.VerifyDiagnostics(
