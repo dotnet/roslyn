@@ -214,7 +214,6 @@ internal static class IDEDiagnosticIds
     public const string RemoveUnnecessaryNullableWarningSuppression = "IDE0370";
 
     public const string RemoveUnnecessaryUnsafeModifier = "IDE0380";
-    public const string AddShebangDirective = "IDE0390";
 
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";
