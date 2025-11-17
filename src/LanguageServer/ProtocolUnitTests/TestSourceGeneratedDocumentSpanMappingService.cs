@@ -25,7 +25,7 @@ internal class TestSourceGeneratedDocumentSpanMappingService() : ISourceGenerate
 
     public bool CanMapSpans(SourceGeneratedDocument sourceGeneratedDocument)
     {
-        throw new NotImplementedException();
+        return sourceGeneratedDocument.IsRazorSourceGeneratedDocument();
     }
 
     public Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken)
@@ -38,6 +38,7 @@ internal class TestSourceGeneratedDocumentSpanMappingService() : ISourceGenerate
         if (document.IsRazorSourceGeneratedDocument())
         {
             DidMapSpans = true;
+            return Task.FromResult<ImmutableArray<MappedSpanResult>>([new(document.FilePath, default, default)]);
         }
 
         return Task.FromResult(ImmutableArray<MappedSpanResult>.Empty);
