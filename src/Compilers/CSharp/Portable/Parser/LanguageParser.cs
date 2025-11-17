@@ -5506,6 +5506,8 @@ parse_member_name:;
             // specifically treats it as a variable name, even if it could be interpreted as a
             // keyword.
             var name = this.ParseIdentifierToken();
+            BracketedArgumentListSyntax argumentList = null;
+            EqualsValueClauseSyntax initializer = null;
             TerminatorState saveTerm = _termState;
             bool isFixed = (flags & VariableFlags.Fixed) != 0;
             bool isConst = (flags & VariableFlags.Const) != 0;
@@ -5538,14 +5540,10 @@ parse_member_name:;
                         : null;
 
                     var init = this.ParseVariableInitializer();
-
-                    localFunction = null;
-                    return _syntaxFactory.VariableDeclarator(
-                        name,
-                        argumentList: null,
-                        _syntaxFactory.EqualsValueClause(
-                            equals,
-                            refKeyword == null ? init : _syntaxFactory.RefExpression(refKeyword, init)));
+                    initializer = _syntaxFactory.EqualsValueClause(
+                        equals,
+                        refKeyword == null ? init : _syntaxFactory.RefExpression(refKeyword, init));
+                    break;
 
                 case SyntaxKind.LessThanToken:
                     if (allowLocalFunctions && isFirst)
@@ -5571,12 +5569,11 @@ parse_member_name:;
                     // Special case for accidental use of C-style constructors
                     // Fake up something to hold the arguments.
                     _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
-                    var argumentList = this.ParseBracketedArgumentList();
+                    argumentList = this.ParseBracketedArgumentList();
                     _termState = saveTerm;
                     argumentList = this.AddError(argumentList, ErrorCode.ERR_BadVarDecl);
 
-                    localFunction = null;
-                    return _syntaxFactory.VariableDeclarator(name, argumentList, initializer: null);
+                    break;
 
                 case SyntaxKind.OpenBracketToken:
                     bool sawNonOmittedSize;
@@ -5622,8 +5619,7 @@ parse_member_name:;
                         }
                     }
 
-                    localFunction = null;
-                    return _syntaxFactory.VariableDeclarator(name, argumentList, initializer: null);
+                    break;
 
                 default:
                     if (looksLikeVariableInitializer())
@@ -5654,9 +5650,11 @@ parse_member_name:;
                         }
                     }
 
-                    localFunction = null;
-                    return _syntaxFactory.VariableDeclarator(name, argumentList: null, initializer: null);
+                    break;
             }
+
+            localFunction = null;
+            return _syntaxFactory.VariableDeclarator(name, argumentList, initializer);
 
             bool looksLikeVariableInitializer()
             {
