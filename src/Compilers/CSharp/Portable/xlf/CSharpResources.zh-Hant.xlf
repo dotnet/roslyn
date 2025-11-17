@@ -2687,6 +2687,11 @@
         <target state="translated">Using 指示詞先前顯示為全域 using</target>
         <note />
       </trans-unit>
+      <trans-unit id="HDN_MissingDeconstruct">
+        <source>No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
+        <target state="new">No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HDN_RedundantPattern">
         <source>The pattern is redundant.</source>
         <target state="new">The pattern is redundant.</target>

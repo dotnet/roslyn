@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // generate a Deconstruct method.
                 Error(diagnostics,
                     suppressError ? ErrorCode.HDN_MissingDeconstruct : ErrorCode.ERR_MissingDeconstruct,
-                    rightSyntax, receiver.Type!, numParameters);
+                    rightSyntax, receiver.Type, numParameters);
             }
 
             outPlaceholders = default;
