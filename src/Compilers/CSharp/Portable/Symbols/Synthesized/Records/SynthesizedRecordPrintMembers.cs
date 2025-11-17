@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Only mark as override if the base type is actually a record.
                 // If it's not a record, ERR_BadRecordBase will be reported separately.
-                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                if (SynthesizedRecordClone.FindValidCloneMethod(baseType, ref useSiteInfo) is object)
+                if (SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
                 {
                     result |= DeclarationModifiers.Override;
                 }
@@ -281,8 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If the base type is not a record, ERR_BadRecordBase will already be reported.
             // Don't cascade an override error in this case.
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            if (SynthesizedRecordClone.FindValidCloneMethod(baseType, ref useSiteInfo) is null)
+            if (!SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
             {
                 return;
             }

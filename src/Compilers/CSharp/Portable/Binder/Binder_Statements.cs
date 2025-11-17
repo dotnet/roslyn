@@ -4025,17 +4025,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
             Location diagnosticsLocation = constructor.GetFirstLocationOrNone();
 
-            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, containingType.ContainingAssembly);
-
             // Check if the base type is a valid record base first.
-            // If it's not a record (FindValidCloneMethod returns null), then ERR_BadRecordBase
-            // will have already been reported, so we should not report a copy constructor error.
-            if (SynthesizedRecordClone.FindValidCloneMethod(baseType, ref useSiteInfo) is null)
+            // If it's not a record, then ERR_BadRecordBase will have already been reported,
+            // so we should not report a copy constructor error.
+            if (!SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
             {
-                diagnostics.Add(diagnosticsLocation, useSiteInfo);
                 return null;
             }
 
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, containingType.ContainingAssembly);
             MethodSymbol? baseConstructor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType, containingType, ref useSiteInfo);
 
             if (baseConstructor is null)
