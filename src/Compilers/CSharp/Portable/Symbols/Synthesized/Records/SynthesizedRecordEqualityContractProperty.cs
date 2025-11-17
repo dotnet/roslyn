@@ -48,28 +48,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool baseIsObject = baseType.IsObjectType();
 
             if (containingType.IsSealed && baseIsObject)
-            {
                 return DeclarationModifiers.Private;
-            }
 
             if (baseIsObject)
-            {
                 return DeclarationModifiers.Protected | DeclarationModifiers.Virtual;
-            }
 
             // Only mark as override if the base type is actually a record.
             // If it's not a record, ERR_BadRecordBase will be reported separately.
             if (SynthesizedRecordClone.BaseTypeIsRecordNoUseSiteDiagnostics(baseType))
-            {
                 return DeclarationModifiers.Protected | DeclarationModifiers.Override;
-            }
 
             // Base is not a record, so treat like object base.
-            // Mark as new to avoid WRN_NewOrOverrideExpected if the base happens to have
-            // a property with the same signature.
             return containingType.IsSealed
-                ? DeclarationModifiers.Private | DeclarationModifiers.New
-                : DeclarationModifiers.Protected | DeclarationModifiers.Virtual | DeclarationModifiers.New;
+                ? DeclarationModifiers.Private
+                : DeclarationModifiers.Protected | DeclarationModifiers.Virtual;
         }
 
         public override bool IsImplicitlyDeclared => true;
