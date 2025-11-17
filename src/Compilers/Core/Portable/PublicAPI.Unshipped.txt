@@ -1,2 +1,4 @@
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.DisallowExplicitMethodImplementations.get -> bool
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.DisallowExplicitMethodImplementations.init -> void
 Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IPropertySymbol?

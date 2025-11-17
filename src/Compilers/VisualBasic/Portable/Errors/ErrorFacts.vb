@@ -1371,6 +1371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_CannotApplyOverloadResolutionPriorityToOverride,
                      ERRID.ERR_CannotApplyOverloadResolutionPriorityToMember,
                      ERRID.ERR_NextAvailable,
+                     ERRID.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime,
                      ERRID.WRN_UseOfObsoleteSymbol2,
                      ERRID.WRN_InvalidOverrideDueToTupleNames2,
                      ERRID.WRN_MustOverloadBase4,

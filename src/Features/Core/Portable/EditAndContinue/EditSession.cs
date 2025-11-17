@@ -1343,7 +1343,11 @@ internal sealed class EditSession
                                 metadataStream,
                                 ilStream,
                                 pdbStream,
-                                new EmitDifferenceOptions() { EmitFieldRva = capabilities.HasFlag(EditAndContinueCapabilities.AddFieldRva) },
+                                new EmitDifferenceOptions()
+                                {
+                                    EmitFieldRva = capabilities.HasFlag(EditAndContinueCapabilities.AddFieldRva),
+                                    DisallowExplicitMethodImplementations = !capabilities.HasFlag(EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
+                                },
                                 cancellationToken);
 
                             Telemetry.LogEmitDifferenceTime(emitDifferenceTimer.Elapsed);

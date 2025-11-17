@@ -1799,6 +1799,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_DllImportOnInvalidMethod" xml:space="preserve">
     <value>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</value>
   </data>
+  <data name="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime" xml:space="preserve">
+    <value>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</value>
+  </data>
   <data name="ERR_EncUpdateFailedMissingSymbol" xml:space="preserve">
     <value>Cannot emit update; {0} '{1}' is missing.</value>
   </data>
