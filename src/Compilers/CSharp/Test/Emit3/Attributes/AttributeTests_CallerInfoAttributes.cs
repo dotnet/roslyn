@@ -1178,7 +1178,8 @@ class Program
             compilation.VerifyDiagnostics(
                 // (29,29): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'Person', with 2 out parameters and a void return type.
                 //         var (first, last) = p;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "p").WithArguments("Person", "2").WithLocation(29, 29));
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "p").WithArguments("Person", "2").WithLocation(29, 29)
+                );
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
