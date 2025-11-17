@@ -387,7 +387,8 @@ public sealed class GenerateDeconstructMethodTests(ITestOutputHelper logger)
                     if(this is C(""[||], ref 0)) { }
                 }
             }
-            """, """
+            """,
+            """
             using System;
 
             class C
