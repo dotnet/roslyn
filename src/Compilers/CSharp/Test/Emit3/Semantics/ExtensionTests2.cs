@@ -103,9 +103,15 @@ static class E
             // (1,73): error CS7036: There is no argument given that corresponds to the required parameter 'c' of 'E.extension(int).Deconstruct(out int, out int, out int)'
             // ((int a, int b, int c), (int d, int e), (int f, int g, int h, int i)) = 42;
             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "42").WithArguments("c", "E.extension(int).Deconstruct(out int, out int, out int)").WithLocation(1, 73),
+            // (1,73): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 2 out parameters and a void return type.
+            // ((int a, int b, int c), (int d, int e), (int f, int g, int h, int i)) = 42;
+            Diagnostic(ErrorCode.HDN_MissingDeconstruct, "42").WithArguments("int", "2").WithLocation(1, 73),
             // (1,73): error CS1501: No overload for method 'Deconstruct' takes 4 arguments
             // ((int a, int b, int c), (int d, int e), (int f, int g, int h, int i)) = 42;
-            Diagnostic(ErrorCode.ERR_BadArgCount, "42").WithArguments("Deconstruct", "4").WithLocation(1, 73));
+            Diagnostic(ErrorCode.ERR_BadArgCount, "42").WithArguments("Deconstruct", "4").WithLocation(1, 73),
+            // (1,73): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 4 out parameters and a void return type.
+            // ((int a, int b, int c), (int d, int e), (int f, int g, int h, int i)) = 42;
+            Diagnostic(ErrorCode.HDN_MissingDeconstruct, "42").WithArguments("int", "4").WithLocation(1, 73));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80217")]
@@ -126,7 +132,10 @@ static class E
         CreateCompilation(source).VerifyEmitDiagnostics(
             // (1,96): error CS1501: No overload for method 'Deconstruct' takes 4 arguments
             // ((int d, int _, int _), (int _, int e, int _), (int _, int _, int f), (int _, int _, int _)) = 42;
-            Diagnostic(ErrorCode.ERR_BadArgCount, "42").WithArguments("Deconstruct", "4").WithLocation(1, 96));
+            Diagnostic(ErrorCode.ERR_BadArgCount, "42").WithArguments("Deconstruct", "4").WithLocation(1, 96),
+            // (1,96): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 4 out parameters and a void return type.
+            // ((int d, int _, int _), (int _, int e, int _), (int _, int _, int f), (int _, int _, int _)) = 42;
+            Diagnostic(ErrorCode.HDN_MissingDeconstruct, "42").WithArguments("int", "4").WithLocation(1, 96));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80217")]
