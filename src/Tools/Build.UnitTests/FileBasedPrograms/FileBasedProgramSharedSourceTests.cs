@@ -50,13 +50,17 @@ public sealed class FileBasedProgramSharedSourceTests
         var localSourceDir = Path.Combine(root, "src", "Features", "CSharp", "Portable", "FileBasedPrograms");
         Assert.True(Directory.Exists(Path.GetDirectoryName(localSourceDir)), $"Local source directory not found: {localSourceDir}");
 
+        var extensions = new[] { ".cs", ".resx" };
+
         var packageFiles = Directory.GetFiles(contentFilesDir1, "*", SearchOption.TopDirectoryOnly)
             .Concat(Directory.GetFiles(contentFilesDir2, "*", SearchOption.TopDirectoryOnly))
-            .Where(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".resx", StringComparison.OrdinalIgnoreCase))
+            .Where(f => extensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
             .ToList();
         Assert.NotEmpty(packageFiles);
 
-        Directory.CreateDirectory(localSourceDir);
+        var updateSnapshots = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
+
+        if (updateSnapshots) Directory.CreateDirectory(localSourceDir);
 
         var mismatches = new List<string>();
         foreach (var pkgFile in packageFiles)
@@ -68,7 +72,7 @@ public sealed class FileBasedProgramSharedSourceTests
             if (!File.Exists(localFile))
             {
                 // Create missing file from package content.
-                File.WriteAllText(localFile, pkgContent);
+                if (updateSnapshots) File.WriteAllText(localFile, pkgContent);
                 mismatches.Add($"Added missing file: {fileName}");
                 continue;
             }
@@ -77,14 +81,14 @@ public sealed class FileBasedProgramSharedSourceTests
             if (!string.Equals(localContent.NormalizeLineEndings(), pkgContent.NormalizeLineEndings(), StringComparison.Ordinal))
             {
                 // Regenerate local file to match package.
-                File.WriteAllText(localFile, pkgContent);
+                if (updateSnapshots) File.WriteAllText(localFile, pkgContent);
                 mismatches.Add($"Updated file: {fileName}");
             }
         }
 
         // If there are extra local files that are expected to mirror package files, report them but do not delete.
         var localMirrorFiles = Directory.GetFiles(localSourceDir, "*", SearchOption.TopDirectoryOnly)
-            .Where(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".resx", StringComparison.OrdinalIgnoreCase))
+            .Where(f => extensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
             .Select(Path.GetFileName)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var pkgName in packageFiles.Select(Path.GetFileName))
@@ -96,7 +100,8 @@ public sealed class FileBasedProgramSharedSourceTests
 
         if (mismatches.Count > 0)
         {
-            Assert.Fail("Shared source for FileBasedPrograms was out of sync with package. Regenerated. Changes: " + string.Join(" | ", mismatches));
+            var action = updateSnapshots ? "Regenerated" : "Not regenerated in CI";
+            Assert.Fail($"Shared source for FileBasedPrograms is out of sync with package. {action}. Changes:\n" + string.Join("\n", mismatches));
         }
     }
 
