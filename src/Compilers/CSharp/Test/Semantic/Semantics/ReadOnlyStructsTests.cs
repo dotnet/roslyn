@@ -2018,7 +2018,10 @@ public struct S2
             comp.VerifyDiagnostics(
                 // (6,22): error CS1061: 'S2' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'S2' could be found (are you missing a using directive or an assembly reference?)
                 //         var (x, y) = this; // error
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "this").WithArguments("S2", "Deconstruct").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "this").WithArguments("S2", "Deconstruct").WithLocation(6, 22),
+                // (6,22): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'S2', with 2 out parameters and a void return type.
+                //         var (x, y) = this; // error
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "this").WithArguments("S2", "2").WithLocation(6, 22));
         }
 
         [Fact]
