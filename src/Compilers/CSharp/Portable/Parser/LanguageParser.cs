@@ -5622,6 +5622,7 @@ parse_member_name:;
                     break;
 
                 default:
+                    Debug.Assert(argumentList is null);
                     if (looksLikeVariableInitializer())
                     {
                         localFunction = null;
