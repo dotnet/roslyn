@@ -161,7 +161,8 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "stackalloc int[1] { 0 }").WithLocation(10, 18),
                 // (12,18): error CS0150: A constant value is expected
                 //             case new { X = 0 }:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "new { X = 0 }").WithLocation(12, 18));
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new { X = 0 }").WithLocation(12, 18)
+            );
         }
 
         [Fact]
