@@ -166,11 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
             {
                 // Handle != in patterns - suggest using 'not' instead
-                var notEqualsToken = this.AddError(this.EatToken(), ErrorCode.ERR_EqualityOperatorInPatternNotSupported);
-                var missingNotToken = SyntaxFactory.MissingToken(SyntaxKind.NotKeyword);
-                missingNotToken = this.AddTrailingSkippedSyntax(missingNotToken, notEqualsToken);
                 return _syntaxFactory.UnaryPattern(
-                    missingNotToken,
+                    this.AddTrailingSkippedSyntax(
+                        SyntaxFactory.MissingToken(SyntaxKind.NotKeyword),
+                        this.AddError(this.EatToken(), ErrorCode.ERR_EqualityOperatorInPatternNotSupported)),
                     ParsePrimaryPattern(precedence, afterIs, inSwitchArmPattern));
             }
             else
