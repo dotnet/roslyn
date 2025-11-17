@@ -5572,7 +5572,6 @@ parse_member_name:;
                     argumentList = this.ParseBracketedArgumentList();
                     _termState = saveTerm;
                     argumentList = this.AddError(argumentList, ErrorCode.ERR_BadVarDecl);
-
                     break;
 
                 case SyntaxKind.OpenBracketToken:
