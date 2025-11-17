@@ -12,4 +12,11 @@
     <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageDownload
+      Include="Microsoft.DotNet.FileBasedPrograms"
+      Version="[$(MicrosoftDotNetFileBasedProgramsPackageVersion)]"
+      Condition="'$(DotNetBuildSourceOnly)' != 'true'" />
+  </ItemGroup>
+
 </Project>
