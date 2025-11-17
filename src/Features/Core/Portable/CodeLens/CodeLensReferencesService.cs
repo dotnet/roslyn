@@ -224,11 +224,18 @@ internal sealed class CodeLensReferencesService : ICodeLensReferencesService
 
             var descriptor = descriptorAndDocument.Descriptor;
             var span = new TextSpan(descriptor.SpanStart, descriptor.SpanLength);
-            var results = await SpanMappingHelper.TryGetMappedSpanResultAsync(document, [span], cancellationToken).ConfigureAwait(false);
-            if (results is null)
+
+            if (!SpanMappingHelper.CanMapSpans(document))
             {
                 // for normal document, just add one as they are
                 list.Add(descriptor);
+                continue;
+            }
+
+            var results = await SpanMappingHelper.TryGetMappedSpanResultAsync(document, [span], cancellationToken).ConfigureAwait(false);
+            if (results is null)
+            {
+                // If the document can map spans, but this span wasn't mapped, drop the result
                 continue;
             }
 
