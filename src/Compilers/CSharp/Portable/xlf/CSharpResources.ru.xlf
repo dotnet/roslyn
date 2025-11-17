@@ -572,6 +572,11 @@
         <target state="translated">Параметр типа "{1}" имеет ограничение "unmanaged", поэтому "{1}" не может использоваться в качестве ограничения для "{0}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConditionalAccessNotReferenceTypeOrValueType">
+        <source>Cannot use the result of a conditional access of type '{0}' because 'null' cannot be converted to '{0}?'.</source>
+        <target state="new">Cannot use the result of a conditional access of type '{0}' because 'null' cannot be converted to '{0}?'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
         <target state="translated">Локальная функция "{0}" должна быть "static", чтобы использовать атрибут Conditional</target>

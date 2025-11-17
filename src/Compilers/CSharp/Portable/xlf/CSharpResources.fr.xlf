@@ -572,6 +572,11 @@
         <target state="translated">Le paramètre de type '{1}' a la contrainte 'unmanaged'. '{1}' ne peut donc pas être utilisé comme contrainte pour '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConditionalAccessNotReferenceTypeOrValueType">
+        <source>Cannot use the result of a conditional access of type '{0}' because 'null' cannot be converted to '{0}?'.</source>
+        <target state="new">Cannot use the result of a conditional access of type '{0}' because 'null' cannot be converted to '{0}?'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
         <target state="translated">La fonction locale '{0}' doit être 'static' pour pouvoir utiliser l'attribut Conditional</target>

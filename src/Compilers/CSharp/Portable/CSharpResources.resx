@@ -8183,4 +8183,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AmbigOperator" xml:space="preserve">
     <value>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</value>
   </data>
+  <data name="ERR_ConditionalAccessNotReferenceTypeOrValueType" xml:space="preserve">
+    <value>Cannot use the result of a conditional access of type '{0}' because 'null' cannot be converted to '{0}?'.</value>
+  </data>
 </root>

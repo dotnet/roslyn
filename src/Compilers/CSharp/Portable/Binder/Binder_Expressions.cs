@@ -11496,7 +11496,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundConditionalAccess GenerateBadConditionalAccessNodeError(ConditionalAccessExpressionSyntax node, BoundExpression receiver, BoundExpression access, BindingDiagnosticBag diagnostics)
         {
-            DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_CannotBeMadeNullable, access.Display);
+            var accessType = access.Type;
+            var (errorCode, messageArg) = !accessType.IsReferenceType && !accessType.IsValueType
+                ? (ErrorCode.ERR_ConditionalAccessNotReferenceOrValueType, accessType)
+                : (ErrorCode.ERR_CannotBeMadeNullable, access.Display);
+            DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(errorCode, messageArg);
             diagnostics.Add(new CSDiagnostic(diagnosticInfo, access.Syntax.Location));
             receiver = BadExpression(receiver.Syntax, receiver);
 
