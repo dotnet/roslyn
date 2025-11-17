@@ -390,6 +390,7 @@
                 case ErrorCode.HDN_DuplicateWithGlobalUsing:
                 case ErrorCode.HDN_RedundantPattern:
                 case ErrorCode.HDN_RedundantPatternStackGuard:
+                case ErrorCode.HDN_MissingDeconstruct:
                     return true;
                 default:
                     return false;
