@@ -18,8 +18,7 @@ record Derived : Base { }
             comp.VerifyDiagnostics(
                 // (4,18): error CS8864: Records may only inherit from object or another record
                 // record Derived : Base { }
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "Base").WithLocation(4, 18)
-                );
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "Base").WithLocation(4, 18));
         }
     }
 }
