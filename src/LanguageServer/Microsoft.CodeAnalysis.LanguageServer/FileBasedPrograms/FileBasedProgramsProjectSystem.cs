@@ -77,12 +77,22 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         //   1.  The document is a primordial document (either not loaded yet or doesn't support design time build) - it will be in the misc files workspace.
         //   2.  The document is loaded as a canonical misc file - these are always in the misc files workspace.
         //   3.  The document is loaded as a file based program - then it will be in the main workspace where the project path matches the source file path.
+
+        // NB: The FileBasedProgramsProjectSystem uses the document file path (the on-disk path) as the projectPath in 'IsProjectLoadedAsync'.
+        var isLoadedAsFileBasedProgram = document.FilePath is { } filePath && await IsProjectLoadedAsync(filePath, cancellationToken);
+
+        // If this document has a file-based program syntactic marker, but we aren't loading it in a file-based programs project,
+        // we need the caller to remove and re-add this document, so that it gets put in a file-based programs project instead.
+        if (!isLoadedAsFileBasedProgram && VirtualProjectXmlProvider.IsFileBasedProgram(await document.GetTextAsync(cancellationToken)))
+            return false;
+
         if (document.Project.Solution.Workspace == _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace)
             return true;
 
-        if (document.Project.FilePath is not null && await IsProjectLoadedAsync(document.Project.FilePath, cancellationToken))
+        if (isLoadedAsFileBasedProgram)
             return true;
 
+        // Document is not managed by this project system. Caller should unload it.
         return false;
     }
 
@@ -171,11 +181,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // When loading a virtual project, the path to the on-disk source file is not used. Instead the path is adjusted to end with .csproj.
         // This is necessary in order to get msbuild to apply the standard c# props/targets to the project.
         var virtualProjectPath = VirtualProjectXmlProvider.GetVirtualProjectPath(documentPath);
-
-        var loader = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.CreateFileTextLoader(documentPath);
-        var textAndVersion = await loader.LoadTextAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken);
-        var isFileBasedProgram = VirtualProjectXmlProvider.IsFileBasedProgram(textAndVersion.Text);
-
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
@@ -183,11 +188,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         return new RemoteProjectLoadResult
         {
             ProjectFile = loadedFile,
-            // If it's a proper file based program, we'll put it in the main host workspace factory since we want cross-project references to work.
-            // Otherwise, we'll keep it in miscellaneous files.
-            ProjectFactory = isFileBasedProgram ? _workspaceFactory.HostProjectFactory : _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
-            IsFileBasedProgram = isFileBasedProgram,
-            IsMiscellaneousFile = !isFileBasedProgram,
+            // If we have made it this far, we must have determined that the document is a file-based program.
+            // TODO: we should assert this somehow. However, we cannot use the on-disk state of the file to do so, because the decision to load this as a file-based program was based on in-editor content.
+            ProjectFactory = _workspaceFactory.HostProjectFactory,
+            IsFileBasedProgram = true,
+            IsMiscellaneousFile = false,
             PreferredBuildHostKind = buildHostKind,
             ActualBuildHostKind = buildHostKind,
         };

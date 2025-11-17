@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
@@ -92,7 +93,8 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
     /// Adjusts a path to a file-based program for use in passing the virtual project to msbuild.
     /// (msbuild needs the path to end in .csproj to recognize as a C# project and apply all the standard props/targets to it.)
     /// </summary>
-    internal static string GetVirtualProjectPath(string documentFilePath)
+    [return: NotNullIfNotNull(nameof(documentFilePath))]
+    internal static string? GetVirtualProjectPath(string? documentFilePath)
         => Path.ChangeExtension(documentFilePath, ".csproj");
 
     /// <summary>
