@@ -2099,7 +2099,8 @@ class Point
             compilation.VerifyDiagnostics(
                 // (6,23): error CS7036: There is no argument given that corresponds to the required parameter 'X' of 'Point.Deconstruct(out int, out int)'
                 //         if (p is Point())
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "()").WithArguments("X", "Point.Deconstruct(out int, out int)").WithLocation(6, 23));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "()").WithArguments("X", "Point.Deconstruct(out int, out int)").WithLocation(6, 23)
+                );
         }
 
         [Fact]
@@ -2150,7 +2151,8 @@ class Point
                     Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(10, 24),
                     // (9,23): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
                     //         if (p is Point({ }, { }, { })) { }
-                    Diagnostic(ErrorCode.ERR_BadArgCount, "({ }, { }, { })").WithArguments("Deconstruct", "3").WithLocation(9, 23));
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "({ }, { }, { })").WithArguments("Deconstruct", "3").WithLocation(9, 23)
+                    );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             int i = 0;
@@ -2180,7 +2182,8 @@ public class C {
             compilation.VerifyDiagnostics(
                 // (4,21): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1>(Tuple<T1>, out T1)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = this is (a: 1);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 21));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 21)
+                );
         }
 
         [Fact, WorkItem(26613, "https://github.com/dotnet/roslyn/issues/26613")]
@@ -2198,7 +2201,8 @@ public class C {
             compilation.VerifyDiagnostics(
                 // (4,22): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1>(Tuple<T1>, out T1)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = this is C(a: 1);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 22));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 22)
+                );
         }
 
         [Fact]
