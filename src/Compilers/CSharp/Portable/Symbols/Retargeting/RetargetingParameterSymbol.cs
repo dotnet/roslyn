@@ -162,8 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-        }
+            => throw ExceptionUtilities.Unreachable();
     }
 
     internal sealed class RetargetingMethodParameterSymbol : RetargetingParameterSymbol

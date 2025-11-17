@@ -249,9 +249,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get { return null; }
         }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-        }
     }
 }

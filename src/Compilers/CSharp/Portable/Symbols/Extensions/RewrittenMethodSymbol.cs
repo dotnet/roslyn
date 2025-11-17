@@ -125,8 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-            { 
-                _underlyingParameter.AddSynthesizedAttributes(moduleBuilder, ref attributes); // TODO2
+            {
             }
         }
 

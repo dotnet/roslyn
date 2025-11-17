@@ -527,9 +527,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override string? ExtensionMarkerName
             => _underlyingType.ExtensionMarkerName;
-
-        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-        }
     }
 }

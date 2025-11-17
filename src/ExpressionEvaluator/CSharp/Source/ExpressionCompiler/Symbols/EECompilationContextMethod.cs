@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-        }
+            => throw ExceptionUtilities.Unreachable();
     }
 }

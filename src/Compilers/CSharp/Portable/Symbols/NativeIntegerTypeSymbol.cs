@@ -330,10 +330,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return customModifiers;
             }
         }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-        }
     }
 
     internal sealed class NativeIntegerMethodSymbol : WrappedMethodSymbol
@@ -430,8 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => UnderlyingMethod.TryGetOverloadResolutionPriority();
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-        }
+            => throw ExceptionUtilities.Unreachable();
     }
 
     internal sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol
@@ -476,8 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode() => _underlyingParameter.GetHashCode();
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-        }
+            => throw ExceptionUtilities.Unreachable();
 
 #if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
@@ -527,10 +521,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingProperty);
 
         public override int GetHashCode() => _underlyingProperty.GetHashCode();
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-        }
 
 #if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)

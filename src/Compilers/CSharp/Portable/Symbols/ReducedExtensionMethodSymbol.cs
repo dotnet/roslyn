@@ -705,9 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-            {
-                _underlyingParameter.AddSynthesizedAttributes(moduleBuilder, ref attributes); // TODO2
-            }
+                => throw ExceptionUtilities.Unreachable();
         }
     }
 }

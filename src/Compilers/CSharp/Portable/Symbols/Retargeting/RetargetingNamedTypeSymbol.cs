@@ -514,10 +514,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _lazyExtensionGroupingAndMarkerTypesForTypeForwarding;
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-        }
-
         /// <summary>
         /// Used only to point to forwarded types and implements only API surface required to emit information about them.
         /// </summary>
