@@ -455,6 +455,13 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
+      - task: UseDotNet@2
+        displayName: 'Use .NET Core SDK'
+        inputs:
+          packageType: sdk
+          useGlobalJson: true
+          workingDirectory: '$(Build.SourcesDirectory)'
+
       - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
         displayName: Restore
 
