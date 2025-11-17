@@ -3868,6 +3868,32 @@ public class Class1
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<>").WithArguments("string", "ExtensionMethod2").WithLocation(34, 68));
         }
 
+        [Fact]
+        public void MissingTypeArgumentInGenericExtensionMethod_ParameterType()
+        {
+            var source =
+@"
+public static class FooExtensions
+{
+    public static void ExtensionMethod1<T>(this object obj, T t) { }
+}
+
+public class Class1
+{
+    public void Test()
+    {
+        System.Action<object> delegateConversion1 = ""literal"".ExtensionMethod1<>;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+
+            compilation.VerifyDiagnostics(
+                // (11,53): error CS8389: Omitting the type argument is not allowed in the current context
+                //         System.Action<object> delegateConversion1 = "literal".ExtensionMethod1<>;
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""literal"".ExtensionMethod1<>").WithLocation(11, 53));
+        }
+
         [WorkItem(22757, "https://github.com/dotnet/roslyn/issues/22757")]
         [Fact]
         public void MethodGroupConversionNoReceiver()
