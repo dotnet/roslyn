@@ -54,10 +54,13 @@ internal static class MiscellaneousFileUtilities
             compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);
         }
 
-        if (parseOptions != null && languageInformation.ScriptExtension is not null && fileExtension != languageInformation.ScriptExtension)
+        if (parseOptions != null)
         {
-            // Any non-script misc file should not complain about usage of '#:' ignored directives.
-            parseOptions = parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]);
+            parseOptions = parseOptions.WithFeatures(
+                // Any non-script misc file should not complain about usage of '#:' ignored directives.
+                languageInformation.ScriptExtension is not null && fileExtension != languageInformation.ScriptExtension
+                    ? [.. parseOptions.Features, new("MiscellaneousFile", "true"), new("FileBasedProgram", "true")]
+                    : [.. parseOptions.Features, new("MiscellaneousFile", "true")]);
         }
 
         var projectId = ProjectId.CreateNewId(debugName: $"{workspace.GetType().Name} Files Project for {filePath}");

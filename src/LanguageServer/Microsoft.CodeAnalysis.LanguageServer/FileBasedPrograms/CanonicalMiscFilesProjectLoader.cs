@@ -213,7 +213,7 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
                 <TargetFramework>net$(BundledNETCoreAppTargetFrameworkVersion)</TargetFramework>
                 <ImplicitUsings>enable</ImplicitUsings>
                 <Nullable>enable</Nullable>
-                <Features>$(Features);RichMiscellaneousFile</Features>
+                <Features>$(Features);MiscellaneousFile</Features>
               </PropertyGroup>
             </Project>
             """;

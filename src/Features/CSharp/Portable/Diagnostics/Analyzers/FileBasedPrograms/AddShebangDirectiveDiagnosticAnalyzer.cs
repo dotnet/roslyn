@@ -45,9 +45,7 @@ internal sealed class AddShebangDirectiveDiagnosticAnalyzer()
             var tree = context.Tree;
             var features = tree.Options.Features;
 
-            // Report only on "rich miscellaneous files" in VS Code.
-            // TODO2: Perhaps this should also apply to file-based programs being built on command line.
-            if (!features.ContainsKey("RichMiscellaneousFile"))
+            if (!features.ContainsKey("MiscellaneousFile") && !features.ContainsKey("FileBasedProgram"))
                 return;
 
             var root = tree.GetRoot(cancellationToken);
