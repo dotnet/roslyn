@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ListPatternIndexPlaceholder,
         SlicePatternReceiverPlaceholder,
         SlicePatternRangePlaceholder,
+        CollectionBuilderElementsPlaceholder,
         Dup,
         PassByCopy,
         BadExpression,
@@ -889,6 +890,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundSlicePatternRangePlaceholder(this.Syntax, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundCollectionBuilderElementsPlaceholder : BoundValuePlaceholderBase
+    {
+        public BoundCollectionBuilderElementsPlaceholder(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
+            : base(BoundKind.CollectionBuilderElementsPlaceholder, syntax, type, hasErrors)
+        {
+        }
+
+        public BoundCollectionBuilderElementsPlaceholder(SyntaxNode syntax, TypeSymbol? type)
+            : base(BoundKind.CollectionBuilderElementsPlaceholder, syntax, type)
+        {
+        }
+
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionBuilderElementsPlaceholder(this);
+
+        public BoundCollectionBuilderElementsPlaceholder Update(TypeSymbol? type)
+        {
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundCollectionBuilderElementsPlaceholder(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6477,7 +6506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionExpression : BoundCollectionExpressionBase
     {
-        public BoundCollectionExpression(SyntaxNode syntax, CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? collectionBuilderElementsPlaceholder, bool wasTargetTyped, bool hasWithElement, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type, bool hasErrors = false)
+        public BoundCollectionExpression(SyntaxNode syntax, CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundCollectionBuilderElementsPlaceholder? collectionBuilderElementsPlaceholder, bool wasTargetTyped, bool hasWithElement, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.CollectionExpression, syntax, elements, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || collectionBuilderElementsPlaceholder.HasErrors() || unconvertedCollectionExpression.HasErrors() || elements.HasErrors())
         {
 
@@ -6504,7 +6533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundObjectOrCollectionValuePlaceholder? Placeholder { get; }
         public BoundExpression? CollectionCreation { get; }
         public MethodSymbol? CollectionBuilderMethod { get; }
-        public BoundValuePlaceholder? CollectionBuilderElementsPlaceholder { get; }
+        public BoundCollectionBuilderElementsPlaceholder? CollectionBuilderElementsPlaceholder { get; }
         public bool WasTargetTyped { get; }
         public bool HasWithElement { get; }
         public BoundUnconvertedCollectionExpression UnconvertedCollectionExpression { get; }
@@ -6512,7 +6541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionExpression(this);
 
-        public BoundCollectionExpression Update(CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? collectionBuilderElementsPlaceholder, bool wasTargetTyped, bool hasWithElement, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type)
+        public BoundCollectionExpression Update(CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundCollectionBuilderElementsPlaceholder? collectionBuilderElementsPlaceholder, bool wasTargetTyped, bool hasWithElement, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type)
         {
             if (collectionTypeKind != this.CollectionTypeKind || placeholder != this.Placeholder || collectionCreation != this.CollectionCreation || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(collectionBuilderMethod, this.CollectionBuilderMethod) || collectionBuilderElementsPlaceholder != this.CollectionBuilderElementsPlaceholder || wasTargetTyped != this.WasTargetTyped || hasWithElement != this.HasWithElement || unconvertedCollectionExpression != this.UnconvertedCollectionExpression || elements != this.Elements || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -8950,6 +8979,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitSlicePatternReceiverPlaceholder((BoundSlicePatternReceiverPlaceholder)node, arg);
                 case BoundKind.SlicePatternRangePlaceholder:
                     return VisitSlicePatternRangePlaceholder((BoundSlicePatternRangePlaceholder)node, arg);
+                case BoundKind.CollectionBuilderElementsPlaceholder:
+                    return VisitCollectionBuilderElementsPlaceholder((BoundCollectionBuilderElementsPlaceholder)node, arg);
                 case BoundKind.Dup:
                     return VisitDup((BoundDup)node, arg);
                 case BoundKind.PassByCopy:
@@ -9407,6 +9438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDup(BoundDup node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPassByCopy(BoundPassByCopy node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitBadExpression(BoundBadExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -9644,6 +9676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDup(BoundDup node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPassByCopy(BoundPassByCopy node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitBadExpression(BoundBadExpression node) => this.DefaultVisit(node);
@@ -9901,6 +9934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node) => null;
         public override BoundNode? VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node) => null;
         public override BoundNode? VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node) => null;
+        public override BoundNode? VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node) => null;
         public override BoundNode? VisitDup(BoundDup node) => null;
         public override BoundNode? VisitPassByCopy(BoundPassByCopy node)
         {
@@ -10988,6 +11022,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(type);
         }
+        public override BoundNode? VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node)
+        {
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(type);
+        }
         public override BoundNode? VisitDup(BoundDup node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
@@ -12001,7 +12040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? collectionBuilderMethod = this.VisitMethodSymbol(node.CollectionBuilderMethod);
             BoundObjectOrCollectionValuePlaceholder? placeholder = node.Placeholder;
             BoundExpression? collectionCreation = (BoundExpression?)this.Visit(node.CollectionCreation);
-            BoundValuePlaceholder? collectionBuilderElementsPlaceholder = node.CollectionBuilderElementsPlaceholder;
+            BoundCollectionBuilderElementsPlaceholder? collectionBuilderElementsPlaceholder = node.CollectionBuilderElementsPlaceholder;
             BoundUnconvertedCollectionExpression unconvertedCollectionExpression = node.UnconvertedCollectionExpression;
             ImmutableArray<BoundNode> elements = this.VisitList(node.Elements);
             TypeSymbol? type = this.VisitType(node.Type);
@@ -12665,6 +12704,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundSlicePatternRangePlaceholder updatedNode = node.Update(infoAndType.Type!);
+            updatedNode.TopLevelNullability = infoAndType.Info;
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node)
+        {
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                return node;
+            }
+
+            BoundCollectionBuilderElementsPlaceholder updatedNode = node.Update(infoAndType.Type);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -14282,7 +14333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? collectionBuilderMethod = GetUpdatedSymbol(node, node.CollectionBuilderMethod);
             BoundObjectOrCollectionValuePlaceholder? placeholder = node.Placeholder;
             BoundExpression? collectionCreation = (BoundExpression?)this.Visit(node.CollectionCreation);
-            BoundValuePlaceholder? collectionBuilderElementsPlaceholder = node.CollectionBuilderElementsPlaceholder;
+            BoundCollectionBuilderElementsPlaceholder? collectionBuilderElementsPlaceholder = node.CollectionBuilderElementsPlaceholder;
             BoundUnconvertedCollectionExpression unconvertedCollectionExpression = node.UnconvertedCollectionExpression;
             ImmutableArray<BoundNode> elements = this.VisitList(node.Elements);
             BoundCollectionExpression updatedNode;
@@ -15311,6 +15362,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         );
         public override TreeDumperNode VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node, object? arg) => new TreeDumperNode("slicePatternRangePlaceholder", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node, object? arg) => new TreeDumperNode("collectionBuilderElementsPlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),

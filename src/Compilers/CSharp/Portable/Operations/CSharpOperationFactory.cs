@@ -322,18 +322,19 @@ namespace Microsoft.CodeAnalysis.Operations
                         _ => null
                     };
                     return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
-                case BoundKind.ValuePlaceholder:
+                case BoundKind.CollectionBuilderElementsPlaceholder:
                     // The only supported use of BoundValuePlaceholder is within a collection expression as we use it to
                     // represent the elements passed to the collection builder creation methods.  We can hit these
                     // creation methods when producing the .ConstructArguments for the ICollectionExpressionOperation.
                     // Note: the caller will end up stripping this off when producing the ConstructArguments, so it will
                     // not actually leak to the user.  But this ends up keeping the logic simple between that callsite
                     // and this code which actually hits all the arguments passed along. Because we never actually
-                    // expose this placeholder in the IOp tree, it's fine to use .Unspecified as its kind here.
+                    // expose this placeholder in the IOp tree, it's fine to use .CollectionBuilderElements as its kind
+                    // here.
                     //
-                    // See the logic in CreateBoundCollectionExpression.getCreationArguments for more info.
+                    // See the logic in CreateBoundCollectionExpression.getConstructArguments for more info.
                     return new PlaceholderOperation(
-                        PlaceholderKind.Unspecified, _semanticModel, boundNode.Syntax,
+                        PlaceholderKind.CollectionBuilderElements, _semanticModel, boundNode.Syntax,
                         boundNode switch
                         {
                             BoundExpression boundExpr => boundExpr.GetPublicTypeSymbol(),
@@ -1299,7 +1300,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     if (boundCall.IsErroneousNode)
                     {
                         var array = @this.CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundCall).InvalidNodeChildren);
-                        Debug.Assert(array is [.., IPlaceholderOperation { PlaceholderKind: PlaceholderKind.Unspecified }],
+                        Debug.Assert(array is [.., IPlaceholderOperation { PlaceholderKind: PlaceholderKind.CollectionBuilderElements }],
                             "We should always have at least one argument (the placeholder elements).");
                         return array is [.. var normalArguments, _]
                             ? normalArguments
@@ -1311,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                         // With a CollectionBuilder, the last argument will be a placeholder where the .Elements will go.
                         // We do *not* want to include that information in the Arguments we return.
-                        Debug.Assert(arguments is [.., IArgumentOperation { Value: IPlaceholderOperation { PlaceholderKind: PlaceholderKind.Unspecified } }],
+                        Debug.Assert(arguments is [.., IArgumentOperation { Value: IPlaceholderOperation { PlaceholderKind: PlaceholderKind.CollectionBuilderElements } }],
                             "We should always have at least one argument (the placeholder elements).");
                         var slicedArguments = arguments is [.. var normalArguments, _]
                             ? normalArguments

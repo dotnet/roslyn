@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (collectionCreation is BoundCall boundCall)
             {
                 Debug.Assert(
-                    boundCall.Arguments is [.., BoundValuePlaceholder { Kind: BoundKind.ValuePlaceholder } placeHolder] &&
+                    boundCall.Arguments is [.., BoundCollectionBuilderElementsPlaceholder placeHolder] &&
                     placeHolder == this.CollectionBuilderElementsPlaceholder);
             }
 

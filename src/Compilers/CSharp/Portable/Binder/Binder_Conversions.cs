@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly BindingDiagnosticBag _diagnostics = diagnostics;
 
             private BoundCollectionExpression CreateCollectionExpression(
-                CollectionExpressionTypeKind collectionTypeKind, ImmutableArray<BoundNode> elements, BoundObjectOrCollectionValuePlaceholder? placeholder = null, BoundExpression? collectionCreation = null, MethodSymbol? collectionBuilderMethod = null, BoundValuePlaceholder? collectionBuilderElementsPlaceholder = null)
+                CollectionExpressionTypeKind collectionTypeKind, ImmutableArray<BoundNode> elements, BoundObjectOrCollectionValuePlaceholder? placeholder = null, BoundExpression? collectionCreation = null, MethodSymbol? collectionBuilderMethod = null, BoundCollectionBuilderElementsPlaceholder? collectionBuilderElementsPlaceholder = null)
             {
                 return new BoundCollectionExpression(
                     _node.Syntax,
@@ -1254,7 +1254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionBuilderMethod: collectionBuilderMethod,
                     collectionBuilderElementsPlaceholder: collectionBuilderElementsPlaceholder);
 
-                static (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundValuePlaceholder? elementsPlaceholder) bindCollectionBuilderInfo(
+                static (BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundCollectionBuilderElementsPlaceholder? elementsPlaceholder) bindCollectionBuilderInfo(
                     ref readonly CollectionExpressionConverter @this)
                 {
                     var namedType = (NamedTypeSymbol)@this._targetType;
@@ -1337,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // CollectionBuilder.Create<T1, T2, ..>(a, b, c, <placeholder for [x, y, z]>).
 
                     var readonlySpanParameter = collectionBuilderMethod.Parameters.Last();
-                    var collectionBuilderElementsPlaceholder = new BoundValuePlaceholder(syntax, readonlySpanParameter.Type) { WasCompilerGenerated = true };
+                    var collectionBuilderElementsPlaceholder = new BoundCollectionBuilderElementsPlaceholder(syntax, readonlySpanParameter.Type) { WasCompilerGenerated = true };
 
                     var arguments = projectionCall.Arguments;
                     var argumentNames = projectionCall.ArgumentNamesOpt;

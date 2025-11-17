@@ -3710,6 +3710,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node)
+        {
+            return null;
+        }
+
         public sealed override BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
         {
             throw ExceptionUtilities.Unreachable();

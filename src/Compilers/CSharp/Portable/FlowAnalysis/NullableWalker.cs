@@ -11622,6 +11622,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node)
+        {
+            VisitPlaceholderWithReplacement(node);
+            return null;
+        }
+
         public override BoundNode? VisitEventAccess(BoundEventAccess node)
         {
             var updatedSymbol = VisitMemberAccess(node, node.ReceiverOpt, node.EventSymbol);
