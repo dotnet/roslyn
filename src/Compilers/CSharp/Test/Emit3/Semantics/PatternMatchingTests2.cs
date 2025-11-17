@@ -879,7 +879,8 @@ namespace N
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(x, y)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2>(System.Tuple<T1, T2>, out T1, out T2)").WithLocation(11, 37),
                 // 0.cs(12,32): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(true, t is var x); }                           // error 3
-                Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(12, 32));
+                Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(12, 32)
+                );
         }
 
         [Fact]
