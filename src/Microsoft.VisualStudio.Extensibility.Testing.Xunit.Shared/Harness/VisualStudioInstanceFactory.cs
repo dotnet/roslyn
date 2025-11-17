@@ -324,7 +324,7 @@ namespace Xunit.Harness
             try
             {
                 var baseArguments = ImmutableArray.Create("/quiet", "/shutdownprocesses", $"/instanceIds:{vsInstanceId}", $"/logFile:{logFileName}");
-                if (rootSuffix is not null)
+                if (!string.IsNullOrEmpty(rootSuffix))
                 {
                     baseArguments = baseArguments.Add($"/rootSuffix:{rootSuffix}");
                 }
