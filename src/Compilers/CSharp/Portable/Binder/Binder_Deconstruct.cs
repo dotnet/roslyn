@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!anyApplicableCandidates)
                 {
-                    return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
+                    return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result, suppressError: result.HasErrors);
                 }
 
                 // Verify all the parameters (except "this" for extension methods) are out parameters.
