@@ -871,12 +871,18 @@ namespace N
                 // 0.cs(10,36): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2>(Tuple<T1, T2>, out T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(x, y)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2>(System.Tuple<T1, T2>, out T1, out T2)").WithLocation(10, 36),
+                // 0.cs(10,36): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'var', with 2 out parameters and a void return type.
+                //             { Check(true, t is var (x, y) && x == 1 && y == 2); }  // error 1
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(x, y)").WithArguments("N.var", "2").WithLocation(10, 36),
                 // 0.cs(11,33): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
                 Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(11, 33),
                 // 0.cs(11,37): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1, T2>(Tuple<T1, T2>, out T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(x, y)").WithArguments("System.TupleExtensions.Deconstruct<T1, T2>(System.Tuple<T1, T2>, out T1, out T2)").WithLocation(11, 37),
+                // 0.cs(11,37): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'var', with 2 out parameters and a void return type.
+                //             { Check(false, t is var (x, y) && x == 1 && y == 3); } // error 2
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(x, y)").WithArguments("N.var", "2").WithLocation(11, 37),
                 // 0.cs(12,32): error CS8508: The syntax 'var' for a pattern is not permitted to refer to a type, but 'N.var' is in scope here.
                 //             { Check(true, t is var x); }                           // error 3
                 Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(12, 32)
@@ -1162,7 +1168,10 @@ class Frog
             compilation.VerifyDiagnostics(
                 // (8,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (1, 2):
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(8, 18),
+                // (8,18): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //             case (1, 2):
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(1, 2)").WithArguments("object", "2").WithLocation(8, 18)
                 );
         }
 
@@ -2099,7 +2108,10 @@ class Point
             compilation.VerifyDiagnostics(
                 // (6,23): error CS7036: There is no argument given that corresponds to the required parameter 'X' of 'Point.Deconstruct(out int, out int)'
                 //         if (p is Point())
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "()").WithArguments("X", "Point.Deconstruct(out int, out int)").WithLocation(6, 23)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "()").WithArguments("X", "Point.Deconstruct(out int, out int)").WithLocation(6, 23),
+                // (6,23): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'Point', with 0 out parameters and a void return type.
+                //         if (p is Point())
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "()").WithArguments("Point", "0").WithLocation(6, 23)
                 );
         }
 
@@ -2151,7 +2163,10 @@ class Point
                     Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(10, 24),
                     // (9,23): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
                     //         if (p is Point({ }, { }, { })) { }
-                    Diagnostic(ErrorCode.ERR_BadArgCount, "({ }, { }, { })").WithArguments("Deconstruct", "3").WithLocation(9, 23)
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "({ }, { }, { })").WithArguments("Deconstruct", "3").WithLocation(9, 23),
+                    // (9,23): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'Point', with 3 out parameters and a void return type.
+                    //         if (p is Point({ }, { }, { })) { }
+                    Diagnostic(ErrorCode.HDN_MissingDeconstruct, "({ }, { }, { })").WithArguments("Point", "3").WithLocation(9, 23)
                     );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -2182,7 +2197,10 @@ public class C {
             compilation.VerifyDiagnostics(
                 // (4,21): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1>(Tuple<T1>, out T1)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = this is (a: 1);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 21),
+                // (4,21): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 1 out parameters and a void return type.
+                //         _ = this is (a: 1);
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(a: 1)").WithArguments("C", "1").WithLocation(4, 21)
                 );
         }
 
@@ -2201,7 +2219,10 @@ public class C {
             compilation.VerifyDiagnostics(
                 // (4,22): error CS0411: The type arguments for method 'TupleExtensions.Deconstruct<T1>(Tuple<T1>, out T1)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = this is C(a: 1);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 22)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "(a: 1)").WithArguments("System.TupleExtensions.Deconstruct<T1>(System.Tuple<T1>, out T1)").WithLocation(4, 22),
+                // (4,22): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 1 out parameters and a void return type.
+                //         _ = this is C(a: 1);
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(a: 1)").WithArguments("C", "1").WithLocation(4, 22)
                 );
         }
 

@@ -64,6 +64,9 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
             // (11,32): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             //         if (obj is int? i3 and (1, 2)) { }
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("int", "Deconstruct").WithLocation(11, 32),
+            // (11,32): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'int', with 2 out parameters and a void return type.
+            //         if (obj is int? i3 and (1, 2)) { }
+            Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(1, 2)").WithArguments("int", "2").WithLocation(11, 32),
             // (12,20): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
             //         if (obj is int? i4 and []) { }
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(12, 20),
@@ -130,6 +133,9 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
             // (11,34): error CS1061: 'int[]' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             //         if (obj is int[]? i3 and (1, 2)) { }
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("int[]", "Deconstruct").WithLocation(11, 34),
+            // (11,34): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'int[]', with 2 out parameters and a void return type.
+            //         if (obj is int[]? i3 and (1, 2)) { }
+            Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(1, 2)").WithArguments("int[]", "2").WithLocation(11, 34),
             // (12,20): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
             //         if (obj is int[]? i4 and []) { }
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(12, 20),

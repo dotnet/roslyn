@@ -1925,7 +1925,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case a is (var x1, var x2);").WithArguments("bool", "(object a, object b)").WithLocation(9, 17),
                 // (9,32): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //                 goto case a is (var x1, var x2);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var x1, var x2)").WithArguments("object", "Deconstruct").WithLocation(9, 32)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var x1, var x2)").WithArguments("object", "Deconstruct").WithLocation(9, 32),
+                // (9,32): hidden CS9344: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                //                 goto case a is (var x1, var x2);
+                Diagnostic(ErrorCode.HDN_MissingDeconstruct, "(var x1, var x2)").WithArguments("object", "2").WithLocation(9, 32)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
