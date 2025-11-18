@@ -202,7 +202,6 @@ internal sealed partial class InProcRemoteHostClient : RemoteHostClient
             RegisterRemoteBrokeredService(new RemoteNavigateToSearchService.Factory());
             RegisterRemoteBrokeredService(new RemoteNavigationBarItemService.Factory());
             RegisterRemoteBrokeredService(new RemoteProcessTelemetryService.Factory());
-            RegisterRemoteBrokeredService(new RemoteRelatedDocumentsService.Factory());
             RegisterRemoteBrokeredService(new RemoteRenamerService.Factory());
             RegisterRemoteBrokeredService(new RemoteSemanticClassificationService.Factory());
             RegisterRemoteBrokeredService(new RemoteSemanticSearchService.Factory());
