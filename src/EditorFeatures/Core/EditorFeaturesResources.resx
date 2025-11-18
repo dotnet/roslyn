@@ -141,6 +141,15 @@
   <data name="User_Types_Type_Parameters" xml:space="preserve">
     <value>User Types - Type Parameters</value>
   </data>
+  <data name="User_Types_Arrays" xml:space="preserve">
+    <value>User Types - Arrays</value>
+  </data>
+  <data name="User_Types_Pointers" xml:space="preserve">
+    <value>User Types - Pointers</value>
+  </data>
+  <data name="User_Types_Function_Pointers" xml:space="preserve">
+    <value>User Types - Function Pointers</value>
+  </data>
   <data name="String_Verbatim" xml:space="preserve">
     <value>String - Verbatim</value>
   </data>

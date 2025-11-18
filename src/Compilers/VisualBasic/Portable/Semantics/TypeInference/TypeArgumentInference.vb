@@ -2124,7 +2124,7 @@ HandleAsAGeneralExpression:
                             End If
 
                         Case BoundKind.GroupTypeInferenceLambda
-                            lambdaReturnType = DirectCast(argument, GroupTypeInferenceLambda).InferLambdaReturnType(delegateParams)
+                            lambdaReturnType = DirectCast(argument, GroupTypeInferenceLambda).InferLambdaReturnType(delegateParams, Me.Diagnostic)
 
                         Case BoundKind.UnboundLambda
                             Dim unboundLambda = DirectCast(argument, UnboundLambda)

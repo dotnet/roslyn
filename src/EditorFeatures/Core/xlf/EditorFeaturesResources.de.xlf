@@ -442,6 +442,11 @@
         <target state="translated">Benutzermember – Eigenschaften</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Arrays">
+        <source>User Types - Arrays</source>
+        <target state="new">User Types - Arrays</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Classes">
         <source>User Types - Classes</source>
         <target state="translated">Benutzertypen - Klassen</target>
@@ -457,9 +462,19 @@
         <target state="translated">Benutzertypen - Aufzählungen</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Function_Pointers">
+        <source>User Types - Function Pointers</source>
+        <target state="new">User Types - Function Pointers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">Benutzertypen - Schnittstellen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Pointers">
+        <source>User Types - Pointers</source>
+        <target state="new">User Types - Pointers</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Record_Structs">

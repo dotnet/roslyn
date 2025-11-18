@@ -967,5 +967,67 @@ _{i},
                     );
             });
         }
+
+        [Fact]
+        public void ManyBinaryPatterns_03()
+        {
+            const int numOfEnumMembers = 4_000;
+            const int capacity = 47065;
+
+            var builder = new StringBuilder(capacity);
+
+            builder.Append("""
+#nullable enable
+
+class ErrorFacts
+{
+    static bool Test(E code)
+    {
+        return code switch
+        {
+            E._0
+""");
+
+            for (int i = 1; i < numOfEnumMembers; i++)
+            {
+                builder.Append($"""
+
+or E._{i}
+""");
+            }
+
+            builder.Append("""
+                    => false,
+        };
+    }
+}
+""");
+
+            Assert.Equal(capacity, builder.Length);
+
+            var source = builder.ToString();
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
+
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree);
+                var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().First();
+                SymbolInfo symbolInfo = model.GetSymbolInfo(node1);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                var node2 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Last();
+                symbolInfo = model.GetSymbolInfo(node2);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+
+                var operation = model.GetOperation(node1);
+                Assert.NotNull(operation);
+
+                for (; operation.Parent is not null; operation = operation.Parent) { }
+
+                Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)operation));
+            });
+        }
     }
 }

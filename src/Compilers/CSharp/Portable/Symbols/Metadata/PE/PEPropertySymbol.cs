@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                       out CustomAttributeHandle required,
                       AttributeDescription.RequiredMemberAttribute,
                       out _,
-                      this.GetIsNewExtensionMember() ? AttributeDescription.ExtensionMarkerAttribute : default,
+                      this.IsExtensionBlockMember() ? AttributeDescription.ExtensionMarkerAttribute : default,
                       out _,
                       default,
                       out _,
@@ -1053,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override int TryGetOverloadResolutionPriority()
         {
-            Debug.Assert(IsIndexer || IsIndexedProperty || this.GetIsNewExtensionMember());
+            Debug.Assert(IsIndexer || IsIndexedProperty || this.IsExtensionBlockMember());
             if (!_flags.IsOverloadResolutionPriorityPopulated)
             {
                 if (_containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, out int priority) &&

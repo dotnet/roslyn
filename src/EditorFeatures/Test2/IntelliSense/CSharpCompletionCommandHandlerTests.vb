@@ -13,7 +13,6 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
-Imports Microsoft.CodeAnalysis.CSharp.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
@@ -13327,6 +13326,54 @@ public class C
 
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(displayText:="TypeBuilder", isHardSelected:=True) ' hard-select TypeBuilder class
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81021")>
+        Public Async Function TestStartTypingInsideTargetTypedConditionalExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class C
+{
+    public DateTime M(bool b)
+    {
+        return b ? new($$) : default;
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("tick")
+                Await state.AssertSelectedCompletionItem("ticks:")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/81022")>
+        Public Async Function TestStartTypingInsideTargetTypedSwitchExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+
+class C
+{
+    public DateTime M(int i)
+    {
+        return i switch
+        {
+            1 => new($$),
+            _ => default,
+        };
+    }
+}
+            ]]></Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("tick")
+                Await state.AssertSelectedCompletionItem("ticks:")
             End Using
         End Function
     End Class

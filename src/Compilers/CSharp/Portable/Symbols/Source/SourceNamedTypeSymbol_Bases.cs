@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<NamedTypeSymbol> _lazyInterfaces;
 
         /// <summary>
-        /// Gets the BaseType of this type. If the base type could not be determined, then 
+        /// Gets the BaseType of this type. If the base type could not be determined, then
         /// an instance of ErrorType is returned. If this kind of type does not have a base type
         /// (for example, interfaces), null is returned. Also the special class System.Object
         /// always has a BaseType of null.
@@ -637,10 +637,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void checkPrimaryConstructorBaseType(BaseTypeSyntax baseTypeSyntax, TypeSymbol baseType)
             {
-                if (baseTypeSyntax is PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType &&
-                    (TypeKind != TypeKind.Class || baseType.TypeKind == TypeKind.Interface || ((TypeDeclarationSyntax)decl.SyntaxReference.GetSyntax()).ParameterList is null))
+                if (baseTypeSyntax is PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentList, primaryConstructorBaseType.ArgumentList.Location);
+                    if (TypeKind != TypeKind.Class || baseType.TypeKind == TypeKind.Interface)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentList, primaryConstructorBaseType.ArgumentList.Location);
+                    }
+                    else if (((TypeDeclarationSyntax)decl.SyntaxReference.GetSyntax()).ParameterList is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, primaryConstructorBaseType.ArgumentList.Location);
+                    }
                 }
             }
         }
@@ -719,10 +725,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeKind = this.TypeKind;
             var compilation = this.DeclaringCompilation;
             NamedTypeSymbol declaredBase;
+            bool reportAtFirstLocation = false;
+
             if (typeKind == TypeKind.Enum)
             {
                 Debug.Assert((object)GetDeclaredBaseType(basesBeingResolved: null) == null, "Computation skipped for enums");
                 declaredBase = compilation.GetSpecialType(SpecialType.System_Enum);
+                reportAtFirstLocation = true;
             }
             else if (typeKind == TypeKind.Extension)
             {
@@ -745,10 +754,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
 
                         declaredBase = compilation.GetSpecialType(SpecialType.System_Object);
+                        reportAtFirstLocation = true;
                         break;
 
                     case TypeKind.Struct:
                         declaredBase = compilation.GetSpecialType(SpecialType.System_ValueType);
+                        reportAtFirstLocation = true;
                         break;
 
                     case TypeKind.Interface:
@@ -756,6 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case TypeKind.Delegate:
                         declaredBase = compilation.GetSpecialType(SpecialType.System_MulticastDelegate);
+                        reportAtFirstLocation = true;
                         break;
 
                     default:
@@ -786,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             while ((object)current != null);
 
-            diagnostics.Add(useSiteInfo.Diagnostics.IsNullOrEmpty() ? Location.None : (FindBaseRefSyntax(declaredBase) ?? GetFirstLocation()), useSiteInfo);
+            diagnostics.Add(useSiteInfo.Diagnostics.IsNullOrEmpty() ? Location.None : ((reportAtFirstLocation ? null : FindBaseRefSyntax(declaredBase)) ?? GetFirstLocation()), useSiteInfo);
 
             return declaredBase;
         }

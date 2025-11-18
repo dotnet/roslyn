@@ -2741,4 +2741,57 @@ public sealed class ConvertIfToSwitchTests
             }
             """,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81052")]
+    public Task TestPatternWithWhenClause()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class R(int? P)
+                {
+                    public int? P { get; } = P;
+                }
+            
+                class C
+                {
+                    int M(R v)
+                    {
+                        $$if (v.P == 0)
+                        {
+                            return 1;
+                        }
+            
+                        if (v.P is { } b && b > 0)
+                        {
+                            return 2;
+                        }
+            
+                        return 0;
+                    }
+                }
+                """,
+            FixedCode = """
+                class R(int? P)
+                {
+                    public int? P { get; } = P;
+                }
+            
+                class C
+                {
+                    int M(R v)
+                    {
+                        switch (v.P)
+                        {
+                            case 0:
+                                return 1;
+                            case { } b when b > 0:
+                                return 2;
+                            default:
+                                return 0;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
 }

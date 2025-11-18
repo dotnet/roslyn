@@ -72,6 +72,11 @@
         <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigOperator">
+        <source>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">Operator resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
         <target state="translated">Идентификатор "{0}" является неоднозначным между типом "{1}" и параметром "{2}" в этом контексте.</target>
@@ -2387,6 +2392,16 @@
         <target state="translated">Программы, использующие инструкции верхнего уровня, должны быть исполняемыми.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableBinaryOperator">
+        <source>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</source>
+        <target state="new">Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableUnaryOperator">
+        <source>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</source>
+        <target state="new">Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
         <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
         <target state="translated">Оператор расширения ".." не работает с переменными типа "{0}", так как "{0}" не содержит открытое определение экземпляра или расширения для "{1}"</target>
@@ -2545,6 +2560,11 @@
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
         <target state="new">The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList">
+        <source>Cannot pass arguments to the base type without a parameter list on the type declaration.</source>
+        <target state="new">Cannot pass arguments to the base type without a parameter list on the type declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
@@ -11804,8 +11824,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
-        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</source>
-        <target state="translated">Выражение должно быть неявно преобразуемым в логическое значение, или его тип "{0}" должен определять оператор "{1}".</target>
+        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
+        <target state="needs-review-translation">Выражение должно быть неявно преобразуемым в логическое значение, или его тип "{0}" должен определять оператор "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
@@ -13227,8 +13247,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
-        <source>Compiler version: '{0}'. Language version: {1}.</source>
-        <target state="translated">Версия компилятора: "{0}". Версия языка: {1}.</target>
+        <source>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</source>
+        <target state="new">Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">

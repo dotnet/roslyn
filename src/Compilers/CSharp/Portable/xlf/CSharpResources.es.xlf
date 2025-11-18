@@ -72,6 +72,11 @@
         <target state="new">The extension resolution is ambiguous between the following members: '{0}' and '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigOperator">
+        <source>Operator resolution is ambiguous between the following members: '{0}' and '{1}'</source>
+        <target state="new">Operator resolution is ambiguous between the following members: '{0}' and '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver">
         <source>Identifier '{0}' is ambiguous between type '{1}' and parameter '{2}' in this context.</source>
         <target state="translated">El identificador '{0}' es ambiguo entre el tipo '{1}' y el parámetro '{2}' en este contexto.</target>
@@ -2387,6 +2392,16 @@
         <target state="translated">El programa que usa instrucciones de nivel superior debe ser un ejecutable.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableBinaryOperator">
+        <source>Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</source>
+        <target state="new">Operator cannot be applied to operands of type '{0}' and '{1}'. The closest inapplicable candidate is '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleInapplicableUnaryOperator">
+        <source>Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</source>
+        <target state="new">Operator cannot be applied to operand of type '{0}'. The closest inapplicable candidate is '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
         <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
         <target state="translated">El operador de propagación ".." no puede funcionar en variables de tipo "{0}" porque "{0}" no contiene una instancia pública o una definición de extensión para "{1}"</target>
@@ -2545,6 +2560,11 @@
       <trans-unit id="ERR_UnderspecifiedExtension">
         <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
         <target state="new">The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList">
+        <source>Cannot pass arguments to the base type without a parameter list on the type declaration.</source>
+        <target state="new">Cannot pass arguments to the base type without a parameter list on the type declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
@@ -11803,8 +11823,8 @@ Considere la posibilidad de suprimir la advertencia solo si tiene la seguridad d
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDynamicCondition">
-        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</source>
-        <target state="translated">La expresión se debe poder convertir implícitamente en 'Boolean' o su tipo '{0}' debe definir el operador '{1}'.</target>
+        <source>Expression must be implicitly convertible to Boolean or its type '{0}' must not be an interface and must define operator '{1}'.</source>
+        <target state="needs-review-translation">La expresión se debe poder convertir implícitamente en 'Boolean' o su tipo '{0}' debe definir el operador '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MixingWinRTEventWithRegular">
@@ -13226,8 +13246,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
-        <source>Compiler version: '{0}'. Language version: {1}.</source>
-        <target state="translated">Versión de compilador: "{0}". Versión de lenguaje: {1}.</target>
+        <source>Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</source>
+        <target state="new">Compiler version: '{0}'. Language version: {1}. Compiler path: '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAsyncMain">

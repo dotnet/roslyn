@@ -2296,7 +2296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (checkCollisionWithTypeParameters && typeParameterNames == null)
                         {
-                            if (!indexer.GetIsNewExtensionMember() && indexer.ContainingType.Arity > 0)
+                            if (!indexer.IsExtensionBlockMember() && indexer.ContainingType.Arity > 0)
                             {
                                 typeParameterNames = PooledHashSet<string>.GetInstance();
                                 foreach (TypeParameterSymbol typeParameter in indexer.ContainingType.TypeParameters)
@@ -3982,6 +3982,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         Debug.Assert(symbol.IsPartialMember());
 
+                        // Accessor symbols and their diagnostics are handled by processing the associated member.
+                        // We cannot add them to the map (signature comparison on partial event accessors can lead to cycles through IsWindowsRuntimeEvent).
+                        if (symbol is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
+                        {
+                            continue;
+                        }
+
                         if (!membersBySignature.TryGetValue(symbol, out var prev))
                         {
                             membersBySignature.Add(symbol, symbol);
@@ -4007,13 +4014,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 mergePartialEvents(nonTypeMembers, currentEvent, prevEvent, diagnostics);
                                 break;
 
-                            case (SourcePropertyAccessorSymbol, SourcePropertyAccessorSymbol):
-                            case (SourceEventAccessorSymbol, SourceEventAccessorSymbol):
-                                break; // accessor symbols and their diagnostics are handled by processing the associated member
-
                             default:
                                 // This is an error scenario. We simply don't merge the symbols in this case and a duplicate name diagnostic is reported separately.
                                 // One way this case can be reached is if type contains both `public partial int P { get; }` and `public partial int get_P();`.
+                                Debug.Assert(symbol.Kind != prev.Kind);
                                 Debug.Assert(symbol is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol or SourceEventAccessorSymbol);
                                 Debug.Assert(prev is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol or SourceEventAccessorSymbol);
                                 break;
@@ -4024,6 +4028,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var symbol = (Symbol)pair.Value;
                     Debug.Assert(symbol.IsPartialMember());
+
+                    if (symbol is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol)
+                    {
+                        continue;
+                    }
+
                     membersBySignature.Add(symbol, symbol);
                 }
 
@@ -4072,10 +4082,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     ev);
                             }
                             break;
-
-                        case SourceEventAccessorSymbol:
-                        case SourcePropertyAccessorSymbol:
-                            break; // diagnostics for missing partial accessors are handled in 'mergePartialProperties'/'mergePartialEvents'.
 
                         default:
                             throw ExceptionUtilities.UnexpectedValue(symbol);
