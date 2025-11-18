@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 var markerMethod = ((PENamedTypeSymbol)containingSymbol.ContainingType).GetMarkerMethodSymbol();
-                return markerMethod != null && object.ReferenceEquals(markerMethod, containingSymbol) && ordinal == 0;
+                return object.ReferenceEquals(markerMethod, containingSymbol) && ordinal == 0;
             }
         }
 
