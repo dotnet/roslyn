@@ -125,4 +125,60 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         // Should have the appropriate generated files now that we ran a design time build
         Assert.Contains(canonicalDocumentTwo.Project.Documents, d => d.Name == "Canonical.AssemblyInfo.cs");
     }
+
+    [Theory, CombinatorialData]
+    public async Task TestFileBecomesFileBasedProgramWhenDirectiveAdded(bool mutatingLspWorkspace)
+    {
+        // Create a server that supports LSP misc files and verify no misc files present.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        var looseFileUriOne = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
+        await testLspServer.OpenDocumentAsync(looseFileUriOne, """
+            Console.WriteLine("Hello World!");
+            """).ConfigureAwait(false);
+
+        // File should be initially added as a primordial document in the canonical misc files project with no metadata references.
+        var (miscFilesWorkspace, looseDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, miscFilesWorkspace.Kind);
+        // Should have the primordial canonical document and the loose document.
+        Assert.Equal(2, looseDocumentOne.Project.Documents.Count());
+        Assert.Empty(looseDocumentOne.Project.MetadataReferences);
+
+        // Wait for the canonical project to finish loading.
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        // Verify the document is loaded in the canonical project.
+        var (_, canonicalDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
+        Assert.NotEqual(looseDocumentOne, canonicalDocumentOne);
+        // Should have the appropriate generated files now that we ran a design time build
+        Assert.Contains(canonicalDocumentOne.Project.Documents, d => d.Name == "Canonical.AssemblyInfo.cs");
+
+        // Adding a #! directive to a misc file causes it to move to a file-based program project.
+        var textToInsert = $"#!/usr/bin/env dotnet{Environment.NewLine}";
+        await testLspServer.InsertTextAsync(looseFileUriOne, (Line: 0, Column: 0, Text: textToInsert));
+        var (_, fileBasedDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
+
+        // The document is now in a primordial state in the FileBasedProgramsProjectSystem.
+        Assert.NotEqual(fileBasedDocumentOne, canonicalDocumentOne);
+        var fileBasedProject = fileBasedDocumentOne.Project;
+        Assert.Same(miscFilesWorkspace, fileBasedProject.Solution.Workspace);
+        Assert.NotEqual(canonicalDocumentOne.Project.Id, fileBasedProject.Id);
+        Assert.Equal("""
+            #!/usr/bin/env dotnet
+            Console.WriteLine("Hello World!");
+            """,
+            (await fileBasedDocumentOne.GetSyntaxRootAsync())!.ToFullString());
+
+        // Verify that the project system remains in a good state, when intermediate requests come in while the file-based program project is still loaded.
+        var (_, alsoFileBasedDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
+        Assert.Equal(fileBasedProject.Id, alsoFileBasedDocumentOne.Project.Id);
+
+        // Wait for the file-based program project to load.
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+        var (hostWorkspace, fullFileBasedDocumentOne) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, hostWorkspace!.Kind);
+        Assert.NotEqual(fileBasedProject.Id, fullFileBasedDocumentOne!.Project.Id);
+        Assert.Contains(fullFileBasedDocumentOne!.Project.Documents, d => d.Name == "SomeFile.AssemblyInfo.cs");
+    }
 }
