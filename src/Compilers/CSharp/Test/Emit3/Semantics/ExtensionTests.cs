@@ -51859,6 +51859,50 @@ static class E
     }
 
     [Fact]
+    public void XmlDoc_TypeParamRef_04()
+    {
+        var src = """
+static class E
+{
+    /// <typeparam name="T1"/>
+    extension<T1>(int)
+    {
+        /// <summary><typeparamref name="T1"/></summary>
+        public static void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.SequenceEqual(["(T1, T1)", "(T1, T1)"], PrintXmlNameSymbols(tree, model));
+    }
+
+    [Fact]
+    public void XmlDoc_TypeParamRef_05()
+    {
+        var src = """
+static class E
+{
+    /// <typeparam name="T1"/>
+    extension<T1>(T1)
+    {
+        /// <summary><typeparamref name="T1"/></summary>
+        public static int Property => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.SequenceEqual(["(T1, T1)", "(T1, T1)"], PrintXmlNameSymbols(tree, model));
+    }
+
+    [Fact]
     public void AnalyzerActions_01()
     {
         var src = """
