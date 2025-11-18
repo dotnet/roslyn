@@ -61,7 +61,7 @@
   <ItemGroup>
     <EmbeddedResource Update="CSharpFeaturesResources.resx" GenerateSource="true" />
     <EmbeddedResource
-      Update="FileBasedPrograms\FileBasedProgramsResources.resx"
+      Update="SyncedSource\FileBasedPrograms\FileBasedProgramsResources.resx"
       GenerateSource="true"
       Namespace="Microsoft.DotNet.FileBasedPrograms" />
   </ItemGroup>
