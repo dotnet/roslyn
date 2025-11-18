@@ -646,6 +646,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     => true,
 
                 ErrorCode.Void
+
+                // PROTOTYPE: move new error codes down
+                or ErrorCode.ERR_UnsafeOperation
+
                 or ErrorCode.Unknown
                 or ErrorCode.ERR_NoMetadataFile
                 or ErrorCode.FTL_MetadataCantOpenFile
@@ -2547,7 +2551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SingleInapplicableBinaryOperator
                 or ErrorCode.ERR_SingleInapplicableUnaryOperator
                 or ErrorCode.ERR_AmbigOperator
-                or ErrorCode.ERR_UnsafeOperation
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
