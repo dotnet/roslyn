@@ -4259,6 +4259,7 @@ public static class Extensions
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         AssertEx.Equal("?", symbol.ExtensionParameter.ToTestDisplayString());
+        Assert.True(symbol.ExtensionParameter.Type.IsErrorType());
     }
 
     [Fact]
@@ -51277,6 +51278,47 @@ public class D { }
     </members>
 </doc>
 """, GetDocumentationCommentText(comp));
+    }
+
+    [Fact]
+    public void XmlDoc_18()
+    {
+        // Extension without containing type
+        var src = """
+/// <summary>Summary for extension block</summary>
+extension<T>(T t)
+{
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments, assemblyName: "Test");
+        comp.VerifyEmitDiagnostics(
+            // (2,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension<T>(T t)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(2, 1));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("");
+        AssertEx.Equal("T:<G>$8048A6C8BE30A622530249B904B537EB`1.<M>$D1693D81A12E8DED4ED68FE22D9E856F", extension.GetDocumentationCommentId());
+        AssertEx.Equal("""
+<member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+    <summary>Summary for extension block</summary>
+</member>
+
+""", extension.GetDocumentationCommentXml());
+
+        var expected = """
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name="T:&lt;G&gt;$8048A6C8BE30A622530249B904B537EB`1.&lt;M&gt;$D1693D81A12E8DED4ED68FE22D9E856F">
+            <summary>Summary for extension block</summary>
+        </member>
+    </members>
+</doc>
+""";
+        AssertEx.Equal(expected, GetDocumentationCommentText(comp));
     }
 
     [Fact]
