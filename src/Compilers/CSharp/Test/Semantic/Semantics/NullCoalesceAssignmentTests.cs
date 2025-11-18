@@ -526,7 +526,7 @@ class C
 
             var semanticInfo = GetSemanticInfoForTest(comp);
 
-            Assert.True(semanticInfo.Type.IsErrorType());
+            Assert.Null(semanticInfo.Type);
             Assert.Equal("C", semanticInfo.ConvertedType.ToTestDisplayString());
         }
 
@@ -552,7 +552,7 @@ class C
 
             var semanticInfo = GetSemanticInfoForTest(comp);
 
-            Assert.True(semanticInfo.Type.IsErrorType());
+            Assert.Null(semanticInfo.Type);
             Assert.Equal("S", semanticInfo.ConvertedType.ToTestDisplayString());
         }
 
@@ -608,7 +608,7 @@ class C
 
             var semanticInfo = GetSemanticInfoForTest(comp);
 
-            Assert.True(semanticInfo.Type.IsErrorType());
+            Assert.Null(semanticInfo.Type);
             Assert.Equal("C", semanticInfo.ConvertedType.ToTestDisplayString());
         }
 
@@ -638,7 +638,7 @@ class C
 
             var semanticInfo = GetSemanticInfoForTest(comp);
 
-            Assert.True(semanticInfo.Type.IsErrorType());
+            Assert.Null(semanticInfo.Type);
             Assert.Equal("S", semanticInfo.ConvertedType.ToTestDisplayString());
         }
 
