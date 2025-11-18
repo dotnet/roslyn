@@ -305,7 +305,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool hasErrors = expression.HasErrors;
                         if (commonType is null)
                         {
-                            diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, exprSyntax.SwitchKeyword.GetLocation());
+                            if (!expr.HasAnyErrors)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, exprSyntax.SwitchKeyword.GetLocation());
+                            }
+
                             commonType = CreateErrorType();
                             hasErrors = true;
                         }
@@ -321,18 +325,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(op.NoCommonTypeError != 0);
                             type = CreateErrorType();
                             hasErrors = true;
-                            object trueArg = op.Consequence.Display;
-                            object falseArg = op.Alternative.Display;
-                            if (op.NoCommonTypeError == ErrorCode.ERR_InvalidQM && trueArg is Symbol trueSymbol && falseArg is Symbol falseSymbol)
-                            {
-                                // ERR_InvalidQM is an error that there is no conversion between the two types. They might be the same
-                                // type name from different assemblies, so we disambiguate the display.
-                                SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, trueSymbol, falseSymbol);
-                                trueArg = distinguisher.First;
-                                falseArg = distinguisher.Second;
-                            }
 
-                            diagnostics.Add(op.NoCommonTypeError, op.Syntax.Location, trueArg, falseArg);
+                            if (!op.HasAnyErrors)
+                            {
+                                object trueArg = op.Consequence.Display;
+                                object falseArg = op.Alternative.Display;
+                                if (op.NoCommonTypeError == ErrorCode.ERR_InvalidQM && trueArg is Symbol trueSymbol && falseArg is Symbol falseSymbol)
+                                {
+                                    // ERR_InvalidQM is an error that there is no conversion between the two types. They might be the same
+                                    // type name from different assemblies, so we disambiguate the display.
+                                    SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, trueSymbol, falseSymbol);
+                                    trueArg = distinguisher.First;
+                                    falseArg = distinguisher.Second;
+                                }
+
+                                diagnostics.Add(op.NoCommonTypeError, op.Syntax.Location, trueArg, falseArg);
+                            }
                         }
 
                         result = ConvertConditionalExpression(op, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
@@ -1509,7 +1517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsPropertyWithBackingField(PEPropertySymbol property, [NotNullWhen(true)] out FieldSymbol? backingField)
         {
-            if (!property.GetIsNewExtensionMember() &&
+            if (!property.IsExtensionBlockMember() &&
                 property.ContainingType.GetMembers(GeneratedNames.MakeBackingFieldName(property.Name)) is [FieldSymbol candidateField] &&
                 candidateField.RefKind == property.RefKind &&
                 candidateField.IsStatic == property.IsStatic &&
@@ -1556,6 +1564,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
         internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, Location location, BindingDiagnosticBag diagnostics, bool errorForManaged = false)
         {
+            // Skip the check for error types that represent truly missing types (not found),
+            // but still report for error types due to other issues (e.g., inaccessibility).
+            if (type is ErrorTypeSymbol { ResultKind: LookupResultKind.Empty })
+                return false;
+
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
             var managedKind = type.GetManagedKind(ref useSiteInfo);
             diagnostics.Add(location, useSiteInfo);
@@ -3803,7 +3816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             placeholderType = receiver.Type;
                             break;
                         case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
-                            Debug.Assert(methodResult.Member.GetIsNewExtensionMember());
+                            Debug.Assert(methodResult.Member.IsExtensionBlockMember());
                             var receiverParameter = ((NamedTypeSymbol)methodResult.Member.ContainingSymbol).ExtensionParameter;
                             Debug.Assert(receiverParameter is not null);
                             refKind = receiverParameter.RefKind;
@@ -5080,7 +5093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     primaryConstructor.SetParametersPassedToTheBase(parametersPassedToBase);
                 }
 
-                Debug.Assert(!resultMember.GetIsNewExtensionMember());
+                Debug.Assert(!resultMember.IsExtensionBlockMember());
                 BindDefaultArguments(nonNullSyntax, resultMember.Parameters, extensionReceiver: null, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
@@ -6823,7 +6836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var method = memberResolutionResult.Member;
-            Debug.Assert(!method.GetIsNewExtensionMember());
+            Debug.Assert(!method.IsExtensionBlockMember());
 
             bool hasError = false;
 
@@ -8765,7 +8778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             inapplicable = true;
                         }
-                        else if (method.GetIsNewExtensionMember()
+                        else if (method.IsExtensionBlockMember()
                             && SourceNamedTypeSymbol.ReduceExtensionMember(binder.Compilation, method, receiverType, wasExtensionFullyInferred: out _) is null)
                         {
                             inapplicable = true;
@@ -10932,7 +10945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Note: we only care about methods. If the expression resolved to a non-method extension member, we wouldn't get here to compute the function type for the expression.
                         if (extensionMember is MethodSymbol m)
                         {
-                            if (m.GetIsNewExtensionMember())
+                            if (m.IsExtensionBlockMember())
                             {
                                 // Note: new extension methods are subject to more stringent checks
                                 var substituted = (MethodSymbol?)extensionMember.GetReducedAndFilteredSymbol(typeArguments, receiver.Type, Compilation, checkFullyInferred: true);

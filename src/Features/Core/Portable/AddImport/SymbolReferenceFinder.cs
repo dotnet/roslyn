@@ -8,7 +8,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -616,21 +615,12 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             if (!member.ContainingType.IsExtension)
                 return false;
 
-            if (member.ContainingType.ExtensionParameter is not { Type: { } extensionParameterType })
-                return false;
-
             if (!member.IsAccessibleWithin(_semanticModel.Compilation.Assembly))
                 return false;
 
-            // TODO: https://github.com/dotnet/roslyn/issues/80273
-            // There is not api yet to know for certain if a modern extension is compatible with a receiver type.
-            // For now, put in a poor man's approach for this.
+            var reducedMember = member.ReduceExtensionMember(receiver);
 
-            receiver = receiver.OriginalDefinition;
-            extensionParameterType = extensionParameterType.OriginalDefinition;
-
-            var conversion = _semanticModel.Compilation.ClassifyCommonConversion(receiver, extensionParameterType);
-            return conversion.Exists && conversion.IsImplicit;
+            return reducedMember != null;
         }
 
         private bool ExpressionBinds(

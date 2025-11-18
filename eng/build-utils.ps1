@@ -269,3 +269,21 @@ function Unsubst-TempDir() {
     $env:TMP=$originalTemp
   }
 }
+
+function EnablePreviewSdks() {
+  $vsInfo = LocateVisualStudio
+  if ($vsInfo -eq $null) {
+    # Preview SDKs are allowed when no Visual Studio instance is installed
+    Write-Host "No Visual Studio installation found; skipping enabling preview SDKs"
+    return
+  }
+
+  $vsId = $vsInfo.instanceId
+  $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
+
+  $instanceDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\$vsMajorVersion.0_$vsId"
+  Create-Directory $instanceDir
+  $sdkFile = Join-Path $instanceDir "sdk.txt"
+  Write-Host "Enabling preview SDKs by writing to $sdkFile"
+  'UsePreviews=True' | Set-Content $sdkFile
+}

@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasErrors = false;
 
             var implementationPart = this.PartialImplementationPart ?? this;
-            if (!implementationPart.IsExtern || (!implementationPart.IsStatic && !implementationPart.GetIsNewExtensionMember()))
+            if (!implementationPart.IsExtern || (!implementationPart.IsStatic && !implementationPart.IsExtensionBlockMember()))
             {
                 diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
@@ -955,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(arguments.AttributeSyntaxOpt is object);
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
-            if (MethodKind != MethodKind.Ordinary || this.GetIsNewExtensionMember())
+            if (MethodKind != MethodKind.Ordinary || this.IsExtensionBlockMember())
             {
                 diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
                 return;
@@ -1359,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool ReportBadInterceptsLocation(BindingDiagnosticBag diagnostics, Location attributeLocation)
         {
-            if (!this.GetIsNewExtensionMember() && ContainingType.IsGenericType)
+            if (!this.IsExtensionBlockMember() && ContainingType.IsGenericType)
             {
                 diagnostics.Add(ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric, attributeLocation, this);
                 return true;

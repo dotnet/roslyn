@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!this.GetIsNewExtensionMember());
+                Debug.Assert(!this.IsExtensionBlockMember());
 
                 if (this.IsPartialDefinition() &&
                     this.PartialImplementationPart is null)
@@ -1302,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public MethodSymbol? TryGetCorrespondingExtensionImplementationMethod()
         {
             Debug.Assert(this.IsDefinition);
-            Debug.Assert(this.GetIsNewExtensionMember());
+            Debug.Assert(this.IsExtensionBlockMember());
             return this.ContainingType.TryGetCorrespondingExtensionImplementationMethod(this);
         }
     }

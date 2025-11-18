@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int offset = 0;
             Symbol containingSymbol = parameter.ContainingSymbol;
-            if (containingSymbol.GetIsNewExtensionMember() && !containingSymbol.IsStatic)
+            if (containingSymbol.IsExtensionBlockMember() && !containingSymbol.IsStatic)
             {
                 if (parameter.ContainingType.ExtensionParameter is { } extensionParameter
                     && extensionParameter.Name.Equals(parameterName, StringComparison.Ordinal))
@@ -1245,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 int offset = 0;
                 Symbol containingSymbol = this.ContainingSymbol;
-                if (containingSymbol.GetIsNewExtensionMember()
+                if (containingSymbol.IsExtensionBlockMember()
                     && !containingSymbol.IsStatic)
                 {
                     // Note: the offset applies to all non-static extension methods,
@@ -1392,7 +1392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Name refers to the "this" instance parameter.
                     if (!ContainingSymbol.RequiresInstanceReceiver()
                         || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke or MethodKind.LambdaMethod }
-                        || ContainingSymbol.GetIsNewExtensionMember())
+                        || ContainingSymbol.IsExtensionBlockMember())
                     {
                         // '{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
                         diagnostics.Add(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, ContainingSymbol);
@@ -1654,7 +1654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             Debug.Assert(!addMethods.IsDefaultOrEmpty);
 
-                            if (addMethods[0].IsExtensionMethod || addMethods[0].GetIsNewExtensionMember()) // No need to check other methods, extensions are never mixed with instance methods
+                            if (addMethods[0].IsExtensionMethod || addMethods[0].IsExtensionBlockMember()) // No need to check other methods, extensions are never mixed with instance methods
                             {
                                 diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
                                 return;
