@@ -30,7 +30,8 @@ internal sealed class CanonicalMiscFilesProjectLoader : LanguageServerProjectLoa
     private readonly Lazy<string> _canonicalDocumentPath;
 
     /// <summary>
-    /// Avoid showing restore notifications for misc files.
+    /// Avoid showing restore notifications for misc files - it ends up being noisy and confusing
+    /// as every file is a misc file on first open until we detect a project for it.
     /// </summary>
     protected override bool EnableProgressReporting => false;
 

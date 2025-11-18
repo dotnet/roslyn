@@ -44,9 +44,11 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFac
 
         var workDoneProgressManager = context.GetRequiredService<WorkDoneProgressManager>();
         _logger.LogDebug($"Running restore on {restorePaths.Length} paths, starting with '{restorePaths.First()}'.");
-        var success = await RestoreAsync(restorePaths, workDoneProgressManager, dotnetCliHelper, _logger, enableProgressReporting: true, cancellationToken);
 
-        if (success)
+        // We let cancellation here bubble up to the client as this is a client initiated operation.
+        var didSucceed = await RestoreAsync(restorePaths, workDoneProgressManager, dotnetCliHelper, _logger, enableProgressReporting: true, cancellationToken);
+
+        if (didSucceed)
         {
             _logger.LogDebug($"Restore completed successfully.");
         }
@@ -55,7 +57,7 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFac
             _logger.LogError($"Restore completed with errors.");
         }
 
-        return new RestoreResult(success);
+        return new RestoreResult(didSucceed);
     }
 
     /// <returns>True if all restore invocations exited with code 0. Otherwise, false.</returns>
@@ -85,6 +87,8 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFac
         progress.Report(new WorkDoneProgressBegin()
         {
             Title = LanguageServerResources.Restore,
+            // Adds a cancel button to the client side progress UI.
+            // Cancellation here is fine, it just means the restore will be incomplete (same as a cntrl+C for a CLI restore).
             Cancellable = true,
             Message = LanguageServerResources.Restore_started,
             Percentage = 0,

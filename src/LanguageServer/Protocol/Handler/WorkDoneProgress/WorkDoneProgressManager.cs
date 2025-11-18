@@ -24,6 +24,9 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
     {
         private readonly WorkDoneProgressManager _manager;
 
+        /// <summary>
+        /// The token sent to the client identifying this work done progress session.
+        /// </summary>
         private readonly string _token;
 
         private readonly CancellationTokenSource _cancellationTokenSource;
@@ -34,6 +37,7 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
         {
             _token = token;
             _manager = manager;
+            // Link the server cancellation token to the source handling client side cancellation.
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(serverCancellationToken);
 
             // Tell the client to end the work done progress if the server cancels the request.
@@ -78,6 +82,7 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
         {
             _cancellationTokenSource.Cancel();
         }
+
         public void Dispose()
         {
             // Take the lock here to ensure we don't run this concurrently with Cancel.

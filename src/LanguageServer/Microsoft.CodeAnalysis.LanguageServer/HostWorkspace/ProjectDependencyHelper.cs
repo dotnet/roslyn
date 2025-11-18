@@ -128,6 +128,15 @@ internal static class ProjectDependencyHelper
 
         var workDoneProgressManager = LanguageServerHost.Instance.GetRequiredLspService<WorkDoneProgressManager>();
 
-        await RestoreHandler.RestoreAsync(projectPaths, workDoneProgressManager, dotnetCliHelper, logger, enableProgressReporting, cancellationToken);
+        try
+        {
+            await RestoreHandler.RestoreAsync(projectPaths, workDoneProgressManager, dotnetCliHelper, logger, enableProgressReporting, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // Restore was cancelled.  This is not a failure, it just leaves the project unrestored or partially restored (same as if the user cancelled a CLI restore).
+            // We don't want this exception to bubble up to the project load queue however as it may need to additional work after this call.
+            logger.LogWarning("Project restore was canceled.");
+        }
     }
 }

@@ -85,6 +85,9 @@ internal abstract class LanguageServerProjectLoader
         public sealed record LoadedTargets(ImmutableArray<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
     }
 
+    /// <summary>
+    /// Indicates whether loads should report UI progress to the client for this loader.
+    /// </summary>
     protected virtual bool EnableProgressReporting => true;
 
     protected LanguageServerProjectLoader(
