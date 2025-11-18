@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class Binder
     {
-        private NamedTypeSymbol? PrepareForUnionMatching(SyntaxNode node, ref TypeSymbol inputType, BindingDiagnosticBag diagnostics)
+        private NamedTypeSymbol? PrepareForUnionMatchingIfAppropriateAndReturnUnionType(SyntaxNode node, ref TypeSymbol inputType, BindingDiagnosticBag diagnostics)
         {
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             if (inputType is NamedTypeSymbol named && named.IsUnionTypeWithUseSiteDiagnostics(ref useSiteInfo))
@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetMethod: not null,
                 SetMethod: null,
                 RefKind: RefKind.None,
+                ParameterCount: 0,
                 TypeWithAnnotations: { Type.SpecialType: SpecialType.System_Object, CustomModifiers: [] }
             };
         }
@@ -378,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionType = PrepareForUnionMatching(node, ref inputType, diagnostics);
+            NamedTypeSymbol? unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
             bool isUnionMatching = unionType is not null;
 
             CheckFeatureAvailability(node, MessageID.IDS_FeatureListPattern, diagnostics);
@@ -513,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionType = PrepareForUnionMatching(node, ref inputType, diagnostics);
+            NamedTypeSymbol? unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
             hasUnionMatching = unionType is not null;
 
             ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(expression, diagnostics, ref hasErrors);
@@ -937,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionType = PrepareForUnionMatching(node, ref inputType, diagnostics);
+            NamedTypeSymbol? unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
             hasUnionMatching = unionType is not null;
 
             TypeSyntax typeSyntax = node.Type;
@@ -1061,7 +1062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionType = PrepareForUnionMatching(node, ref inputType, diagnostics);
+            NamedTypeSymbol? unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
             bool isUnionMatching = hasUnionMatching = unionType is not null;
 
             MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node);
@@ -1485,7 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundPattern bindParenthesizedVariableDesignation(VariableDesignationSyntax node, TypeSymbol inputType, bool permitDesignations, bool hasErrors, BindingDiagnosticBag diagnostics, out bool hasUnionMatching)
             {
-                NamedTypeSymbol? unionType = PrepareForUnionMatching(node, ref inputType, diagnostics);
+                NamedTypeSymbol? unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
                 bool isUnionMatching = hasUnionMatching = unionType is not null;
 
                 MessageID.IDS_FeatureRecursivePatterns.CheckFeatureAvailability(diagnostics, node);
@@ -1755,7 +1756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionType = PrepareForUnionMatching(node, ref inputType, diagnostics);
+            NamedTypeSymbol? unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
             hasUnionMatching = unionType is not null;
 
             MessageID.IDS_FeatureTypePattern.CheckFeatureAvailability(diagnostics, node);
@@ -1772,7 +1773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionType = PrepareForUnionMatching(node, ref inputType, diagnostics);
+            NamedTypeSymbol? unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
             hasUnionMatching = unionType is not null;
 
             MessageID.IDS_FeatureRelationalPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
@@ -1870,11 +1871,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool underIsPattern,
             out bool hasUnionMatching)
         {
-            NamedTypeSymbol? unionType = PrepareForUnionMatching(node, ref inputType, diagnostics);
+            NamedTypeSymbol? unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, diagnostics);
             bool isUnionMatching = unionType is not null;
 
             if (unionType is { TypeKind: not TypeKind.Struct })
             {
+                // When we are not 'underIsPattern', we don't 'permitDesignations'. See an assignment and a comment below.
+                // Only 'BindIsPatternExpression' passes true for 'underIsPattern' and only 'BindUnaryPattern' propagates it. 
+                // Since we are doing Union matching, we are effectively in a sub-pattern, thus we are not directly under
+                // "is pattern", but we can still make things work for struct types, because they do not have an implicit
+                // null check for the Union instance itself. The effect of this logic can be observed in unit-tests
+                // 'UnionMatching_15_Negated' and 'UnionMatching_16_Negated', for example.   
                 underIsPattern = false;
             }
 
@@ -1951,6 +1958,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var right = binder.BindPattern(node.Right, inputType, permitDesignations, hasErrors, diagnostics, out bool rightHasUnionMatching);
                     hasUnionMatching |= rightHasUnionMatching;
+
+                    // Note, if we change how we compute the 'narrowedType' here, similar adjustments might be necessary in 
+                    // 'UnionMatchingRewriter.VisitBinaryPattern.rewriteBinaryPattern'
 
                     // Compute the common type. This algorithm is quadratic, but disjunctive patterns are unlikely to be huge
                     CollectDisjunctionTypes(right, narrowedTypeCandidates, rightHasUnionMatching);

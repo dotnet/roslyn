@@ -1027,6 +1027,26 @@ class Program
         System.Console.Write(Test4(new S1(11)));
         System.Console.Write(Test4(default));
         System.Console.Write(Test4(new S1(""11"")));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test5(new S1(10)));
+        System.Console.Write(Test5(default));
+        System.Console.Write(Test5(new S1(""11"")));
+        System.Console.Write(Test5(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test6(new S1(10)));
+        System.Console.Write(Test6(new S1()));
+        System.Console.Write(Test6(null));
+        System.Console.Write(Test6(new S1(""11"")));
+        System.Console.Write(Test6(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test7(new S1(10)));
+        System.Console.Write(Test7(new S1()));
+        System.Console.Write(Test7(null));
+        System.Console.Write(Test7(new S1(""11"")));
+        System.Console.Write(Test7(new S1(0)));
     }
  
     static bool Test1(S1 u)
@@ -1048,10 +1068,25 @@ class Program
     {
         return u is not null;
     }   
+ 
+    static bool Test5(S1 u)
+    {
+        return u is not ({ } and int);
+    }   
+ 
+    static bool Test6(S1? u)
+    {
+        return u is not ({ } and int);
+    }   
+ 
+    static bool Test7(S1? u)
+    {
+        return u is not (S1 and int);
+    }   
 }
 ";
             var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "FalseTrueTrueTrue FalseTrueTrueTrueFalse TrueTrueFalse TrueFalseTrue FalseTrueTrueFalse FalseTrueTrueTrueFalse FalseTrueTrueTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1148,6 +1183,11 @@ class Program
 
         return z;
     }   
+ 
+    static bool Test8(S1 u)
+    {
+        return u is not (S1 and int);
+    }   
 }
 
 struct S1 : System.Runtime.CompilerServices.IUnion
@@ -1173,6 +1213,8 @@ struct S1 : System.Runtime.CompilerServices.IUnion
                 // (34,22): error CS8121: An expression of type 'S1?' cannot be handled by a pattern of type 'int'.
                 //         if (u is not int z)
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1?", "int").WithLocation(34, 22)
+
+                // PROTOTYPE: An error should be reported for Test8, it will be implemented along with exhaustiveness checking for union types.
                 );
         }
 
@@ -2117,6 +2159,71 @@ class Program
 ";
             var comp = CreateCompilation([src, IUnionSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue TrueFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_34_BinaryAnd()
+        {
+            var src = @"
+struct S0 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S0(S1 x) { _value = x; }
+    public S0(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+struct S1 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S1(S2 x) { _value = x; }
+    public S1(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+struct S2 : System.Runtime.CompilerServices.IUnion
+{
+    private readonly object _value;
+    public S2(int x) { _value = x; }
+    public S2(string x) { _value = x; }
+    object System.Runtime.CompilerServices.IUnion.Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test2(new S0(new S1(new S2(10)))));
+        System.Console.Write(Test2(new S0(new S1(new S2(11)))));
+        System.Console.Write(Test2(new S0(null)));
+        System.Console.Write(Test2(new S0(new S1())));
+        System.Console.Write(Test2(new S0(new S1(new S2()))));
+        System.Console.Write(Test2(new S0(new S1(""11""))));
+        System.Console.Write(Test2(new S0(new S1(new S2(""11"")))));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S0(new S1(new S2(10)))));
+        System.Console.Write(Test3(new S0(new S1(new S2(11)))));
+        System.Console.Write(Test3(new S0(null)));
+        System.Console.Write(Test3(new S0(new S1())));
+        System.Console.Write(Test3(new S0(new S1(new S2()))));
+        System.Console.Write(Test3(new S0(new S1(""11""))));
+        System.Console.Write(Test3(new S0(new S1(new S2(""11"")))));
+    }
+
+    static bool Test2(S0 u)
+    {
+        return u is S1 and S2 and 10;
+    }   
+
+    static bool Test3(S0 u)
+    {
+        return u is S1 and (S2 and 10);
+    }   
+}
+";
+            var comp = CreateCompilation([src, IUnionSource], targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalseFalseFalse TrueFalseFalseFalseFalseFalseFalse").VerifyDiagnostics();
         }
     }
 }

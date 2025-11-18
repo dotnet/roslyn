@@ -2436,12 +2436,12 @@
       (LeftOfPendingConjunction is null), or a conjunction with a Union matching operation
       on the right hand side. The left hand side of the conjunction is then
       represented by the LeftOfPendingConjunction child, and it is not applied
-      to the ValueProperty. It represents a pattern that is matched emmidiately
+      to the ValueProperty. It represents a pattern that is matched immediately
       before ValueProperty is matched against ValuePattern. 
 
       A Union matching operation corresponding to the top most BoundPatternWithUnionMatching node
       represents the last Union matching operation in evaluation order in the entire hierarchy.
-      The preseeding union matching operation in evaluation order, if any, corresponds
+      The preceding union matching operation in evaluation order, if any, corresponds
       to the BoundPatternWithUnionMatching node stored in the LeftOfPendingConjunction child.
       Etc.
 

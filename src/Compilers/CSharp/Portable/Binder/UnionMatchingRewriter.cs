@@ -20,6 +20,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <see cref="RewritePatternWithUnionMatchingToPropertyPattern(BoundPattern)"/> helper at that point.
     /// Generally, the transformation must be performed for a pattern when, and only when, we know that no
     /// more conjunctions coming where the pattern could be the left hand side.
+    /// 
+    /// Assuming that '^' marks a Union matching pattern:
+    /// 
+    /// A pattern 'unionTypeInstance is int^' is transformed to 'unionTypeInstance is { Value: int }'.
+    /// 
+    /// A pattern 'unionTypeInstance is not^(int or string)' is transformed to 'unionTypeInstance is { Value: not (int or string) }'.
+    ///
+    /// A pattern 'unionTypeInstance is int^ or string^' is transformed to 'unionTypeInstance is { Value: int } or { Value: string }'.
+    ///
+    /// A pattern 'unionTypeInstance is int^ and 15 or string^' is transformed to 'unionTypeInstance is { Value: int and 15 } or { Value: string }'.
     /// </summary>
     sealed class UnionMatchingRewriter : BoundTreeRewriter
     {
@@ -93,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitListPattern(BoundListPattern node)
         {
             Symbol? variable = node.Variable;
-            ImmutableArray<BoundPattern> subpatterns = this.VisitList(node.Subpatterns).SelectAsArray(p => RewritePatternWithUnionMatchingToPropertyPattern(p));
+            ImmutableArray<BoundPattern> subpatterns = this.VisitList(node.Subpatterns).SelectAsArray(RewritePatternWithUnionMatchingToPropertyPattern);
             BoundExpression? lengthAccess = node.LengthAccess;
             BoundExpression? indexerAccess = node.IndexerAccess;
             BoundListPatternReceiverPlaceholder? receiverPlaceholder = node.ReceiverPlaceholder;
@@ -245,7 +255,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     , narrowedTypeCandidates
 #endif
                     );
-            } while (binaryPatternStack.TryPop(out binaryPattern));
+            }
+            while (binaryPatternStack.TryPop(out binaryPattern));
 
             binaryPatternStack.Free();
 #if DEBUG
@@ -268,6 +279,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var right = RewritePatternWithUnionMatchingToPropertyPattern((BoundPattern)rewriter.Visit(node.Right));
 
 #if DEBUG
+                    // Here we are verifying that the narrowed type computed during the initial binding phase in
+                    // 'Binder.BindBinaryPattern.bindBinaryPattern' matches what we compute here
+                    // with all recursive patterns in place. So, if the algorithm changes there, we might need to
+                    // update it here as well. However, we are trying to share the same helpers in both places as mach
+                    // as possible.
+
                     // Compute the common type. This algorithm is quadratic, but disjunctive patterns are unlikely to be huge
                     Binder.CollectDisjunctionTypes(right, narrowedTypeCandidates, hasUnionMatching: false);
                     var discardedSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
@@ -296,14 +313,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Otherwise, create a BoundPatternWithUnionMatching representing the conjunction with the following properties:
                 //  - There are no BoundPatternWithUnionMatching nodes under any ValuePattern.
                 //  - The last union matching in evaluation order is always at the top
-                //  - A preseeding BoundPatternWithUnionMatching in evaluation order, if any, is the BoundPatternWithUnionMatching.LeftOfPendingConjunction.
+                //  - A preceding BoundPatternWithUnionMatching in evaluation order, if any, is the BoundPatternWithUnionMatching.LeftOfPendingConjunction.
                 static BoundPattern makeConjunction(SyntaxNode node, BoundPattern left, BoundPattern? right, bool makeCompilerGenerated)
                 {
                     if (right is BoundPatternWithUnionMatching rightUnionPattern)
                     {
                         // Update LeftOfPendingConjunction with the conjunction of left and LeftOfPendingConjunction
 
-                        // The code below unwraps the following reqursive operation:
+                        // The code below unwraps the following recursive operation:
                         //      return new BoundPatternWithUnionMatching(
                         //          syntax: node,
                         //          rightUnionPattern.UnionType,
@@ -405,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // at the bottom, and BoundRecursivePatterns corresponding to the bottom-most BoundPatternWithUnionMatching will be
                 // at the top.
 
-                TypeSymbol inputType = unionPattern.InputType;
+                TypeSymbol unionType = unionPattern.UnionType;
                 BoundPropertySubpatternMember valueProperty = unionPattern.ValueProperty;
                 BoundPattern? leftOfPendingConjunction = unionPattern.LeftOfPendingConjunction;
                 BoundPattern valuePattern = unionPattern.ValuePattern;
@@ -422,12 +439,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         variableAccess: null,
                         isExplicitNotNullTest: false,
                         isUnionMatching: false,
-                        inputType: leftOfPendingConjunction?.NarrowedType ?? inputType,
-                        narrowedType: leftOfPendingConjunction?.NarrowedType ?? inputType).MakeCompilerGenerated();
+                        inputType: unionType,
+                        narrowedType: unionType).MakeCompilerGenerated();
 
                     if (leftOfPendingConjunction is BoundPatternWithUnionMatching leftUnionPattern)
                     {
-                        inputType = leftUnionPattern.ValuePattern.InputType;
+                        unionType = leftUnionPattern.UnionType;
                         valueProperty = leftUnionPattern.ValueProperty;
                         leftOfPendingConjunction = leftUnionPattern.LeftOfPendingConjunction;
                         valuePattern = MakeBinaryAnd(pattern.Syntax, leftUnionPattern.ValuePattern, result, makeCompilerGenerated: true);
@@ -439,6 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = MakeBinaryAnd(pattern.Syntax, left, result, makeCompilerGenerated: true);
                     }
 
+                    Debug.Assert(result.InputType.Equals(pattern.InputType, TypeCompareKind.AllIgnoreOptions));
                     return result;
                 }
             }

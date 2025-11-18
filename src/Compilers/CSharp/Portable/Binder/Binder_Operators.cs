@@ -4866,7 +4866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 TypeSymbol inputType = operand.Type;
-                NamedTypeSymbol unionType = PrepareForUnionMatching(node, ref inputType, isPatternDiagnostics);
+                NamedTypeSymbol unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, isPatternDiagnostics);
 
                 bool hasErrors = node.Right.HasErrors;
                 var convertedExpression = BindExpressionForPattern(inputType, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, out _);

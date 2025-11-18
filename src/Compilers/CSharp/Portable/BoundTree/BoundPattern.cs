@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (innerPattern is BoundNegatedPattern { IsUnionMatching: true })
             {
+                // This node doesn't represent a negation at the top level, it really represents a negation
+                // in a property sub-pattern. Therefore, doing a semantically equivalent unwrapping for such
+                // BoundNegatedPattern isn't trivial since we need to preserve the "union matching" piece stored
+                // in the node, probably by rewriting innerPattern.Negated.
+                // Bottom line, this will not be a trivial unwrapping. Since the unwrapping is not necessary for
+                // correctness, we simply don't do it.
                 return negated;
             }
 
