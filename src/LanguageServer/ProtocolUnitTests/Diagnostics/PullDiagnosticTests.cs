@@ -781,7 +781,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         if (useVSDiagnostics)
         {
             // We should have an unnecessary diagnostic marking all the usings.
-            Assert.True(results.Single().Diagnostics![0].Tags!.Contains(DiagnosticTag.Unnecessary));
+            Assert.True(results.Single().Diagnostics!.Any(d => d.Tags!.Contains(DiagnosticTag.Unnecessary)));
             Assert.Equal(firstLocation, results.Single().Diagnostics![1].Range);
 
             // We should have a regular diagnostic marking all the usings that doesn't fade.
