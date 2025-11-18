@@ -115,25 +115,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundExpression inputExpression,
             BoundPattern pattern,
+            bool hasUnionMatching,
             LabelSymbol whenTrueLabel,
             LabelSymbol whenFalseLabel,
             BindingDiagnosticBag diagnostics,
             bool forLowering = false)
         {
             var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, forLowering, diagnostics);
-            return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel);
+            return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, hasUnionMatching, whenTrueLabel);
         }
 
         private BoundDecisionDag CreateDecisionDagForIsPattern(
             SyntaxNode syntax,
             BoundExpression inputExpression,
             BoundPattern pattern,
+            bool hasUnionMatching,
             LabelSymbol whenTrueLabel)
         {
             var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
 
             using var builder = TemporaryArray<StateForCase>.Empty;
-            builder.Add(MakeTestsForPattern(index: 1, pattern.Syntax, rootIdentifier, pattern, whenClause: null, whenTrueLabel));
+            builder.Add(MakeTestsForPattern(index: 1, pattern.Syntax, rootIdentifier, pattern, hasUnionMatching, whenClause: null, whenTrueLabel));
 
             return MakeBoundDecisionDag(syntax, ref builder.AsRef());
         }
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                     {
-                        builder.Add(MakeTestsForPattern(++i, label.Syntax, rootIdentifier, label.Pattern, label.WhenClause, label.Label));
+                        builder.Add(MakeTestsForPattern(++i, label.Syntax, rootIdentifier, label.Pattern, label.HasUnionMatching, label.WhenClause, label.Label));
                     }
                 }
             }
@@ -172,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int i = 0;
             using var builder = TemporaryArray<StateForCase>.GetInstance(switchArms.Length);
             foreach (BoundSwitchExpressionArm arm in switchArms)
-                builder.Add(MakeTestsForPattern(++i, arm.Syntax, rootIdentifier, arm.Pattern, arm.WhenClause, arm.Label));
+                builder.Add(MakeTestsForPattern(++i, arm.Syntax, rootIdentifier, arm.Pattern, arm.HasUnionMatching, arm.WhenClause, arm.Label));
 
             return MakeBoundDecisionDag(syntax, ref builder.AsRef());
         }
@@ -185,9 +187,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundDagTemp input,
             BoundPattern pattern,
+            bool hasUnionMatching,
             BoundExpression? whenClause,
             LabelSymbol label)
         {
+            if (hasUnionMatching)
+            {
+                pattern = UnionMatchingRewriter.Rewrite(_compilation, pattern);
+            }
+
             Tests tests = MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundPatternBinding> bindings);
             return new StateForCase(index, syntax, tests, bindings, whenClause, label);
         }
@@ -330,6 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundDagTemp output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
+            Debug.Assert(!pattern.IsUnionMatching);
             Debug.Assert(pattern.HasErrors || pattern.InputType.Equals(input.Type, TypeCompareKind.AllIgnoreOptions) || pattern.InputType.IsErrorType());
             switch (pattern)
             {

@@ -930,6 +930,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool negated = node.Pattern.IsNegated(out var pattern);
             Debug.Assert(negated == node.IsNegated);
 
+            // Note that 'IsNegated' helper used above doesn't unwrap a negation utilizing a Union matchig.
+            // A comment in 'IsNegated' explains why.
+            // However, for the purposes of this component we have to do the unwrapping because
+            // 'DefiniteAssignmentPass.VisitPattern' never considers pattern locals under 'NegatedPattern'
+            // as definitely assigned. In this particular situation, when we are dealing with a struct
+            // Union type, they should be considered definitely assigned. Therefore, we perform a semantically
+            // equivalent rewrite, first by rewriting to a recursive pattern, and then by pulling negation out
+            // of the sub-pattern. In this situation a pattern '{Value: not (...) }' is equivalent to a pattern
+            // 'not {Value:  (...) }'  
+            if (node.HasUnionMatching &&
+                pattern is BoundNegatedPattern { IsUnionMatching: true } &&
+                UnionMatchingRewriter.Rewrite(compilation, pattern) is BoundRecursivePattern
+                {
+                    WasCompilerGenerated: true,
+                    DeclaredType: null,
+                    InputType: NamedTypeSymbol { TypeKind: TypeKind.Struct, IsUnionTypeNoUseSiteDiagnostics: true } inputType,
+                    DeconstructMethod: null,
+                    Deconstruction: { IsDefault: true },
+                    Properties:
+                        [
+                        {
+                            Pattern: { } nestedPattern,
+                            Member:
+                            { Type.SpecialType: SpecialType.System_Object, Symbol: var possibleUnionValueSymbol } and
+                            ({ Symbol: PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } } or { Symbol: null, HasErrors: true })
+                        } propertySubpattern
+                        ],
+                    Variable: null,
+                    VariableAccess: null,
+                    IsUnionMatching: false,
+                } rewritten &&
+                (possibleUnionValueSymbol is null || (Binder.HasIUnionValueSignature((PropertySymbol)possibleUnionValueSymbol) && possibleUnionValueSymbol.ContainingType.IsWellKnownTypeIUnion())))
+            {
+                Debug.Assert(!inputType.IsNullableType());
+                Debug.Assert(!negated);
+
+                negated ^= nestedPattern.IsNegated(out var negatedNestedPattern);
+
+                if (nestedPattern != negatedNestedPattern)
+                {
+                    pattern = rewritten.Update(
+                        rewritten.DeclaredType, rewritten.DeconstructMethod, rewritten.Deconstruction,
+                        [propertySubpattern.Update(propertySubpattern.Member, propertySubpattern.IsLengthOrCount, negatedNestedPattern)],
+                        rewritten.IsExplicitNotNullTest, rewritten.Variable, rewritten.VariableAccess, rewritten.IsUnionMatching,
+                        rewritten.InputType, rewritten.NarrowedType);
+                }
+            }
+
             if (VisitPossibleConditionalAccess(node.Expression, out var stateWhenNotNull))
             {
                 Debug.Assert(!IsConditionalState);

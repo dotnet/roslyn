@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder armBinder = this.GetRequiredBinder(node);
             bool hasErrors = switchGoverningType.IsErrorType();
             ImmutableArray<LocalSymbol> locals = _armScopeBinder.Locals;
-            BoundPattern pattern = armBinder.BindPattern(node.Pattern, switchGoverningType, permitDesignations: true, hasErrors, diagnostics);
+            BoundPattern pattern = armBinder.BindPattern(node.Pattern, switchGoverningType, permitDesignations: true, hasErrors, diagnostics, out bool hasUnionMatching);
             BoundExpression? whenClause = node.WhenClause != null
                 ? armBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
                 : null;
             BoundExpression armResult = armBinder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             var label = new GeneratedLabelSymbol("arm");
-            return new BoundSwitchExpressionArm(node, locals, pattern, whenClause, armResult, label, hasErrors | pattern.HasErrors);
+            return new BoundSwitchExpressionArm(node, locals, pattern, hasUnionMatching, whenClause, armResult, label, hasErrors | pattern.HasErrors);
         }
     }
 }

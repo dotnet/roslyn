@@ -418,6 +418,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The required name for the <see cref="Nullable{T}.Value"/> property used in
         /// a ForEach statement when the collection is a nullable struct.
+        /// Also required name for the IUnion.Value property used in Union matching.
         /// </summary>
         public const string ValuePropertyName = "Value";
 
@@ -516,5 +517,10 @@ namespace Microsoft.CodeAnalysis
         /// The prefix for the marker type name.
         /// </summary>
         internal const string ExtensionMarkerTypePrefix = "<M>$";
+
+        /// <summary>
+        /// The name of the IUnion interface used by Union feature.
+        /// </summary>
+        public const string IUnionInterfaceName = "IUnion";
     }
 }

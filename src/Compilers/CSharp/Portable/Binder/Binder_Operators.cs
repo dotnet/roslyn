@@ -4865,19 +4865,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operand = ToBadExpression(operand);
                 }
 
+                TypeSymbol inputType = operand.Type;
+                NamedTypeSymbol unionType = PrepareForUnionMatchingIfAppropriateAndReturnUnionType(node, ref inputType, isPatternDiagnostics);
+
                 bool hasErrors = node.Right.HasErrors;
-                var convertedExpression = BindExpressionForPattern(operand.Type, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, out _);
+                var convertedExpression = BindExpressionForPattern(inputType, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression, out _);
                 if (wasExpression)
                 {
                     hasErrors |= constantValueOpt is null;
                     isTypeDiagnostics.Free();
                     diagnostics.AddRangeAndFree(isPatternDiagnostics);
+
                     var boundConstantPattern = new BoundConstantPattern(
-                        node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, operand.Type, convertedExpression.Type ?? operand.Type, hasErrors)
+                        node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, isUnionMatching: unionType is not null, inputType: unionType ?? inputType, convertedExpression.Type ?? inputType, hasErrors)
 #pragma warning disable format
                         { WasCompilerGenerated = true };
 #pragma warning restore format
-                    return MakeIsPatternExpression(node, operand, boundConstantPattern, resultType, operandHasErrors, diagnostics);
+                    return MakeIsPatternExpression(node, operand, boundConstantPattern, boundConstantPattern.IsUnionMatching, resultType, operandHasErrors, diagnostics);
                 }
 
                 isPatternDiagnostics.Free();
