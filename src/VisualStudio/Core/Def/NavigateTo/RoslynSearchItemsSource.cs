@@ -16,11 +16,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo;
 internal sealed partial class RoslynSearchItemsSourceProvider
 {
     /// <summary>
-    /// Replace with <see cref="PredefinedUserFilterNames"/> when this name is publicly published.
-    /// </summary>
-    private const string IncludeGeneratedItems = nameof(IncludeGeneratedItems);
-
-    /// <summary>
     /// Roslyn implementation of <see cref="ISearchItemsSource"/>.  This is the type actually responsible for
     /// calling into the underlying <see cref="NavigateToSearcher"/> and marshalling the results over to the ui.
     /// </summary>
@@ -96,7 +91,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             };
 
             var documentSupport = NavigateToDocumentSupport.AllDocuments;
-            if (searchQuery.FiltersStates.TryGetValue(IncludeGeneratedItems, out var includeGeneratedItemsFilterValue) &&
+            if (searchQuery.FiltersStates.TryGetValue(PredefinedUserFilterNames.IncludeExternalItems, out var includeGeneratedItemsFilterValue) &&
                 bool.TryParse(includeGeneratedItemsFilterValue, out var includeGeneratedItems) &&
                 !includeGeneratedItems)
             {
