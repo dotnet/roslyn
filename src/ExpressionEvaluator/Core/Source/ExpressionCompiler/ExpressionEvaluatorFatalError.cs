@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var hKeyCurrentUserField = registryType.GetTypeInfo().GetDeclaredField("CurrentUser");
                     if (hKeyCurrentUserField != null && hKeyCurrentUserField.IsStatic)
                     {
-                        using var currentUserKey = (IDisposable)hKeyCurrentUserField.GetValue(null)!;
+                        using var currentUserKey = hKeyCurrentUserField.GetValue(null) as IDisposable;
+                        RoslynDebug.AssertNotNull(currentUserKey);
                         var openSubKeyMethod = currentUserKey.GetType().GetTypeInfo().GetDeclaredMethod("OpenSubKey", [typeof(string), typeof(bool)]);
 
                         using var eeKey = (IDisposable?)openSubKeyMethod?.Invoke(currentUserKey, new object[] { RegistryKey, /*writable*/ false });

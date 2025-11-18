@@ -576,7 +576,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             {
 #if NET8_0_OR_GREATER
                 // Might be an inline array struct
-                if (indices.Length == 1 && InlineArrayHelpers.IsInlineArray(Type.GetLmrType()))
+                if (indices.Length == 1 && InlineArrayHelpers.TryGetInlineArrayInfo(Type.GetLmrType(), out _, out _))
                 {
                     // Since reflection is inadequate to dynamically access inline array elements,
                     // we have to assume it's the special SampleInlineArray type we define for testing and 
