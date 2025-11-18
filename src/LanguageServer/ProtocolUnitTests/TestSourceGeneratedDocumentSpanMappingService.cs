@@ -12,11 +12,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 [ExportWorkspaceService(typeof(ISourceGeneratedDocumentSpanMappingService))]
 [Shared]
+[PartNotDiscoverable]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class TestSourceGeneratedDocumentSpanMappingService() : ISourceGeneratedDocumentSpanMappingService
@@ -33,14 +35,15 @@ internal class TestSourceGeneratedDocumentSpanMappingService() : ISourceGenerate
         throw new NotImplementedException();
     }
 
-    public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(SourceGeneratedDocument document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(SourceGeneratedDocument document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
         if (document.IsRazorSourceGeneratedDocument())
         {
+            var sourceText = await document.GetTextAsync(cancellationToken);
             DidMapSpans = true;
-            return Task.FromResult<ImmutableArray<MappedSpanResult>>([new(document.FilePath, default, default)]);
+            return spans.SelectAsArray(s => new MappedSpanResult(document.FilePath, sourceText.Lines.GetLinePositionSpan(s), s));
         }
 
-        return Task.FromResult(ImmutableArray<MappedSpanResult>.Empty);
+        return [];
     }
 }
