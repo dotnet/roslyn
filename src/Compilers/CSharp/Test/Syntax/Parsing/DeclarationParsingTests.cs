@@ -13742,5 +13742,120 @@ I1(x);";
             }
             EOF();
         }
+
+        [Fact]
+        public void ParseEmptyTypeParameterAttributeLists14()
+        {
+            UsingTree("""
+                class C< public class D {}
+                """,
+                // (1,10): error CS1001: Identifier expected
+                // class C< public class D {}
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "public").WithLocation(1, 10),
+                // (1,10): error CS1003: Syntax error, '>' expected
+                // class C< public class D {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "public").WithArguments(">").WithLocation(1, 10),
+                // (1,10): error CS1514: { expected
+                // class C< public class D {}
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "public").WithLocation(1, 10),
+                // (1,10): error CS1513: } expected
+                // class C< public class D {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 10));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        M(SyntaxKind.TypeParameter);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "D");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseEmptyTypeParameterAttributeLists15()
+        {
+            UsingTree("""
+                class C<[] public class D {}
+                """,
+                // (1,10): error CS1001: Identifier expected
+                // class C<[] public class D {}
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 10),
+                // (1,12): error CS1001: Identifier expected
+                // class C<[] public class D {}
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "public").WithLocation(1, 12),
+                // (1,12): error CS1003: Syntax error, '>' expected
+                // class C<[] public class D {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "public").WithArguments(">").WithLocation(1, 12),
+                // (1,12): error CS1514: { expected
+                // class C<[] public class D {}
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "public").WithLocation(1, 12),
+                // (1,12): error CS1513: } expected
+                // class C<[] public class D {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 12));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                M(SyntaxKind.Attribute);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.GreaterThanToken);
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "D");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }
