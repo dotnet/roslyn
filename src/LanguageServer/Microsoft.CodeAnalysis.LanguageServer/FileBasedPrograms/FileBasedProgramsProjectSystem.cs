@@ -83,6 +83,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         // If this document has a file-based program syntactic marker, but we aren't loading it in a file-based programs project,
         // we need the caller to remove and re-add this document, so that it gets put in a file-based programs project instead.
+        // See the check in 'LspWorkspaceManager.GetLspDocumentInfoAsync', which removes a document based on 'IsMiscellaneousFilesDocumentAsync' result,
+        // then calls 'GetLspDocumentInfoAsync' again for the same request.
         if (!isLoadedAsFileBasedProgram && VirtualProjectXmlProvider.IsFileBasedProgram(await document.GetTextAsync(cancellationToken)))
             return false;
 
