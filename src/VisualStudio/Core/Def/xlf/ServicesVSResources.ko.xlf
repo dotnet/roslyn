@@ -1217,6 +1217,11 @@
         <target state="translated">불필요한 Using 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removed">
+        <source>Removed</source>
+        <target state="new">Removed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="translated">잘못된 JSON 문자열 보고</target>

@@ -1217,6 +1217,11 @@
         <target state="translated">不要な using の削除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removed">
+        <source>Removed</source>
+        <target state="new">Removed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="translated">無効な JSON 文字列を報告する</target>
